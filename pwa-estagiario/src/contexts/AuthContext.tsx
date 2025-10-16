@@ -15,6 +15,14 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  setUser: (user: User | null) => void;
+  completeRegistration: (userId: string, registrationData: {
+    contractStartDate: string;
+    contractEndDate: string;
+    totalContractHours: number;
+    weeklyHours?: number;
+    dailyHours?: number;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,8 +77,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/login');
   };
 
+  const completeRegistration = async (userId: string, registrationData: {
+    contractStartDate: string;
+    contractEndDate: string;
+    totalContractHours: number;
+    weeklyHours?: number;
+    dailyHours?: number;
+  }) => {
+    try {
+      const { data } = await api.post('/auth/complete-registration', {
+        userId,
+        ...registrationData,
+      });
+      
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      
+      setUser(data.user);
+      toast.success('Cadastro finalizado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Erro ao finalizar cadastro');
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser, completeRegistration }}>
       {children}
     </AuthContext.Provider>
   );

@@ -20,34 +20,6 @@ async function main() {
   });
   console.log('✅ Admin criado:', admin.email);
 
-  // Criar usuário supervisor
-  const supervisorPassword = await bcrypt.hash('supervisor123', 10);
-  const supervisor = await prisma.user.upsert({
-    where: { email: 'supervisor@ponto.com' },
-    update: {},
-    create: {
-      email: 'supervisor@ponto.com',
-      name: 'Supervisor',
-      password: supervisorPassword,
-      role: 'SUPERVISOR',
-    },
-  });
-  console.log('✅ Supervisor criado:', supervisor.email);
-
-  // Criar estagiário de teste
-  const estagioPassword = await bcrypt.hash('estagio123', 10);
-  const estagiario = await prisma.user.upsert({
-    where: { email: 'estagiario@ponto.com' },
-    update: {},
-    create: {
-      email: 'estagiario@ponto.com',
-      name: 'João Silva',
-      password: estagioPassword,
-      role: 'ESTAGIARIO',
-    },
-  });
-  console.log('✅ Estagiário criado:', estagiario.email);
-
   // Criar máquina de ponto
   const machine = await prisma.machine.upsert({
     where: { publicId: 'MACHINE_001' },

@@ -75,20 +75,29 @@ export class AuthService {
           data: { googleId: googleUser.id },
         });
       } else {
-        // Criar novo usuário
+        // Criar usuário temporário - requer completar cadastro
         user = await this.prisma.user.create({
           data: {
             email: googleUser.email,
             name: googleUser.name,
             googleId: googleUser.id,
             role: 'ESTAGIARIO',
+            isActive: false, // Inativo até completar cadastro
           },
         });
+
+        // Retornar indicação de que precisa completar cadastro
+        return {
+          requiresRegistration: true,
+          tempUserId: user.id,
+          email: user.email,
+          name: user.name,
+        };
       }
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Usuário inativo');
+      throw new UnauthorizedException('Usuário inativo ou cadastro incompleto');
     }
 
     return this.generateTokens(user);
@@ -243,6 +252,41 @@ export class AuthService {
     });
 
     return { success: true };
+  }
+
+  async completeRegistration(userId: string, registrationData: {
+    contractStartDate: string;
+    contractEndDate: string;
+    totalContractHours: number;
+    weeklyHours?: number;
+    dailyHours?: number;
+  }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    if (user.isActive) {
+      throw new BadRequestException('Usuário já possui cadastro completo');
+    }
+
+    // Atualizar usuário com dados do contrato
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        contractStartDate: new Date(registrationData.contractStartDate),
+        contractEndDate: new Date(registrationData.contractEndDate),
+        totalContractHours: registrationData.totalContractHours,
+        weeklyHours: registrationData.weeklyHours || 30,
+        dailyHours: registrationData.dailyHours || 6,
+        isActive: true, // Ativar usuário após completar cadastro
+      },
+    });
+
+    return this.generateTokens(updatedUser);
   }
 
   private verify2FACode(secret: string, code: string): boolean {

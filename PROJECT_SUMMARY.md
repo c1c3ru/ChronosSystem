@@ -271,13 +271,14 @@ Após executar o seed:
 | Tipo | Email | Senha | Função |
 |------|-------|-------|--------|
 | Admin | admin@ponto.com | admin123 | ADMIN |
-| Supervisor | supervisor@ponto.com | supervisor123 | SUPERVISOR |
-| Estagiário | estagiario@ponto.com | estagio123 | ESTAGIARIO |
+
+**Nota:** Os estagiários agora fazem login exclusivamente via Google OAuth e completam seu cadastro através de um modal com informações do contrato de estágio.
 
 ## ✨ Funcionalidades Principais
 
 ### Para Estagiários
-- Login com email/senha ou Google
+- Login exclusivo via Google OAuth
+- Modal de cadastro para completar informações do contrato
 - Escanear QR code para registrar ponto
 - Ver histórico de registros
 - Solicitar correções de ponto
