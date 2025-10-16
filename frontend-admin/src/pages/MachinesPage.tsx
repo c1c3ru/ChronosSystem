@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Monitor, Edit, Trash2 } from 'lucide-react';
@@ -144,3 +145,6 @@ export default function MachinesPage() {
     </div>
   );
 }
+=======
+[conteúdo completo do arquivo]
+>>>>>>> 935f7b70044b3bbc872b4c4fe5c0bd4035148ce5

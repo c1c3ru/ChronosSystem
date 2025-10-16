@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -608,3 +609,6 @@ process.on('SIGINT', async () => {
   await pool.end();
   process.exit(0);
 });
+=======
+[conteúdo completo do arquivo]
+>>>>>>> 935f7b70044b3bbc872b4c4fe5c0bd4035148ce5
