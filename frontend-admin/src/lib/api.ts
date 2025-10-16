@@ -18,31 +18,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor para refresh token
+// Interceptor para tratar erros de autenticação
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const { data } = await axios.post(`${API_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+    if (error.response?.status === 401) {
+      // Token inválido ou expirado, fazer logout
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      
+      // Só redirecionar se não estivermos já na página de login
+      if (window.location.pathname !== '/login') {
         window.location.href = '/login';
-        return Promise.reject(refreshError);
       }
     }
 

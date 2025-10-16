@@ -50,8 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      // Backend retorna 'access_token', não 'accessToken'
+      localStorage.setItem('accessToken', data.access_token);
+      if (data.refresh_token) {
+        localStorage.setItem('refreshToken', data.refresh_token);
+      }
       
       setUser(data.user);
       toast.success('Login realizado com sucesso!');
