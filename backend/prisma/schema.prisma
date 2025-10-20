@@ -53,6 +53,8 @@ model User {
   auditLogs         AuditLog[]
   refreshTokens     RefreshToken[]
   workSummaries     WorkSummary[]
+  justifications    AbsenceJustification[]
+  reviewedJustifications AbsenceJustification[] @relation("JustificationReviewer")
 
   @@index([email])
   @@index([googleId])
@@ -229,4 +231,70 @@ model WorkSummary {
   @@index([userId, date])
   @@index([date])
   @@map("work_summaries")
+}
+
+// Enum para status da justificativa
+enum JustificationStatus {
+  PENDENTE
+  APROVADO
+  REJEITADO
+}
+
+// Enum para tipo de justificativa
+enum JustificationType {
+  ATESTADO_MEDICO
+  COMPROMISSO_PESSOAL
+  PROBLEMA_FAMILIAR
+  TRANSPORTE
+  ATRASO_TRANSPORTE
+  ATRASO_MEDICO
+  ATRASO_PESSOAL
+  OUTROS
+}
+
+// Enum para categoria da justificativa
+enum JustificationCategory {
+  FALTA          // Falta do dia inteiro
+  ATRASO         // Atraso na entrada
+  SAIDA_ANTECIPADA // Saída antes do horário
+}
+
+// Justificativas de faltas e atrasos
+model AbsenceJustification {
+  id              String                @id @default(uuid())
+  userId          String
+  date            DateTime              @db.Date
+  category        JustificationCategory @default(FALTA)
+  type            JustificationType
+  reason          String                @db.Text
+  
+  // Campos específicos para atrasos
+  delayMinutes    Int?                  // Minutos de atraso (apenas para ATRASO)
+  expectedTime    DateTime?             // Horário esperado de entrada
+  actualTime      DateTime?             // Horário real de entrada
+  
+  // Links para documentos externos (Google Drive, Dropbox, etc.)
+  documentLinks   String?               @db.Text // JSON array de links
+  
+  // Status e aprovação
+  status          JustificationStatus @default(PENDENTE)
+  reviewedBy      String?             // ID do supervisor/admin
+  reviewedAt      DateTime?
+  reviewNotes     String?             @db.Text
+  
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relações
+  user            User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  reviewer        User?               @relation("JustificationReviewer", fields: [reviewedBy], references: [id])
+  
+  @@unique([userId, date, category])
+  @@index([userId, status])
+  @@index([date])
+  @@index([status])
+  @@index([category])
+  @@index([delayMinutes])
+  @@map("absence_justifications")
 }

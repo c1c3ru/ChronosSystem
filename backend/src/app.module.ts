@@ -10,6 +10,7 @@ import { QrModule } from './qr/qr.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { AuditModule } from './audit/audit.module';
 import { WorkHoursModule } from './work-hours/work-hours.module';
+import { JustificationsModule } from './justifications/justifications.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -32,6 +33,7 @@ import { HealthController } from './health/health.controller';
     AttendanceModule,
     AuditModule,
     WorkHoursModule,
+    JustificationsModule,
   ],
   controllers: [HealthController],
 })
