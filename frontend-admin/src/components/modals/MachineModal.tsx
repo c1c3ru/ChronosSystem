@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
@@ -171,6 +170,3 @@ export default function MachineModal({ isOpen, onClose, machine }: MachineModalP
     </div>
   );
 }
-=======
-[conteúdo completo do arquivo]
->>>>>>> 935f7b70044b3bbc872b4c4fe5c0bd4035148ce5
