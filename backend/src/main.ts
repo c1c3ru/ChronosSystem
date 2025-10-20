@@ -13,10 +13,18 @@ async function bootstrap() {
   app.use(helmet());
   app.use(compression());
 
-  // CORS
+  // CORS - Configuração para produção
+  const corsOrigins = configService.get('CORS_ORIGINS')?.split(',') || [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:3002'
+  ];
+  
   app.enableCors({
-    origin: configService.get('FRONTEND_URL') || 'http://localhost:3000',
+    origin: corsOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   // Global prefix
