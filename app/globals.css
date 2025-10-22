@@ -150,12 +150,22 @@
   
   /* Input component */
   .input {
-    @apply flex h-10 w-full rounded-lg border border-input bg-input/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-lg border border-input bg-input/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  /* File input specific styles */
+  .input[type="file"] {
+    border: 0;
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
   }
   
   /* Glass morphism effect */
   .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   /* Gradient backgrounds */

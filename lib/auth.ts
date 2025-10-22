@@ -57,6 +57,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.sub = user.id
+        token.profileComplete = (user as any).profileComplete
       }
       return token
     },
@@ -64,6 +65,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        session.user.profileComplete = token.profileComplete as boolean
       }
       return session
     },
@@ -77,6 +79,7 @@ export const authOptions: NextAuthOptions = {
         if (existingUser) {
           user.role = existingUser.role
           user.id = existingUser.id
+          user.profileComplete = existingUser.profileComplete
         } else {
           // Criar novo usuário com role EMPLOYEE por padrão
           const newUser = await prisma.user.create({
@@ -84,11 +87,13 @@ export const authOptions: NextAuthOptions = {
               email: user.email!,
               name: user.name,
               image: user.image,
-              role: 'EMPLOYEE'
+              role: 'EMPLOYEE',
+              profileComplete: false
             }
           })
           user.role = newUser.role
           user.id = newUser.id
+          user.profileComplete = newUser.profileComplete
         }
       }
       return true

@@ -45,21 +45,27 @@ model User {
   image         String?
   password      String?
   role          String    @default("EMPLOYEE")
+  
+  // Campos adicionais para perfil completo
+  phone             String?
+  address           String?
+  birthDate         DateTime?
+  emergencyContact  String?
+  emergencyPhone    String?
+  department        String?
+  startDate         DateTime?
+  profileComplete   Boolean   @default(false)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  // Dados do estagiário
-  studentId     String?   @unique
-  course        String?
-  startDate     DateTime?
-  endDate       DateTime?
-  workHours     Int?      @default(20) // horas semanais
-  supervisor    String?
 
   accounts          Account[]
   sessions          Session[]
   attendanceRecords AttendanceRecord[]
   auditLogs         AuditLog[]
+  justifications    Justification[]
+  reviewedJustifications Justification[] @relation("JustificationReviewer")
+  qrEvents          QrEvent[]
 }
 
 model VerificationToken {
@@ -114,12 +120,16 @@ model QrEvent {
   nonce     String   @unique
   expiresAt DateTime
   used      Boolean  @default(false)
+  usedAt    DateTime?
+  usedBy    String?
   createdAt DateTime @default(now())
 
   machine Machine @relation(fields: [machineId], references: [id])
+  user    User?   @relation(fields: [usedBy], references: [id])
 
   @@index([nonce])
-  @@index([expiresAt])
+  @@index([machineId, createdAt])
+  @@index([used, expiresAt])
 }
 
 model AuditLog {
@@ -136,5 +146,27 @@ model AuditLog {
   @@index([action, timestamp])
 }
 
+model Justification {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String   // "LATE", "ABSENCE"
+  date          DateTime
+  reason        String
+  status        String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  adminResponse String?
+  reviewedAt    DateTime?
+  reviewedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user     User  @relation(fields: [userId], references: [id])
+  reviewer User? @relation("JustificationReviewer", fields: [reviewedBy], references: [id])
+
+  @@index([userId, date])
+  @@index([status])
+}
+
 // Roles: "ADMIN", "SUPERVISOR", "EMPLOYEE"
 // AttendanceTypes: "ENTRY", "EXIT"
+// JustificationTypes: "LATE", "ABSENCE"
+// JustificationStatus: "PENDING", "APPROVED", "REJECTED"

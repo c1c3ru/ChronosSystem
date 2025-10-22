@@ -10,12 +10,9 @@ const updateUserSchema = z.object({
   email: z.string().email().optional(),
   password: z.string().min(6).optional(),
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']).optional(),
-  studentId: z.string().optional(),
-  course: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  workHours: z.number().optional(),
-  supervisor: z.string().optional()
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  department: z.string().optional()
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
@@ -42,12 +39,6 @@ export async function GET(
         name: true,
         email: true,
         role: true,
-        studentId: true,
-        course: true,
-        startDate: true,
-        endDate: true,
-        workHours: true,
-        supervisor: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -110,17 +101,6 @@ export async function PUT(
       }
     }
 
-    // Verificar conflitos de studentId
-    if (validatedData.studentId && validatedData.studentId !== existingUser.studentId) {
-      const studentIdExists = await prisma.user.findUnique({
-        where: { studentId: validatedData.studentId }
-      })
-
-      if (studentIdExists) {
-        return NextResponse.json({ error: 'ID do estudante já está em uso' }, { status: 400 })
-      }
-    }
-
     // Preparar dados para atualização
     const updateData: any = { ...validatedData }
 
@@ -129,15 +109,7 @@ export async function PUT(
       updateData.password = await bcrypt.hash(validatedData.password, 10)
     }
 
-    // Converter datas
-    if (validatedData.startDate) {
-      updateData.startDate = new Date(validatedData.startDate)
-    }
-    if (validatedData.endDate) {
-      updateData.endDate = new Date(validatedData.endDate)
-    }
-
-    const user = await prisma.user.update({
+    const user = await (prisma.user as any).update({
       where: { id: params.id },
       data: updateData,
       select: {
@@ -145,12 +117,6 @@ export async function PUT(
         name: true,
         email: true,
         role: true,
-        studentId: true,
-        course: true,
-        startDate: true,
-        endDate: true,
-        workHours: true,
-        supervisor: true,
         updatedAt: true
       }
     })

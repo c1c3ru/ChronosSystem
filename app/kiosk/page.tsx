@@ -14,7 +14,7 @@ interface QRData {
 }
 
 export default function KioskPage() {
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [qrData, setQrData] = useState<QRData | null>(null)
   const [isOnline, setIsOnline] = useState(true)
@@ -26,8 +26,11 @@ export default function KioskPage() {
     id: 'cm123456789' // ID real da máquina
   })
 
-  // Atualizar relógio a cada segundo
+  // Atualizar relógio a cada segundo (apenas no cliente)
   useEffect(() => {
+    // Definir o horário inicial apenas no cliente
+    setCurrentTime(new Date())
+    
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
@@ -38,31 +41,38 @@ export default function KioskPage() {
   // Gerar QR code dinâmico
   const generateQRCode = async () => {
     try {
-      const response = await fetch('/api/qr/generate', {
-        method: 'POST',
+      const response = await fetch('/api/kiosk/qr', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ machineId: machineInfo.id }),
       })
 
       if (response.ok) {
-        const data: QRData = await response.json()
-        setQrData(data)
+        const text = await response.text()
+        console.log('Response text:', text)
         
-        // Gerar imagem do QR code
-        const qrUrl = await QRCode.toDataURL(data.qrData, {
-          width: 320,
-          margin: 2,
-          color: {
-            dark: '#22c55e',
-            light: '#ffffff'
-          },
-          errorCorrectionLevel: 'M'
-        })
+        try {
+          const data: QRData = JSON.parse(text)
+          setQrData(data)
         
-        setQrCodeUrl(qrUrl)
-        setTimeLeft(data.validFor)
+          // Gerar imagem do QR code
+          const qrUrl = await QRCode.toDataURL(data.qrData, {
+            width: 320,
+            margin: 2,
+            color: {
+              dark: '#22c55e',
+              light: '#ffffff'
+            },
+            errorCorrectionLevel: 'M'
+          })
+          
+          setQrCodeUrl(qrUrl)
+          setTimeLeft(data.validFor)
+        } catch (parseError) {
+          console.error('Erro ao fazer parse do JSON:', parseError)
+          generateFallbackQR()
+        }
       } else {
         console.error('Erro ao gerar QR code:', response.statusText)
         // Fallback para QR estático em caso de erro
@@ -95,18 +105,17 @@ export default function KioskPage() {
       })
       
       setQrCodeUrl(qrUrl)
-      setTimeLeft(300) // 5 minutos
+      setTimeLeft(60) // 60 segundos
     } catch (error) {
       console.error('Erro ao gerar QR de fallback:', error)
     }
   }
 
-  // Gerar QR code inicial e configurar regeneração
+  // Gerar QR code inicial e configurar regeneração automática a cada 60 segundos
   useEffect(() => {
     generateQRCode()
     
-    // Regenerar QR a cada 5 minutos
-    const qrTimer = setInterval(generateQRCode, 5 * 60 * 1000)
+    const qrTimer = setInterval(generateQRCode, 60 * 1000) // 60 segundos
 
     return () => clearInterval(qrTimer)
   }, [machineInfo.id])
@@ -114,17 +123,11 @@ export default function KioskPage() {
   // Countdown do tempo restante do QR
   useEffect(() => {
     if (timeLeft > 0) {
-      const countdown = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            generateQRCode() // Regenerar quando expirar
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-
-      return () => clearInterval(countdown)
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (timeLeft === 0 && qrCodeUrl) {
+      // QR expirou após 60 segundos, gerar novo
+      generateQRCode()
     }
   }, [timeLeft])
 
@@ -202,10 +205,10 @@ export default function KioskPage() {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-white">
-                {formatTime(currentTime)}
+                {currentTime ? formatTime(currentTime) : '--:--:--'}
               </div>
               <div className="text-sm text-neutral-400">
-                {formatDate(currentTime)}
+                {currentTime ? formatDate(currentTime) : '--/--/----'}
               </div>
             </div>
           </div>

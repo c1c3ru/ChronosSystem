@@ -10,12 +10,9 @@ const createUserSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']),
-  studentId: z.string().optional(),
-  course: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  workHours: z.number().optional(),
-  supervisor: z.string().optional()
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  department: z.string().optional()
 })
 
 // GET /api/users - Listar usuários
@@ -38,8 +35,7 @@ export async function GET(request: NextRequest) {
         search ? {
           OR: [
             { name: { contains: search, mode: 'insensitive' as const } },
-            { email: { contains: search, mode: 'insensitive' as const } },
-            { studentId: { contains: search, mode: 'insensitive' as const } }
+            { email: { contains: search, mode: 'insensitive' as const } }
           ]
         } : {},
         role ? { role } : {}
@@ -54,12 +50,6 @@ export async function GET(request: NextRequest) {
           name: true,
           email: true,
           role: true,
-          studentId: true,
-          course: true,
-          startDate: true,
-          endDate: true,
-          workHours: true,
-          supervisor: true,
           createdAt: true,
           _count: {
             select: {
@@ -110,38 +100,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email já está em uso' }, { status: 400 })
     }
 
-    // Verificar se studentId já existe (se fornecido)
-    if (validatedData.studentId) {
-      const existingStudent = await prisma.user.findUnique({
-        where: { studentId: validatedData.studentId }
-      })
-
-      if (existingStudent) {
-        return NextResponse.json({ error: 'ID do estudante já está em uso' }, { status: 400 })
-      }
-    }
-
     // Hash da senha
     const hashedPassword = await bcrypt.hash(validatedData.password, 10)
 
-    const user = await prisma.user.create({
+    const user = await (prisma.user as any).create({
       data: {
-        ...validatedData,
+        name: validatedData.name,
+        email: validatedData.email,
         password: hashedPassword,
-        startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
-        endDate: validatedData.endDate ? new Date(validatedData.endDate) : null
+        role: validatedData.role,
+        phone: validatedData.phone,
+        address: validatedData.address,
+        department: validatedData.department
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        studentId: true,
-        course: true,
-        startDate: true,
-        endDate: true,
-        workHours: true,
-        supervisor: true,
         createdAt: true
       }
     })

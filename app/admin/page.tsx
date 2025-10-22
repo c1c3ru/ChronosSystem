@@ -243,35 +243,41 @@ export default function AdminPage() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
-                    <UserPlus className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Novo Usuário</h3>
-                  <p className="text-neutral-400 text-sm">Cadastrar novo estagiário ou supervisor</p>
-                </CardContent>
-              </Card>
+              <Link href="/admin/users">
+                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                  <CardContent className="p-6 text-center">
+                    <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
+                      <UserPlus className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Gerenciar Usuários</h3>
+                    <p className="text-neutral-400 text-sm">Cadastrar e gerenciar estagiários</p>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary-500/30 transition-colors">
-                    <Monitor className="h-8 w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Nova Máquina</h3>
-                  <p className="text-neutral-400 text-sm">Adicionar novo ponto de registro</p>
-                </CardContent>
-              </Card>
+              <Link href="/admin/machines">
+                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                  <CardContent className="p-6 text-center">
+                    <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary-500/30 transition-colors">
+                      <Monitor className="h-8 w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Gerenciar Máquinas</h3>
+                    <p className="text-neutral-400 text-sm">Adicionar e configurar pontos</p>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <div className="bg-warning/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-warning/30 transition-colors">
-                    <BarChart3 className="h-8 w-8 text-warning group-hover:scale-110 transition-transform" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Relatórios</h3>
-                  <p className="text-neutral-400 text-sm">Visualizar relatórios e estatísticas</p>
-                </CardContent>
-              </Card>
+              <Link href="/admin/reports">
+                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                  <CardContent className="p-6 text-center">
+                    <div className="bg-warning/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-warning/30 transition-colors">
+                      <BarChart3 className="h-8 w-8 text-warning group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Relatórios</h3>
+                    <p className="text-neutral-400 text-sm">Visualizar relatórios e estatísticas</p>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
 
             {/* Recent Activity */}

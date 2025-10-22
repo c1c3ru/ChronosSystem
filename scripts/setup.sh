@@ -29,8 +29,30 @@ npm ci
 # Configurar arquivo de ambiente
 if [ ! -f .env.local ]; then
     echo "⚙️  Criando arquivo .env.local..."
-    cp .env.example .env.local
-    echo "📝 Configure as variáveis em .env.local antes de continuar"
+    if [ -f .env.example ]; then
+        cp .env.example .env.local
+        echo "📝 Configure as variáveis em .env.local antes de continuar"
+    else
+        echo "⚠️  Arquivo .env.example não encontrado. Criando .env.local básico..."
+        cat > .env.local << 'EOF'
+# Database
+DATABASE_URL="file:./dev.db"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-change-in-production"
+
+# Google OAuth (opcional)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# QR Code Security
+QR_SECRET="your-qr-secret-key-change-in-production"
+EOF
+        echo "📝 Arquivo .env.local criado. Configure as variáveis antes de continuar"
+    fi
+else
+    echo "✅ Arquivo .env.local já existe"
 fi
 
 # Gerar Prisma Client

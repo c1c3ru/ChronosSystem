@@ -6,11 +6,12 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: 'primary' | 'secondary' | 'ghost' | 'destructive'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
+  asChild?: boolean
   children: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading = false, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', loading = false, asChild = false, children, disabled, ...props }, ref) => {
     const baseClasses = 'btn'
     
     const variantClasses = {
@@ -26,15 +27,27 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'btn-lg'
     }
 
+    const buttonClasses = cn(
+      baseClasses,
+      variantClasses[variant],
+      sizeClasses[size],
+      loading && 'opacity-50 cursor-not-allowed',
+      className
+    )
+
+    if (asChild) {
+      return React.cloneElement(
+        children as React.ReactElement,
+        {
+          className: cn(buttonClasses, (children as React.ReactElement).props?.className),
+          ...props
+        }
+      )
+    }
+
     return (
       <button
-        className={cn(
-          baseClasses,
-          variantClasses[variant],
-          sizeClasses[size],
-          loading && 'opacity-50 cursor-not-allowed',
-          className
-        )}
+        className={buttonClasses}
         ref={ref}
         disabled={disabled || loading}
         {...props}

@@ -6,18 +6,19 @@ import { useEffect, useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { 
-  Clock, 
+  Camera, 
   QrCode, 
-  Calendar, 
-  User,
-  LogOut,
-  Camera,
-  History,
-  Home,
+  History, 
+  Timer, 
+  MapPin, 
+  Calendar,
   Play,
   Square,
-  MapPin,
-  Timer
+  Clock,
+  AlertTriangle,
+  User,
+  LogOut,
+  Home
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -145,6 +146,53 @@ export default function EmployeePage() {
     setScanning(false)
   }
 
+  const handleQRScan = async (data: string) => {
+    try {
+      console.log('QR Code escaneado:', data)
+      
+      // Enviar para API de registro de ponto
+      const response = await fetch('/api/attendance/qr-scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ qrData: data })
+      })
+      
+      const result = await response.json()
+      
+      if (response.ok) {
+        // Sucesso - atualizar status
+        console.log('Registro realizado:', result)
+        
+        setWorkStatus(prev => prev ? {
+          ...prev,
+          isWorking: result.record.type === 'ENTRY',
+          lastRecord: {
+            type: result.record.type,
+            time: new Date(result.record.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            location: result.record.location || 'Terminal Principal'
+          }
+        } : null)
+        
+        // Mostrar mensagem de sucesso
+        alert(result.message)
+      } else {
+        // Erro - mostrar mensagem
+        console.error('Erro no registro:', result.error)
+        alert(`Erro: ${result.error}`)
+      }
+      
+      // Parar scanner
+      stopScanning()
+      
+    } catch (error) {
+      console.error('Erro ao processar QR:', error)
+      alert('Erro de conexão. Tente novamente.')
+      stopScanning()
+    }
+  }
+
   if (status === 'loading') {
     return <Loading size="lg" text="Carregando..." />
   }
@@ -260,7 +308,7 @@ export default function EmployeePage() {
             )}
 
             {/* Main Actions */}
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
               {/* QR Code Scanner */}
               <Card variant="glass" className="group hover:scale-105 transition-all duration-200">
                 <CardContent className="p-8 text-center">
@@ -301,6 +349,26 @@ export default function EmployeePage() {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Justifications */}
+              <Link href="/employee/justifications">
+                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                  <CardContent className="p-8 text-center">
+                    <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
+                      <AlertTriangle className="h-10 w-10 text-warning" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-3">
+                      Justificativas
+                    </h3>
+                    <p className="text-neutral-400 text-sm mb-6">
+                      Justifique atrasos e faltas (&gt;30 min)
+                    </p>
+                    <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10">
+                      Gerenciar
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
 
             {/* Recent Records */}
