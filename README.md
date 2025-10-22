@@ -144,6 +144,14 @@ MIT
 4. Push para a branch (`git push origin feature/nova-funcionalidade`)
 5. Abra um Pull Request
 
+## 🔧 Troubleshooting
+
+### IDE Warnings
+Se você ver warnings como "Context access might be invalid" nos arquivos GitHub Actions, consulte: [docs/IDE_WARNINGS.md](docs/IDE_WARNINGS.md)
+
+### Deploy Issues
+Para problemas de deploy e configuração de variáveis de ambiente, consulte: [DEPLOYMENT.md](DEPLOYMENT.md)
+
 ## 📞 Suporte
 
 Para questões e suporte, abra uma issue no GitHub.

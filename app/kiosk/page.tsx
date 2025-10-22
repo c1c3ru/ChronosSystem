@@ -1,14 +1,30 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Clock, Wifi, WifiOff, RefreshCw } from 'lucide-react'
+import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle } from 'lucide-react'
 import QRCode from 'qrcode'
+
+interface QRData {
+  qrData: string
+  machineId: string
+  machineName: string
+  location: string
+  expiresAt: string
+  validFor: number
+}
 
 export default function KioskPage() {
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [qrCode, setQrCode] = useState('')
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [qrData, setQrData] = useState<QRData | null>(null)
   const [isOnline, setIsOnline] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [recentScans, setRecentScans] = useState<any[]>([])
+  const [machineInfo] = useState({
+    name: 'Terminal Principal',
+    location: 'Recepção - Térreo',
+    id: 'cm123456789' // ID real da máquina
+  })
 
   // Atualizar relógio a cada segundo
   useEffect(() => {
@@ -19,60 +35,123 @@ export default function KioskPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Gerar novo QR code a cada 60 segundos
-  useEffect(() => {
-    const generateQR = async () => {
-      setIsRefreshing(true)
-      
-      try {
-        // Simular dados do QR (em produção viria da API)
-        const qrData = {
-          machineId: 'KIOSK_001',
-          timestamp: new Date().toISOString(),
-          nonce: Math.random().toString(36).substring(2, 15),
-          expires: 60
-        }
+  // Gerar QR code dinâmico
+  const generateQRCode = async () => {
+    try {
+      const response = await fetch('/api/qr/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ machineId: machineInfo.id }),
+      })
 
-        const qrString = await QRCode.toDataURL(JSON.stringify(qrData), {
-          width: 300,
+      if (response.ok) {
+        const data: QRData = await response.json()
+        setQrData(data)
+        
+        // Gerar imagem do QR code
+        const qrUrl = await QRCode.toDataURL(data.qrData, {
+          width: 320,
           margin: 2,
           color: {
-            dark: '#10B981',
-            light: '#FFFFFF'
-          }
+            dark: '#22c55e',
+            light: '#ffffff'
+          },
+          errorCorrectionLevel: 'M'
         })
-
-        setQrCode(qrString)
-        setIsOnline(true)
-      } catch (error) {
-        console.error('Erro ao gerar QR code:', error)
-        setIsOnline(false)
-      } finally {
-        setIsRefreshing(false)
+        
+        setQrCodeUrl(qrUrl)
+        setTimeLeft(data.validFor)
+      } else {
+        console.error('Erro ao gerar QR code:', response.statusText)
+        // Fallback para QR estático em caso de erro
+        generateFallbackQR()
       }
+    } catch (error) {
+      console.error('Erro ao gerar QR code:', error)
+      generateFallbackQR()
     }
+  }
 
-    // Gerar QR imediatamente
-    generateQR()
+  // QR code de fallback em caso de erro na API
+  const generateFallbackQR = async () => {
+    try {
+      const fallbackData = {
+        machineId: machineInfo.id,
+        timestamp: Date.now(),
+        nonce: Math.random().toString(36).substring(7),
+        fallback: true
+      }
+      
+      const qrString = JSON.stringify(fallbackData)
+      const qrUrl = await QRCode.toDataURL(qrString, {
+        width: 320,
+        margin: 2,
+        color: {
+          dark: '#f59e0b', // Cor diferente para indicar fallback
+          light: '#ffffff'
+        }
+      })
+      
+      setQrCodeUrl(qrUrl)
+      setTimeLeft(300) // 5 minutos
+    } catch (error) {
+      console.error('Erro ao gerar QR de fallback:', error)
+    }
+  }
 
-    // Gerar novo QR a cada 60 segundos
-    const qrTimer = setInterval(generateQR, 60000)
+  // Gerar QR code inicial e configurar regeneração
+  useEffect(() => {
+    generateQRCode()
+    
+    // Regenerar QR a cada 5 minutos
+    const qrTimer = setInterval(generateQRCode, 5 * 60 * 1000)
 
     return () => clearInterval(qrTimer)
-  }, [])
+  }, [machineInfo.id])
+
+  // Countdown do tempo restante do QR
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const countdown = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            generateQRCode() // Regenerar quando expirar
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(countdown)
+    }
+  }, [timeLeft])
 
   // Verificar conectividade
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    const checkConnection = () => {
+      setIsOnline(navigator.onLine)
+    }
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    checkConnection()
+    window.addEventListener('online', checkConnection)
+    window.addEventListener('offline', checkConnection)
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('online', checkConnection)
+      window.removeEventListener('offline', checkConnection)
     }
+  }, [])
+
+  // Simular escaneamentos recentes (em produção viria de WebSocket ou polling)
+  useEffect(() => {
+    const mockRecentScans = [
+      { id: 1, user: 'Maria S.', type: 'ENTRY', time: '08:00' },
+      { id: 2, user: 'João P.', type: 'EXIT', time: '17:30' },
+      { id: 3, user: 'Ana L.', type: 'ENTRY', time: '08:15' }
+    ]
+    setRecentScans(mockRecentScans)
   }, [])
 
   const formatTime = (date: Date) => {
@@ -92,112 +171,156 @@ export default function KioskPage() {
     })
   }
 
+  const formatTimeLeft = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex flex-col">
       {/* Header */}
-      <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 p-6">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-primary mr-3" />
-            <h1 className="text-2xl font-bold text-white">Chronos System - Kiosk</h1>
+      <div className="glass border-b border-neutral-700/50 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="bg-primary/20 rounded-xl p-3">
+              <Clock className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Chronos Kiosk</h1>
+              <div className="flex items-center text-neutral-400 mt-1">
+                <MapPin className="h-4 w-4 mr-1" />
+                {machineInfo.name} - {machineInfo.location}
+              </div>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            {/* Status de Conectividade */}
-            <div className="flex items-center">
-              {isOnline ? (
-                <Wifi className="h-5 w-5 text-green-400 mr-2" />
-              ) : (
-                <WifiOff className="h-5 w-5 text-red-400 mr-2" />
-              )}
-              <span className={`text-sm ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
-                {isOnline ? 'Online' : 'Offline'}
-              </span>
+          <div className="flex items-center space-x-6">
+            <div className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}>
+              {isOnline ? <Wifi className="h-5 w-5" /> : <WifiOff className="h-5 w-5" />}
+              <span className="text-sm font-medium">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
-
-            {/* Indicador de Refresh */}
-            {isRefreshing && (
-              <RefreshCw className="h-5 w-5 text-primary animate-spin" />
-            )}
+            <div className="text-right">
+              <div className="text-2xl font-bold text-white">
+                {formatTime(currentTime)}
+              </div>
+              <div className="text-sm text-neutral-400">
+                {formatDate(currentTime)}
+              </div>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center p-8">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Relógio */}
-          <div className="mb-12">
-            <div className="text-6xl md:text-8xl font-bold text-white mb-4 font-mono">
-              {formatTime(currentTime)}
+      <div className="flex-1 flex p-8 gap-8">
+        {/* QR Code Section */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-lg">
+            <div className="glass rounded-2xl p-8 mb-6">
+              <h2 className="text-3xl font-semibold text-white mb-6">
+                Registrar Ponto
+              </h2>
+              
+              {qrCodeUrl ? (
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-6 rounded-2xl mb-4 shadow-2xl">
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="QR Code para registro de ponto"
+                      className="w-80 h-80"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between w-full text-sm">
+                    <div className="flex items-center text-neutral-400">
+                      <RotateCw className="h-4 w-4 mr-2" />
+                      Atualiza automaticamente
+                    </div>
+                    <div className="flex items-center text-primary font-medium">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {formatTimeLeft(timeLeft)}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-80">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+                </div>
+              )}
             </div>
-            <div className="text-xl md:text-2xl text-slate-300 capitalize">
-              {formatDate(currentTime)}
+
+            {/* Instructions */}
+            <div className="glass rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Como usar:</h3>
+              <div className="space-y-3 text-left">
+                <div className="flex items-center text-neutral-300">
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">1</div>
+                  <span>Abra o app Chronos no seu celular</span>
+                </div>
+                <div className="flex items-center text-neutral-300">
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">2</div>
+                  <span>Toque em "Registrar Ponto"</span>
+                </div>
+                <div className="flex items-center text-neutral-300">
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">3</div>
+                  <span>Escaneie o QR code acima</span>
+                </div>
+                <div className="flex items-center text-neutral-300">
+                  <div className="bg-success/20 rounded-full w-8 h-8 flex items-center justify-center text-success font-bold mr-3">✓</div>
+                  <span>Ponto registrado automaticamente!</span>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* QR Code */}
-          <div className="bg-white rounded-2xl p-8 inline-block shadow-2xl mb-8">
-            {qrCode ? (
-              <div className="text-center">
-                <img 
-                  src={qrCode} 
-                  alt="QR Code para registro de ponto" 
-                  className="mx-auto mb-4"
-                />
-                <p className="text-gray-600 text-sm font-medium">
-                  QR Code válido por 60 segundos
-                </p>
-              </div>
-            ) : (
-              <div className="w-[300px] h-[300px] flex items-center justify-center bg-gray-100 rounded-lg">
-                <div className="text-center">
-                  <RefreshCw className="h-12 w-12 text-gray-400 mx-auto mb-2 animate-spin" />
-                  <p className="text-gray-500">Gerando QR Code...</p>
+        {/* Recent Activity Sidebar */}
+        <div className="w-80">
+          <div className="glass rounded-xl p-6 h-full">
+            <div className="flex items-center mb-6">
+              <Users className="h-5 w-5 text-primary mr-2" />
+              <h3 className="text-lg font-semibold text-white">Atividade Recente</h3>
+            </div>
+            
+            <div className="space-y-4">
+              {recentScans.map((scan) => (
+                <div key={scan.id} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30">
+                  <div className="flex items-center">
+                    <div className={`w-3 h-3 rounded-full mr-3 ${
+                      scan.type === 'ENTRY' ? 'bg-primary' : 'bg-warning'
+                    }`}></div>
+                    <div>
+                      <p className="text-white font-medium">{scan.user}</p>
+                      <p className="text-xs text-neutral-400">
+                        {scan.type === 'ENTRY' ? 'Entrada' : 'Saída'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-neutral-300">{scan.time}</p>
+                    <CheckCircle className="h-4 w-4 text-success ml-auto mt-1" />
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {recentScans.length === 0 && (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-neutral-600 mx-auto mb-3" />
+                <p className="text-neutral-500">Nenhum registro recente</p>
               </div>
             )}
           </div>
-
-          {/* Instruções */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700 p-6 max-w-2xl mx-auto">
-            <h2 className="text-xl font-semibold text-white mb-4">
-              Como registrar seu ponto
-            </h2>
-            <div className="space-y-3 text-slate-300">
-              <div className="flex items-center">
-                <span className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">1</span>
-                <span>Abra o app do estagiário no seu celular</span>
-              </div>
-              <div className="flex items-center">
-                <span className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">2</span>
-                <span>Toque em "Escanear QR Code"</span>
-              </div>
-              <div className="flex items-center">
-                <span className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">3</span>
-                <span>Aponte a câmera para o QR code acima</span>
-              </div>
-              <div className="flex items-center">
-                <span className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">4</span>
-                <span>Confirme o registro de entrada ou saída</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Informações da Máquina */}
-          <div className="mt-8 text-slate-400 text-sm">
-            <p>Máquina: KIOSK_001 | Local: Recepção Principal</p>
-            <p>QR Code atualizado automaticamente a cada 60 segundos</p>
-          </div>
         </div>
-      </main>
+      </div>
 
       {/* Footer */}
-      <footer className="bg-slate-800/50 backdrop-blur-sm border-t border-slate-700 p-4">
-        <div className="text-center text-slate-500 text-sm">
-          © 2024 Chronos System - Sistema de Ponto Eletrônico
+      <div className="glass border-t border-neutral-700/50 p-4">
+        <div className="text-center text-neutral-500 text-sm">
+          © 2024 Chronos System - Sistema de Ponto Eletrônico Seguro
         </div>
-      </footer>
+      </div>
     </div>
   )
 }
