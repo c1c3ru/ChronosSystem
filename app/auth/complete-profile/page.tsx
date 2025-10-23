@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import { 
   User, 
@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
+import { toast } from 'sonner'
 
 interface ProfileData {
   phone?: string
@@ -32,7 +33,10 @@ export default function CompleteProfilePage() {
   const router = useRouter()
   const [profileData, setProfileData] = useState<ProfileData>({})
   const [loading, setLoading] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isHydrated, setIsHydrated] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   // Redirect if not authenticated or profile already complete
   useEffect(() => {
@@ -54,7 +58,42 @@ export default function CompleteProfilePage() {
     }
   }, [session, status, router])
 
+  // Solução híbrida: detectar hidratação e anexar event listener manual
+  useEffect(() => {
+    console.log('🔄 Componente hidratado, anexando event listeners...')
+    setIsHydrated(true)
+    
+    // Fallback: anexar event listener manual ao formulário
+    const form = formRef.current
+    if (form) {
+      console.log('📋 Anexando event listener manual ao formulário')
+      
+      const handleFormSubmit = async (e: Event) => {
+        console.log('🚀 Event listener manual chamado!')
+        e.preventDefault()
+        
+        // Chamar a mesma lógica do handleSubmit
+        const fakeReactEvent = e as unknown as React.FormEvent
+        
+        await handleSubmit(fakeReactEvent)
+      }
+      
+      // Anexar listener manual
+      form.addEventListener('submit', handleFormSubmit)
+      console.log('✅ Event listener manual anexado')
+      
+      // Cleanup
+      return () => {
+        console.log('🧹 Removendo event listener manual')
+        form.removeEventListener('submit', handleFormSubmit)
+      }
+    } else {
+      console.log('❌ Formulário não encontrado para anexar listener manual')
+    }
+  }, [profileData]) // Re-anexar quando dados mudarem
+
   const validateForm = () => {
+    console.log('🔍 Validando formulário com dados:', profileData)
     const newErrors: Record<string, string> = {}
 
     if (!profileData.phone) {
@@ -89,17 +128,34 @@ export default function CompleteProfilePage() {
       newErrors.startDate = 'Data de início é obrigatória'
     }
 
+    if (Object.keys(newErrors).length > 0) {
+      console.log('❌ Erros de validação encontrados:', newErrors)
+    } else {
+      console.log('✅ Validação passou - todos os campos OK')
+    }
+    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚀 handleSubmit chamado!')
     e.preventDefault()
     
-    if (!validateForm()) return
+    console.log('📝 Dados do formulário:', profileData)
+    
+    if (!validateForm()) {
+      console.log('❌ Validação falhou')
+      return
+    }
+    
+    console.log('✅ Validação passou')
 
     try {
       setLoading(true)
+      setErrors({}) // Limpar erros anteriores
+      
+      console.log('Enviando dados:', profileData)
       
       const response = await fetch('/api/auth/complete-profile', {
         method: 'POST',
@@ -109,23 +165,69 @@ export default function CompleteProfilePage() {
         body: JSON.stringify(profileData)
       })
 
+      console.log('Response status:', response.status)
+      
       if (response.ok) {
-        // Atualizar sessão
-        await update()
+        const result = await response.json()
+        console.log('Perfil salvo com sucesso:', result)
         
-        // Redirecionar baseado no role
-        const role = session?.user.role
-        if (role === 'ADMIN' || role === 'SUPERVISOR') {
-          router.push('/admin')
+        // Mostrar toast de sucesso
+        toast.success('Perfil completado com sucesso!')
+        
+        // Mostrar estado de redirecionamento
+        setRedirecting(true)
+        
+        // Usar URL de redirecionamento da API
+        const redirectUrl = result.redirectUrl || '/employee'
+        console.log('URL de redirecionamento:', redirectUrl)
+        
+        // Se a API indicou para forçar reload, fazer isso
+        if (result.forceReload) {
+          console.log('Forçando navegação completa para:', redirectUrl)
+          // Tentar múltiplas abordagens para garantir o redirecionamento
+          
+          // Abordagem 1: Imediata
+          console.log('Tentativa 1: Redirecionamento imediato')
+          window.location.href = redirectUrl
+          
+          // Abordagem 2: Com setTimeout curto (fallback)
+          setTimeout(() => {
+            console.log('Tentativa 2: Redirecionamento com setTimeout 500ms')
+            window.location.href = redirectUrl
+          }, 500)
+          
+          // Abordagem 3: Com setTimeout longo (fallback final)
+          setTimeout(() => {
+            console.log('Tentativa 3: Redirecionamento com setTimeout 1500ms')
+            window.location.href = redirectUrl
+          }, 1500)
+          
+          // Abordagem 4: window.location.replace (fallback alternativo)
+          setTimeout(() => {
+            console.log('Tentativa 4: window.location.replace')
+            window.location.replace(redirectUrl)
+          }, 2000)
+          
         } else {
-          router.push('/employee')
+          // Fallback para reload da página atual
+          setTimeout(() => {
+            console.log('Forçando reload da página...')
+            window.location.reload()
+          }, 1500)
         }
+        
       } else {
         const error = await response.json()
-        setErrors({ general: error.message || 'Erro ao salvar perfil' })
+        console.error('Erro na API:', error)
+        const errorMessage = error.message || 'Erro ao salvar perfil'
+        setErrors({ general: errorMessage })
+        toast.error(errorMessage)
       }
     } catch (error) {
-      setErrors({ general: 'Erro interno. Tente novamente.' })
+      console.error('Erro no submit:', error)
+      const errorMessage = 'Erro interno. Tente novamente.'
+      setErrors({ general: errorMessage })
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -168,7 +270,7 @@ export default function CompleteProfilePage() {
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               {errors.general && (
                 <div className="p-4 bg-error/20 border border-error/50 rounded-lg text-error text-sm">
                   {errors.general}
@@ -330,8 +432,13 @@ export default function CompleteProfilePage() {
 
               {/* Submit Button */}
               <div className="flex justify-end space-x-4 pt-6 border-t border-neutral-700">
-                <Button type="submit" disabled={loading} className="min-w-[150px]">
-                  {loading ? (
+                <Button type="submit" disabled={loading || redirecting} className="min-w-[150px]">
+                  {redirecting ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Redirecionando...</span>
+                    </div>
+                  ) : loading ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Salvando...</span>

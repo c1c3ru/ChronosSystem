@@ -53,9 +53,14 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Determinar URL de redirecionamento baseado no role
+    const redirectUrl = ['ADMIN', 'SUPERVISOR'].includes(updatedUser.role) ? '/admin' : '/employee'
+    
     return NextResponse.json({ 
       success: true, 
-      message: 'Perfil completado com sucesso' 
+      message: 'Perfil completado com sucesso',
+      redirectUrl: redirectUrl,
+      forceReload: true // Flag para forçar reload completo
     })
   } catch (error) {
     console.error('Erro ao completar perfil:', error)

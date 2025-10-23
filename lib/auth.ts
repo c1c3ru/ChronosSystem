@@ -52,50 +52,79 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt'
   },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role
-        token.sub = user.id
-        token.profileComplete = (user as any).profileComplete
+  events: {
+    async linkAccount({ user, account, profile }) {
+      // Log quando uma conta é vinculada
+      console.log('Account linked:', { user: user.email, provider: account.provider })
+    },
+    async createUser({ user }) {
+      // Configurar novos usuários criados via OAuth
+      // Usuários OAuth precisam completar perfil, usuários de credenciais não
+      if (user.email) {
+        await (prisma.user as any).update({
+          where: { id: user.id },
+          data: {
+            role: 'EMPLOYEE',
+            profileComplete: false // OAuth users need to complete profile
+          }
+        })
+        console.log('New OAuth user configured:', user.email, '- needs to complete profile')
       }
+    },
+  },
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        // Buscar dados completos do usuário do banco
+        const dbUser = await (prisma.user as any).findUnique({
+          where: { id: user.id },
+          select: { role: true, profileComplete: true }
+        })
+        
+        token.role = dbUser?.role || 'EMPLOYEE'
+        token.sub = user.id
+        token.profileComplete = dbUser?.profileComplete || false
+      }
+      
+      // Atualizar token quando a sessão for atualizada
+      if (trigger === 'update' && session) {
+        // Buscar dados atualizados do usuário
+        const updatedUser = await (prisma.user as any).findUnique({
+          where: { id: token.sub! },
+          select: { role: true, profileComplete: true }
+        })
+        
+        if (updatedUser) {
+          token.role = updatedUser.role
+          token.profileComplete = updatedUser.profileComplete
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
-        session.user.profileComplete = token.profileComplete as boolean
+        ;(session.user as any).profileComplete = token.profileComplete as boolean
       }
       return session
     },
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
-        // Para login com Google, verificar se o usuário já existe
+        // Verificar se já existe um usuário com este email
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! }
         })
         
         if (existingUser) {
-          user.role = existingUser.role
-          user.id = existingUser.id
-          user.profileComplete = existingUser.profileComplete
-        } else {
-          // Criar novo usuário com role EMPLOYEE por padrão
-          const newUser = await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name,
-              image: user.image,
-              role: 'EMPLOYEE',
-              profileComplete: false
-            }
-          })
-          user.role = newUser.role
-          user.id = newUser.id
-          user.profileComplete = newUser.profileComplete
+          // Se o usuário existe, permitir vinculação da conta Google
+          console.log('Linking Google account to existing user:', user.email)
+          return true
         }
       }
+      
+      // Permitir todos os outros logins
       return true
     }
   },

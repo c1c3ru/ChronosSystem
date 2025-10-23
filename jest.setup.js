@@ -53,7 +53,9 @@ jest.mock('next-auth/react', () => ({
   SessionProvider: ({ children }) => children,
 }))
 
-// Mock Prisma
+// Mock Prisma - commented out to avoid conflicts with Playwright tests
+// If you need Prisma mocks for unit tests, create them in individual test files
+/*
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: {
@@ -88,6 +90,7 @@ jest.mock('@/lib/prisma', () => ({
     },
   },
 }))
+*/
 
 // Mock fetch globally
 global.fetch = jest.fn()
