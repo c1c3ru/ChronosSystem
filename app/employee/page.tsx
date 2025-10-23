@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
@@ -231,7 +231,7 @@ export default function EmployeePage() {
               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <User className="h-5 w-5 text-primary" />
               </div>
-              <Button variant="ghost" size="sm" onClick={() => router.push('/api/auth/signout')}>
+              <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>

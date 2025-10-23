@@ -3,10 +3,7 @@
   "/auth/complete-profile/page": "app/auth/complete-profile/page.js",
   "/auth/signin/page": "app/auth/signin/page.js",
   "/admin/page": "app/admin/page.js",
-  "/api/dashboard/stats/route": "app/api/dashboard/stats/route.js",
   "/admin/users/page": "app/admin/users/page.js",
-  "/api/dashboard/activity/route": "app/api/dashboard/activity/route.js",
-  "/admin/machines/page": "app/admin/machines/page.js",
-  "/api/users/route": "app/api/users/route.js",
-  "/api/machines/route": "app/api/machines/route.js"
+  "/api/dashboard/stats/route": "app/api/dashboard/stats/route.js",
+  "/api/dashboard/activity/route": "app/api/dashboard/activity/route.js"
 }
