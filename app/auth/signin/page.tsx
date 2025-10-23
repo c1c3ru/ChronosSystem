@@ -47,8 +47,29 @@ export default function SignInPage() {
     }
   }
 
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/employee' })
+  const handleGoogleSignIn = async () => {
+    const result = await signIn('google', { redirect: false })
+    
+    if (result?.ok) {
+      // Após login com Google, verificar se precisa completar perfil
+      const session = await getSession()
+      
+      if (session?.user) {
+        const profileComplete = (session.user as any).profileComplete
+        
+        if (profileComplete === false) {
+          // Redirecionar para completar perfil
+          router.push('/auth/complete-profile')
+        } else {
+          // Redirecionar baseado no role
+          if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
+            router.push('/admin')
+          } else {
+            router.push('/employee')
+          }
+        }
+      }
+    }
   }
 
   return (

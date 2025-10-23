@@ -8,13 +8,13 @@ As credenciais do Google OAuth já foram configuradas no sistema:
 - **Client Secret:** `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`
 - **Project ID:** `chronossystem`
 
-## 🌐 URLs de Callback Configuradas
+## 🌐 URLs de Callback Necessárias
 
 ### **Desenvolvimento:**
-- `http://localhost:4000/auth/google/callback`
+- `http://localhost:3000/api/auth/callback/google`
 
 ### **Produção:**
-- `https://api.seudominio.com/auth/google/callback` (substitua pelo seu domínio real)
+- `https://seudominio.com/api/auth/callback/google` (substitua pelo seu domínio real)
 
 ## ⚙️ Configuração no Google Cloud Console
 
@@ -36,12 +36,12 @@ Para garantir que o OAuth funcione corretamente, verifique estas configurações
 
 #### **Para Desenvolvimento:**
 ```
-http://localhost:4000/auth/google/callback
+http://localhost:3000/api/auth/callback/google
 ```
 
 #### **Para Produção:**
 ```
-https://api.seudominio.com/auth/google/callback
+https://seudominio.com/api/auth/callback/google
 ```
 *Substitua `seudominio.com` pelo seu domínio real (ex: `chronos.com.br`, `meusite.com`, etc.)*
 
