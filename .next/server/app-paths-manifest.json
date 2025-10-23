@@ -1,12 +1,1 @@
-{
-  "/auth/complete-profile/page": "app/auth/complete-profile/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/kiosk/page": "app/kiosk/page.js",
-  "/page": "app/page.js",
-  "/api/kiosk/qr/route": "app/api/kiosk/qr/route.js",
-  "/auth/signin/page": "app/auth/signin/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/api/dashboard/stats/route": "app/api/dashboard/stats/route.js",
-  "/api/dashboard/activity/route": "app/api/dashboard/activity/route.js",
-  "/employee/page": "app/employee/page.js"
-}
+{}
