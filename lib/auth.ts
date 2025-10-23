@@ -74,29 +74,21 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      if (user) {
-        // Buscar dados completos do usuário do banco
-        const dbUser = await (prisma.user as any).findUnique({
-          where: { id: user.id },
-          select: { role: true, profileComplete: true }
-        })
-        
-        token.role = dbUser?.role || 'EMPLOYEE'
-        token.sub = user.id
-        token.profileComplete = dbUser?.profileComplete || false
-      }
+      // Sempre buscar dados atualizados do banco para garantir consistência
+      const userId = user?.id || token.sub
       
-      // Atualizar token quando a sessão for atualizada
-      if (trigger === 'update' && session) {
-        // Buscar dados atualizados do usuário
-        const updatedUser = await (prisma.user as any).findUnique({
-          where: { id: token.sub! },
+      if (userId) {
+        const dbUser = await (prisma.user as any).findUnique({
+          where: { id: userId },
           select: { role: true, profileComplete: true }
         })
         
-        if (updatedUser) {
-          token.role = updatedUser.role
-          token.profileComplete = updatedUser.profileComplete
+        if (dbUser) {
+          token.role = dbUser.role
+          token.sub = userId
+          token.profileComplete = dbUser.profileComplete
+          
+          console.log('JWT callback - User:', userId.slice(-8), 'profileComplete:', dbUser.profileComplete)
         }
       }
       
