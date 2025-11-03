@@ -1,1 +1,0 @@
-{"status":"healthy","timestamp":"2025-11-03T17:19:00.654Z","version":"2.0.0","environment":"production","database":{"status":"connected","users":4,"machines":2},"uptime":1.667401465,"memory":{"used":18,"total":36}}
