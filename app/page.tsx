@@ -1,12 +1,16 @@
 import Link from 'next/link'
-import { Clock, Users, Shield, Smartphone, ArrowRight, Zap, CheckCircle } from 'lucide-react'
+import { Clock, Users, Shield, Smartphone, ArrowRight, Zap, CheckCircle, LogOut } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PWAInstaller } from '@/components/pwa-installer'
+import { SessionButton } from '@/components/session-button'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+      {/* Session Button */}
+      <SessionButton />
+      
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="text-center mb-20 animate-fade-in">

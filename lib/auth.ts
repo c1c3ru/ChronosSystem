@@ -84,6 +84,10 @@ export const authOptions: NextAuthOptions = {
           select: { profileComplete: true }
         })
         token.profileComplete = dbUser?.profileComplete ?? false
+        
+        console.log('JWT Callback - User ID:', user.id)
+        console.log('JWT Callback - Role:', token.role)
+        console.log('JWT Callback - ProfileComplete:', token.profileComplete)
       }
       return token
     },

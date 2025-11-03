@@ -30,16 +30,25 @@ export default function SignInPage() {
         return
       }
 
-      // Get session to check user role
+      // Get session to check user role and profile completion
       const session = await getSession()
       
-      if (session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPERVISOR') {
-        router.push('/admin')
-      } else {
-        router.push('/employee')
+      if (session?.user) {
+        console.log('Login success - User:', session.user)
+        console.log('Login success - Role:', session.user.role)
+        console.log('Login success - ProfileComplete:', session.user.profileComplete)
+        
+        // Check if profile is complete
+        if (session.user.profileComplete === false) {
+          router.push('/auth/complete-profile')
+        } else if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
+          router.push('/admin')
+        } else {
+          router.push('/employee')
+        }
+        
+        toast.success('Login realizado com sucesso!')
       }
-      
-      toast.success('Login realizado com sucesso!')
     } catch (error) {
       toast.error('Erro ao fazer login')
     } finally {
@@ -98,7 +107,7 @@ export default function SignInPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/10 border border-slate-500 rounded-lg text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white/20"
+                  className="w-full pl-10 pr-4 py-3 bg-white/15 border-2 border-slate-400 rounded-lg text-white placeholder-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white/25 transition-all duration-200"
                   placeholder="seu@email.com"
                   required
                 />
@@ -116,7 +125,7 @@ export default function SignInPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-2 bg-white/10 border border-slate-500 rounded-lg text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white/20"
+                  className="w-full pl-10 pr-12 py-3 bg-white/15 border-2 border-slate-400 rounded-lg text-white placeholder-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white/25 transition-all duration-200"
                   placeholder="••••••••"
                   required
                 />
