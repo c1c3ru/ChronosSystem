@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import crypto from 'crypto'
+import { generateSecureQR } from '@/lib/qr-security'
 
 // GET /api/kiosk/qr - Gerar QR code para kiosk (sem autenticação)
 export async function GET(request: NextRequest) {
@@ -32,39 +32,38 @@ export async function GET(request: NextRequest) {
 }
 
 async function generateQRResponse(machineId: string, machineName: string, location: string) {
-  // Gerar nonce único baseado em timestamp + random para garantir unicidade
-  const timestamp = Date.now()
-  const nonce = crypto.randomBytes(16).toString('hex') + '-' + timestamp
+  console.log('🔐 Gerando QR code seguro para máquina:', machineId)
   
-  // Criar dados do QR (válido por 60 segundos)
-  const expiresAt = new Date(timestamp + 60 * 1000)
+  // Gerar QR code seguro com HMAC-SHA256
+  const secureQR = generateSecureQR(machineId)
   
-  // Dados que serão codificados no QR
-  const qrData = JSON.stringify({
-    machineId,
-    nonce,
-    timestamp,
-    expires: expiresAt.getTime(),
-    type: 'KIOSK_QR'
-  })
-
-  // Salvar evento QR no banco
+  // Calcular tempo de expiração
+  const expiresAt = new Date(Date.now() + 60 * 1000)
+  
+  // Salvar evento QR no banco para auditoria
   await prisma.qrEvent.create({
     data: {
       machineId,
-      qrData,
-      nonce,
+      qrData: secureQR.fullQR,
+      nonce: JSON.parse(Buffer.from(secureQR.payload, 'base64url').toString()).nonce,
       expiresAt,
       used: false
     }
   })
 
+  console.log('✅ QR code seguro gerado com sucesso')
+
   return NextResponse.json({
-    qrData,
+    qrData: secureQR.fullQR,
     machineId,
     machineName,
     location,
     expiresAt: expiresAt.toISOString(),
-    validFor: 60 // 60 segundos
+    validFor: 60, // 60 segundos
+    security: {
+      signed: true,
+      algorithm: 'HMAC-SHA256',
+      version: 'v1'
+    }
   })
 }

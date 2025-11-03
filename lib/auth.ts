@@ -1,126 +1,65 @@
 import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
-import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        })
-
-        if (!user || !user.password) {
-          return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        }
-      }
-    }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    })
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
   ],
   session: {
-    strategy: 'jwt'
-  },
-  events: {
-    async linkAccount({ user, account, profile }) {
-      // Log quando uma conta é vinculada
-      console.log('Account linked:', { user: user.email, provider: account.provider })
-    },
-    async createUser({ user }) {
-      // Configurar novos usuários criados via OAuth
-      // Usuários OAuth precisam completar perfil, usuários de credenciais não
-      if (user.email) {
-        await (prisma.user as any).update({
-          where: { id: user.id },
-          data: {
-            role: 'EMPLOYEE',
-            profileComplete: false // OAuth users need to complete profile
-          }
-        })
-        console.log('New OAuth user configured:', user.email, '- needs to complete profile')
-      }
-    },
+    strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      // Sempre buscar dados atualizados do banco para garantir consistência
-      const userId = user?.id || token.sub
-      
-      if (userId) {
-        const dbUser = await (prisma.user as any).findUnique({
-          where: { id: userId },
-          select: { role: true, profileComplete: true }
-        })
-        
-        if (dbUser) {
-          token.role = dbUser.role
-          token.sub = userId
-          token.profileComplete = dbUser.profileComplete
-          
-          console.log('JWT callback - User:', userId.slice(-8), 'profileComplete:', dbUser.profileComplete)
-        }
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role || 'EMPLOYEE'
+        token.sub = user.id
       }
-      
       return token
     },
     async session({ session, token }) {
-      if (token && session.user) {
+      if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as string
-        ;(session.user as any).profileComplete = token.profileComplete as boolean
       }
       return session
     },
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
-        // Verificar se já existe um usuário com este email
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! }
-        })
-        
-        if (existingUser) {
-          // Se o usuário existe, permitir vinculação da conta Google
-          console.log('Linking Google account to existing user:', user.email)
+        try {
+          // Verificar se o usuário já existe
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          })
+
+          if (!existingUser) {
+            // Criar novo usuário
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name,
+                image: user.image,
+                role: 'EMPLOYEE', // Role padrão
+              }
+            })
+          }
           return true
+        } catch (error) {
+          console.error('Erro ao criar usuário:', error)
+          return false
         }
       }
-      
-      // Permitir todos os outros logins
       return true
-    }
+    },
   },
   pages: {
     signIn: '/auth/signin',
+    error: '/auth/error',
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }

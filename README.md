@@ -109,12 +109,20 @@ npm run dev
 - **Múltiplos Providers**: Credenciais + Google OAuth
 - **JWT Seguro**: Tokens com expiração automática
 - **Roles**: ADMIN, SUPERVISOR, EMPLOYEE
+- **2FA (TOTP)**: Autenticação de dois fatores ✨ **NOVO**
 
-### QR Code
-- **Timestamp**: Validação temporal
-- **Nonce**: Identificador único por QR
-- **Geolocalização**: Captura de coordenadas (opcional)
-- **Hash Chain**: Integridade dos registros
+### QR Code Seguro ✨ **NOVO**
+- **HMAC-SHA256**: Assinatura criptográfica dos QR codes
+- **Anti-Replay**: Proteção contra reutilização de códigos
+- **Expiração**: Códigos válidos por apenas 60 segundos
+- **Timing-Safe**: Verificação resistente a ataques de timing
+- **Hash Chain**: Integridade imutável dos registros
+
+### PWA (Progressive Web App) ✨ **NOVO**
+- **Service Worker**: Funcionamento offline completo
+- **Instalável**: Banner inteligente de instalação
+- **Cache Offline**: Recursos críticos em cache
+- **Sincronização**: Background sync quando volta online
 
 ## 🛠️ Comandos Disponíveis
 

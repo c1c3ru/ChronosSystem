@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Clock, Users, Shield, Smartphone, ArrowRight, Zap, CheckCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { PWAInstaller } from '@/components/pwa-installer'
 
 export default function HomePage() {
   return (
@@ -174,6 +175,9 @@ export default function HomePage() {
           </p>
         </div>
       </div>
+      
+      {/* PWA Installer */}
+      <PWAInstaller />
     </div>
   )
 }

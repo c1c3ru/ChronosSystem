@@ -127,7 +127,10 @@ export default function FrequencyPage() {
       return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
     }
     
-    return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
+    // Garantir que são números para operação aritmética
+    const numA = typeof aValue === 'number' ? aValue : 0
+    const numB = typeof bValue === 'number' ? bValue : 0
+    return sortOrder === 'asc' ? numA - numB : numB - numA
   })
 
   const getFrequencyColor = (percentage: number) => {
@@ -292,7 +295,7 @@ export default function FrequencyPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-400">Baixa Frequência (<70%)</p>
+                  <p className="text-sm text-neutral-400">Baixa Frequência (&lt;70%)</p>
                   <p className="text-2xl font-bold text-error">{overallStats.lowFrequencyUsers}</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-error" />

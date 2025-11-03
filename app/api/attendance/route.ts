@@ -62,8 +62,7 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               name: true,
-              email: true,
-              studentId: true
+              email: true
             }
           },
           machine: {

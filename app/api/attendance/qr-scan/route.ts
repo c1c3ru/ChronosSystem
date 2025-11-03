@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { validateSecureQR, isNonceUsed, markNonceAsUsed, generateRecordHash } from '@/lib/qr-security'
 
 // POST /api/attendance/qr-scan - Registrar ponto via QR code
 export async function POST(request: NextRequest) {
@@ -18,25 +19,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'QR code é obrigatório' }, { status: 400 })
     }
 
-    // Decodificar dados do QR
-    let qrInfo
-    try {
-      qrInfo = JSON.parse(qrData)
-    } catch (error) {
-      return NextResponse.json({ error: 'QR code inválido' }, { status: 400 })
+    console.log('🔍 Validando QR code seguro...')
+
+    // Validar QR code seguro com HMAC-SHA256
+    const validation = validateSecureQR(qrData)
+    
+    if (!validation.isValid) {
+      console.log('❌ QR code inválido:', validation.error)
+      return NextResponse.json({ error: validation.error }, { status: 400 })
     }
 
-    const { machineId, nonce, timestamp, expires, type } = qrInfo
+    const { machineId, nonce, timestamp } = validation.payload!
 
-    // Validar estrutura do QR
-    if (!machineId || !nonce || !timestamp || !expires || type !== 'KIOSK_QR') {
-      return NextResponse.json({ error: 'QR code malformado' }, { status: 400 })
-    }
+    console.log('✅ QR code válido - Máquina:', machineId, 'Nonce:', nonce.slice(0, 8) + '...')
 
-    // Verificar se QR não expirou (60 segundos)
-    const now = Date.now()
-    if (now > expires) {
-      return NextResponse.json({ error: 'QR code expirado. Gere um novo código.' }, { status: 400 })
+    // Verificar anti-replay (nonce único)
+    if (isNonceUsed(nonce)) {
+      console.log('❌ Nonce já foi usado:', nonce.slice(0, 8) + '...')
+      return NextResponse.json({ error: 'QR code já foi utilizado (anti-replay)' }, { status: 400 })
     }
 
     // Verificar se a máquina existe e está ativa
@@ -51,33 +51,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Máquina não encontrada ou inativa' }, { status: 400 })
     }
 
-    // Verificar se o QR já foi usado (garantir unicidade)
-    const existingQrEvent = await prisma.qrEvent.findFirst({
-      where: {
-        nonce: nonce,
-        used: true
-      }
-    })
-
-    if (existingQrEvent) {
-      return NextResponse.json({ error: 'QR code já foi utilizado' }, { status: 400 })
-    }
-
-    // Verificar se existe um QrEvent válido para este nonce
-    const qrEvent = await prisma.qrEvent.findFirst({
-      where: {
-        nonce: nonce,
-        machineId: machineId,
-        used: false,
-        expiresAt: {
-          gt: new Date()
-        }
-      }
-    })
-
-    if (!qrEvent) {
-      return NextResponse.json({ error: 'QR code inválido ou expirado' }, { status: 400 })
-    }
+    console.log('🔍 Verificando máquina e nonce no banco...')
 
     // Determinar tipo de registro (entrada ou saída)
     const lastRecord = await prisma.attendanceRecord.findFirst({
@@ -88,6 +62,7 @@ export async function POST(request: NextRequest) {
     const recordType = (!lastRecord || lastRecord.type === 'EXIT') ? 'ENTRY' : 'EXIT'
 
     // Verificar se não há registro duplicado no mesmo minuto (proteção adicional)
+    const now = Date.now()
     const oneMinuteAgo = new Date(now - 60 * 1000)
     const recentRecord = await prisma.attendanceRecord.findFirst({
       where: {
@@ -105,11 +80,20 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Criar hash para integridade
-    const recordHash = require('crypto')
-      .createHash('sha256')
-      .update(`${session.user.id}-${machineId}-${recordType}-${Date.now()}`)
-      .digest('hex')
+    // Buscar último hash para hash chain
+    const prevRecord = await prisma.attendanceRecord.findFirst({
+      orderBy: { timestamp: 'desc' },
+      select: { hash: true }
+    })
+
+    // Criar hash para integridade (hash chain)
+    const recordHash = generateRecordHash(
+      session.user.id,
+      machineId,
+      recordType,
+      Date.now(),
+      prevRecord?.hash
+    )
 
     // Criar registro de ponto
     const attendanceRecord = await prisma.attendanceRecord.create({
@@ -123,15 +107,24 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Marcar QR como usado para garantir unicidade
-    await (prisma.qrEvent as any).update({
-      where: { id: qrEvent.id },
-      data: { 
-        used: true,
-        usedAt: new Date(),
-        usedBy: session.user.id
-      }
+    // Marcar nonce como usado (anti-replay)
+    markNonceAsUsed(nonce)
+
+    // Marcar QR como usado no banco para auditoria
+    const existingQrEvent = await prisma.qrEvent.findFirst({
+      where: { nonce: nonce }
     })
+    
+    if (existingQrEvent) {
+      await (prisma.qrEvent as any).update({
+        where: { id: existingQrEvent.id },
+        data: { 
+          used: true,
+          usedAt: new Date(),
+          usedBy: session.user.id
+        }
+      })
+    }
 
     // Log de auditoria
     await prisma.auditLog.create({

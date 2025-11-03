@@ -6,13 +6,14 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
 
-  // Limpar dados existentes
+  // Limpar dados existentes (ordem importante por causa das foreign keys)
   await prisma.auditLog.deleteMany()
   await prisma.qrEvent.deleteMany()
   await prisma.attendanceRecord.deleteMany()
-  await prisma.machine.deleteMany()
+  await prisma.justification.deleteMany()
   await prisma.session.deleteMany()
   await prisma.account.deleteMany()
+  await prisma.machine.deleteMany()
   await prisma.user.deleteMany()
 
   // Criar usuário admin
@@ -23,6 +24,8 @@ async function main() {
       email: 'admin@chronos.com',
       password: adminPassword,
       role: 'ADMIN',
+      department: 'Administração',
+      profileComplete: true,
     },
   })
 
@@ -34,6 +37,9 @@ async function main() {
       email: 'supervisor@chronos.com',
       password: supervisorPassword,
       role: 'SUPERVISOR',
+      department: 'Supervisão',
+      phone: '(11) 99999-1234',
+      profileComplete: true,
     },
   })
 
@@ -46,12 +52,14 @@ async function main() {
       email: 'maria@chronos.com',
       password: employeePassword,
       role: 'EMPLOYEE',
-      studentId: 'EST001',
-      course: 'Ciência da Computação',
+      department: 'TI',
       startDate: new Date('2024-01-15'),
-      endDate: new Date('2024-12-15'),
-      workHours: 20,
-      supervisor: 'João Silva',
+      phone: '(11) 99999-5678',
+      address: 'Rua das Flores, 123 - São Paulo, SP',
+      birthDate: new Date('1995-03-15'),
+      emergencyContact: 'Ana Santos',
+      emergencyPhone: '(11) 88888-1234',
+      profileComplete: true,
     },
   })
 
@@ -61,12 +69,14 @@ async function main() {
       email: 'pedro@chronos.com',
       password: employeePassword,
       role: 'EMPLOYEE',
-      studentId: 'EST002',
-      course: 'Sistemas de Informação',
+      department: 'Desenvolvimento',
       startDate: new Date('2024-02-01'),
-      endDate: new Date('2024-11-30'),
-      workHours: 30,
-      supervisor: 'João Silva',
+      phone: '(11) 99999-9012',
+      address: 'Av. Paulista, 456 - São Paulo, SP',
+      birthDate: new Date('1992-07-22'),
+      emergencyContact: 'Carlos Oliveira',
+      emergencyPhone: '(11) 77777-5678',
+      profileComplete: true,
     },
   })
 

@@ -56,6 +56,10 @@ model User {
   startDate         DateTime?
   profileComplete   Boolean   @default(false)
   
+  // Campos para 2FA
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean   @default(false)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
