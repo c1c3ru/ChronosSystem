@@ -1,5 +1,17 @@
 {
-  "/page": "app/page.js",
-  "/kiosk/page": "app/kiosk/page.js",
-  "/auth/signin/page": "app/auth/signin/page.js"
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/api/dashboard/stats/route": "app/api/dashboard/stats/route.js",
+  "/api/dashboard/activity/route": "app/api/dashboard/activity/route.js",
+  "/admin/users/page": "app/admin/users/page.js",
+  "/api/users/route": "app/api/users/route.js",
+  "/admin/machines/page": "app/admin/machines/page.js",
+  "/api/machines/route": "app/api/machines/route.js",
+  "/admin/reports/page": "app/admin/reports/page.js",
+  "/api/reports/route": "app/api/reports/route.js",
+  "/admin/reports/frequency/page": "app/admin/reports/frequency/page.js",
+  "/api/reports/frequency/route": "app/api/reports/frequency/route.js",
+  "/admin/reports/justifications/page": "app/admin/reports/justifications/page.js",
+  "/api/admin/justifications/route": "app/api/admin/justifications/route.js"
 }
