@@ -3,5 +3,6 @@
   "/admin/reports/frequency/page": "app/admin/reports/frequency/page.js",
   "/page": "app/page.js",
   "/employee/page": "app/employee/page.js",
-  "/auth/signin/page": "app/auth/signin/page.js"
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
 }
