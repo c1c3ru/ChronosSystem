@@ -60,6 +60,12 @@ model User {
   twoFactorSecret   String?
   twoFactorEnabled  Boolean   @default(false)
   
+  // Campos para controle de carga horária
+  contractType      String       @default("SUPERIOR_30H") // FUNDAMENTAL_20H, SUPERIOR_30H, ALTERNANCIA_40H, CUSTOM
+  weeklyHours       Int          @default(30) // Horas semanais do contrato
+  dailyHours        Int          @default(6)  // Horas diárias do contrato
+  hourBalance       Float        @default(0)  // Saldo de horas (positivo ou negativo)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -70,6 +76,7 @@ model User {
   justifications    Justification[]
   reviewedJustifications Justification[] @relation("JustificationReviewer")
   qrEvents          QrEvent[]
+  hourBalances      HourBalance[]
 }
 
 model VerificationToken {
@@ -170,7 +177,31 @@ model Justification {
   @@index([status])
 }
 
+model HourBalance {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime @default(now())
+  workedHours   Float    // Horas trabalhadas no dia
+  expectedHours Float    // Horas esperadas conforme contrato
+  balance       Float    // Diferença (positiva ou negativa)
+  weeklyBalance Float    // Saldo acumulado da semana
+  monthlyBalance Float   // Saldo acumulado do mês
+  description   String?  // Descrição adicional
+  createdAt     DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@index([userId, date])
+  @@index([date])
+}
+
 // Roles: "ADMIN", "SUPERVISOR", "EMPLOYEE"
+
+// Tipos de contrato de estágio conforme Lei 11.788/2008
+// FUNDAMENTAL_20H    - Ensino fundamental: 4h diárias, 20h semanais
+// SUPERIOR_30H       - Superior/Médio/Técnico: 6h diárias, 30h semanais  
+// ALTERNANCIA_40H    - Cursos alternância: até 40h semanais (sem aulas)
+// CUSTOM             - Personalizado (definido manualmente)
 // AttendanceTypes: "ENTRY", "EXIT"
 // JustificationTypes: "LATE", "ABSENCE"
 // JustificationStatus: "PENDING", "APPROVED", "REJECTED"

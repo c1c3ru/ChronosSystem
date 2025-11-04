@@ -41,7 +41,7 @@ console.log('🔍 [AUTH INIT] Variáveis locais:', {
 })
 
 export const authOptions: NextAuthOptions = {
-  // adapter: PrismaAdapter(prisma), // Temporariamente desabilitado para testar
+  adapter: PrismaAdapter(prisma),
   debug: true,
   logger: {
     error(code, metadata) {

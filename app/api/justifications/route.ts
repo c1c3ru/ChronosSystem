@@ -12,10 +12,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const justifications = await (prisma as any).justification.findMany({
+    console.log('🔍 [JUSTIFICATIONS] Buscando justificativas para usuário:', session.user.id)
+    
+    const justifications = await prisma.justification.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: 'desc' }
     })
+    
+    console.log('✅ [JUSTIFICATIONS] Encontradas:', justifications.length)
 
     return NextResponse.json(justifications)
   } catch (error) {
@@ -43,8 +47,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Justificativa deve ter pelo menos 10 caracteres' }, { status: 400 })
     }
 
+    console.log('📝 [JUSTIFICATIONS] Criando justificativa:', { userId: session.user.id, type, date, reason })
+    
     // Criar justificativa no banco de dados
-    const justification = await (prisma as any).justification.create({
+    const justification = await prisma.justification.create({
       data: {
         userId: session.user.id,
         type,
@@ -53,6 +59,8 @@ export async function POST(request: NextRequest) {
         status: 'PENDING'
       }
     })
+    
+    console.log('✅ [JUSTIFICATIONS] Justificativa criada:', justification.id)
 
     // Log de auditoria
     await prisma.auditLog.create({

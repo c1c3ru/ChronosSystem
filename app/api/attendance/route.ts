@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { updateHourBalance, validateWorkingHours } from '@/lib/hour-calculator'
 import { z } from 'zod'
 import crypto from 'crypto'
 
@@ -161,6 +162,35 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // Calcular saldo de horas após registro de ponto
+    try {
+      console.log(`📊 [ATTENDANCE] Calculando saldo de horas para usuário ${session.user.id}`)
+      
+      // Se for saída, validar horários de trabalho
+      if (validatedData.type === 'EXIT' && lastRecord) {
+        const validation = await validateWorkingHours(
+          session.user.id, 
+          lastRecord.timestamp, 
+          record.timestamp
+        )
+        
+        if (!validation.isValid) {
+          console.warn(`⚠️ [ATTENDANCE] Violações detectadas:`, validation.violations)
+        }
+        
+        if (validation.warnings.length > 0) {
+          console.warn(`⚠️ [ATTENDANCE] Avisos:`, validation.warnings)
+        }
+      }
+      
+      // Atualizar saldo de horas
+      await updateHourBalance(session.user.id, record.timestamp)
+      console.log(`✅ [ATTENDANCE] Saldo de horas atualizado para usuário ${session.user.id}`)
+    } catch (hourError) {
+      console.error('❌ [ATTENDANCE] Erro ao calcular saldo de horas:', hourError)
+      // Não falhar o registro de ponto por erro no cálculo de horas
+    }
 
     // Log de auditoria
     await prisma.auditLog.create({
