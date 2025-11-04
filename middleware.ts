@@ -70,19 +70,25 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
         
+        console.log('🔒 [MIDDLEWARE] Verificando acesso:', { pathname, hasToken: !!token })
+        
         // Permitir acesso às rotas públicas
         const publicRoutes = ['/', '/auth/signin', '/auth/signup', '/auth/complete-profile', '/kiosk']
         if (publicRoutes.includes(pathname)) {
+          console.log('✅ [MIDDLEWARE] Rota pública permitida:', pathname)
           return true
         }
 
         // Rotas de API públicas
-        if (pathname.startsWith('/api/auth')) {
+        if (pathname.startsWith('/api/auth') || pathname.startsWith('/api/debug') || pathname.startsWith('/api/test')) {
+          console.log('✅ [MIDDLEWARE] API pública permitida:', pathname)
           return true
         }
 
         // Outras rotas requerem token
-        return !!token
+        const hasAccess = !!token
+        console.log(hasAccess ? '✅ [MIDDLEWARE] Acesso autorizado' : '❌ [MIDDLEWARE] Acesso negado - sem token', { pathname })
+        return hasAccess
       },
     },
   }

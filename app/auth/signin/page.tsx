@@ -15,69 +15,94 @@ export default function SignInPage() {
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚀 FUNÇÃO HANDLESUBMIT CHAMADA!')
+    console.log('📧 Email digitado:', email)
+    console.log('🔑 Senha digitada:', password ? '***' : 'VAZIA')
+    
     e.preventDefault()
     setIsLoading(true)
 
     try {
+      console.log('🔐 Tentando login com:', email)
+      
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       })
 
+      console.log('🔍 Resultado do signIn:', result)
+
       if (result?.error) {
-        toast.error('Credenciais inválidas')
+        console.log('❌ Erro no login:', result.error)
+        toast.error('Credenciais inválidas: ' + result.error)
         return
       }
+
+      if (!result?.ok) {
+        console.log('❌ Login não foi bem-sucedido:', result)
+        toast.error('Falha no login')
+        return
+      }
+
+      console.log('✅ Login bem-sucedido, buscando sessão...')
 
       // Get session to check user role and profile completion
       const session = await getSession()
       
+      console.log('📋 Sessão obtida:', session)
+      
       if (session?.user) {
-        console.log('Login success - User:', session.user)
-        console.log('Login success - Role:', session.user.role)
-        console.log('Login success - ProfileComplete:', session.user.profileComplete)
+        console.log('👤 Login success - User:', session.user)
+        console.log('🎭 Login success - Role:', session.user.role)
+        console.log('✅ Login success - ProfileComplete:', session.user.profileComplete)
+        
+        toast.success('Login realizado com sucesso!')
+        
+        // Aguardar um pouco para a sessão ser estabelecida
+        console.log('⏳ Aguardando sessão ser estabelecida...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
         // Check if profile is complete
         if (session.user.profileComplete === false) {
-          router.push('/auth/complete-profile')
+          console.log('🔄 Redirecionando para complete-profile')
+          router.replace('/auth/complete-profile')
         } else if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
-          router.push('/admin')
+          console.log('🔄 Redirecionando para admin')
+          console.log('🔄 Tentando router.replace...')
+          router.replace('/admin')
+          console.log('🔄 router.replace executado')
         } else {
-          router.push('/employee')
+          console.log('🔄 Redirecionando para employee')
+          router.replace('/employee')
         }
-        
-        toast.success('Login realizado com sucesso!')
+      } else {
+        console.log('❌ Sessão não encontrada após login')
+        toast.error('Erro ao obter sessão do usuário')
       }
     } catch (error) {
-      toast.error('Erro ao fazer login')
+      console.error('💥 Erro no processo de login:', error)
+      toast.error('Erro ao fazer login: ' + error)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleSignIn = async () => {
-    const result = await signIn('google', { redirect: false })
+    console.log('🔵 GOOGLE LOGIN INICIADO!')
     
-    if (result?.ok) {
-      // Após login com Google, verificar se precisa completar perfil
-      const session = await getSession()
+    try {
+      // Usar redirect: true para deixar o NextAuth gerenciar o redirecionamento
+      const result = await signIn('google', { 
+        redirect: true,
+        callbackUrl: '/employee' // Redirecionar diretamente para employee
+      })
       
-      if (session?.user) {
-        const profileComplete = (session.user as any).profileComplete
-        
-        if (profileComplete === false) {
-          // Redirecionar para completar perfil
-          router.push('/auth/complete-profile')
-        } else {
-          // Redirecionar baseado no role
-          if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
-            router.push('/admin')
-          } else {
-            router.push('/employee')
-          }
-        }
-      }
+      console.log('🔍 Resultado do Google SignIn:', result)
+      
+    } catch (error) {
+      console.error('💥 Erro no Google Login:', error)
+      toast.error('Erro no login com Google: ' + error)
     }
   }
 
@@ -148,6 +173,7 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={isLoading}
+              onClick={() => console.log('🖱️ BOTÃO ENTRAR CLICADO!')}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isLoading ? (
