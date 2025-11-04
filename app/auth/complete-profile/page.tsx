@@ -36,11 +36,12 @@ export default function CompleteProfilePage() {
   const [redirecting, setRedirecting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isHydrated, setIsHydrated] = useState(false)
+  const [hasRedirected, setHasRedirected] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   // Redirect if not authenticated or profile already complete
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || hasRedirected) return
     
     if (!session) {
       signIn()
@@ -49,6 +50,8 @@ export default function CompleteProfilePage() {
 
     // Se o perfil já está completo, redirecionar
     if ((session.user as any).profileComplete) {
+      console.log('🔄 Perfil já completo, redirecionando...')
+      setHasRedirected(true)
       const role = session.user.role
       if (role === 'ADMIN' || role === 'SUPERVISOR') {
         router.push('/admin')
@@ -56,7 +59,7 @@ export default function CompleteProfilePage() {
         router.push('/employee')
       }
     }
-  }, [session, status, router])
+  }, [session, status, router, hasRedirected])
 
   // Detectar hidratação
   useEffect(() => {
@@ -178,52 +181,23 @@ export default function CompleteProfilePage() {
       
       if (response.ok) {
         const result = await response.json()
-        console.log('Perfil salvo com sucesso:', result)
+        console.log('✅ Perfil salvo com sucesso:', result)
         
         // Mostrar toast de sucesso
         toast.success('Perfil completado com sucesso!')
+        
+        // Aguardar um pouco para o toast aparecer
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
         // Mostrar estado de redirecionamento
         setRedirecting(true)
         
         // Usar URL de redirecionamento da API
         const redirectUrl = result.redirectUrl || '/employee'
-        console.log('URL de redirecionamento:', redirectUrl)
+        console.log('🔄 Redirecionando para:', redirectUrl)
         
-        // Se a API indicou para forçar reload, fazer isso
-        if (result.forceReload) {
-          console.log('Forçando navegação completa para:', redirectUrl)
-          // Tentar múltiplas abordagens para garantir o redirecionamento
-          
-          // Abordagem 1: Imediata
-          console.log('Tentativa 1: Redirecionamento imediato')
-          window.location.href = redirectUrl
-          
-          // Abordagem 2: Com setTimeout curto (fallback)
-          setTimeout(() => {
-            console.log('Tentativa 2: Redirecionamento com setTimeout 500ms')
-            window.location.href = redirectUrl
-          }, 500)
-          
-          // Abordagem 3: Com setTimeout longo (fallback final)
-          setTimeout(() => {
-            console.log('Tentativa 3: Redirecionamento com setTimeout 1500ms')
-            window.location.href = redirectUrl
-          }, 1500)
-          
-          // Abordagem 4: window.location.replace (fallback alternativo)
-          setTimeout(() => {
-            console.log('Tentativa 4: window.location.replace')
-            window.location.replace(redirectUrl)
-          }, 2000)
-          
-        } else {
-          // Fallback para reload da página atual
-          setTimeout(() => {
-            console.log('Forçando reload da página...')
-            window.location.reload()
-          }, 1500)
-        }
+        // Redirecionamento simples e confiável
+        window.location.href = redirectUrl
         
       } else {
         const error = await response.json()
