@@ -29,7 +29,7 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
         contractType: true,
         weeklyHours: true,
         dailyHours: true
-      }
+      } as any
     })
 
     if (!user) {
@@ -197,7 +197,7 @@ export async function updateHourBalance(userId: string, date: Date = new Date())
 
     await (prisma.user as any).update({
       where: { id: userId },
-      data: { hourBalance: totalBalance._sum.balance || 0 }
+      data: { hourBalance: totalBalance._sum.balance || 0 } as any
     })
 
     console.log(`✅ [HOUR-CALCULATOR] Saldo atualizado para usuário ${userId}: ${calculation.dailyBalance.toFixed(2)}h`)
@@ -275,7 +275,7 @@ export async function validateWorkingHours(userId: string, entryTime: Date, exit
         contractType: true,
         dailyHours: true,
         weeklyHours: true
-      }
+      } as any
     })
 
     if (!user) {

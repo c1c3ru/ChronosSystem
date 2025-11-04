@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         hourBalance: true,
         startDate: true,
         department: true
-      }
+      } as any
     })
 
     if (!user) {
@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
         contractType,
         dailyHours,
         weeklyHours
-      }
+      } as any
     })
 
     // Log de auditoria
