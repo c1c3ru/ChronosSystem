@@ -145,48 +145,84 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'google') {
         console.log('🔵 [SIGNIN] Login com Google detectado')
         try {
-          // Verificar se o usuário já existe
+          // Buscar usuário existente no banco de dados
           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
+            where: { email: user.email! },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              profileComplete: true,
+              image: true
+            }
           })
           
           console.log('👤 [SIGNIN] Usuário existente:', existingUser ? 'SIM' : 'NÃO')
 
-          if (!existingUser) {
+          if (existingUser) {
+            // Usuário existe - vincular conta Google e usar dados do banco
+            console.log('✅ [SIGNIN] Vinculando conta Google ao usuário existente:', existingUser.email)
+            console.log('👤 [SIGNIN] Role do usuário:', existingUser.role)
+            console.log('📋 [SIGNIN] Perfil completo:', existingUser.profileComplete)
+            
+            // Verificar se usuário existente precisa completar perfil
+            // (pode ter sido criado via email/senha mas nunca completou)
+            if (!existingUser.profileComplete) {
+              console.log('📋 [SIGNIN] Usuário existente precisa completar perfil')
+            }
+            
+            // Atualizar dados do usuário no objeto user para o JWT
+            user.id = existingUser.id
+            user.role = existingUser.role
+            user.profileComplete = existingUser.profileComplete
+            user.name = existingUser.name || user.name
+            user.image = existingUser.image || user.image
+            
+            return true
+          } else {
+            // Usuário não existe - criar novo com role padrão EMPLOYEE
             console.log('📝 [SIGNIN] Criando novo usuário Google')
-            // Criar novo usuário
             const newUser = await prisma.user.create({
               data: {
                 email: user.email!,
                 name: user.name,
                 image: user.image,
-                role: 'EMPLOYEE', // Role padrão
-                profileComplete: true, // Google users have complete profile
+                role: 'EMPLOYEE', // Role padrão para novos usuários Google
+                profileComplete: false, // SEMPRE false para novos usuários - devem completar perfil
               }
             })
-            console.log('✅ [SIGNIN] Usuário criado:', newUser.id)
-          } else {
-            console.log('✅ [SIGNIN] Usuário existente encontrado:', existingUser.id)
+            
+            console.log('✅ [SIGNIN] Novo usuário criado:', newUser.id)
+            console.log('📋 [SIGNIN] Novo usuário precisa completar perfil')
+            
+            // Atualizar dados do usuário no objeto user para o JWT
+            user.id = newUser.id
+            user.role = newUser.role
+            user.profileComplete = newUser.profileComplete // false - vai para complete-profile
+            
+            return true
           }
-          
-          console.log('✅ [SIGNIN] Retornando true para Google login')
-          return true
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
           return false
         }
       }
       
-      console.log('✅ [SIGNIN] Retornando true para outros providers')
+      console.log('✅ [SIGNIN] Login com outros providers permitido')
       return true
     },
     async redirect({ url, baseUrl }) {
       console.log('🔄 [REDIRECT] URL:', url, 'BaseURL:', baseUrl)
       
-      // Se for callback do Google, redirecionar para employee
-      if (url.includes('/api/auth/callback/google')) {
-        console.log('🔄 [REDIRECT] Google callback, redirecionando para /employee')
-        return `${baseUrl}/employee`
+      // Se for callback do Google ou outros providers OAuth
+      if (url.includes('/api/auth/callback/')) {
+        console.log('🔄 [REDIRECT] OAuth callback detectado')
+        
+        // Para callbacks OAuth, sempre redirecionar para a página inicial
+        // O middleware irá verificar o role e redirecionar adequadamente
+        console.log('🔄 [REDIRECT] Redirecionando para página inicial para verificação de role')
+        return `${baseUrl}/`
       }
       
       // Se for URL relativa, usar baseUrl

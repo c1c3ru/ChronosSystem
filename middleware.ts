@@ -22,16 +22,35 @@ export default withAuth(
     // Verificar se o perfil está completo (apenas para usuários autenticados)
     if (token) {
       const profileComplete = token.profileComplete as boolean
+      const role = token.role as string
       
       console.log('Middleware - pathname:', pathname)
       console.log('Middleware - profileComplete:', profileComplete)
+      console.log('Middleware - role:', role)
       console.log('Middleware - isProtectedRoute:', isProtectedRoute)
       console.log('Middleware - token.sub:', token.sub)
+      
+      // Se usuário autenticado está na página inicial, redirecionar para dashboard apropriado
+      if (pathname === '/') {
+        console.log('Middleware - Usuário autenticado na página inicial, redirecionando...')
+        
+        if (profileComplete === false) {
+          console.log('Middleware - Perfil incompleto, redirecionando para complete-profile')
+          return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
+        }
+        
+        if (role === 'ADMIN' || role === 'SUPERVISOR') {
+          console.log('Middleware - Redirecionando ADMIN/SUPERVISOR para /admin')
+          return NextResponse.redirect(new URL('/admin', req.url))
+        } else {
+          console.log('Middleware - Redirecionando EMPLOYEE para /employee')
+          return NextResponse.redirect(new URL('/employee', req.url))
+        }
+      }
       
       // Se o perfil está completo e está na página de completar perfil, redirecionar
       if (profileComplete === true && pathname === '/auth/complete-profile') {
         console.log('Middleware - Perfil completo, redirecionando para dashboard')
-        const role = token.role as string
         if (role === 'ADMIN' || role === 'SUPERVISOR') {
           return NextResponse.redirect(new URL('/admin', req.url))
         } else {
