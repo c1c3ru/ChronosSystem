@@ -4,7 +4,7 @@
   "description": "Sistema de Registro de Ponto Eletrônico - Monolito Next.js",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
