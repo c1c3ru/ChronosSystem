@@ -58,39 +58,48 @@ export default function CompleteProfilePage() {
     }
   }, [session, status, router])
 
-  // Solução híbrida: detectar hidratação e anexar event listener manual
+  // Detectar hidratação
   useEffect(() => {
-    console.log('🔄 Componente hidratado, anexando event listeners...')
+    console.log('🔄 Componente hidratado')
     setIsHydrated(true)
+  }, [])
+
+  // Anexar event listener após hidratação e quando formulário estiver disponível
+  useEffect(() => {
+    if (!isHydrated) return
     
-    // Fallback: anexar event listener manual ao formulário
-    const form = formRef.current
-    if (form) {
-      console.log('📋 Anexando event listener manual ao formulário')
-      
-      const handleFormSubmit = async (e: Event) => {
-        console.log('🚀 Event listener manual chamado!')
-        e.preventDefault()
+    // Aguardar um tick para garantir que o DOM está pronto
+    const timer = setTimeout(() => {
+      const form = formRef.current
+      if (form) {
+        console.log('📋 Anexando event listener manual ao formulário')
         
-        // Chamar a mesma lógica do handleSubmit
-        const fakeReactEvent = e as unknown as React.FormEvent
+        const handleFormSubmit = async (e: Event) => {
+          console.log('🚀 Event listener manual chamado!')
+          e.preventDefault()
+          
+          // Chamar a mesma lógica do handleSubmit
+          const fakeReactEvent = e as unknown as React.FormEvent
+          
+          await handleSubmit(fakeReactEvent)
+        }
         
-        await handleSubmit(fakeReactEvent)
+        // Anexar listener manual
+        form.addEventListener('submit', handleFormSubmit)
+        console.log('✅ Event listener manual anexado')
+        
+        // Cleanup
+        return () => {
+          console.log('🧹 Removendo event listener manual')
+          form.removeEventListener('submit', handleFormSubmit)
+        }
+      } else {
+        console.log('❌ Formulário ainda não está disponível no DOM')
       }
-      
-      // Anexar listener manual
-      form.addEventListener('submit', handleFormSubmit)
-      console.log('✅ Event listener manual anexado')
-      
-      // Cleanup
-      return () => {
-        console.log('🧹 Removendo event listener manual')
-        form.removeEventListener('submit', handleFormSubmit)
-      }
-    } else {
-      console.log('❌ Formulário não encontrado para anexar listener manual')
-    }
-  }, [profileData]) // Re-anexar quando dados mudarem
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [isHydrated, profileData])
 
   const validateForm = () => {
     console.log('🔍 Validando formulário com dados:', profileData)
