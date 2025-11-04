@@ -102,14 +102,15 @@ export default function SignInPage() {
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-700 z-10" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-white border-2 border-gray-400 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 focus:bg-gray-50 transition-all duration-200 font-semibold text-base shadow-inner"
-                  placeholder="Digite seu email"
+                  className="w-full pl-16 pr-4 py-4 bg-gray-50 border-3 border-gray-600 rounded-lg text-gray-900 placeholder-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 font-bold text-lg shadow-lg"
+                  placeholder="Digite seu email aqui"
                   required
+                  style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}
                 />
               </div>
             </div>
@@ -120,21 +121,25 @@ export default function SignInPage() {
                 Senha
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-700 z-10" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-14 py-4 bg-white border-2 border-gray-400 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 focus:bg-gray-50 transition-all duration-200 font-semibold text-base shadow-inner"
-                  placeholder="Digite sua senha"
+                  className="w-full pl-16 pr-16 py-4 bg-gray-50 border-3 border-gray-600 rounded-lg text-gray-900 placeholder-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 font-bold text-lg shadow-lg"
+                  placeholder="Digite sua senha aqui"
                   required
+                  style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 hover:text-black z-10 p-1"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-gray-200 hover:bg-gray-300 rounded-full shadow-lg border-2 border-gray-400"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? 
+                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} /> : 
+                    <Eye className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
+                  }
                 </button>
               </div>
             </div>
