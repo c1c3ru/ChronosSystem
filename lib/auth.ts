@@ -27,33 +27,13 @@ declare module 'next-auth' {
   }
 }
 
-// Verificar variáveis de ambiente na inicialização
-console.log('🔍 [AUTH INIT] GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'DEFINIDO' : 'NÃO DEFINIDO')
-console.log('🔍 [AUTH INIT] GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'DEFINIDO' : 'NÃO DEFINIDO')
-
 // Definir variáveis para garantir que estejam disponíveis
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
 
-console.log('🔍 [AUTH INIT] Variáveis locais:', { 
-  GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID ? 'DEFINIDO' : 'NÃO DEFINIDO',
-  GOOGLE_CLIENT_SECRET: GOOGLE_CLIENT_SECRET ? 'DEFINIDO' : 'NÃO DEFINIDO'
-})
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  debug: true,
-  logger: {
-    error(code, metadata) {
-      console.error('🔥 [NEXTAUTH ERROR]', code, metadata)
-    },
-    warn(code) {
-      console.warn('⚠️ [NEXTAUTH WARN]', code)
-    },
-    debug(code, metadata) {
-      console.log('🔍 [NEXTAUTH DEBUG]', code, metadata)
-    }
-  },
+  debug: false,
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -62,39 +42,36 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        console.log('🔐 [AUTH] Tentativa de login:', credentials?.email)
-        
         if (!credentials?.email || !credentials?.password) {
-          console.log('❌ [AUTH] Credenciais faltando')
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        })
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          })
 
-        console.log('👤 [AUTH] Usuário encontrado:', user ? 'SIM' : 'NÃO')
+          if (!user || !user.password) {
+            return null
+          }
 
-        if (!user || !user.password) {
-          console.log('❌ [AUTH] Usuário não encontrado ou sem senha')
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            profileComplete: user.profileComplete,
+            image: user.image
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
           return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-        console.log('🔑 [AUTH] Senha válida:', isPasswordValid ? 'SIM' : 'NÃO')
-
-        if (!isPasswordValid) {
-          console.log('❌ [AUTH] Senha inválida')
-          return null
-        }
-
-        console.log('✅ [AUTH] Login autorizado para:', user.email)
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          image: user.image,
         }
       }
     }),
@@ -125,9 +102,6 @@ export const authOptions: NextAuthOptions = {
         
         token.profileComplete = dbUser?.profileComplete ?? true
         
-        console.log('JWT Callback - User ID:', user.id)
-        console.log('JWT Callback - Role:', token.role)
-        console.log('JWT Callback - ProfileComplete:', token.profileComplete)
       }
       return token
     },
@@ -140,10 +114,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async signIn({ user, account, profile }) {
-      console.log('🔵 [SIGNIN] Callback chamado:', { provider: account?.provider, email: user.email })
-      
       if (account?.provider === 'google') {
-        console.log('🔵 [SIGNIN] Login com Google detectado')
         try {
           // Buscar usuário existente no banco de dados
           const existingUser = await prisma.user.findUnique({
@@ -158,19 +129,11 @@ export const authOptions: NextAuthOptions = {
             }
           })
           
-          console.log('👤 [SIGNIN] Usuário existente:', existingUser ? 'SIM' : 'NÃO')
 
           if (existingUser) {
             // Usuário existe - vincular conta Google e usar dados do banco
-            console.log('✅ [SIGNIN] Vinculando conta Google ao usuário existente:', existingUser.email)
-            console.log('👤 [SIGNIN] Role do usuário:', existingUser.role)
-            console.log('📋 [SIGNIN] Perfil completo:', existingUser.profileComplete)
-            
             // Verificar se usuário existente precisa completar perfil
             // (pode ter sido criado via email/senha mas nunca completou)
-            if (!existingUser.profileComplete) {
-              console.log('📋 [SIGNIN] Usuário existente precisa completar perfil')
-            }
             
             // Atualizar dados do usuário no objeto user para o JWT
             user.id = existingUser.id
@@ -182,7 +145,6 @@ export const authOptions: NextAuthOptions = {
             return true
           } else {
             // Usuário não existe - criar novo com role padrão EMPLOYEE
-            console.log('📝 [SIGNIN] Criando novo usuário Google')
             const newUser = await prisma.user.create({
               data: {
                 email: user.email!,
@@ -193,8 +155,6 @@ export const authOptions: NextAuthOptions = {
               }
             })
             
-            console.log('✅ [SIGNIN] Novo usuário criado:', newUser.id)
-            console.log('📋 [SIGNIN] Novo usuário precisa completar perfil')
             
             // Atualizar dados do usuário no objeto user para o JWT
             user.id = newUser.id
@@ -209,35 +169,26 @@ export const authOptions: NextAuthOptions = {
         }
       }
       
-      console.log('✅ [SIGNIN] Login com outros providers permitido')
       return true
     },
     async redirect({ url, baseUrl }) {
-      console.log('🔄 [REDIRECT] URL:', url, 'BaseURL:', baseUrl)
-      
       // Se for callback do Google ou outros providers OAuth
       if (url.includes('/api/auth/callback/')) {
-        console.log('🔄 [REDIRECT] OAuth callback detectado')
-        
         // Para callbacks OAuth, sempre redirecionar para a página inicial
         // O middleware irá verificar o role e redirecionar adequadamente
-        console.log('🔄 [REDIRECT] Redirecionando para página inicial para verificação de role')
         return `${baseUrl}/`
       }
       
       // Se for URL relativa, usar baseUrl
       if (url.startsWith('/')) {
-        console.log('🔄 [REDIRECT] URL relativa:', `${baseUrl}${url}`)
         return `${baseUrl}${url}`
       }
       
       // Se for mesma origem, permitir
       if (new URL(url).origin === baseUrl) {
-        console.log('🔄 [REDIRECT] Mesma origem:', url)
         return url
       }
       
-      console.log('🔄 [REDIRECT] Fallback para baseUrl:', baseUrl)
       return baseUrl
     },
   },
