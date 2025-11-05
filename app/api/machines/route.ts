@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 const createMachineSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   location: z.string().min(2, 'Localização deve ter pelo menos 2 caracteres'),

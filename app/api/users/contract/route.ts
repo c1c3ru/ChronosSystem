@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 // Configurações de contrato conforme Lei 11.788/2008
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 const CONTRACT_CONFIGS = {
   FUNDAMENTAL_20H: { 
     dailyHours: 4, 

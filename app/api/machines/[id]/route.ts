@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 const updateMachineSchema = z.object({
   name: z.string().min(2).optional(),
   location: z.string().min(2).optional(),

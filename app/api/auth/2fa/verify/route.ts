@@ -6,6 +6,9 @@ import { prisma2FA } from '@/lib/prisma-helpers'
 import { verifyTwoFactorToken } from '@/lib/two-factor'
 
 // POST /api/auth/2fa/verify - Verificar e ativar 2FA
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

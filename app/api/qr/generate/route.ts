@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
 
 // POST /api/qr/generate - Gerar QR code para máquina
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

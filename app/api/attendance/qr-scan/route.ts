@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { validateSecureQR, isNonceUsed, markNonceAsUsed, generateRecordHash } from '@/lib/qr-security'
 
 // POST /api/attendance/qr-scan - Registrar ponto via QR code
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

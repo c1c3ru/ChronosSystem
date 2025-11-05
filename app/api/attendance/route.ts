@@ -6,6 +6,9 @@ import { updateHourBalance, validateWorkingHours } from '@/lib/hour-calculator'
 import { z } from 'zod'
 import crypto from 'crypto'
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 const createAttendanceSchema = z.object({
   machineId: z.string().cuid(),
   type: z.enum(['ENTRY', 'EXIT']),
