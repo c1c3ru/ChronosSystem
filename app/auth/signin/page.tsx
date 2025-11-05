@@ -15,94 +15,63 @@ export default function SignInPage() {
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🚀 FUNÇÃO HANDLESUBMIT CHAMADA!')
-    console.log('📧 Email digitado:', email)
-    console.log('🔑 Senha digitada:', password ? '***' : 'VAZIA')
-    
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      console.log('🔐 Tentando login com:', email)
-      
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       })
 
-      console.log('🔍 Resultado do signIn:', result)
-
       if (result?.error) {
-        console.log('❌ Erro no login:', result.error)
-        toast.error('Credenciais inválidas: ' + result.error)
+        toast.error('Credenciais inválidas')
         return
       }
 
       if (!result?.ok) {
-        console.log('❌ Login não foi bem-sucedido:', result)
         toast.error('Falha no login')
         return
       }
 
-      console.log('✅ Login bem-sucedido, buscando sessão...')
-
       // Get session to check user role and profile completion
       const session = await getSession()
       
-      console.log('📋 Sessão obtida:', session)
-      
       if (session?.user) {
-        console.log('👤 Login success - User:', session.user)
-        console.log('🎭 Login success - Role:', session.user.role)
-        console.log('✅ Login success - ProfileComplete:', session.user.profileComplete)
-        
         toast.success('Login realizado com sucesso!')
-        
-        // Aguardar um pouco para a sessão ser estabelecida
-        console.log('⏳ Aguardando sessão ser estabelecida...')
-        await new Promise(resolve => setTimeout(resolve, 1000))
         
         // Check if profile is complete
         if (session.user.profileComplete === false) {
-          console.log('🔄 Redirecionando para complete-profile')
-          router.replace('/auth/complete-profile')
-        } else if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
-          console.log('🔄 Redirecionando para admin')
-          console.log('🔄 Tentando router.replace...')
-          router.replace('/admin')
-          console.log('🔄 router.replace executado')
+          router.push('/auth/complete-profile')
+          return
+        }
+        
+        // Redirect based on role
+        if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
+          router.push('/admin')
         } else {
-          console.log('🔄 Redirecionando para employee')
-          router.replace('/employee')
+          router.push('/employee')
         }
       } else {
-        console.log('❌ Sessão não encontrada após login')
-        toast.error('Erro ao obter sessão do usuário')
+        toast.error('Erro ao obter dados do usuário')
       }
     } catch (error) {
-      console.error('💥 Erro no processo de login:', error)
-      toast.error('Erro ao fazer login: ' + error)
+      console.error('Login error:', error)
+      toast.error('Erro ao fazer login')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleSignIn = async () => {
-    console.log('🔵 GOOGLE LOGIN INICIADO!')
-    
     try {
-      // Usar redirect: true para deixar o NextAuth gerenciar o redirecionamento
-      const result = await signIn('google', { 
-        redirect: true,
-        callbackUrl: '/employee' // Redirecionar diretamente para employee
+      await signIn('google', { 
+        callbackUrl: '/' // Deixar o middleware gerenciar o redirecionamento
       })
-      
-      console.log('🔍 Resultado do Google SignIn:', result)
-      
     } catch (error) {
-      console.error('💥 Erro no Google Login:', error)
-      toast.error('Erro no login com Google: ' + error)
+      console.error('Google login error:', error)
+      toast.error('Erro ao fazer login com Google')
     }
   }
 
@@ -218,14 +187,6 @@ export default function SignInPage() {
           </button>
 
           {/* Demo Accounts */}
-          <div className="mt-6 p-4 bg-slate-900/50 rounded-lg border border-slate-600">
-            <h3 className="text-sm font-medium text-slate-300 mb-2">Contas de Demonstração:</h3>
-            <div className="text-xs text-slate-400 space-y-1">
-              <div>👤 Admin: admin@chronos.com / admin123</div>
-              <div>👤 Supervisor: supervisor@chronos.com / supervisor123</div>
-              <div>👤 Estagiário: maria@chronos.com / employee123</div>
-            </div>
-          </div>
         </div>
 
         {/* Back to Home */}
