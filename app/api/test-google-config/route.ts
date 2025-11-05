@@ -18,6 +18,7 @@ export async function GET() {
     return NextResponse.json(config)
   } catch (error) {
     console.error('❌ [TEST] Erro ao verificar config:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
