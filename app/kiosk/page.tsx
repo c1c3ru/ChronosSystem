@@ -147,14 +147,31 @@ export default function KioskPage() {
     }
   }, [])
 
-  // Simular escaneamentos recentes (em produção viria de WebSocket ou polling)
+  // Buscar atividade recente real
+  const fetchRecentActivity = async () => {
+    try {
+      const response = await fetch('/api/kiosk/recent-activity')
+      const data = await response.json()
+      
+      if (data.success) {
+        setRecentScans(data.activity)
+      } else {
+        console.error('Erro ao buscar atividade:', data.error)
+        setRecentScans([])
+      }
+    } catch (error) {
+      console.error('Erro ao buscar atividade recente:', error)
+      setRecentScans([])
+    }
+  }
+
+  // Buscar atividade inicial e configurar polling a cada 30 segundos
   useEffect(() => {
-    const mockRecentScans = [
-      { id: 1, user: 'Maria S.', type: 'ENTRY', time: '08:00' },
-      { id: 2, user: 'João P.', type: 'EXIT', time: '17:30' },
-      { id: 3, user: 'Ana L.', type: 'ENTRY', time: '08:15' }
-    ]
-    setRecentScans(mockRecentScans)
+    fetchRecentActivity()
+    
+    const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
+    
+    return () => clearInterval(activityTimer)
   }, [])
 
   const formatTime = (date: Date) => {
@@ -286,23 +303,23 @@ export default function KioskPage() {
               <h3 className="text-lg font-semibold text-white">Atividade Recente</h3>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {recentScans.map((scan) => (
-                <div key={scan.id} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30">
+                <div key={scan.id} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
                   <div className="flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-3 ${
-                      scan.type === 'ENTRY' ? 'bg-primary' : 'bg-warning'
+                      scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
                     }`}></div>
                     <div>
-                      <p className="text-white font-medium">{scan.user}</p>
+                      <p className="text-white font-medium text-sm">{scan.user}</p>
                       <p className="text-xs text-neutral-400">
                         {scan.type === 'ENTRY' ? 'Entrada' : 'Saída'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-neutral-300">{scan.time}</p>
-                    <CheckCircle className="h-4 w-4 text-success ml-auto mt-1" />
+                    <p className="text-sm text-neutral-300 font-mono">{scan.time}</p>
+                    <CheckCircle className="h-4 w-4 text-green-500 ml-auto mt-1" />
                   </div>
                 </div>
               ))}
