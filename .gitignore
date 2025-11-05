@@ -54,3 +54,4 @@ prisma/migrations/
 *.pid
 *.seed
 *.pid.lock
+.vercel
