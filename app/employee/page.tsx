@@ -505,8 +505,8 @@ export default function EmployeePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
           
           {/* Notificação de Último Registro */}
           {lastRegistration && (
@@ -624,21 +624,21 @@ export default function EmployeePage() {
             )}
 
             {/* Main Actions */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {/* QR Code Scanner */}
               <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-                <CardContent className="p-8 text-center flex flex-col h-full">
-                  <div className="bg-primary/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/30 transition-colors">
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
+                  <div className="bg-primary/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-primary/30 transition-colors">
                     {workStatus?.isWorking ? (
                       <Square className="h-10 w-10 text-primary" />
                     ) : (
                       <Play className="h-10 w-10 text-primary" />
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
                     {workStatus?.isWorking ? 'Registrar Saída' : 'Registrar Entrada'}
                   </h3>
-                  <p className="text-neutral-400 text-sm mb-6">
+                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
                     Escaneie o QR code da máquina para registrar seu ponto
                   </p>
                   
@@ -758,14 +758,14 @@ export default function EmployeePage() {
 
               {/* History */}
               <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-                <CardContent className="p-8 text-center flex flex-col h-full">
-                  <div className="bg-secondary-500/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-secondary-500/30 transition-colors">
+                <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
+                  <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-secondary-500/30 transition-colors">
                     <History className="h-10 w-10 text-secondary-500" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
                     Histórico Completo
                   </h3>
-                  <p className="text-neutral-400 text-sm mb-6">
+                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
                     Visualize seu histórico de registros e relatórios mensais
                   </p>
                   <div className="flex-1"></div>

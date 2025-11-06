@@ -26,6 +26,8 @@ interface ProfileData {
   emergencyPhone?: string
   department?: string
   startDate?: string
+  contractStartDate?: string
+  contractEndDate?: string
 }
 
 export default function CompleteProfilePage() {
@@ -140,6 +142,24 @@ export default function CompleteProfilePage() {
       newErrors.startDate = 'Data de início é obrigatória'
     }
 
+    if (!profileData.contractStartDate) {
+      newErrors.contractStartDate = 'Data de início do contrato é obrigatória'
+    }
+
+    if (!profileData.contractEndDate) {
+      newErrors.contractEndDate = 'Data de fim do contrato é obrigatória'
+    }
+
+    // Validar se data de fim é posterior à data de início
+    if (profileData.contractStartDate && profileData.contractEndDate) {
+      const startDate = new Date(profileData.contractStartDate)
+      const endDate = new Date(profileData.contractEndDate)
+      
+      if (endDate <= startDate) {
+        newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       console.log('❌ Erros de validação encontrados:', newErrors)
     } else {
@@ -239,31 +259,31 @@ export default function CompleteProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-2xl">
         <Card>
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-8 w-8 text-primary" />
+          <CardHeader className="text-center p-4 sm:p-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <User className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Complete seu Perfil</CardTitle>
-            <p className="text-neutral-400">
+            <CardTitle className="text-xl sm:text-2xl">Complete seu Perfil</CardTitle>
+            <p className="text-neutral-400 text-sm sm:text-base">
               Olá, {session.user.name}! Para continuar, precisamos de algumas informações adicionais.
             </p>
           </CardHeader>
           
-          <CardContent>
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="p-4 sm:p-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {errors.general && (
-                <div className="p-4 bg-error/20 border border-error/50 rounded-lg text-error text-sm">
+                <div className="p-3 sm:p-4 bg-error/20 border border-error/50 rounded-lg text-error text-sm">
                   {errors.general}
                 </div>
               )}
 
               {/* Informações Pessoais */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Informações Pessoais</h3>
-                <div className="grid gap-4 md:grid-cols-2">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Pessoais</h3>
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-2">
                       Email (já confirmado)
@@ -333,8 +353,8 @@ export default function CompleteProfilePage() {
 
               {/* Contato de Emergência */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Contato de Emergência</h3>
-                <div className="grid gap-4 md:grid-cols-2">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Contato de Emergência</h3>
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-2">
                       Nome do Contato *
@@ -371,8 +391,8 @@ export default function CompleteProfilePage() {
 
               {/* Informações Profissionais */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Informações Profissionais</h3>
-                <div className="grid gap-4 md:grid-cols-2">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Profissionais</h3>
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-2">
                       Departamento *
@@ -413,9 +433,48 @@ export default function CompleteProfilePage() {
                 </div>
               </div>
 
+              {/* Informações do Contrato */}
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações do Contrato</h3>
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      Início do Contrato *
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                      <input
+                        type="date"
+                        className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
+                        value={profileData.contractStartDate || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, contractStartDate: e.target.value }))}
+                      />
+                    </div>
+                    {errors.contractStartDate && <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      Fim do Contrato *
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                      <input
+                        type="date"
+                        className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
+                        value={profileData.contractEndDate || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, contractEndDate: e.target.value }))}
+                        min={profileData.contractStartDate || undefined}
+                      />
+                    </div>
+                    {errors.contractEndDate && <p className="text-error text-xs mt-1">{errors.contractEndDate}</p>}
+                  </div>
+                </div>
+              </div>
+
               {/* Submit Button */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-neutral-700">
-                <Button type="submit" disabled={loading || redirecting} className="min-w-[150px]">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-neutral-700">
+                <Button type="submit" disabled={loading || redirecting} className="w-full sm:w-auto sm:min-w-[150px]">
                   {redirecting ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

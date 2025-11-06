@@ -133,20 +133,20 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
       {/* Header */}
       <div className="glass border-b border-neutral-700/50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Home className="h-6 w-6 text-primary" />
+                <Home className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </Link>
-              <div className="h-6 w-px bg-neutral-600" />
-              <div className="flex items-center space-x-3">
-                <div className="bg-primary/20 rounded-xl p-2">
-                  <Monitor className="h-6 w-6 text-primary" />
+              <div className="h-4 sm:h-6 w-px bg-neutral-600" />
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="bg-primary/20 rounded-xl p-1.5 sm:p-2">
+                  <Monitor className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">Painel Administrativo</h1>
-                  <p className="text-neutral-400 text-sm">Sistema Chronos - Gestão de Ponto</p>
+                  <h1 className="text-lg sm:text-xl font-bold text-white">Painel Administrativo</h1>
+                  <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Sistema Chronos - Gestão de Ponto</p>
                 </div>
               </div>
             </div>
@@ -167,74 +167,80 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
         {loading ? (
           <Loading size="lg" text="Carregando dashboard..." />
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Card variant="glass" className="hover:scale-105 transition-transform duration-200">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-sm font-medium">Total de Usuários</p>
-                      <p className="text-3xl font-bold text-white mt-1">{stats?.totalUsers}</p>
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Total de Usuários</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.totalUsers}</p>
                       <p className="text-xs text-primary mt-1 flex items-center">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         +2 este mês
                       </p>
                     </div>
-                    <div className="bg-secondary-500/20 rounded-2xl p-3">
-                      <Users className="h-8 w-8 text-secondary-500" />
+                    <div className="bg-secondary-500/20 rounded-2xl p-2 sm:p-3">
+                      <Users className="h-6 w-6 sm:h-8 sm:w-8 text-secondary-500" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card variant="glass" className="hover:scale-105 transition-transform duration-200">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-sm font-medium">Registros Hoje</p>
-                      <p className="text-3xl font-bold text-white mt-1">{stats?.todayRecords}</p>
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Registros Hoje</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.todayRecords}</p>
                       <p className="text-xs text-success mt-1 flex items-center">
                         <Activity className="h-3 w-3 mr-1" />
                         +12% vs ontem
                       </p>
                     </div>
-                    <div className="bg-primary/20 rounded-2xl p-3">
-                      <Clock className="h-8 w-8 text-primary" />
+                    <div className="bg-primary/20 rounded-2xl p-2 sm:p-3">
+                      <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card variant="glass" className="hover:scale-105 transition-transform duration-200">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-sm font-medium">Máquinas Ativas</p>
-                      <p className="text-3xl font-bold text-white mt-1">{stats?.activeMachines}</p>
-                      <p className="text-xs text-info mt-1">100% operacionais</p>
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Máquinas Ativas</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.activeMachines}</p>
+                      <p className="text-xs text-warning mt-1 flex items-center">
+                        <Monitor className="h-3 w-3 mr-1" />
+                        2 offline
+                      </p>
                     </div>
-                    <div className="bg-info/20 rounded-2xl p-3">
-                      <Monitor className="h-8 w-8 text-info" />
+                    <div className="bg-warning/20 rounded-2xl p-2 sm:p-3">
+                      <Monitor className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card variant="glass" className="hover:scale-105 transition-transform duration-200">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-sm font-medium">Alertas</p>
-                      <p className="text-3xl font-bold text-white mt-1">{stats?.alerts}</p>
-                      <p className="text-xs text-warning mt-1">Requer atenção</p>
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Alertas</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.alerts}</p>
+                      <p className="text-xs text-error mt-1 flex items-center">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Requer atenção
+                      </p>
                     </div>
-                    <div className="bg-warning/20 rounded-2xl p-3">
-                      <AlertTriangle className="h-8 w-8 text-warning" />
+                    <div className="bg-error/20 rounded-2xl p-2 sm:p-3">
+                      <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-error" />
                     </div>
                   </div>
                 </CardContent>
@@ -242,7 +248,7 @@ export default function AdminPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Link href="/admin/users">
                 <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
                   <CardContent className="p-6 text-center">
