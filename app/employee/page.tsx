@@ -797,15 +797,17 @@ export default function EmployeePage() {
               </Link>
             </div>
 
-            {/* Recent Records */}
-            <Card variant="glass">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Calendar className="h-5 w-5 mr-2 text-primary" />
-                  Registros Recentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            {!loading && (
+            <>
+              {/* Recent Records */}
+              <Card variant="glass">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-white">
+                    <Calendar className="h-5 w-5 mr-2 text-primary" />
+                    Registros Recentes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="space-y-4">
                   {recentRecords.length > 0 ? (
                     recentRecords.map((record) => (
@@ -864,10 +866,11 @@ export default function EmployeePage() {
                     Ver todos os registros
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
