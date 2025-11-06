@@ -24,15 +24,27 @@ export default withAuth(
       const profileComplete = token.profileComplete as boolean
       const role = token.role as string
       
+      console.log('🔄 [MIDDLEWARE] Usuário autenticado:', {
+        pathname,
+        role,
+        profileComplete,
+        userId: token.sub
+      })
+      
       // Se usuário autenticado está na página inicial, redirecionar para dashboard apropriado
       if (pathname === '/') {
+        console.log('🏠 [MIDDLEWARE] Usuário na página inicial, redirecionando...')
+        
         if (profileComplete === false) {
+          console.log('📝 [MIDDLEWARE] Perfil incompleto -> complete-profile')
           return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
         }
         
         if (role === 'ADMIN' || role === 'SUPERVISOR') {
+          console.log('👑 [MIDDLEWARE] Admin/Supervisor -> /admin')
           return NextResponse.redirect(new URL('/admin', req.url))
         } else {
+          console.log('👤 [MIDDLEWARE] Employee -> /employee')
           return NextResponse.redirect(new URL('/employee', req.url))
         }
       }

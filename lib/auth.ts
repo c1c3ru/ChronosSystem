@@ -89,19 +89,34 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role || 'EMPLOYEE'
-        token.sub = user.id
+    async jwt({ token, user, account, trigger }) {
+      // Se é um novo login ou trigger de update
+      if (user || trigger === 'update') {
+        if (user) {
+          token.role = user.role
+          token.sub = user.id
+          token.profileComplete = user.profileComplete
+        }
         
-        // Buscar dados completos do usuário para verificar profileComplete
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { profileComplete: true }
-        })
-        
-        token.profileComplete = dbUser?.profileComplete ?? true
-        
+        // Sempre buscar dados atualizados do banco para garantir consistência
+        if (token.sub) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { 
+              role: true, 
+              profileComplete: true,
+              name: true,
+              email: true 
+            }
+          })
+          
+          if (dbUser) {
+            token.role = dbUser.role
+            token.profileComplete = dbUser.profileComplete
+            token.name = dbUser.name
+            token.email = dbUser.email
+          }
+        }
       }
       return token
     },
@@ -114,8 +129,16 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async signIn({ user, account, profile }) {
+      console.log('🔵 [SIGNIN] Callback iniciado:', { 
+        provider: account?.provider, 
+        email: user.email,
+        userId: user.id 
+      })
+      
       if (account?.provider === 'google') {
         try {
+          console.log('🔍 [SIGNIN] Processando login Google para:', user.email)
+          
           // Buscar usuário existente no banco de dados
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
@@ -129,11 +152,14 @@ export const authOptions: NextAuthOptions = {
             }
           })
           
+          console.log('👤 [SIGNIN] Usuário existente:', existingUser ? 'SIM' : 'NÃO')
 
           if (existingUser) {
-            // Usuário existe - vincular conta Google e usar dados do banco
-            // Verificar se usuário existente precisa completar perfil
-            // (pode ter sido criado via email/senha mas nunca completou)
+            console.log('✅ [SIGNIN] Dados do usuário existente:', {
+              id: existingUser.id,
+              role: existingUser.role,
+              profileComplete: existingUser.profileComplete
+            })
             
             // Atualizar dados do usuário no objeto user para o JWT
             user.id = existingUser.id
@@ -144,6 +170,8 @@ export const authOptions: NextAuthOptions = {
             
             return true
           } else {
+            console.log('📝 [SIGNIN] Criando novo usuário Google')
+            
             // Usuário não existe - criar novo com role padrão EMPLOYEE
             const newUser = await prisma.user.create({
               data: {
@@ -155,6 +183,11 @@ export const authOptions: NextAuthOptions = {
               }
             })
             
+            console.log('✅ [SIGNIN] Novo usuário criado:', {
+              id: newUser.id,
+              role: newUser.role,
+              profileComplete: newUser.profileComplete
+            })
             
             // Atualizar dados do usuário no objeto user para o JWT
             user.id = newUser.id
@@ -169,6 +202,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
       
+      console.log('✅ [SIGNIN] Login com outros providers permitido')
       return true
     },
     async redirect({ url, baseUrl }) {
