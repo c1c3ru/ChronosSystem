@@ -522,7 +522,17 @@ export default function EmployeePage() {
                           </div>
                           <div className="space-y-2">
                             <Button 
-                              onClick={checkCameraPermission} 
+                              onClick={async () => {
+                                console.log('🔄 [CAMERA] Forçando re-verificação completa...')
+                                setCameraPermission('checking')
+                                setCameraError(null)
+                                setIsCheckingCamera(true)
+                                
+                                // Aguardar um pouco e re-verificar
+                                setTimeout(async () => {
+                                  await checkCameraPermission()
+                                }, 500)
+                              }} 
                               size="sm" 
                               variant="ghost"
                               className="text-red-400 border-red-400/50 hover:bg-red-500/10"
@@ -530,15 +540,30 @@ export default function EmployeePage() {
                               Verificar Novamente
                             </Button>
                             <Button 
-                              onClick={() => {
+                              onClick={async () => {
+                                console.log('🚀 [CAMERA] Forçando teste direto da câmera...')
                                 setCameraPermission('prompt')
                                 setCameraError(null)
+                                
+                                // Tentar acessar câmera diretamente
+                                try {
+                                  const stream = await navigator.mediaDevices.getUserMedia({ 
+                                    video: { facingMode: 'environment' } 
+                                  })
+                                  console.log('✅ [CAMERA] Teste direto funcionou!')
+                                  setCameraPermission('granted')
+                                  stream.getTracks().forEach(track => track.stop())
+                                } catch (error: any) {
+                                  console.log('❌ [CAMERA] Teste direto falhou:', error.name)
+                                  setCameraPermission('denied')
+                                  setCameraError(`Erro no teste direto: ${error.message}`)
+                                }
                               }} 
                               size="sm" 
                               variant="ghost"
                               className="text-blue-400 border-blue-400/50 hover:bg-blue-500/10"
                             >
-                              Tentar Scanner
+                              Teste Direto
                             </Button>
                           </div>
                         </div>

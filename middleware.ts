@@ -89,7 +89,20 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next()
+    // Criar resposta com headers de permissões
+    const response = NextResponse.next()
+    
+    // Adicionar headers de permissões para câmera
+    response.headers.set('Permissions-Policy', 'camera=*, microphone=*, geolocation=*')
+    response.headers.set('Feature-Policy', 'camera *; microphone *; geolocation *')
+    
+    // Headers de segurança adicionais
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    
+    console.log('🔒 [MIDDLEWARE] Headers de permissões adicionados para:', pathname)
+    
+    return response
   },
   {
     callbacks: {
