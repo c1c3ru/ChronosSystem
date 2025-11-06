@@ -58,6 +58,7 @@ export default function EmployeePage() {
   const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null)
   const [qrResult, setQrResult] = useState<string | null>(null)
   const [processingQr, setProcessingQr] = useState(false)
+  const [lastRegistration, setLastRegistration] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const qrReaderRef = useRef<HTMLDivElement>(null)
 
@@ -382,22 +383,37 @@ export default function EmployeePage() {
       if (response.ok && result.success) {
         console.log('✅ [QR] Registro de ponto realizado com sucesso!')
         
-        // Atualizar dados da página
-        await loadEmployeeData()
-        
-        // Mostrar feedback de sucesso
+        // Mostrar feedback de sucesso imediatamente
         setCameraError(null)
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
-        const recordTime = new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
+        const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit'
         })
-        setQrResult(`✅ ${recordType} registrada às ${recordTime} - ${result.record.location}`)
+        setQrResult(`✅ ${recordType} registrada às ${recordTime}`)
         
-        // Fechar scanner após 4 segundos
-        setTimeout(() => {
-          stopScanning()
-        }, 4000)
+        // Definir última registração para mostrar na página principal
+        setLastRegistration(`${recordType} registrada às ${recordTime} - ${result.record.location || result.record.machineName}`)
+        
+        // Aguardar 2 segundos para mostrar o sucesso, depois fechar
+        setTimeout(async () => {
+          console.log('🔄 [QR] Fechando scanner e atualizando dados...')
+          
+          // Fechar scanner primeiro
+          await stopScanning()
+          
+          // Atualizar dados da página após fechar o scanner
+          setTimeout(async () => {
+            await loadEmployeeData()
+            console.log('✅ [QR] Dados atualizados com sucesso!')
+            
+            // Limpar notificação após 5 segundos
+            setTimeout(() => {
+              setLastRegistration(null)
+            }, 5000)
+          }, 500)
+          
+        }, 2000)
         
       } else {
         console.error('❌ [QR] Erro no registro:', result.error)
@@ -433,9 +449,13 @@ export default function EmployeePage() {
       videoRef.current.srcObject = null
     }
     
+    // Limpar todos os estados relacionados ao scanner
     setScanning(false)
     setQrResult(null)
     setProcessingQr(false)
+    setCameraError(null)
+    
+    console.log('✅ [QR] Scanner completamente fechado')
   }
 
 
@@ -485,14 +505,25 @@ export default function EmployeePage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {loading ? (
-          <Loading size="lg" text="Carregando dados..." />
-        ) : (
-          <>
-            {/* Status Card */}
-            <Card variant="glass" className="mb-8">
-              <CardContent className="p-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
+          
+          {/* Notificação de Último Registro */}
+          {lastRegistration && (
+            <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+                <div>
+                  <p className="text-green-400 font-medium">Ponto Registrado!</p>
+                  <p className="text-green-300 text-sm">{lastRegistration}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Status Card */}
+          <Card variant="glass" className="overflow-hidden">
+            <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className={`w-4 h-4 rounded-full ${
