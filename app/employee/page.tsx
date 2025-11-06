@@ -107,49 +107,62 @@ export default function EmployeePage() {
     try {
       setLoading(true)
       
-      // Simular dados por enquanto - depois conectar com APIs reais
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setWorkStatus({
-        isWorking: true,
-        lastRecord: {
-          type: 'ENTRY',
-          time: '08:00',
-          location: 'Recepção Principal'
-        },
-        todayHours: '4h 32min'
-      })
-
-      setRecentRecords([
-        {
-          id: '1',
-          date: 'Hoje',
-          entry: '08:00',
-          hours: '4h 32min',
-          status: 'Em andamento',
-          location: 'Recepção Principal'
-        },
-        {
-          id: '2',
-          date: 'Ontem',
-          entry: '08:15',
-          exit: '17:30',
-          hours: '8h 15min',
-          status: 'Completo',
-          location: 'Recepção Principal'
-        },
-        {
-          id: '3',
-          date: '20/10',
-          entry: '08:00',
-          exit: '17:00',
-          hours: '8h 00min',
-          status: 'Completo',
-          location: 'Lab TI'
-        }
+      // Buscar dados reais do usuário
+      const [statusResponse, recordsResponse] = await Promise.all([
+        fetch('/api/dashboard/stats'),
+        fetch('/api/attendance/detailed')
       ])
+      
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json()
+        setWorkStatus({
+          isWorking: statusData.isWorking || false,
+          lastRecord: statusData.lastRecord || null,
+          todayHours: statusData.todayHours || '0h 00min'
+        })
+      }
+      
+      if (recordsResponse.ok) {
+        const recordsData = await recordsResponse.json()
+        // Formatar dados para a interface
+        const formattedRecords = recordsData.records?.slice(0, 5).map((record: any) => ({
+          id: record.id,
+          date: new Date(record.timestamp).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit'
+          }),
+          entry: record.type === 'ENTRY' ? new Date(record.timestamp).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : null,
+          exit: record.type === 'EXIT' ? new Date(record.timestamp).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : null,
+          hours: record.totalHours || '-',
+          status: record.status || 'Completo',
+          location: record.machine?.location || 'Sistema'
+        })) || []
+        
+        setRecentRecords(formattedRecords)
+      } else {
+        // Se não há dados, mostrar estado vazio
+        setRecentRecords([])
+        setWorkStatus({
+          isWorking: false,
+          lastRecord: null,
+          todayHours: '0h 00min'
+        })
+      }
     } catch (error) {
       console.error('Erro ao carregar dados do funcionário:', error)
+      // Em caso de erro, mostrar estado vazio
+      setRecentRecords([])
+      setWorkStatus({
+        isWorking: false,
+        lastRecord: null,
+        todayHours: '0h 00min'
+      })
     } finally {
       setLoading(false)
     }
@@ -365,8 +378,8 @@ export default function EmployeePage() {
             {/* Main Actions */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
               {/* QR Code Scanner */}
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200">
-                <CardContent className="p-8 text-center">
+              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+                <CardContent className="p-8 text-center flex flex-col h-full">
                   <div className="bg-primary/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/30 transition-colors">
                     {workStatus?.isWorking ? (
                       <Square className="h-10 w-10 text-primary" />
@@ -377,29 +390,32 @@ export default function EmployeePage() {
                   <h3 className="text-xl font-semibold text-white mb-3">
                     {workStatus?.isWorking ? 'Registrar Saída' : 'Registrar Entrada'}
                   </h3>
-                  <p className="text-neutral-400 text-sm mb-4">
+                  <p className="text-neutral-400 text-sm mb-6">
                     Escaneie o QR code da máquina para registrar seu ponto
                   </p>
                   
-                  {/* Status da Câmera */}
-                  {cameraPermission === 'denied' && (
-                    <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
-                      <p className="text-red-400 text-xs">
-                        <AlertTriangle className="h-4 w-4 inline mr-1" />
-                        Câmera bloqueada. Clique no ícone 🔒 na barra de endereços para permitir.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {cameraError && (
-                    <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-3 mb-4">
-                      <p className="text-orange-400 text-xs">{cameraError}</p>
-                    </div>
-                  )}
+                  {/* Área flexível para alertas */}
+                  <div className="flex-1 mb-6">
+                    {/* Status da Câmera */}
+                    {cameraPermission === 'denied' && (
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
+                        <p className="text-red-400 text-xs">
+                          <AlertTriangle className="h-4 w-4 inline mr-1" />
+                          Câmera bloqueada. Clique no ícone 🔒 na barra de endereços para permitir.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {cameraError && (
+                      <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-3 mb-4">
+                        <p className="text-orange-400 text-xs">{cameraError}</p>
+                      </div>
+                    )}
+                  </div>
                   
                   <Button 
                     onClick={startScanning} 
-                    className="w-full"
+                    className="w-full mt-auto"
                     disabled={cameraPermission === 'denied' && !cameraError}
                   >
                     <Camera className="h-5 w-5 mr-2" />
@@ -411,8 +427,8 @@ export default function EmployeePage() {
               </Card>
 
               {/* History */}
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200">
-                <CardContent className="p-8 text-center">
+              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+                <CardContent className="p-8 text-center flex flex-col h-full">
                   <div className="bg-secondary-500/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-secondary-500/30 transition-colors">
                     <History className="h-10 w-10 text-secondary-500" />
                   </div>
@@ -422,7 +438,8 @@ export default function EmployeePage() {
                   <p className="text-neutral-400 text-sm mb-6">
                     Visualize seu histórico de registros e relatórios mensais
                   </p>
-                  <Button variant="secondary" className="w-full">
+                  <div className="flex-1"></div>
+                  <Button variant="secondary" className="w-full mt-auto">
                     Ver Histórico
                   </Button>
                 </CardContent>
@@ -430,8 +447,8 @@ export default function EmployeePage() {
 
               {/* Justifications */}
               <Link href="/employee/justifications">
-                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
-                  <CardContent className="p-8 text-center">
+                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer h-full">
+                  <CardContent className="p-8 text-center flex flex-col h-full">
                     <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
                       <AlertTriangle className="h-10 w-10 text-warning" />
                     </div>
@@ -441,7 +458,8 @@ export default function EmployeePage() {
                     <p className="text-neutral-400 text-sm mb-6">
                       Justifique atrasos e faltas (&gt;30 min)
                     </p>
-                    <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10">
+                    <div className="flex-1"></div>
+                    <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10 mt-auto">
                       Gerenciar
                     </Button>
                   </CardContent>
@@ -459,46 +477,56 @@ export default function EmployeePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentRecords.map((record) => (
-                    <div key={record.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-center min-w-[60px]">
-                          <p className="text-white font-medium">{record.date}</p>
-                        </div>
-                        <div className="h-8 w-px bg-neutral-600"></div>
-                        <div>
-                          <div className="flex items-center space-x-4 text-sm">
-                            {record.entry && (
-                              <span className="text-primary">
-                                Entrada: {record.entry}
-                              </span>
-                            )}
-                            {record.exit && (
-                              <>
-                                <span className="text-neutral-500">•</span>
-                                <span className="text-warning">
-                                  Saída: {record.exit}
-                                </span>
-                              </>
-                            )}
+                  {recentRecords.length > 0 ? (
+                    recentRecords.map((record) => (
+                      <div key={record.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="text-center min-w-[60px]">
+                            <p className="text-white font-medium">{record.date}</p>
                           </div>
-                          <p className="text-neutral-400 text-xs mt-1 flex items-center">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {record.location} • Total: {record.hours}
-                          </p>
+                          <div className="h-8 w-px bg-neutral-600"></div>
+                          <div>
+                            <div className="flex items-center space-x-4 text-sm">
+                              {record.entry && (
+                                <span className="text-primary">
+                                  Entrada: {record.entry}
+                                </span>
+                              )}
+                              {record.exit && (
+                                <>
+                                  <span className="text-neutral-500">•</span>
+                                  <span className="text-warning">
+                                    Saída: {record.exit}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <p className="text-neutral-400 text-xs mt-1 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {record.location} • Total: {record.hours}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                            record.status === 'Completo' 
+                              ? 'bg-success/20 text-success border border-success/30' 
+                              : 'bg-warning/20 text-warning border border-warning/30'
+                          }`}>
+                            {record.status}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                          record.status === 'Completo' 
-                            ? 'bg-success/20 text-success border border-success/30' 
-                            : 'bg-warning/20 text-warning border border-warning/30'
-                        }`}>
-                          {record.status}
-                        </span>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="bg-neutral-800/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <Clock className="h-8 w-8 text-neutral-500" />
                       </div>
+                      <p className="text-neutral-400 mb-2">Nenhum registro encontrado</p>
+                      <p className="text-neutral-500 text-sm">Seus registros de ponto aparecerão aqui</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 
                 <div className="mt-6 text-center">
