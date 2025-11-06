@@ -306,20 +306,19 @@ export default function EmployeePage() {
           false
         )
         
-        // Callback quando QR code é detectado
+        // Callback quando código é detectado
         const onScanSuccess = async (decodedText: string, decodedResult: any) => {
-          console.log('🎯 [QR] QR Code detectado:', decodedText)
-          setQrResult(decodedText)
+          console.log('✅ Código detectado, processando...')
           
           // Parar o scanner
           try {
             await scanner.clear()
             setQrScanner(null)
           } catch (clearError) {
-            console.log('⚠️ [QR] Erro ao limpar scanner:', clearError)
+            console.log('Scanner finalizado')
           }
           
-          // Processar o QR code
+          // Processar o código
           await processQrCode(decodedText)
         }
         
@@ -354,16 +353,15 @@ export default function EmployeePage() {
   const processQrCode = async (qrData: string) => {
     try {
       setProcessingQr(true)
-      console.log('⚙️ [QR] Processando QR code:', qrData)
+      console.log('⚙️ Processando registro de ponto...')
       
-      // Tentar fazer parse do QR code (esperamos JSON com machineId)
+      // Processar dados do código (transparente para o usuário)
       let machineId: string
       
       try {
         const qrJson = JSON.parse(qrData)
         machineId = qrJson.machineId || qrJson.id || qrData
       } catch {
-        // Se não for JSON, usar o texto diretamente
         machineId = qrData
       }
       
@@ -381,7 +379,7 @@ export default function EmployeePage() {
       const result = await response.json()
       
       if (response.ok && result.success) {
-        console.log('✅ [QR] Registro de ponto realizado com sucesso!')
+        console.log('✅ Ponto registrado com sucesso!')
         
         // Mostrar feedback de sucesso imediatamente
         setCameraError(null)
@@ -397,7 +395,7 @@ export default function EmployeePage() {
         
         // Aguardar 2 segundos para mostrar o sucesso, depois fechar
         setTimeout(async () => {
-          console.log('🔄 [QR] Fechando scanner e atualizando dados...')
+          console.log('🔄 Finalizando e atualizando dados...')
           
           // Fechar scanner primeiro
           await stopScanning()
@@ -405,7 +403,7 @@ export default function EmployeePage() {
           // Atualizar dados da página após fechar o scanner
           setTimeout(async () => {
             await loadEmployeeData()
-            console.log('✅ [QR] Dados atualizados com sucesso!')
+            console.log('✅ Dados atualizados!')
             
             // Limpar notificação após 5 segundos
             setTimeout(() => {
@@ -416,28 +414,28 @@ export default function EmployeePage() {
         }, 2000)
         
       } else {
-        console.error('❌ [QR] Erro no registro:', result.error)
+        console.error('❌ Erro no registro:', result.error)
         setCameraError(result.error || 'Erro ao registrar ponto')
       }
       
     } catch (error: any) {
-      console.error('❌ [QR] Erro ao processar QR code:', error)
-      setCameraError(`Erro ao processar QR code: ${error.message}`)
+      console.error('❌ Erro ao processar registro:', error)
+      setCameraError(`Erro ao registrar ponto: ${error.message}`)
     } finally {
       setProcessingQr(false)
     }
   }
 
   const stopScanning = async () => {
-    console.log('🛑 [QR] Parando scanner...')
+    console.log('🛑 Fechando câmera...')
     
-    // Limpar QR scanner
+    // Limpar scanner
     if (qrScanner) {
       try {
         await qrScanner.clear()
-        console.log('✅ [QR] Scanner QR limpo')
+        console.log('✅ Scanner finalizado')
       } catch (error) {
-        console.log('⚠️ [QR] Erro ao limpar scanner:', error)
+        console.log('Scanner finalizado')
       }
       setQrScanner(null)
     }
@@ -455,7 +453,7 @@ export default function EmployeePage() {
     setProcessingQr(false)
     setCameraError(null)
     
-    console.log('✅ [QR] Scanner completamente fechado')
+    console.log('✅ Câmera fechada')
   }
 
 
@@ -557,7 +555,7 @@ export default function EmployeePage() {
               <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-modal flex items-center justify-center p-2 sm:p-4">
                 <Card variant="glass" className="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
                   <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
-                    <CardTitle className="text-white text-lg sm:text-xl">Scanner QR</CardTitle>
+                    <CardTitle className="text-white">Registrar Ponto</CardTitle>
                     <Button 
                       onClick={stopScanning} 
                       variant="ghost" 
@@ -582,7 +580,7 @@ export default function EmployeePage() {
                       <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 sm:p-4">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-blue-400"></div>
-                          <p className="text-blue-400 text-sm sm:text-base">Processando QR code...</p>
+                          <p className="text-blue-400 text-sm sm:text-base">Registrando ponto...</p>
                         </div>
                       </div>
                     )}
@@ -607,7 +605,7 @@ export default function EmployeePage() {
                     
                     <div className="text-center px-2">
                       <p className="text-neutral-400 text-sm sm:text-base mb-4">
-                        Aponte a câmera para o QR code da máquina
+                        Aponte a câmera para o código da máquina
                       </p>
                       <Button 
                         onClick={stopScanning} 
@@ -639,7 +637,7 @@ export default function EmployeePage() {
                     {workStatus?.isWorking ? 'Registrar Saída' : 'Registrar Entrada'}
                   </h3>
                   <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                    Escaneie o QR code da máquina para registrar seu ponto
+                    Use a câmera para registrar seu ponto na máquina
                   </p>
                   
                   {/* Área flexível para alertas */}
@@ -649,7 +647,7 @@ export default function EmployeePage() {
                       <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mb-4">
                         <div className="text-center">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
-                          <p className="text-blue-400 text-sm">Verificando acesso à câmera...</p>
+                          <p className="text-blue-400 text-sm">Preparando câmera...</p>
                         </div>
                       </div>
                     )}
@@ -660,19 +658,9 @@ export default function EmployeePage() {
                         <div className="text-center">
                           <AlertTriangle className="h-6 w-6 text-red-400 mx-auto mb-2" />
                           <p className="text-red-400 text-sm font-medium mb-2">Câmera Bloqueada</p>
-                          <p className="text-red-300 text-xs mb-3">
-                            Para usar o scanner QR, você precisa permitir o acesso à câmera:
+                          <p className="text-red-400 text-xs mb-3">
+                            Para registrar seu ponto, permita o acesso à câmera quando solicitado
                           </p>
-                          <div className="text-left text-xs text-red-300 mb-3 space-y-1">
-                            <p><strong>Chrome/Edge:</strong></p>
-                            <p>• Clique no ícone 🔒 ou 📷 na barra de endereços</p>
-                            <p>• Selecione "Permitir" para câmera</p>
-                            <p><strong>Firefox:</strong></p>
-                            <p>• Clique no ícone do escudo na barra</p>
-                            <p>• Ative as permissões da câmera</p>
-                            <p><strong>Safari:</strong></p>
-                            <p>• Safari → Configurações → Sites → Câmera</p>
-                          </div>
                           <div className="space-y-2">
                             <Button 
                               onClick={async () => {
@@ -690,33 +678,7 @@ export default function EmployeePage() {
                               variant="ghost"
                               className="text-red-400 border-red-400/50 hover:bg-red-500/10"
                             >
-                              Verificar Novamente
-                            </Button>
-                            <Button 
-                              onClick={async () => {
-                                console.log('🚀 [CAMERA] Forçando teste direto da câmera...')
-                                setCameraPermission('prompt')
-                                setCameraError(null)
-                                
-                                // Tentar acessar câmera diretamente
-                                try {
-                                  const stream = await navigator.mediaDevices.getUserMedia({ 
-                                    video: { facingMode: 'environment' } 
-                                  })
-                                  console.log('✅ [CAMERA] Teste direto funcionou!')
-                                  setCameraPermission('granted')
-                                  stream.getTracks().forEach(track => track.stop())
-                                } catch (error: any) {
-                                  console.log('❌ [CAMERA] Teste direto falhou:', error.name)
-                                  setCameraPermission('denied')
-                                  setCameraError(`Erro no teste direto: ${error.message}`)
-                                }
-                              }} 
-                              size="sm" 
-                              variant="ghost"
-                              className="text-blue-400 border-blue-400/50 hover:bg-blue-500/10"
-                            >
-                              Teste Direto
+                              Tentar Novamente
                             </Button>
                           </div>
                         </div>
