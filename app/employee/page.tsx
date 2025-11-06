@@ -1,25 +1,26 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useState, useEffect, useRef } from 'react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
-import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { 
+  User, 
+  LogOut, 
   Camera, 
-  QrCode, 
   History, 
-  Timer, 
+  AlertTriangle, 
+  Calendar, 
   MapPin, 
-  Calendar,
-  Play,
+  Play, 
   Square,
   Clock,
-  AlertTriangle,
-  User,
-  LogOut,
-  Home
+  X,
+  CheckCircle,
+  Home,
+  Timer
 } from 'lucide-react'
+import { Html5QrcodeScanner } from 'html5-qrcode'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -54,7 +55,11 @@ export default function EmployeePage() {
   const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('checking')
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [isCheckingCamera, setIsCheckingCamera] = useState(false)
+  const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null)
+  const [qrResult, setQrResult] = useState<string | null>(null)
+  const [processingQr, setProcessingQr] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const qrReaderRef = useRef<HTMLDivElement>(null)
 
   // Verificar permissões da câmera ao carregar
   useEffect(() => {
@@ -246,115 +251,152 @@ export default function EmployeePage() {
 
   const startScanning = async () => {
     try {
-      console.log('📷 [CAMERA] Iniciando scanner...')
+      console.log('📷 [QR] Iniciando scanner QR...')
       setScanning(true)
       setCameraError(null)
+      setQrResult(null)
       
-      // Solicitar acesso à câmera
-      console.log('📷 [CAMERA] Solicitando acesso à câmera...')
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      })
+      // Limpar scanner anterior se existir
+      if (qrScanner) {
+        await qrScanner.clear()
+        setQrScanner(null)
+      }
       
-      console.log('✅ [CAMERA] Acesso concedido!')
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        setCameraPermission('granted')
-        console.log('📹 [CAMERA] Stream conectado ao vídeo')
+      // Configurar o scanner QR
+      if (qrReaderRef.current) {
+        const scanner = new Html5QrcodeScanner(
+          qrReaderRef.current.id,
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true,
+            showZoomSliderIfSupported: true,
+            defaultZoomValueIfSupported: 2,
+            supportedScanTypes: [0] // QR_CODE apenas
+          },
+          false
+        )
+        
+        // Callback quando QR code é detectado
+        const onScanSuccess = async (decodedText: string, decodedResult: any) => {
+          console.log('🎯 [QR] QR Code detectado:', decodedText)
+          setQrResult(decodedText)
+          
+          // Parar o scanner
+          await scanner.clear()
+          setQrScanner(null)
+          
+          // Processar o QR code
+          await processQrCode(decodedText)
+        }
+        
+        // Callback para erros (opcional, não logamos para evitar spam)
+        const onScanFailure = (error: string) => {
+          // Não fazer nada - erros de scan são normais
+        }
+        
+        // Iniciar o scanner
+        scanner.render(onScanSuccess, onScanFailure)
+        setQrScanner(scanner)
+        
+        console.log('✅ [QR] Scanner QR iniciado com sucesso!')
       }
     } catch (error: any) {
-      console.error('❌ [CAMERA] Erro ao acessar câmera:', error)
+      console.error('❌ [QR] Erro ao iniciar scanner:', error)
       setScanning(false)
+      setCameraError(`Erro ao iniciar scanner: ${error.message}`)
+    }
+  }
+  
+  const processQrCode = async (qrData: string) => {
+    try {
+      setProcessingQr(true)
+      console.log('⚙️ [QR] Processando QR code:', qrData)
       
-      // Tratar diferentes tipos de erro
-      if (error.name === 'NotAllowedError') {
-        console.log('🚫 [CAMERA] Permissão negada pelo usuário')
-        setCameraPermission('denied')
-        setCameraError('Permissão da câmera negada. Clique no ícone da câmera na barra de endereços para permitir.')
-      } else if (error.name === 'NotFoundError') {
-        console.log('📷 [CAMERA] Nenhuma câmera encontrada')
-        setCameraError('Nenhuma câmera encontrada no dispositivo.')
-      } else if (error.name === 'NotSupportedError') {
-        console.log('⚠️ [CAMERA] Câmera não suportada')
-        setCameraError('Câmera não suportada neste navegador.')
-      } else if (error.name === 'NotReadableError') {
-        console.log('🔒 [CAMERA] Câmera em uso')
-        setCameraError('Câmera está sendo usada por outro aplicativo.')
-      } else if (error.message && error.message.includes('policy')) {
-        console.log('🚫 [CAMERA] Violação de política de permissões')
-        setCameraPermission('denied')
-        setCameraError('Política de segurança bloqueia o acesso à câmera. Verifique as configurações do site.')
-      } else {
-        console.log('❓ [CAMERA] Erro desconhecido:', error.message)
-        setCameraError(`Erro ao acessar a câmera: ${error.message}`)
+      // Tentar fazer parse do QR code (esperamos JSON com machineId)
+      let machineId: string
+      
+      try {
+        const qrJson = JSON.parse(qrData)
+        machineId = qrJson.machineId || qrJson.id || qrData
+      } catch {
+        // Se não for JSON, usar o texto diretamente
+        machineId = qrData
       }
       
-      // Verificar permissões novamente após erro
-      setTimeout(() => {
-        checkCameraPermission()
-      }, 1000)
-    }
-  }
-
-  const stopScanning = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
-      stream.getTracks().forEach(track => track.stop())
-    }
-    setScanning(false)
-  }
-
-  const handleQRScan = async (data: string) => {
-    try {
-      console.log('QR Code escaneado:', data)
-      
-      // Enviar para API de registro de ponto
+      // Enviar registro de ponto usando API existente
       const response = await fetch('/api/attendance/qr-scan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ qrData: data })
+        body: JSON.stringify({
+          qrData: qrData
+        })
       })
       
       const result = await response.json()
       
-      if (response.ok) {
-        // Sucesso - atualizar status
-        console.log('Registro realizado:', result)
+      if (response.ok && result.success) {
+        console.log('✅ [QR] Registro de ponto realizado com sucesso!')
         
-        setWorkStatus(prev => prev ? {
-          ...prev,
-          isWorking: result.record.type === 'ENTRY',
-          lastRecord: {
-            type: result.record.type,
-            time: new Date(result.record.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            location: result.record.location || 'Terminal Principal'
-          }
-        } : null)
+        // Atualizar dados da página
+        await loadEmployeeData()
         
-        // Mostrar mensagem de sucesso
-        alert(result.message)
+        // Mostrar feedback de sucesso
+        setCameraError(null)
+        const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
+        const recordTime = new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        setQrResult(`✅ ${recordType} registrada às ${recordTime} - ${result.record.location}`)
+        
+        // Fechar scanner após 4 segundos
+        setTimeout(() => {
+          stopScanning()
+        }, 4000)
+        
       } else {
-        // Erro - mostrar mensagem
-        console.error('Erro no registro:', result.error)
-        alert(`Erro: ${result.error}`)
+        console.error('❌ [QR] Erro no registro:', result.error)
+        setCameraError(result.error || 'Erro ao registrar ponto')
       }
       
-      // Parar scanner
-      stopScanning()
-      
-    } catch (error) {
-      console.error('Erro ao processar QR:', error)
-      alert('Erro de conexão. Tente novamente.')
-      stopScanning()
+    } catch (error: any) {
+      console.error('❌ [QR] Erro ao processar QR code:', error)
+      setCameraError(`Erro ao processar QR code: ${error.message}`)
+    } finally {
+      setProcessingQr(false)
     }
   }
+
+  const stopScanning = async () => {
+    console.log('🛑 [QR] Parando scanner...')
+    
+    // Limpar QR scanner
+    if (qrScanner) {
+      try {
+        await qrScanner.clear()
+        console.log('✅ [QR] Scanner QR limpo')
+      } catch (error) {
+        console.log('⚠️ [QR] Erro ao limpar scanner:', error)
+      }
+      setQrScanner(null)
+    }
+    
+    // Limpar stream de vídeo se existir
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream
+      stream.getTracks().forEach(track => track.stop())
+      videoRef.current.srcObject = null
+    }
+    
+    setScanning(false)
+    setQrResult(null)
+    setProcessingQr(false)
+  }
+
 
   if (status === 'loading') {
     return <Loading size="lg" text="Carregando..." />
@@ -441,30 +483,69 @@ export default function EmployeePage() {
             {/* Scanner Modal */}
             {scanning && (
               <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-modal flex items-center justify-center p-4">
-                <Card variant="glass" className="w-full max-w-md">
-                  <CardHeader>
-                    <CardTitle className="text-white text-center">Scanner QR Code</CardTitle>
+                <Card variant="glass" className="w-full max-w-lg">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-white">Scanner QR Code</CardTitle>
+                    <Button 
+                      onClick={stopScanning} 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-white hover:bg-white/10"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* QR Scanner Container */}
                     <div className="relative bg-black rounded-lg overflow-hidden">
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        className="w-full h-64 object-cover"
+                      <div 
+                        id="qr-reader" 
+                        ref={qrReaderRef}
+                        className="w-full"
                       />
-                      <div className="absolute inset-0 border-2 border-primary/50 rounded-lg">
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                          <div className="w-32 h-32 border-2 border-primary rounded-lg animate-pulse"></div>
+                    </div>
+                    
+                    {/* Status Messages */}
+                    {processingQr && (
+                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                          <p className="text-blue-400 text-sm">Processando QR code...</p>
                         </div>
                       </div>
+                    )}
+                    
+                    {qrResult && (
+                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-green-400" />
+                          <p className="text-green-400 text-sm">{qrResult}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {cameraError && (
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                        <div className="flex items-center space-x-2">
+                          <AlertTriangle className="h-4 w-4 text-red-400" />
+                          <p className="text-red-400 text-sm">{cameraError}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="text-center">
+                      <p className="text-neutral-400 text-sm mb-4">
+                        Aponte a câmera para o QR code da máquina
+                      </p>
+                      <Button 
+                        onClick={stopScanning} 
+                        variant="secondary" 
+                        className="w-full"
+                        disabled={processingQr}
+                      >
+                        {processingQr ? 'Processando...' : 'Cancelar'}
+                      </Button>
                     </div>
-                    <p className="text-center text-neutral-400 text-sm">
-                      Posicione o QR code dentro do quadrado
-                    </p>
-                    <Button onClick={stopScanning} variant="secondary" className="w-full">
-                      Cancelar
-                    </Button>
                   </CardContent>
                 </Card>
               </div>
