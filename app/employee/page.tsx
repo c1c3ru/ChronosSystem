@@ -297,9 +297,9 @@ export default function EmployeePage() {
             experimentalFeatures: {
               useBarCodeDetectorIfSupported: true
             },
-            // Configurações para melhor performance em mobile
+            // Configurações para forçar câmera traseira
             videoConstraints: {
-              facingMode: 'environment' // Câmera traseira preferencial
+              facingMode: { exact: 'environment' } // Forçar câmera traseira sempre
             }
           },
           false
@@ -366,8 +366,8 @@ export default function EmployeePage() {
         machineId = qrData
       }
       
-      // Enviar registro de ponto usando API existente
-      const response = await fetch('/api/attendance/qr-scan', {
+      // Enviar registro de ponto usando API simples (aceita QR seguro e simples)
+      const response = await fetch('/api/attendance/simple-register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

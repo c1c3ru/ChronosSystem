@@ -29,7 +29,7 @@ export function generateSecureQR(machineId: string): SecureQRData {
     machineId,
     timestamp: Date.now(),
     nonce,
-    expiresIn: 60, // 60 segundos
+    expiresIn: 300, // 5 minutos (300 segundos)
     version: 'v1'
   }
 
