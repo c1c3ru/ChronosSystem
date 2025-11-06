@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
@@ -10,13 +10,17 @@ export const metadata: Metadata = {
   description: 'Sistema moderno de registro de ponto eletrônico para estagiários',
   keywords: ['ponto eletrônico', 'registro', 'estagiários', 'controle de ponto'],
   authors: [{ name: 'Chronos System' }],
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#10B981',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#10B981',
 }
 
 export default function RootLayout({
