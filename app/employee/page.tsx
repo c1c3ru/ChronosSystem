@@ -108,51 +108,50 @@ export default function EmployeePage() {
       setLoading(true)
       
       // Buscar dados reais do usuário
-      const [statusResponse, recordsResponse] = await Promise.all([
-        fetch('/api/dashboard/stats'),
-        fetch('/api/attendance/detailed')
-      ])
+      console.log('🔍 [EMPLOYEE] Buscando dados do dashboard...')
+      const response = await fetch('/api/employee/dashboard')
       
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json()
-        setWorkStatus({
-          isWorking: statusData.isWorking || false,
-          lastRecord: statusData.lastRecord || null,
-          todayHours: statusData.todayHours || '0h 00min'
-        })
-      }
-      
-      if (recordsResponse.ok) {
-        const recordsData = await recordsResponse.json()
-        // Formatar dados para a interface
-        const formattedRecords = recordsData.records?.slice(0, 5).map((record: any) => ({
-          id: record.id,
-          date: new Date(record.timestamp).toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit'
-          }),
-          entry: record.type === 'ENTRY' ? new Date(record.timestamp).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }) : null,
-          exit: record.type === 'EXIT' ? new Date(record.timestamp).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }) : null,
-          hours: record.totalHours || '-',
-          status: record.status || 'Completo',
-          location: record.machine?.location || 'Sistema'
-        })) || []
+      if (response.ok) {
+        const data = await response.json()
         
-        setRecentRecords(formattedRecords)
+        if (data.success) {
+          // Definir status de trabalho
+          setWorkStatus(data.workStatus)
+          
+          // Agrupar registros por data para exibição
+          const recordsByDate = new Map()
+          
+          data.recentRecords.forEach((record: any) => {
+            const date = record.date
+            if (!recordsByDate.has(date)) {
+              recordsByDate.set(date, {
+                id: `day-${date}`,
+                date,
+                entry: null,
+                exit: null,
+                hours: '-',
+                status: 'Em andamento',
+                location: record.machine.location
+              })
+            }
+            
+            const dayRecord = recordsByDate.get(date)
+            if (record.type === 'ENTRY') {
+              dayRecord.entry = record.time
+            } else if (record.type === 'EXIT') {
+              dayRecord.exit = record.time
+              dayRecord.status = 'Completo'
+            }
+          })
+          
+          // Converter para array e limitar a 5 registros
+          const formattedRecords = Array.from(recordsByDate.values()).slice(0, 5)
+          setRecentRecords(formattedRecords)
+        } else {
+          throw new Error(data.error || 'Erro ao carregar dados')
+        }
       } else {
-        // Se não há dados, mostrar estado vazio
-        setRecentRecords([])
-        setWorkStatus({
-          isWorking: false,
-          lastRecord: null,
-          todayHours: '0h 00min'
-        })
+        throw new Error('Erro na requisição')
       }
     } catch (error) {
       console.error('Erro ao carregar dados do funcionário:', error)
