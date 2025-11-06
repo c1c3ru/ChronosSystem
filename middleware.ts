@@ -28,22 +28,30 @@ export default withAuth(
         pathname,
         role,
         profileComplete,
-        userId: token.sub
+        userId: token.sub,
+        email: token.email
       })
       
       // Se usuário autenticado está na página inicial, redirecionar para dashboard apropriado
       if (pathname === '/') {
         console.log('🏠 [MIDDLEWARE] Usuário na página inicial, redirecionando...')
         
+        // Verificar se o usuário tem role válido
+        if (!role || !['ADMIN', 'SUPERVISOR', 'EMPLOYEE'].includes(role)) {
+          console.log('❌ [MIDDLEWARE] Role inválido, forçando logout')
+          return NextResponse.redirect(new URL('/auth/signin?error=InvalidRole', req.url))
+        }
+        
         if (profileComplete === false) {
           console.log('📝 [MIDDLEWARE] Perfil incompleto -> complete-profile')
           return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
         }
         
+        // Redirecionamento baseado no role REAL do usuário
         if (role === 'ADMIN' || role === 'SUPERVISOR') {
-          console.log('👑 [MIDDLEWARE] Admin/Supervisor -> /admin')
+          console.log(`👑 [MIDDLEWARE] ${role} -> /admin`)
           return NextResponse.redirect(new URL('/admin', req.url))
-        } else {
+        } else if (role === 'EMPLOYEE') {
           console.log('👤 [MIDDLEWARE] Employee -> /employee')
           return NextResponse.redirect(new URL('/employee', req.url))
         }

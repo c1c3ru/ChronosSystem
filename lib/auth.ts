@@ -155,8 +155,9 @@ export const authOptions: NextAuthOptions = {
           console.log('👤 [SIGNIN] Usuário existente:', existingUser ? 'SIM' : 'NÃO')
 
           if (existingUser) {
-            console.log('✅ [SIGNIN] Dados do usuário existente:', {
+            console.log('✅ [SIGNIN] Usuário autorizado encontrado:', {
               id: existingUser.id,
+              email: existingUser.email,
               role: existingUser.role,
               profileComplete: existingUser.profileComplete
             })
@@ -170,31 +171,13 @@ export const authOptions: NextAuthOptions = {
             
             return true
           } else {
-            console.log('📝 [SIGNIN] Criando novo usuário Google')
+            // SEGURANÇA: Não criar usuários automaticamente
+            // Apenas usuários pré-cadastrados podem fazer login
+            console.log('❌ [SIGNIN] Usuário não autorizado:', user.email)
+            console.log('🔒 [SIGNIN] Email não está cadastrado no sistema')
             
-            // Usuário não existe - criar novo com role padrão EMPLOYEE
-            const newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name,
-                image: user.image,
-                role: 'EMPLOYEE', // Role padrão para novos usuários Google
-                profileComplete: false, // SEMPRE false para novos usuários - devem completar perfil
-              }
-            })
-            
-            console.log('✅ [SIGNIN] Novo usuário criado:', {
-              id: newUser.id,
-              role: newUser.role,
-              profileComplete: newUser.profileComplete
-            })
-            
-            // Atualizar dados do usuário no objeto user para o JWT
-            user.id = newUser.id
-            user.role = newUser.role
-            user.profileComplete = newUser.profileComplete // false - vai para complete-profile
-            
-            return true
+            // Retornar false bloqueia o login
+            return false
           }
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
