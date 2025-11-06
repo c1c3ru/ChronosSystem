@@ -22,6 +22,24 @@ const nextConfig = {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'your-secret-key-change-in-production',
   },
+  // Headers de segurança para permitir câmera
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=*, microphone=*, geolocation=*'
+          },
+          {
+            key: 'Feature-Policy',
+            value: 'camera *; microphone *; geolocation *'
+          }
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

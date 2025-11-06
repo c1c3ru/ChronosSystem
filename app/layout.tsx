@@ -15,6 +15,10 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
+  other: {
+    'permissions-policy': 'camera=*, microphone=*, geolocation=*',
+    'feature-policy': 'camera *; microphone *; geolocation *'
+  }
 }
 
 export const viewport: Viewport = {

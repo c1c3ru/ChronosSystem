@@ -73,6 +73,31 @@ export default function EmployeePage() {
         return
       }
 
+      // Verificar se está em HTTPS (necessário para câmera)
+      if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        setCameraPermission('denied')
+        setCameraError('HTTPS é necessário para acessar a câmera. Acesse via https://')
+        return
+      }
+
+      // Verificar se há política de permissões bloqueando
+      if (typeof document !== 'undefined') {
+        try {
+          const doc = document as any
+          const permissionsPolicy = doc.featurePolicy || doc.permissionsPolicy
+          if (permissionsPolicy && typeof permissionsPolicy.allowsFeature === 'function') {
+            if (!permissionsPolicy.allowsFeature('camera')) {
+              setCameraPermission('denied')
+              setCameraError('Política de permissões bloqueia o acesso à câmera')
+              return
+            }
+          }
+        } catch (policyError) {
+          console.log('⚠️ [CAMERA] Não foi possível verificar política de permissões:', policyError)
+          // Continuar sem bloquear se não conseguir verificar
+        }
+      }
+
       // MÉTODO 1: Testar acesso direto à câmera (mais confiável)
       try {
         console.log('🧪 [CAMERA] Testando acesso direto à câmera...')
@@ -260,6 +285,10 @@ export default function EmployeePage() {
       } else if (error.name === 'NotReadableError') {
         console.log('🔒 [CAMERA] Câmera em uso')
         setCameraError('Câmera está sendo usada por outro aplicativo.')
+      } else if (error.message && error.message.includes('policy')) {
+        console.log('🚫 [CAMERA] Violação de política de permissões')
+        setCameraPermission('denied')
+        setCameraError('Política de segurança bloqueia o acesso à câmera. Verifique as configurações do site.')
       } else {
         console.log('❓ [CAMERA] Erro desconhecido:', error.message)
         setCameraError(`Erro ao acessar a câmera: ${error.message}`)
