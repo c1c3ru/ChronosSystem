@@ -262,18 +262,45 @@ export default function EmployeePage() {
         setQrScanner(null)
       }
       
+      // Aguardar o DOM estar pronto
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // Configurar o scanner QR
       if (qrReaderRef.current) {
+        // Garantir que o elemento tenha um ID único
+        const elementId = 'qr-reader-' + Date.now()
+        qrReaderRef.current.id = elementId
+        
+        console.log('🔧 [QR] Configurando scanner para elemento:', elementId)
+        
         const scanner = new Html5QrcodeScanner(
-          qrReaderRef.current.id,
+          elementId,
           {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
+            qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
+              // Responsivo: ajustar tamanho do qrbox baseado no viewport
+              const minEdgePercentage = 0.7 // 70% da menor dimensão
+              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight)
+              const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage)
+              return {
+                width: Math.min(qrboxSize, 300), // máximo 300px
+                height: Math.min(qrboxSize, 300)
+              }
+            },
             aspectRatio: 1.0,
             showTorchButtonIfSupported: true,
             showZoomSliderIfSupported: true,
             defaultZoomValueIfSupported: 2,
-            supportedScanTypes: [0] // QR_CODE apenas
+            supportedScanTypes: [0], // QR_CODE apenas
+            rememberLastUsedCamera: true,
+            useBarCodeDetectorIfSupported: true,
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true
+            },
+            // Configurações para melhor performance em mobile
+            videoConstraints: {
+              facingMode: 'environment' // Câmera traseira preferencial
+            }
           },
           false
         )
@@ -284,8 +311,12 @@ export default function EmployeePage() {
           setQrResult(decodedText)
           
           // Parar o scanner
-          await scanner.clear()
-          setQrScanner(null)
+          try {
+            await scanner.clear()
+            setQrScanner(null)
+          } catch (clearError) {
+            console.log('⚠️ [QR] Erro ao limpar scanner:', clearError)
+          }
           
           // Processar o QR code
           await processQrCode(decodedText)
@@ -293,14 +324,24 @@ export default function EmployeePage() {
         
         // Callback para erros (opcional, não logamos para evitar spam)
         const onScanFailure = (error: string) => {
-          // Não fazer nada - erros de scan são normais
+          // Não fazer nada - erros de scan são normais durante a busca
         }
         
-        // Iniciar o scanner
-        scanner.render(onScanSuccess, onScanFailure)
-        setQrScanner(scanner)
+        // Iniciar o scanner com delay para garantir que o DOM esteja pronto
+        setTimeout(() => {
+          try {
+            scanner.render(onScanSuccess, onScanFailure)
+            setQrScanner(scanner)
+            console.log('✅ [QR] Scanner QR iniciado com sucesso!')
+          } catch (renderError: any) {
+            console.error('❌ [QR] Erro ao renderizar scanner:', renderError)
+            setCameraError(`Erro ao inicializar câmera: ${renderError.message || 'Erro desconhecido'}`)
+            setScanning(false)
+          }
+        }, 200)
         
-        console.log('✅ [QR] Scanner QR iniciado com sucesso!')
+      } else {
+        throw new Error('Elemento do scanner não encontrado')
       }
     } catch (error: any) {
       console.error('❌ [QR] Erro ao iniciar scanner:', error)
@@ -480,67 +521,67 @@ export default function EmployeePage() {
               </CardContent>
             </Card>
 
-            {/* Scanner Modal */}
+            {/* Scanner Modal - Responsivo */}
             {scanning && (
-              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-modal flex items-center justify-center p-4">
-                <Card variant="glass" className="w-full max-w-lg">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-white">Scanner QR Code</CardTitle>
+              <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-modal flex items-center justify-center p-2 sm:p-4">
+                <Card variant="glass" className="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
+                  <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
+                    <CardTitle className="text-white text-lg sm:text-xl">Scanner QR</CardTitle>
                     <Button 
                       onClick={stopScanning} 
                       variant="ghost" 
                       size="sm"
-                      className="text-white hover:bg-white/10"
+                      className="text-white hover:bg-white/10 p-2"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* QR Scanner Container */}
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                    {/* QR Scanner Container - Responsivo */}
                     <div className="relative bg-black rounded-lg overflow-hidden">
                       <div 
                         id="qr-reader" 
                         ref={qrReaderRef}
-                        className="w-full"
+                        className="w-full min-h-[250px] sm:min-h-[300px] lg:min-h-[350px]"
                       />
                     </div>
                     
-                    {/* Status Messages */}
+                    {/* Status Messages - Responsivo */}
                     {processingQr && (
-                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3">
+                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 sm:p-4">
                         <div className="flex items-center justify-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-                          <p className="text-blue-400 text-sm">Processando QR code...</p>
+                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-blue-400"></div>
+                          <p className="text-blue-400 text-sm sm:text-base">Processando QR code...</p>
                         </div>
                       </div>
                     )}
                     
                     {qrResult && (
-                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3">
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                          <p className="text-green-400 text-sm">{qrResult}</p>
+                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 sm:p-4">
+                        <div className="flex items-start space-x-2">
+                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-green-400 text-sm sm:text-base break-words">{qrResult}</p>
                         </div>
                       </div>
                     )}
                     
                     {cameraError && (
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-                        <div className="flex items-center space-x-2">
-                          <AlertTriangle className="h-4 w-4 text-red-400" />
-                          <p className="text-red-400 text-sm">{cameraError}</p>
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 sm:p-4">
+                        <div className="flex items-start space-x-2">
+                          <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-red-400 text-sm sm:text-base break-words">{cameraError}</p>
                         </div>
                       </div>
                     )}
                     
-                    <div className="text-center">
-                      <p className="text-neutral-400 text-sm mb-4">
+                    <div className="text-center px-2">
+                      <p className="text-neutral-400 text-sm sm:text-base mb-4">
                         Aponte a câmera para o QR code da máquina
                       </p>
                       <Button 
                         onClick={stopScanning} 
                         variant="secondary" 
-                        className="w-full"
+                        className="w-full py-2 sm:py-3 text-sm sm:text-base"
                         disabled={processingQr}
                       >
                         {processingQr ? 'Processando...' : 'Cancelar'}
