@@ -53,6 +53,7 @@ export default function EmployeePage() {
   const [scanning, setScanning] = useState(false)
   const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('checking')
   const [cameraError, setCameraError] = useState<string | null>(null)
+  const [isCheckingCamera, setIsCheckingCamera] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // Verificar permissões da câmera ao carregar
@@ -62,7 +63,9 @@ export default function EmployeePage() {
 
   const checkCameraPermission = async () => {
     try {
+      setIsCheckingCamera(true)
       setCameraError(null)
+      console.log('🔍 [CAMERA] Verificando permissões da câmera...')
       
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setCameraPermission('denied')
@@ -70,13 +73,43 @@ export default function EmployeePage() {
         return
       }
 
-      // Verificar permissão atual
+      // MÉTODO 1: Testar acesso direto à câmera (mais confiável)
+      try {
+        console.log('🧪 [CAMERA] Testando acesso direto à câmera...')
+        const testStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'environment',
+            width: { min: 320 },
+            height: { min: 240 }
+          } 
+        })
+        
+        // Se chegou aqui, a câmera está acessível
+        console.log('✅ [CAMERA] Teste direto: Câmera acessível!')
+        setCameraPermission('granted')
+        
+        // Parar o stream de teste
+        testStream.getTracks().forEach(track => track.stop())
+        
+        return
+      } catch (testError: any) {
+        console.log('❌ [CAMERA] Teste direto falhou:', testError.name)
+        
+        if (testError.name === 'NotAllowedError') {
+          setCameraPermission('denied')
+          return
+        }
+        // Continuar para outros métodos se não for erro de permissão
+      }
+
+      // MÉTODO 2: Usar Permissions API como fallback
       if ('permissions' in navigator) {
         try {
           const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
-          setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt')
+          const permState = permission.state as 'granted' | 'denied' | 'prompt'
           
-          console.log('🔍 [CAMERA] Estado da permissão:', permission.state)
+          console.log('🔍 [CAMERA] Permissions API:', permState)
+          setCameraPermission(permState)
           
           // Escutar mudanças de permissão
           permission.onchange = () => {
@@ -85,20 +118,24 @@ export default function EmployeePage() {
             setCameraPermission(newState)
             if (newState === 'granted') {
               setCameraError(null)
+              // Re-testar acesso quando permissão muda
+              setTimeout(() => checkCameraPermission(), 500)
             }
           }
         } catch (permError) {
-          console.log('⚠️ [CAMERA] Permissions API não suportada, usando fallback')
+          console.log('⚠️ [CAMERA] Permissions API não suportada, usando prompt')
           setCameraPermission('prompt')
         }
       } else {
-        // Fallback para navegadores que não suportam Permissions API
-        console.log('⚠️ [CAMERA] Permissions API não disponível')
+        // MÉTODO 3: Fallback para navegadores antigos
+        console.log('⚠️ [CAMERA] Permissions API não disponível, usando prompt')
         setCameraPermission('prompt')
       }
     } catch (error) {
-      console.error('❌ [CAMERA] Erro ao verificar permissões:', error)
+      console.error('❌ [CAMERA] Erro geral ao verificar permissões:', error)
       setCameraPermission('prompt')
+    } finally {
+      setIsCheckingCamera(false)
     }
   }
 
@@ -425,8 +462,18 @@ export default function EmployeePage() {
                   
                   {/* Área flexível para alertas */}
                   <div className="flex-1 mb-6">
+                    {/* Status de verificação */}
+                    {isCheckingCamera && (
+                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mb-4">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
+                          <p className="text-blue-400 text-sm">Verificando acesso à câmera...</p>
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Status da Câmera */}
-                    {cameraPermission === 'denied' && (
+                    {!isCheckingCamera && cameraPermission === 'denied' && (
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
                         <div className="text-center">
                           <AlertTriangle className="h-6 w-6 text-red-400 mx-auto mb-2" />
@@ -444,14 +491,27 @@ export default function EmployeePage() {
                             <p><strong>Safari:</strong></p>
                             <p>• Safari → Configurações → Sites → Câmera</p>
                           </div>
-                          <Button 
-                            onClick={checkCameraPermission} 
-                            size="sm" 
-                            variant="ghost"
-                            className="text-red-400 border-red-400/50 hover:bg-red-500/10"
-                          >
-                            Verificar Novamente
-                          </Button>
+                          <div className="space-y-2">
+                            <Button 
+                              onClick={checkCameraPermission} 
+                              size="sm" 
+                              variant="ghost"
+                              className="text-red-400 border-red-400/50 hover:bg-red-500/10"
+                            >
+                              Verificar Novamente
+                            </Button>
+                            <Button 
+                              onClick={() => {
+                                setCameraPermission('prompt')
+                                setCameraError(null)
+                              }} 
+                              size="sm" 
+                              variant="ghost"
+                              className="text-blue-400 border-blue-400/50 hover:bg-blue-500/10"
+                            >
+                              Tentar Scanner
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -477,10 +537,11 @@ export default function EmployeePage() {
                   <Button 
                     onClick={startScanning} 
                     className="w-full mt-auto"
-                    disabled={cameraPermission === 'denied'}
+                    disabled={isCheckingCamera || (cameraPermission === 'denied' && !isCheckingCamera)}
                   >
                     <Camera className="h-5 w-5 mr-2" />
-                    {cameraPermission === 'checking' ? 'Verificando...' : 
+                    {isCheckingCamera ? 'Verificando...' :
+                     cameraPermission === 'checking' ? 'Verificando...' : 
                      cameraPermission === 'denied' ? 'Câmera Bloqueada' : 
                      cameraPermission === 'prompt' ? 'Solicitar Câmera' :
                      'Abrir Scanner'}
