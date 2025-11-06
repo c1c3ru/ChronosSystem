@@ -62,6 +62,8 @@ export default function EmployeePage() {
 
   const checkCameraPermission = async () => {
     try {
+      setCameraError(null)
+      
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setCameraPermission('denied')
         setCameraError('Câmera não suportada neste dispositivo')
@@ -70,19 +72,32 @@ export default function EmployeePage() {
 
       // Verificar permissão atual
       if ('permissions' in navigator) {
-        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
-        setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt')
-        
-        // Escutar mudanças de permissão
-        permission.onchange = () => {
+        try {
+          const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
           setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt')
+          
+          console.log('🔍 [CAMERA] Estado da permissão:', permission.state)
+          
+          // Escutar mudanças de permissão
+          permission.onchange = () => {
+            const newState = permission.state as 'granted' | 'denied' | 'prompt'
+            console.log('🔄 [CAMERA] Permissão mudou para:', newState)
+            setCameraPermission(newState)
+            if (newState === 'granted') {
+              setCameraError(null)
+            }
+          }
+        } catch (permError) {
+          console.log('⚠️ [CAMERA] Permissions API não suportada, usando fallback')
+          setCameraPermission('prompt')
         }
       } else {
         // Fallback para navegadores que não suportam Permissions API
+        console.log('⚠️ [CAMERA] Permissions API não disponível')
         setCameraPermission('prompt')
       }
     } catch (error) {
-      console.error('Erro ao verificar permissões:', error)
+      console.error('❌ [CAMERA] Erro ao verificar permissões:', error)
       setCameraPermission('prompt')
     }
   }
@@ -169,10 +184,12 @@ export default function EmployeePage() {
 
   const startScanning = async () => {
     try {
+      console.log('📷 [CAMERA] Iniciando scanner...')
       setScanning(true)
       setCameraError(null)
       
       // Solicitar acesso à câmera
+      console.log('📷 [CAMERA] Solicitando acesso à câmera...')
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'environment',
@@ -181,27 +198,40 @@ export default function EmployeePage() {
         } 
       })
       
+      console.log('✅ [CAMERA] Acesso concedido!')
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         setCameraPermission('granted')
+        console.log('📹 [CAMERA] Stream conectado ao vídeo')
       }
     } catch (error: any) {
-      console.error('Erro ao acessar câmera:', error)
+      console.error('❌ [CAMERA] Erro ao acessar câmera:', error)
       setScanning(false)
       
       // Tratar diferentes tipos de erro
       if (error.name === 'NotAllowedError') {
+        console.log('🚫 [CAMERA] Permissão negada pelo usuário')
         setCameraPermission('denied')
         setCameraError('Permissão da câmera negada. Clique no ícone da câmera na barra de endereços para permitir.')
       } else if (error.name === 'NotFoundError') {
+        console.log('📷 [CAMERA] Nenhuma câmera encontrada')
         setCameraError('Nenhuma câmera encontrada no dispositivo.')
       } else if (error.name === 'NotSupportedError') {
+        console.log('⚠️ [CAMERA] Câmera não suportada')
         setCameraError('Câmera não suportada neste navegador.')
       } else if (error.name === 'NotReadableError') {
+        console.log('🔒 [CAMERA] Câmera em uso')
         setCameraError('Câmera está sendo usada por outro aplicativo.')
       } else {
-        setCameraError('Erro ao acessar a câmera. Tente novamente.')
+        console.log('❓ [CAMERA] Erro desconhecido:', error.message)
+        setCameraError(`Erro ao acessar a câmera: ${error.message}`)
       }
+      
+      // Verificar permissões novamente após erro
+      setTimeout(() => {
+        checkCameraPermission()
+      }, 1000)
     }
   }
 
@@ -398,16 +428,48 @@ export default function EmployeePage() {
                     {/* Status da Câmera */}
                     {cameraPermission === 'denied' && (
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
-                        <p className="text-red-400 text-xs">
-                          <AlertTriangle className="h-4 w-4 inline mr-1" />
-                          Câmera bloqueada. Clique no ícone 🔒 na barra de endereços para permitir.
-                        </p>
+                        <div className="text-center">
+                          <AlertTriangle className="h-6 w-6 text-red-400 mx-auto mb-2" />
+                          <p className="text-red-400 text-sm font-medium mb-2">Câmera Bloqueada</p>
+                          <p className="text-red-300 text-xs mb-3">
+                            Para usar o scanner QR, você precisa permitir o acesso à câmera:
+                          </p>
+                          <div className="text-left text-xs text-red-300 mb-3 space-y-1">
+                            <p><strong>Chrome/Edge:</strong></p>
+                            <p>• Clique no ícone 🔒 ou 📷 na barra de endereços</p>
+                            <p>• Selecione "Permitir" para câmera</p>
+                            <p><strong>Firefox:</strong></p>
+                            <p>• Clique no ícone do escudo na barra</p>
+                            <p>• Ative as permissões da câmera</p>
+                            <p><strong>Safari:</strong></p>
+                            <p>• Safari → Configurações → Sites → Câmera</p>
+                          </div>
+                          <Button 
+                            onClick={checkCameraPermission} 
+                            size="sm" 
+                            variant="ghost"
+                            className="text-red-400 border-red-400/50 hover:bg-red-500/10"
+                          >
+                            Verificar Novamente
+                          </Button>
+                        </div>
                       </div>
                     )}
                     
-                    {cameraError && (
+                    {cameraError && cameraPermission !== 'denied' && (
                       <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-3 mb-4">
                         <p className="text-orange-400 text-xs">{cameraError}</p>
+                        <Button 
+                          onClick={() => {
+                            setCameraError(null)
+                            checkCameraPermission()
+                          }} 
+                          size="sm" 
+                          variant="ghost"
+                          className="text-orange-400 border-orange-400/50 hover:bg-orange-500/10 mt-2"
+                        >
+                          Tentar Novamente
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -415,11 +477,12 @@ export default function EmployeePage() {
                   <Button 
                     onClick={startScanning} 
                     className="w-full mt-auto"
-                    disabled={cameraPermission === 'denied' && !cameraError}
+                    disabled={cameraPermission === 'denied'}
                   >
                     <Camera className="h-5 w-5 mr-2" />
                     {cameraPermission === 'checking' ? 'Verificando...' : 
                      cameraPermission === 'denied' ? 'Câmera Bloqueada' : 
+                     cameraPermission === 'prompt' ? 'Solicitar Câmera' :
                      'Abrir Scanner'}
                   </Button>
                 </CardContent>
