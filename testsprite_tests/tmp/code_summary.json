@@ -1,0 +1,40 @@
+{
+  "tech_stack": ["TypeScript", "Next.js", "React", "Prisma", "PostgreSQL", "NextAuth.js", "TailwindCSS", "html5-qrcode"],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "Complete authentication system with NextAuth.js, supporting multiple providers and role-based access",
+      "files": ["lib/auth.ts", "app/api/auth/[...nextauth]/route.ts", "app/auth/signin/page.tsx", "app/auth/complete-profile/page.tsx"]
+    },
+    {
+      "name": "QR Code Scanner",
+      "description": "QR code scanning functionality for attendance registration using html5-qrcode library",
+      "files": ["app/employee/page.tsx", "lib/qr-security.ts"]
+    },
+    {
+      "name": "Attendance Management",
+      "description": "Complete attendance tracking system with entry/exit registration and history",
+      "files": ["app/api/attendance/simple-register/route.ts", "app/api/machines/generate-qr/route.ts", "prisma/schema.prisma"]
+    },
+    {
+      "name": "Employee Dashboard",
+      "description": "Employee interface for registering attendance and viewing records",
+      "files": ["app/employee/page.tsx"]
+    },
+    {
+      "name": "Admin Dashboard", 
+      "description": "Administrative interface for managing users, machines and viewing statistics",
+      "files": ["app/admin/page.tsx"]
+    },
+    {
+      "name": "User Management",
+      "description": "User profile completion and management system",
+      "files": ["app/auth/complete-profile/page.tsx", "app/api/auth/complete-profile/route.ts"]
+    },
+    {
+      "name": "Database Schema",
+      "description": "Complete database schema with users, attendance records, machines and audit logs",
+      "files": ["prisma/schema.prisma", "prisma/migrations/"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "/page": "app/page.js",
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/kiosk/page": "app/kiosk/page.js",
+  "/api/kiosk/qr/route": "app/api/kiosk/qr/route.js",
+  "/api/kiosk/recent-activity/route": "app/api/kiosk/recent-activity/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
+}

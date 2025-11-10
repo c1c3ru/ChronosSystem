@@ -1,0 +1,15 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000/employee",
+  "executionArgs": {
+    "projectName": "ChronosSystem",
+    "projectPath": "/home/deppi/ChronosSystem",
+    "testIds": [],
+    "additionalInstruction": "Teste especificamente a funcionalidade de bater ponto (registro de ponto) do sistema. Foque em:\n1. Navegação para página do funcionário\n2. Interface de registro de ponto\n3. Modal do scanner QR\n4. Simulação de leitura de QR code\n5. Feedback de sucesso/erro\n6. Responsividade mobile\nIgnore erros de banco de dados e foque na interface do usuário.",
+    "envs": {
+      "API_KEY": "sk-user-T4f1zJ1SsMODsPjUlw8ijmvIlXwhIJLDVydI8vogJ_Lmz-TDOuW1CHxXfiDiMTn637gLncvEAL38ocauyGKvaoMvnMepbQphzC-SO9GKmChZSnXPW-bM3bBF6x9xU484jR0"
+    }
+  }
+}
