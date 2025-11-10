@@ -171,13 +171,32 @@ export const authOptions: NextAuthOptions = {
             
             return true
           } else {
-            // SEGURANÇA: Não criar usuários automaticamente
-            // Apenas usuários pré-cadastrados podem fazer login
-            console.log('❌ [SIGNIN] Usuário não autorizado:', user.email)
-            console.log('🔒 [SIGNIN] Email não está cadastrado no sistema')
+            // Criar novo usuário automaticamente com Google
+            console.log('🆕 [SIGNIN] Criando novo usuário:', user.email)
             
-            // Retornar false bloqueia o login
-            return false
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || 'Usuário',
+                image: user.image,
+                role: 'EMPLOYEE', // Padrão: funcionário
+                profileComplete: false, // Precisa completar perfil
+              }
+            })
+            
+            console.log('✅ [SIGNIN] Novo usuário criado:', {
+              id: newUser.id,
+              email: newUser.email,
+              role: newUser.role,
+              profileComplete: newUser.profileComplete
+            })
+            
+            // Atualizar dados do usuário para o JWT
+            user.id = newUser.id
+            user.role = newUser.role
+            user.profileComplete = newUser.profileComplete
+            
+            return true
           }
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
