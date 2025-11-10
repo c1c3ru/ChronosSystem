@@ -1,11 +1,14 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Debug JavaScript Errors', () => {
-  test('🔍 Investigar erros de JavaScript detalhadamente', async ({ page }) => {
-    console.log('🔍 Investigando erros de JavaScript...')
+  test('Investigar erros JavaScript detalhadamente', async ({ page }) => {
+    console.log(' Investigando erros JavaScript...')
     
-    // Interceptar TODOS os logs de console
-    const allLogs = []
+    // Capturar todos os logs e erros
+    let allLogs: any[] = []
+    let pageErrors: any[] = []
+    let failedRequests: any[] = []
+    
     page.on('console', msg => {
       const log = {
         type: msg.type(),
@@ -96,7 +99,7 @@ test.describe('Debug JavaScript Errors', () => {
         }
       } catch (error) {
         return {
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         }
       }
     })
@@ -124,7 +127,7 @@ test.describe('Debug JavaScript Errors', () => {
         }
       } catch (error) {
         return {
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         }
       }
     })
@@ -178,7 +181,7 @@ test.describe('Debug JavaScript Errors', () => {
         }
       } catch (error) {
         return {
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         }
       }
     })

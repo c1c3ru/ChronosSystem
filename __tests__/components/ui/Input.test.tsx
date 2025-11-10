@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { Input } from '@/components/ui/Input'
 
 describe('Input Component', () => {
