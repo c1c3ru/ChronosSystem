@@ -298,9 +298,9 @@ export default function EmployeePage() {
             experimentalFeatures: {
               useBarCodeDetectorIfSupported: true
             },
-            // Configurações para forçar câmera traseira
+            // Configurações de câmera (preferir traseira, mas aceitar frontal)
             videoConstraints: {
-              facingMode: { exact: 'environment' } // Forçar câmera traseira sempre
+              facingMode: 'environment' // Preferir câmera traseira, mas não forçar
             }
           },
           false
@@ -344,9 +344,19 @@ export default function EmployeePage() {
         throw new Error('Elemento do scanner não encontrado')
       }
     } catch (error: any) {
-      console.error('❌ [QR] Erro ao iniciar scanner:', error)
+      console.error('❌ Erro ao iniciar scanner:', error)
       setScanning(false)
-      setCameraError(`Erro ao iniciar scanner: ${error.message}`)
+      
+      // Tratamento específico para erros de câmera
+      if (error.name === 'OverconstrainedError') {
+        setCameraError('Câmera não disponível. Tente usar um dispositivo com câmera traseira.')
+      } else if (error.name === 'NotAllowedError') {
+        setCameraError('Permissão da câmera negada. Permita o acesso e tente novamente.')
+      } else if (error.name === 'NotFoundError') {
+        setCameraError('Nenhuma câmera encontrada neste dispositivo.')
+      } else {
+        setCameraError(`Erro ao acessar câmera: ${error.message}`)
+      }
     }
   }
   
