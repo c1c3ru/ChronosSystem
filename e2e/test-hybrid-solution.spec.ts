@@ -5,7 +5,7 @@ test.describe('Test Hybrid Solution', () => {
     console.log('🔍 Testando solução híbrida...')
     
     // Interceptar TODOS os console logs
-    const consoleLogs = []
+    const consoleLogs: any[] = []
     page.on('console', msg => {
       const log = {
         type: msg.type(),

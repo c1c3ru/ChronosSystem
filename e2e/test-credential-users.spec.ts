@@ -5,7 +5,7 @@ test.describe('Test Credential Users', () => {
     console.log('🔍 Testando usuários de credenciais...')
     
     // Interceptar console logs
-    const consoleLogs = []
+    const consoleLogs: any[] = []
     page.on('console', msg => {
       const log = {
         type: msg.type(),

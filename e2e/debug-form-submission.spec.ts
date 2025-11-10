@@ -27,8 +27,8 @@ test.describe('Debug Form Submission', () => {
     console.log('✅ Na página de complete-profile')
     
     // 3. Interceptar TODAS as requisições
-    const requests = []
-    const responses = []
+    const requests: any[] = []
+    const responses: any[] = []
     
     page.on('request', request => {
       requests.push({
@@ -50,7 +50,7 @@ test.describe('Debug Form Submission', () => {
     })
     
     // 4. Interceptar erros de console
-    const consoleMessages = []
+    const consoleMessages: any[] = []
     page.on('console', msg => {
       consoleMessages.push({
         type: msg.type(),
@@ -60,7 +60,7 @@ test.describe('Debug Form Submission', () => {
     })
     
     // 5. Interceptar erros de página
-    const pageErrors = []
+    const pageErrors: any[] = []
     page.on('pageerror', error => {
       pageErrors.push(error.message)
       console.log(`❌ PAGE ERROR: ${error.message}`)

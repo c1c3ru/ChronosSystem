@@ -22,8 +22,7 @@ test.describe('Debug JavaScript Errors', () => {
       }
     })
     
-    // Interceptar erros de página
-    const pageErrors = []
+    // Interceptar erros de página (removendo redeclaração)
     page.on('pageerror', error => {
       pageErrors.push({
         message: error.message,
@@ -33,8 +32,7 @@ test.describe('Debug JavaScript Errors', () => {
       console.log(`📍 Stack: ${error.stack}`)
     })
     
-    // Interceptar falhas de requisição
-    const failedRequests = []
+    // Interceptar falhas de requisição (removendo redeclaração)
     page.on('requestfailed', request => {
       failedRequests.push({
         url: request.url(),
@@ -81,7 +79,7 @@ test.describe('Debug JavaScript Errors', () => {
     const jsTest = await page.evaluate(() => {
       try {
         // Testar se React está carregado
-        const hasReact = typeof window.React !== 'undefined'
+        const hasReact = typeof (window as any).React !== 'undefined'
         
         // Testar se conseguimos acessar elementos do DOM
         const form = document.querySelector('form')

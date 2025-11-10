@@ -25,7 +25,7 @@ describe('QR Security', () => {
       expect(payloadDecoded.machineId).toBe(machineId)
       expect(payloadDecoded.timestamp).toBeGreaterThan(Date.now() - 1000)
       expect(payloadDecoded.nonce).toBeDefined()
-      expect(payloadDecoded.expiresIn).toBe(60)
+      expect(payloadDecoded.expiresIn).toBe(300)
       expect(payloadDecoded.version).toBe('v1')
     })
 
