@@ -357,9 +357,12 @@ export default function EmployeePage() {
       } else {
         setCameraError(`Erro ao acessar câmera: ${error.message}`)
       }
+    } finally {
+      setIsCheckingCamera(false)
+      document.body.classList.remove('modal-open')
     }
   }
-  
+
   const processQrCode = async (qrData: string) => {
     try {
       setProcessingQr(true)
@@ -437,13 +440,16 @@ export default function EmployeePage() {
   }
 
   const stopScanning = async () => {
-    console.log('🛑 Fechando câmera...')
+    console.log(' Fechando câmera...')
+    
+    // Remover classe modal-open do body
+    document.body.classList.remove('modal-open')
     
     // Limpar scanner
     if (qrScanner) {
       try {
         await qrScanner.clear()
-        console.log('✅ Scanner finalizado')
+        console.log(' Scanner finalizado')
       } catch (error) {
         console.log('Scanner finalizado')
       }
@@ -477,35 +483,40 @@ export default function EmployeePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
-      {/* Header */}
+      {/* Header - Mobile Optimized */}
       <div className="glass border-b border-neutral-700/50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Home className="h-6 w-6 text-primary" />
+            {/* Left Section */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+                <Home className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </Link>
-              <div className="h-6 w-px bg-neutral-600" />
-              <div className="flex items-center space-x-3">
-                <div className="bg-primary/20 rounded-xl p-2">
-                  <User className="h-6 w-6 text-primary" />
+              <div className="h-5 w-px bg-neutral-600 hidden sm:block" />
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="bg-primary/20 rounded-lg sm:rounded-xl p-1.5 sm:p-2">
+                  <User className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white">Portal do Estagiário</h1>
-                  <p className="text-neutral-400 text-sm">Sistema Chronos - Registro de Ponto</p>
+                <div className="hidden sm:block">
+                  <h1 className="text-lg sm:text-xl font-bold text-white">Portal do Estagiário</h1>
+                  <p className="text-neutral-400 text-xs sm:text-sm">Sistema Chronos - Registro de Ponto</p>
+                </div>
+                <div className="block sm:hidden">
+                  <h1 className="text-base font-bold text-white">Portal</h1>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-white font-medium">{session.user.name}</p>
-                <p className="text-neutral-400 text-sm">{session.user.email}</p>
+            {/* Right Section */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-white font-medium text-sm">{session.user.name}</p>
+                <p className="text-neutral-400 text-xs">{session.user.email}</p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="h-5 w-5 text-primary" />
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-              <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
+              <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/' })} className="p-2">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -560,74 +571,77 @@ export default function EmployeePage() {
               </CardContent>
             </Card>
 
-            {/* Scanner Modal - Responsivo */}
+            {/* Scanner Modal - Mobile First */}
             {scanning && (
-              <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-modal flex items-center justify-center p-2 sm:p-4">
-                <Card variant="glass" className="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
-                  <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
-                    <CardTitle className="text-white">Registrar Ponto</CardTitle>
-                    <Button 
-                      onClick={stopScanning} 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-white hover:bg-white/10 p-2"
-                    >
-                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
-                    {/* QR Scanner Container - Responsivo */}
-                    <div className="relative bg-black rounded-lg overflow-hidden">
-                      <div 
-                        id="qr-reader" 
-                        ref={qrReaderRef}
-                        className="w-full min-h-[250px] sm:min-h-[300px] lg:min-h-[350px]"
-                      />
-                    </div>
-                    
-                    {/* Status Messages - Responsivo */}
-                    {processingQr && (
-                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 sm:p-4">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-blue-400"></div>
-                          <p className="text-blue-400 text-sm sm:text-base">Registrando ponto...</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {qrResult && (
-                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 sm:p-4">
-                        <div className="flex items-start space-x-2">
-                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                          <p className="text-green-400 text-sm sm:text-base break-words">{qrResult}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {cameraError && (
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 sm:p-4">
-                        <div className="flex items-start space-x-2">
-                          <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                          <p className="text-red-400 text-sm sm:text-base break-words">{cameraError}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="text-center px-2">
-                      <p className="text-neutral-400 text-sm sm:text-base mb-4">
-                        Aponte a câmera para o código da máquina
-                      </p>
+              <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-modal flex items-start sm:items-center justify-center overflow-y-auto">
+                <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md lg:max-w-lg mx-auto flex items-start sm:items-center justify-center p-4 sm:p-6">
+                  <Card variant="glass" className="w-full max-w-none sm:max-w-md lg:max-w-lg">
+                    <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 border-b border-white/10">
+                      <CardTitle className="text-white text-lg sm:text-xl">Registrar Ponto</CardTitle>
                       <Button 
                         onClick={stopScanning} 
-                        variant="secondary" 
-                        className="w-full py-2 sm:py-3 text-sm sm:text-base"
-                        disabled={processingQr}
+                        variant="ghost" 
+                        size="sm"
+                        className="text-white hover:bg-white/10 p-2 rounded-full"
                       >
-                        {processingQr ? 'Processando...' : 'Cancelar'}
+                        <X className="h-5 w-5" />
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="space-y-4 p-4 sm:p-6">
+                      {/* QR Scanner Container - Mobile Optimized */}
+                      <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30">
+                        <div 
+                          id="qr-reader" 
+                          ref={qrReaderRef}
+                          className="w-full min-h-[280px] sm:min-h-[320px] lg:min-h-[350px]"
+                        />
+                      </div>
+                      
+                      {/* Status Messages - Mobile Optimized */}
+                      {processingQr && (
+                        <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4">
+                          <div className="flex items-center justify-center space-x-3">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                            <p className="text-blue-400 text-base font-medium">Registrando ponto...</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {qrResult && (
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+                          <div className="flex items-start space-x-3">
+                            <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                            <p className="text-green-400 text-base break-words">{qrResult}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {cameraError && (
+                        <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
+                          <div className="flex items-start space-x-3">
+                            <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                            <p className="text-red-400 text-base break-words">{cameraError}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Instructions and Cancel Button */}
+                      <div className="text-center space-y-4 pt-2">
+                        <p className="text-neutral-300 text-base">
+                          Aponte a câmera para o código QR da máquina
+                        </p>
+                        <Button 
+                          onClick={stopScanning} 
+                          variant="secondary" 
+                          className="w-full py-3 text-base font-medium"
+                          disabled={processingQr}
+                        >
+                          {processingQr ? 'Processando...' : 'Cancelar'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             )}
 
