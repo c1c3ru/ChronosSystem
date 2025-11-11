@@ -246,7 +246,7 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* QR Scanner styles - Mobile Optimized */
+/* QR Scanner styles - Mobile Optimized & User-Friendly */
 #qr-reader {
   border: 2px solid hsl(var(--primary));
   border-radius: 8px;
@@ -257,13 +257,52 @@
   border: none !important;
 }
 
-#qr-reader__camera_selection {
-  @apply bg-card text-foreground border border-border rounded-md p-2 text-sm;
+/* Hide camera selection dropdown - should be transparent to user */
+#qr-reader__camera_selection,
+#qr-reader__camera_permission_button {
+  display: none !important;
 }
 
+/* Hide technical dashboard elements */
+#qr-reader__dashboard,
+#qr-reader__dashboard_section,
+#qr-reader__dashboard_section_csr,
+#qr-reader__dashboard_section_swaplink {
+  display: none !important;
+}
+
+/* Hide start/stop buttons - we control this programmatically */
 #qr-reader__start_button,
 #qr-reader__stop_button {
-  @apply bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm;
+  display: none !important;
+}
+
+/* Hide any status text that shows technical details */
+#qr-reader__status_span {
+  display: none !important;
+}
+
+/* Hide all technical file input elements */
+#qr-reader input[type="file"] {
+  display: none !important;
+}
+
+/* Hide any additional technical elements */
+#qr-reader__files_selector,
+#qr-reader__camera_permission_container,
+#qr-reader__scan_type_change {
+  display: none !important;
+}
+
+/* Ensure only the video feed is visible */
+#qr-reader > div:not([id*="scan_region"]) {
+  display: none !important;
+}
+
+/* Keep only the essential scan region visible */
+#qr-reader__scan_region_highlight_svg,
+#qr-reader__scan_region_highlight {
+  opacity: 0.8 !important;
 }
 
 /* Mobile modal improvements */

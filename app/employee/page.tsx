@@ -289,21 +289,16 @@ export default function EmployeePage() {
               }
             },
             aspectRatio: 1.0,
-            showTorchButtonIfSupported: true,
-            showZoomSliderIfSupported: true,
-            defaultZoomValueIfSupported: 2,
-            supportedScanTypes: [0], // QR_CODE apenas
-            rememberLastUsedCamera: true,
-            useBarCodeDetectorIfSupported: true,
-            experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true
-            },
             // Configurações de câmera (preferir traseira, mas aceitar frontal)
             videoConstraints: {
               facingMode: 'environment' // Preferir câmera traseira, mas não forçar
-            }
+            },
+            // Ocultar elementos técnicos da interface
+            showTorchButtonIfSupported: false,
+            showZoomSliderIfSupported: false,
+            defaultZoomValueIfSupported: 1
           },
-          false
+          false // verbose = false para não mostrar logs técnicos
         )
         
         // Callback quando código é detectado
@@ -403,8 +398,8 @@ export default function EmployeePage() {
         })
         setQrResult(`✅ ${recordType} registrada às ${recordTime}`)
         
-        // Definir última registração para mostrar na página principal
-        setLastRegistration(`${recordType} registrada às ${recordTime} - ${result.record.location || result.record.machineName}`)
+        // Definir última registração para mostrar na página principal (sem detalhes técnicos)
+        setLastRegistration(`${recordType} registrada às ${recordTime}`)
         
         // Aguardar 2 segundos para mostrar o sucesso, depois fechar
         setTimeout(async () => {
