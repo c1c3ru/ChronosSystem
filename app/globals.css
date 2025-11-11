@@ -294,37 +294,43 @@
   display: none !important;
 }
 
-/* Hide ALL text content that might show hashes or technical info */
-#qr-reader div[style*="text-align"],
-#qr-reader div[style*="margin"],
-#qr-reader span,
-#qr-reader p {
-  display: none !important;
-}
-
-/* Hide any div that contains text (likely technical info) */
-#qr-reader div:not([id]):not([class]):not([style*="position"]) {
-  display: none !important;
-}
-
-/* Keep only video and scan region */
+/* Ensure video and canvas are always visible */
 #qr-reader video,
-#qr-reader canvas,
-#qr-reader [id*="scan_region"] {
+#qr-reader canvas {
   display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
 }
 
-/* Hide any element with long text content (likely hashes) */
-#qr-reader *:not(video):not(canvas) {
-  font-size: 0 !important;
-  line-height: 0 !important;
-  color: transparent !important;
+/* Ensure scan region container is visible */
+#qr-reader__scan_region,
+#qr-reader__camera_scan_region {
+  display: block !important;
+  position: relative !important;
 }
 
-/* Keep only the essential scan region visible */
+/* Keep scan region highlights visible */
 #qr-reader__scan_region_highlight_svg,
 #qr-reader__scan_region_highlight {
+  display: block !important;
   opacity: 0.8 !important;
+}
+
+/* Hide only specific text elements that show technical info */
+#qr-reader div[style*="text-align: center"] span,
+#qr-reader div[style*="margin"] span:not([id]) {
+  display: none !important;
+}
+
+/* Hide elements with very long text (likely hashes) */
+#qr-reader span:not([id]) {
+  max-width: 0 !important;
+  overflow: hidden !important;
+}
+
+#qr-reader span[title*="QR"] {
+  display: none !important;
 }
 
 /* Mobile modal improvements */

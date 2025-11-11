@@ -283,27 +283,12 @@ export default function EmployeePage() {
       const scanner = new Html5QrcodeScanner(
         "qr-reader",
         {
-          fps: 15, // Aumentar FPS para melhor detecção
-          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-            // QR box responsivo baseado no tamanho da tela
-            const minEdgePercentage = 0.7
-            const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight)
-            const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage)
-            return {
-              width: Math.min(qrboxSize, 300),
-              height: Math.min(qrboxSize, 300)
-            }
-          },
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
-          // Configurações de câmera otimizadas
+          // Configurações básicas de câmera
           videoConstraints: {
-            facingMode: 'environment', // Preferir câmera traseira
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 }
-          },
-          // Configurações para melhor detecção
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
+            facingMode: 'environment'
           },
           // Ocultar elementos técnicos da interface
           showTorchButtonIfSupported: false,
@@ -345,16 +330,39 @@ export default function EmployeePage() {
         // Iniciar o scanner com delay para garantir que o DOM esteja pronto
         setTimeout(() => {
           try {
+            console.log('🔧 [QR] Elemento DOM encontrado:', qrReaderRef.current)
+            console.log('🔧 [QR] Iniciando renderização do scanner...')
+            
             scanner.render(onScanSuccess, onScanFailure)
             setQrScanner(scanner)
+            
             console.log('✅ [QR] Scanner QR iniciado com sucesso!')
+            
+            // Verificar se o vídeo foi criado após um pequeno delay
+            setTimeout(() => {
+              const videoElement = qrReaderRef.current?.querySelector('video')
+              const canvasElement = qrReaderRef.current?.querySelector('canvas')
+              console.log('📹 [QR] Vídeo encontrado:', !!videoElement)
+              console.log('🎨 [QR] Canvas encontrado:', !!canvasElement)
+              
+              if (videoElement) {
+                console.log('📹 [QR] Vídeo dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight)
+                console.log('📹 [QR] Vídeo ready state:', videoElement.readyState)
+              }
+              
+              if (!videoElement && !canvasElement) {
+                console.error('❌ [QR] PROBLEMA: Nem vídeo nem canvas foram criados!')
+                setCameraError('Erro: Scanner não conseguiu inicializar o vídeo da câmera')
+              }
+            }, 1000)
+            
           } catch (renderError: any) {
             console.error('❌ [QR] Erro ao renderizar scanner:', renderError)
             setCameraError(`Erro ao inicializar câmera: ${renderError.message || 'Erro desconhecido'}`)
             setScanning(false)
             document.body.classList.remove('modal-open')
           }
-        }, 200)
+        }, 500) // Aumentar delay para 500ms
     } catch (error: any) {
       console.error('❌ Erro ao iniciar scanner:', error)
       setScanning(false)
