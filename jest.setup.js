@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom'
 
+// Configurar variáveis de ambiente para testes
+process.env.QR_SECRET = 'test-secret-key-for-jest-tests'
+process.env.NEXTAUTH_SECRET = 'test-nextauth-secret-for-jest-tests'
+process.env.GOOGLE_CLIENT_ID = 'test-google-client-id'
+process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret'
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
 // Mock Next.js router
 jest.mock('next/router', () => ({
   useRouter() {
