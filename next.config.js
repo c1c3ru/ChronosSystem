@@ -20,7 +20,7 @@ const nextConfig = {
   },
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'your-secret-key-change-in-production',
+    // NEXTAUTH_SECRET deve ser definido via variável de ambiente - SEM FALLBACK por segurança
   },
   // Headers de segurança para permitir câmera
   async headers() {
