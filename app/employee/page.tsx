@@ -65,6 +65,7 @@ export default function EmployeePage() {
   const [qrResult, setQrResult] = useState<string | null>(null)
   const [processingQr, setProcessingQr] = useState(false)
   const [lastRegistration, setLastRegistration] = useState<string | null>(null)
+  const [showCameraInstructions, setShowCameraInstructions] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const qrReaderRef = useRef<HTMLDivElement>(null)
 
@@ -275,6 +276,46 @@ export default function EmployeePage() {
       // Prevenir scroll do body no mobile
       document.body.classList.add('modal-open')
       
+      // PRIMEIRO: Solicitar permissão explícita da câmera ANTES de inicializar o scanner
+      console.log('🎥 [QR] Solicitando permissão da câmera...')
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 640, min: 320 },
+            height: { ideal: 480, min: 240 }
+          } 
+        })
+        
+        console.log('✅ [QR] Permissão da câmera concedida!')
+        console.log('📹 [QR] Stream obtido:', stream.getTracks().length, 'tracks')
+        
+        // Parar o stream de teste (o scanner criará seu próprio)
+        stream.getTracks().forEach(track => {
+          track.stop()
+          console.log('🛑 [QR] Track de teste parado:', track.kind)
+        })
+        
+        setCameraPermission('granted')
+        
+      } catch (permError: any) {
+        console.error('❌ [QR] Erro de permissão da câmera:', permError)
+        setScanning(false)
+        setIsCheckingCamera(false)
+        document.body.classList.remove('modal-open')
+        
+        if (permError.name === 'NotAllowedError') {
+          setCameraError('Permissão da câmera negada. Toque no ícone da câmera na barra de endereços e permita o acesso.')
+        } else if (permError.name === 'NotFoundError') {
+          setCameraError('Nenhuma câmera encontrada neste dispositivo.')
+        } else if (permError.name === 'NotReadableError') {
+          setCameraError('Câmera está sendo usada por outro aplicativo. Feche outros apps que usam câmera.')
+        } else {
+          setCameraError(`Erro ao acessar câmera: ${permError.message}`)
+        }
+        return
+      }
+      
       // Limpar scanner anterior se existir
       if (qrScanner) {
         console.log('🧹 [QR] Limpando scanner anterior...')
@@ -283,7 +324,7 @@ export default function EmployeePage() {
       }
       
       // Aguardar o DOM estar pronto
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       // Verificar se o elemento existe
       if (!qrReaderRef.current) {
@@ -804,7 +845,13 @@ export default function EmployeePage() {
                     onClick={() => {
                       console.log('🔘 [BUTTON] Botão clicado!')
                       console.log('🔘 [BUTTON] Estados:', { scanning, isCheckingCamera, cameraPermission })
-                      startScanning()
+                      
+                      // Se a câmera não foi testada ainda ou foi negada, mostrar instruções
+                      if (cameraPermission === 'checking' || cameraPermission === 'denied' || cameraPermission === 'prompt') {
+                        setShowCameraInstructions(true)
+                      } else {
+                        startScanning()
+                      }
                     }} 
                     className="w-full mt-auto"
                     disabled={scanning || isCheckingCamera}
@@ -979,6 +1026,81 @@ export default function EmployeePage() {
           )}
         </div>
       </div>
+
+      {/* Modal de Instruções da Câmera */}
+      {showCameraInstructions && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 max-w-md w-full">
+            <div className="text-center mb-6">
+              <div className="bg-primary/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Camera className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Permissão da Câmera Necessária
+              </h3>
+              <p className="text-slate-400 text-sm">
+                Para escanear QR codes, precisamos acessar sua câmera
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-start space-x-3">
+                <div className="bg-blue-500/20 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-blue-400 text-sm font-bold">1</span>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-medium">Clique em "Permitir Câmera"</p>
+                  <p className="text-slate-400 text-xs">Vamos solicitar acesso à sua câmera</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="bg-green-500/20 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-green-400 text-sm font-bold">2</span>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-medium">Autorize no navegador</p>
+                  <p className="text-slate-400 text-xs">Toque "Permitir" quando o navegador solicitar</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="bg-purple-500/20 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-purple-400 text-sm font-bold">3</span>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-medium">Escaneie o QR Code</p>
+                  <p className="text-slate-400 text-xs">Aponte a câmera para o código QR da máquina</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button 
+                onClick={async () => {
+                  setShowCameraInstructions(false)
+                  // Aguardar um pouco para o modal fechar
+                  setTimeout(() => {
+                    startScanning()
+                  }, 300)
+                }}
+                className="w-full"
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Permitir Câmera e Continuar
+              </Button>
+              
+              <Button 
+                onClick={() => setShowCameraInstructions(false)}
+                variant="ghost"
+                className="w-full text-slate-400 hover:text-slate-300"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
