@@ -20,7 +20,7 @@ import {
   Home,
   Timer
 } from 'lucide-react'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -112,31 +112,50 @@ export default function EmployeePage() {
 
       // MÉTODO 1: Testar acesso direto à câmera (mais confiável)
       try {
-        console.log('🧪 [CAMERA] Testando acesso direto à câmera...')
-        const testStream = await navigator.mediaDevices.getUserMedia({ 
+        console.log('🎥 [CAMERA] Testando acesso direto à câmera...')
+        
+        // Solicitar permissão explícita da câmera
+        const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
-            facingMode: 'environment',
-            width: { min: 320 },
-            height: { min: 240 }
+            facingMode: 'environment', // Preferir câmera traseira
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
           } 
         })
         
-        // Se chegou aqui, a câmera está acessível
-        console.log('✅ [CAMERA] Teste direto: Câmera acessível!')
+        console.log('✅ [CAMERA] Acesso à câmera concedido!')
+        console.log('📹 [CAMERA] Stream obtido:', stream.getTracks().length, 'tracks')
+        
+        // Parar o stream imediatamente (só estamos testando permissão)
+        stream.getTracks().forEach(track => {
+          track.stop()
+          console.log('🛑 [CAMERA] Track parado:', track.kind)
+        })
+        
         setCameraPermission('granted')
-        
-        // Parar o stream de teste
-        testStream.getTracks().forEach(track => track.stop())
-        
+        console.log('✅ [CAMERA] Permissão definida como granted')
         return
-      } catch (testError: any) {
-        console.log('❌ [CAMERA] Teste direto falhou:', testError.name)
         
-        if (testError.name === 'NotAllowedError') {
+      } catch (directError: any) {
+        console.log('⚠️ [CAMERA] Erro no acesso direto:', directError.name, directError.message)
+        
+        // Tratar erros específicos
+        if (directError.name === 'NotAllowedError') {
           setCameraPermission('denied')
+          setCameraError('Permissão da câmera negada. Clique no ícone da câmera na barra de endereços e permita o acesso.')
+          return
+        } else if (directError.name === 'NotFoundError') {
+          setCameraPermission('denied')
+          setCameraError('Nenhuma câmera encontrada neste dispositivo.')
+          return
+        } else if (directError.name === 'NotReadableError') {
+          setCameraPermission('denied')
+          setCameraError('Câmera está sendo usada por outro aplicativo.')
           return
         }
-        // Continuar para outros métodos se não for erro de permissão
+        
+        // Continuar para outros métodos se não for erro crítico
+        console.log('🔄 [CAMERA] Tentando método alternativo...')
       }
 
       // MÉTODO 2: Usar Permissions API como fallback
@@ -277,8 +296,14 @@ export default function EmployeePage() {
         "qr-reader",
         {
           fps: 10,
-          qrbox: 250,
-          aspectRatio: 1.0
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          rememberLastUsedCamera: true,
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+          showTorchButtonIfSupported: true,
+          showZoomSliderIfSupported: true,
+          defaultZoomValueIfSupported: 2,
+          useBarCodeDetectorIfSupported: true
         },
         false // verbose = false
       )
@@ -718,21 +743,39 @@ export default function EmployeePage() {
                           <div className="space-y-2">
                             <Button 
                               onClick={async () => {
-                                console.log('🔄 [CAMERA] Forçando re-verificação completa...')
+                                console.log('🔄 [CAMERA] Solicitando permissão explícita...')
                                 setCameraPermission('checking')
                                 setCameraError(null)
                                 setIsCheckingCamera(true)
                                 
-                                // Aguardar um pouco e re-verificar
-                                setTimeout(async () => {
-                                  await checkCameraPermission()
-                                }, 500)
+                                try {
+                                  // Solicitar permissão explícita
+                                  const stream = await navigator.mediaDevices.getUserMedia({ 
+                                    video: { 
+                                      facingMode: 'environment',
+                                      width: { ideal: 640 },
+                                      height: { ideal: 480 }
+                                    } 
+                                  })
+                                  
+                                  console.log('✅ [CAMERA] Permissão concedida!')
+                                  stream.getTracks().forEach(track => track.stop())
+                                  setCameraPermission('granted')
+                                  setCameraError(null)
+                                  
+                                } catch (error: any) {
+                                  console.error('❌ [CAMERA] Permissão negada:', error)
+                                  setCameraPermission('denied')
+                                  setCameraError('Permissão da câmera é necessária para escanear QR codes')
+                                }
+                                
+                                setIsCheckingCamera(false)
                               }} 
                               size="sm" 
                               variant="ghost"
                               className="text-red-400 border-red-400/50 hover:bg-red-500/10"
                             >
-                              Tentar Novamente
+                              Permitir Câmera
                             </Button>
                           </div>
                         </div>
