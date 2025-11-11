@@ -268,26 +268,13 @@ export default function EmployeePage() {
       
       // Configurar o scanner QR
       if (qrReaderRef.current) {
-        // Garantir que o elemento tenha um ID único
-        const elementId = 'qr-reader-' + Date.now()
-        qrReaderRef.current.id = elementId
-        
-        console.log('🔧 [QR] Configurando scanner para elemento:', elementId)
+        console.log('🔧 [QR] Configurando scanner...')
         
         const scanner = new Html5QrcodeScanner(
-          elementId,
+          "qr-reader",
           {
             fps: 10,
-            qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
-              // Responsivo: ajustar tamanho do qrbox baseado no viewport
-              const minEdgePercentage = 0.7 // 70% da menor dimensão
-              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight)
-              const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage)
-              return {
-                width: Math.min(qrboxSize, 300), // máximo 300px
-                height: Math.min(qrboxSize, 300)
-              }
-            },
+            qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
             // Configurações de câmera (preferir traseira, mas aceitar frontal)
             videoConstraints: {
@@ -303,9 +290,9 @@ export default function EmployeePage() {
         
         // Callback quando código é detectado
         const onScanSuccess = async (decodedText: string, decodedResult: any) => {
-          console.log('✅ Código detectado, processando...')
+          console.log('✅ Código detectado:', decodedText.substring(0, 20) + '...')
           
-          // Parar o scanner
+          // Parar o scanner imediatamente
           try {
             await scanner.clear()
             setQrScanner(null)
@@ -361,17 +348,10 @@ export default function EmployeePage() {
   const processQrCode = async (qrData: string) => {
     try {
       setProcessingQr(true)
-      console.log('⚙️ Processando registro de ponto...')
+      setCameraError('')
+      setQrResult('')
       
-      // Processar dados do código (transparente para o usuário)
-      let machineId: string
-      
-      try {
-        const qrJson = JSON.parse(qrData)
-        machineId = qrJson.machineId || qrJson.id || qrData
-      } catch {
-        machineId = qrData
-      }
+      console.log('⚙️ [QR] Processando registro de ponto...')
       
       // Enviar registro de ponto usando API simples (aceita QR seguro e simples)
       const response = await fetch('/api/attendance/simple-register', {
@@ -385,33 +365,32 @@ export default function EmployeePage() {
       })
       
       const result = await response.json()
+      console.log('📡 [QR] Resposta da API:', result)
       
       if (response.ok && result.success) {
-        console.log('✅ Ponto registrado com sucesso!')
+        console.log('✅ [QR] Ponto registrado com sucesso!')
         
         // Mostrar feedback de sucesso imediatamente
-        setCameraError(null)
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
         const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit'
         })
-        setQrResult(`✅ ${recordType} registrada às ${recordTime}`)
         
-        // Definir última registração para mostrar na página principal (sem detalhes técnicos)
+        setQrResult(`✅ ${recordType} registrada às ${recordTime}`)
         setLastRegistration(`${recordType} registrada às ${recordTime}`)
         
-        // Aguardar 2 segundos para mostrar o sucesso, depois fechar
+        // Aguardar 3 segundos para mostrar o sucesso, depois fechar
         setTimeout(async () => {
-          console.log('🔄 Finalizando e atualizando dados...')
+          console.log('🔄 [QR] Finalizando e atualizando dados...')
           
-          // Fechar scanner primeiro
+          // Fechar scanner
           await stopScanning()
           
-          // Atualizar dados da página após fechar o scanner
+          // Atualizar dados da página
           setTimeout(async () => {
             await loadEmployeeData()
-            console.log('✅ Dados atualizados!')
+            console.log('✅ [QR] Dados atualizados!')
             
             // Limpar notificação após 5 segundos
             setTimeout(() => {
@@ -419,16 +398,18 @@ export default function EmployeePage() {
             }, 5000)
           }, 500)
           
-        }, 2000)
+        }, 3000) // Aumentar tempo para 3 segundos
         
       } else {
-        console.error('❌ Erro no registro:', result.error)
+        console.error('❌ [QR] Erro no registro:', result.error)
         setCameraError(result.error || 'Erro ao registrar ponto')
+        setQrResult('')
       }
       
     } catch (error: any) {
-      console.error('❌ Erro ao processar registro:', error)
+      console.error('❌ [QR] Erro ao processar registro:', error)
       setCameraError(`Erro ao registrar ponto: ${error.message}`)
+      setQrResult('')
     } finally {
       setProcessingQr(false)
     }

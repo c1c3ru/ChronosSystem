@@ -294,9 +294,31 @@
   display: none !important;
 }
 
-/* Ensure only the video feed is visible */
-#qr-reader > div:not([id*="scan_region"]) {
+/* Hide ALL text content that might show hashes or technical info */
+#qr-reader div[style*="text-align"],
+#qr-reader div[style*="margin"],
+#qr-reader span,
+#qr-reader p {
   display: none !important;
+}
+
+/* Hide any div that contains text (likely technical info) */
+#qr-reader div:not([id]):not([class]):not([style*="position"]) {
+  display: none !important;
+}
+
+/* Keep only video and scan region */
+#qr-reader video,
+#qr-reader canvas,
+#qr-reader [id*="scan_region"] {
+  display: block !important;
+}
+
+/* Hide any element with long text content (likely hashes) */
+#qr-reader *:not(video):not(canvas) {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
 }
 
 /* Keep only the essential scan region visible */
