@@ -210,39 +210,26 @@ export const authOptions: NextAuthOptions = {
             
             return true
           } else {
-            // Criar novo usuário automaticamente com Google
-            console.log('🆕 [SIGNIN] Criando novo usuário:', user.email)
+            // NOVA ESTRATÉGIA: Não criar usuário automaticamente
+            // Apenas usuários pré-cadastrados podem fazer login
+            console.log('❌ [SIGNIN] Usuário não encontrado no sistema:', user.email)
+            console.log('🚫 [SIGNIN] Apenas usuários pré-cadastrados podem fazer login')
             
-            const newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name || 'Usuário',
-                image: user.image,
-                role: 'EMPLOYEE', // Padrão: funcionário
-                profileComplete: false, // Precisa completar perfil
-              }
-            })
+            // Log de tentativa de acesso não autorizado
+            try {
+              await prisma.auditLog.create({
+                data: {
+                  userId: null,
+                  action: 'UNAUTHORIZED_GOOGLE_LOGIN_ATTEMPT',
+                  resource: 'AUTH',
+                  details: `Tentativa de login Google não autorizada: ${user.email}`
+                }
+              })
+            } catch (logError) {
+              console.error('❌ [SIGNIN] Erro ao registrar tentativa não autorizada:', logError)
+            }
             
-            console.log('✅ [SIGNIN] Novo usuário criado:', {
-              id: newUser.id,
-              email: newUser.email,
-              role: newUser.role,
-              profileComplete: newUser.profileComplete
-            })
-            
-            // Atualizar dados do usuário para o JWT
-            user.id = newUser.id
-            user.role = newUser.role
-            user.profileComplete = newUser.profileComplete
-            
-            console.log('🔄 [SIGNIN] Dados do novo usuário para JWT:', {
-              id: user.id,
-              email: user.email,
-              role: user.role,
-              profileComplete: user.profileComplete
-            })
-            
-            return true
+            return false // Bloquear login
           }
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)

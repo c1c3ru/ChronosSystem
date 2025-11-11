@@ -410,9 +410,9 @@ export default function CompleteProfilePage() {
                       <option value="COORDENACAO_INFORMATICA">Coordenação de Informática</option>
                       <option value="COORDENACAO_EDIFICACOES">Coordenação de Edificações</option>
                       <option value="COORDENACAO_TELECOMUNICACOES">Coordenação de Telecomunicações</option>
-                      <option value="COORDENACAO_LOGISTICA">Coordenação de Logística</option>
+                      <option value="COORDENACAO_PEDAGOGICA">Coordenação Pedagógica</option>
                       <option value="COORDENACAO_MEIO_AMBIENTE">Coordenação de Meio Ambiente</option>
-                      <option value="COORDENACAO_SEGURANCA_TRABALHO">Coordenação de Segurança do Trabalho</option>
+                      <option value="DIRECAO_GERAL">Direção Geral</option>
                       <option value="DIRETORIA_ENSINO">Diretoria de Ensino</option>
                       <option value="DIRETORIA_ADMINISTRACAO">Diretoria de Administração e Planejamento</option>
                       <option value="COORDENACAO_EXTENSAO">Coordenação de Extensão</option>

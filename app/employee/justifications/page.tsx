@@ -45,6 +45,7 @@ export default function JustificationsPage() {
   const [showNewForm, setShowNewForm] = useState(false)
   const [selectedIssue, setSelectedIssue] = useState<PendingIssue | null>(null)
   const [justificationText, setJustificationText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -65,11 +66,13 @@ export default function JustificationsPage() {
 
   const loadJustifications = async () => {
     try {
-      const response = await fetch('/api/justifications')
+      const response = await fetch('/api/employee/justifications')
       
       if (response.ok) {
         const data = await response.json()
-        setJustifications(data)
+        if (data.success) {
+          setJustifications(data.justifications)
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar justificativas:', error)
@@ -96,28 +99,38 @@ export default function JustificationsPage() {
     if (!selectedIssue || !justificationText.trim()) return
 
     try {
-      const response = await fetch('/api/justifications', {
+      setSubmitting(true)
+      const response = await fetch('/api/employee/justifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          issueId: selectedIssue.id,
           type: selectedIssue.type,
           date: selectedIssue.date,
           reason: justificationText
         })
       })
 
-      if (response.ok) {
+      const data = await response.json()
+
+      if (response.ok && data.success) {
         setShowNewForm(false)
         setSelectedIssue(null)
         setJustificationText('')
         loadJustifications()
         loadPendingIssues()
+        
+        // Mostrar mensagem de feedback
+        alert(data.message)
+      } else {
+        alert(data.error || 'Erro ao enviar justificativa')
       }
     } catch (error) {
       console.error('Erro ao enviar justificativa:', error)
+      alert('Erro ao enviar justificativa')
+    } finally {
+      setSubmitting(false)
     }
   }
 

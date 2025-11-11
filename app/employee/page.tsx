@@ -41,8 +41,14 @@ interface AttendanceRecord {
   entry?: string
   exit?: string
   hours: string
-  status: 'Completo' | 'Em andamento'
+  status: 'Completo' | 'Em andamento' | 'Incompleto' | 'Ausente'
   location: string
+  alerts?: Array<{
+    type: string
+    message: string
+    severity: 'low' | 'medium' | 'high'
+  }>
+  hasJustification?: boolean
 }
 
 export default function EmployeePage() {
@@ -190,9 +196,9 @@ export default function EmployeePage() {
     try {
       setLoading(true)
       
-      // Buscar dados reais do usuário
+      // Buscar dados reais do usuário com análise de alertas
       console.log('🔍 [EMPLOYEE] Buscando dados do dashboard...')
-      const response = await fetch('/api/employee/dashboard')
+      const response = await fetch('/api/employee/dashboard-enhanced')
       
       if (response.ok) {
         const data = await response.json()
@@ -201,34 +207,21 @@ export default function EmployeePage() {
           // Definir status de trabalho
           setWorkStatus(data.workStatus)
           
-          // Agrupar registros por data para exibição
-          const recordsByDate = new Map()
+          // Usar os dados já analisados da nova API
+          const formattedRecords = data.analyzedDays.map((day: any) => ({
+            id: `day-${day.date}`,
+            date: day.date,
+            entry: day.entry,
+            exit: day.exit,
+            hours: day.totalHours,
+            status: day.status === 'completed' ? 'Completo' : 
+                   day.status === 'incomplete' ? 'Incompleto' :
+                   day.status === 'absent' ? 'Ausente' : 'Em andamento',
+            location: day.location,
+            alerts: day.alerts,
+            hasJustification: day.hasJustification
+          }))
           
-          data.recentRecords.forEach((record: any) => {
-            const date = record.date
-            if (!recordsByDate.has(date)) {
-              recordsByDate.set(date, {
-                id: `day-${date}`,
-                date,
-                entry: null,
-                exit: null,
-                hours: '-',
-                status: 'Em andamento',
-                location: record.machine.location
-              })
-            }
-            
-            const dayRecord = recordsByDate.get(date)
-            if (record.type === 'ENTRY') {
-              dayRecord.entry = record.time
-            } else if (record.type === 'EXIT') {
-              dayRecord.exit = record.time
-              dayRecord.status = 'Completo'
-            }
-          })
-          
-          // Converter para array e limitar a 5 registros
-          const formattedRecords = Array.from(recordsByDate.values()).slice(0, 5)
           setRecentRecords(formattedRecords)
         } else {
           throw new Error(data.error || 'Erro ao carregar dados')
@@ -815,42 +808,88 @@ export default function EmployeePage() {
                 <div className="space-y-4">
                   {recentRecords.length > 0 ? (
                     recentRecords.map((record) => (
-                      <div key={record.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-center min-w-[60px]">
-                            <p className="text-white font-medium">{record.date}</p>
-                          </div>
-                          <div className="h-8 w-px bg-neutral-600"></div>
-                          <div>
-                            <div className="flex items-center space-x-4 text-sm">
-                              {record.entry && (
-                                <span className="text-primary">
-                                  Entrada: {record.entry}
-                                </span>
-                              )}
-                              {record.exit && (
-                                <>
-                                  <span className="text-neutral-500">•</span>
-                                  <span className="text-warning">
-                                    Saída: {record.exit}
-                                  </span>
-                                </>
-                              )}
+                      <div key={record.id} className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden">
+                        {/* Alertas - se houver */}
+                        {record.alerts && record.alerts.length > 0 && (
+                          <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border-l-4 border-red-500 p-3">
+                            <div className="flex items-start space-x-2">
+                              <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-red-400 text-xs font-medium mb-1">Atenção Necessária</p>
+                                {record.alerts.map((alert, idx) => (
+                                  <p key={idx} className="text-red-300 text-xs">
+                                    • {alert.message}
+                                  </p>
+                                ))}
+                                {!record.hasJustification && (
+                                  <Link 
+                                    href="/employee/justifications"
+                                    className="inline-flex items-center text-xs text-red-400 hover:text-red-300 mt-2 underline"
+                                  >
+                                    Justificar agora
+                                  </Link>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-neutral-400 text-xs mt-1 flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {record.location} • Total: {record.hours}
-                            </p>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                            record.status === 'Completo' 
-                              ? 'bg-success/20 text-success border border-success/30' 
-                              : 'bg-warning/20 text-warning border border-warning/30'
-                          }`}>
-                            {record.status}
-                          </span>
+                        )}
+                        
+                        {/* Conteúdo principal do registro */}
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="text-center min-w-[60px]">
+                              <p className="text-white font-medium">{record.date}</p>
+                            </div>
+                            <div className="h-8 w-px bg-neutral-600"></div>
+                            <div>
+                              <div className="flex items-center space-x-4 text-sm">
+                                {record.entry && (
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span className="text-green-400 font-medium">
+                                      Entrada: {record.entry}
+                                    </span>
+                                  </div>
+                                )}
+                                {record.exit && (
+                                  <>
+                                    <span className="text-neutral-500">•</span>
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                      <span className="text-orange-400 font-medium">
+                                        Saída: {record.exit}
+                                      </span>
+                                    </div>
+                                  </>
+                                )}
+                                {!record.entry && record.status === 'Ausente' && (
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                    <span className="text-red-400 font-medium">
+                                      Ausente
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-neutral-400 text-xs mt-1 flex items-center">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {record.location} • Total: {record.hours}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                              record.status === 'Completo' 
+                                ? 'bg-success/20 text-success border border-success/30'
+                                : record.status === 'Incompleto'
+                                ? 'bg-warning/20 text-warning border border-warning/30'
+                                : record.status === 'Ausente'
+                                ? 'bg-error/20 text-error border border-error/30'
+                                : 'bg-info/20 text-info border border-info/30'
+                            }`}>
+                              {record.status}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     ))

@@ -13,9 +13,9 @@ function ErrorContent() {
     switch (error) {
       case 'AccessDenied':
         return {
-          title: 'Acesso Negado',
-          message: 'Seu email não está autorizado a acessar este sistema.',
-          description: 'Apenas usuários pré-cadastrados podem fazer login. Entre em contato com o administrador para solicitar acesso.',
+          title: 'Acesso Negado - IFCE Maracanaú',
+          message: 'Seu email não está cadastrado no sistema Chronos.',
+          description: 'Apenas funcionários, professores e estudantes pré-cadastrados pelo IFCE campus Maracanaú podem acessar o sistema. Entre em contato com a administração para solicitar seu cadastro.',
           icon: Shield
         }
       case 'Configuration':
@@ -93,11 +93,16 @@ function ErrorContent() {
           {error === 'AccessDenied' && (
             <div className="mt-8 p-4 bg-slate-900/50 rounded-lg border border-slate-600">
               <h3 className="text-sm font-medium text-slate-300 mb-2">
-                Precisa de acesso?
+                Como solicitar acesso?
               </h3>
-              <p className="text-xs text-slate-400">
-                Entre em contato com o administrador do sistema para solicitar autorização de acesso com seu email.
-              </p>
+              <div className="text-xs text-slate-400 space-y-2">
+                <p>• <strong>Funcionários/Professores:</strong> Procure o setor de RH ou TI</p>
+                <p>• <strong>Estudantes:</strong> Procure o Registro Acadêmico</p>
+                <p>• <strong>Terceirizados:</strong> Procure a Administração</p>
+                <p className="mt-2 text-slate-500">
+                  Informe seu email Google institucional para cadastro no sistema.
+                </p>
+              </div>
             </div>
           )}
         </div>
