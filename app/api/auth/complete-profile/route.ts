@@ -22,12 +22,22 @@ export async function POST(request: NextRequest) {
       emergencyContact,
       emergencyPhone,
       department,
-      startDate
+      startDate,
+      contractStartDate,
+      contractEndDate
     } = await request.json()
 
-    // Validações
-    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone || !department || !startDate) {
-      return NextResponse.json({ error: 'Todos os campos são obrigatórios' }, { status: 400 })
+    // Validações básicas
+    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone || !department) {
+      return NextResponse.json({ error: 'Todos os campos básicos são obrigatórios' }, { status: 400 })
+    }
+
+    // Validações específicas por role
+    const userRole = session.user.role
+    if (userRole === 'EMPLOYEE') {
+      if (!startDate || !contractStartDate || !contractEndDate) {
+        return NextResponse.json({ error: 'Funcionários devem preencher todas as datas' }, { status: 400 })
+      }
     }
 
     // Atualizar usuário
@@ -40,7 +50,7 @@ export async function POST(request: NextRequest) {
         emergencyContact,
         emergencyPhone,
         department,
-        startDate: new Date(startDate),
+        startDate: startDate ? new Date(startDate) : null,
         profileComplete: true,
         updatedAt: new Date()
       }

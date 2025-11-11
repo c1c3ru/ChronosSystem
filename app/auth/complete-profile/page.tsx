@@ -138,25 +138,29 @@ export default function CompleteProfilePage() {
       newErrors.department = 'Departamento é obrigatório'
     }
 
-    if (!profileData.startDate) {
-      newErrors.startDate = 'Data de início é obrigatória'
-    }
-
-    if (!profileData.contractStartDate) {
-      newErrors.contractStartDate = 'Data de início do contrato é obrigatória'
-    }
-
-    if (!profileData.contractEndDate) {
-      newErrors.contractEndDate = 'Data de fim do contrato é obrigatória'
-    }
-
-    // Validar se data de fim é posterior à data de início
-    if (profileData.contractStartDate && profileData.contractEndDate) {
-      const startDate = new Date(profileData.contractStartDate)
-      const endDate = new Date(profileData.contractEndDate)
+    // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
+    const userRole = session?.user?.role
+    if (userRole === 'EMPLOYEE') {
+      if (!profileData.startDate) {
+        newErrors.startDate = 'Data de início é obrigatória'
+      }
       
-      if (endDate <= startDate) {
-        newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
+      if (!profileData.contractStartDate) {
+        newErrors.contractStartDate = 'Data de início do contrato é obrigatória'
+      }
+
+      if (!profileData.contractEndDate) {
+        newErrors.contractEndDate = 'Data de fim do contrato é obrigatória'
+      }
+
+      // Validar se data de fim é posterior à data de início
+      if (profileData.contractStartDate && profileData.contractEndDate) {
+        const startDate = new Date(profileData.contractStartDate)
+        const endDate = new Date(profileData.contractEndDate)
+        
+        if (endDate <= startDate) {
+          newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
+        }
       }
     }
 
@@ -415,62 +419,67 @@ export default function CompleteProfilePage() {
                     {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Data de Início *
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                      <input
-                        type="date"
-                        className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
-                        value={profileData.startDate || ''}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, startDate: e.target.value }))}
-                      />
+                  {/* Data de início apenas para funcionários */}
+                  {session?.user?.role === 'EMPLOYEE' && (
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        Data de Início *
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="date"
+                          className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
+                          value={profileData.startDate || ''}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, startDate: e.target.value }))}
+                        />
+                      </div>
+                      {errors.startDate && <p className="text-error text-xs mt-1">{errors.startDate}</p>}
                     </div>
-                    {errors.startDate && <p className="text-error text-xs mt-1">{errors.startDate}</p>}
-                  </div>
+                  )}
                 </div>
               </div>
 
-              {/* Informações do Contrato */}
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações do Contrato</h3>
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Início do Contrato *
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                      <input
-                        type="date"
-                        className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
-                        value={profileData.contractStartDate || ''}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, contractStartDate: e.target.value }))}
-                      />
+              {/* Informações do Contrato - Apenas para funcionários */}
+              {session?.user?.role === 'EMPLOYEE' && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações do Contrato</h3>
+                  <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        Início do Contrato *
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="date"
+                          className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
+                          value={profileData.contractStartDate || ''}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, contractStartDate: e.target.value }))}
+                        />
+                      </div>
+                      {errors.contractStartDate && <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>}
                     </div>
-                    {errors.contractStartDate && <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>}
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Fim do Contrato *
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                      <input
-                        type="date"
-                        className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
-                        value={profileData.contractEndDate || ''}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, contractEndDate: e.target.value }))}
-                        min={profileData.contractStartDate || undefined}
-                      />
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        Fim do Contrato *
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="date"
+                          className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
+                          value={profileData.contractEndDate || ''}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, contractEndDate: e.target.value }))}
+                          min={profileData.contractStartDate || undefined}
+                        />
+                      </div>
+                      {errors.contractEndDate && <p className="text-error text-xs mt-1">{errors.contractEndDate}</p>}
                     </div>
-                    {errors.contractEndDate && <p className="text-error text-xs mt-1">{errors.contractEndDate}</p>}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Submit Button */}
               <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-neutral-700">
