@@ -278,17 +278,24 @@ export default function EmployeePage() {
       
       // PRIMEIRO: Solicitar permissão explícita da câmera ANTES de inicializar o scanner
       console.log('🎥 [QR] Solicitando permissão da câmera...')
+      
+      // Aguardar um pouco para garantir que o DOM está pronto
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       try {
+        // Solicitar permissão com configurações mais simples primeiro
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            facingMode: 'environment',
-            width: { ideal: 640, min: 320 },
-            height: { ideal: 480, min: 240 }
-          } 
+          video: true // Configuração mais simples para teste de permissão
         })
         
         console.log('✅ [QR] Permissão da câmera concedida!')
         console.log('📹 [QR] Stream obtido:', stream.getTracks().length, 'tracks')
+        
+        // Verificar se o stream tem vídeo ativo
+        const videoTrack = stream.getVideoTracks()[0]
+        if (videoTrack) {
+          console.log('📹 [QR] Video track ativo:', videoTrack.label, videoTrack.readyState)
+        }
         
         // Parar o stream de teste (o scanner criará seu próprio)
         stream.getTracks().forEach(track => {
@@ -298,6 +305,9 @@ export default function EmployeePage() {
         
         setCameraPermission('granted')
         
+        // Aguardar mais um pouco para garantir que a permissão foi processada
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
       } catch (permError: any) {
         console.error('❌ [QR] Erro de permissão da câmera:', permError)
         setScanning(false)
@@ -305,7 +315,7 @@ export default function EmployeePage() {
         document.body.classList.remove('modal-open')
         
         if (permError.name === 'NotAllowedError') {
-          setCameraError('Permissão da câmera negada. Toque no ícone da câmera na barra de endereços e permita o acesso.')
+          setCameraError('Permissão da câmera negada. Toque "Permitir ao acessar o site" na solicitação do navegador.')
         } else if (permError.name === 'NotFoundError') {
           setCameraError('Nenhuma câmera encontrada neste dispositivo.')
         } else if (permError.name === 'NotReadableError') {
@@ -337,14 +347,10 @@ export default function EmployeePage() {
         "qr-reader",
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
+          qrbox: 250,
           aspectRatio: 1.0,
-          rememberLastUsedCamera: true,
-          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-          showTorchButtonIfSupported: true,
-          showZoomSliderIfSupported: true,
-          defaultZoomValueIfSupported: 2,
-          useBarCodeDetectorIfSupported: true
+          rememberLastUsedCamera: false, // Desabilitar para evitar conflitos
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
         },
         false // verbose = false
       )
@@ -378,7 +384,7 @@ export default function EmployeePage() {
           }
         }
         
-        // Iniciar o scanner com delay para garantir que o DOM esteja pronto
+        // Iniciar o scanner com delay maior para garantir que a permissão foi processada
         setTimeout(() => {
           try {
             console.log('🔧 [QR] Elemento DOM encontrado:', qrReaderRef.current)
@@ -386,10 +392,11 @@ export default function EmployeePage() {
             
             scanner.render(onScanSuccess, onScanFailure)
             setQrScanner(scanner)
+            setIsCheckingCamera(false) // Parar loading aqui
             
             console.log('✅ [QR] Scanner QR iniciado com sucesso!')
             
-            // Verificar se o vídeo foi criado após um pequeno delay
+            // Verificar se o vídeo foi criado após um delay maior
             setTimeout(() => {
               const videoElement = qrReaderRef.current?.querySelector('video')
               const canvasElement = qrReaderRef.current?.querySelector('canvas')
@@ -399,21 +406,29 @@ export default function EmployeePage() {
               if (videoElement) {
                 console.log('📹 [QR] Vídeo dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight)
                 console.log('📹 [QR] Vídeo ready state:', videoElement.readyState)
+                
+                // Forçar o vídeo a ser visível
+                videoElement.style.display = 'block'
+                videoElement.style.width = '100%'
+                videoElement.style.height = 'auto'
               }
               
               if (!videoElement && !canvasElement) {
                 console.error('❌ [QR] PROBLEMA: Nem vídeo nem canvas foram criados!')
-                setCameraError('Erro: Scanner não conseguiu inicializar o vídeo da câmera')
+                setCameraError('Erro: Scanner não conseguiu inicializar o vídeo da câmera. Tente recarregar a página.')
+                setScanning(false)
+                document.body.classList.remove('modal-open')
               }
-            }, 1000)
+            }, 2000) // Aumentar delay para 2 segundos
             
           } catch (renderError: any) {
             console.error('❌ [QR] Erro ao renderizar scanner:', renderError)
             setCameraError(`Erro ao inicializar câmera: ${renderError.message || 'Erro desconhecido'}`)
             setScanning(false)
+            setIsCheckingCamera(false)
             document.body.classList.remove('modal-open')
           }
-        }, 500) // Aumentar delay para 500ms
+        }, 1500) // Aumentar delay inicial para 1.5 segundos
     } catch (error: any) {
       console.error('❌ Erro ao iniciar scanner:', error)
       setScanning(false)
