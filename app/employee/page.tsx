@@ -283,19 +283,34 @@ export default function EmployeePage() {
       const scanner = new Html5QrcodeScanner(
         "qr-reader",
         {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
+          fps: 15, // Aumentar FPS para melhor detecção
+          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+            // QR box responsivo baseado no tamanho da tela
+            const minEdgePercentage = 0.7
+            const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight)
+            const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage)
+            return {
+              width: Math.min(qrboxSize, 300),
+              height: Math.min(qrboxSize, 300)
+            }
+          },
           aspectRatio: 1.0,
-          // Configurações de câmera (preferir traseira, mas aceitar frontal)
+          // Configurações de câmera otimizadas
           videoConstraints: {
-            facingMode: 'environment' // Preferir câmera traseira, mas não forçar
+            facingMode: 'environment', // Preferir câmera traseira
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 }
+          },
+          // Configurações para melhor detecção
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
           },
           // Ocultar elementos técnicos da interface
           showTorchButtonIfSupported: false,
           showZoomSliderIfSupported: false,
           defaultZoomValueIfSupported: 1
         },
-        false // verbose = false para não mostrar logs técnicos
+        true // verbose = true para debug temporário
       )
         
         // Callback quando código é detectado
@@ -314,9 +329,17 @@ export default function EmployeePage() {
           await processQrCode(decodedText)
         }
         
-        // Callback para erros (opcional, não logamos para evitar spam)
+        // Callback para erros - com logs úteis para debug
         const onScanFailure = (error: string) => {
-          // Não fazer nada - erros de scan são normais durante a busca
+          // Log apenas erros importantes, não spam de NotFoundException
+          if (!error.includes('NotFoundException') && !error.includes('No MultiFormat Readers')) {
+            console.log('⚠️ [QR] Erro de scan:', error)
+          }
+          
+          // Log a cada 10 tentativas para mostrar que está tentando
+          if (Math.random() < 0.1) {
+            console.log('🔍 [QR] Procurando código QR...')
+          }
         }
         
         // Iniciar o scanner com delay para garantir que o DOM esteja pronto
@@ -612,11 +635,21 @@ export default function EmployeePage() {
                         </div>
                       )}
                       
-                      {/* Instructions and Cancel Button */}
+                      {!cameraError && !qrResult && !processingQr && (
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+                          <p className="text-green-400 text-center text-sm font-medium mb-2">
+                            📱 Aponte a câmera para o código QR da máquina
+                          </p>
+                          <p className="text-green-300 text-center text-xs">
+                            • Mantenha o QR dentro do quadrado verde<br/>
+                            • Certifique-se de que há boa iluminação<br/>
+                            • Mantenha a câmera estável
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Cancel Button */}
                       <div className="text-center space-y-4 pt-2">
-                        <p className="text-neutral-300 text-base">
-                          Aponte a câmera para o código QR da máquina
-                        </p>
                         <Button 
                           onClick={stopScanning} 
                           variant="secondary" 
