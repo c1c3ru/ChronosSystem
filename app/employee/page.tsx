@@ -253,40 +253,50 @@ export default function EmployeePage() {
   const startScanning = async () => {
     try {
       console.log('📷 [QR] Iniciando scanner QR...')
+      console.log('📷 [QR] Estado atual - scanning:', scanning, 'cameraPermission:', cameraPermission)
+      
       setScanning(true)
       setCameraError(null)
       setQrResult(null)
+      setIsCheckingCamera(true)
+      
+      // Prevenir scroll do body no mobile
+      document.body.classList.add('modal-open')
       
       // Limpar scanner anterior se existir
       if (qrScanner) {
+        console.log('🧹 [QR] Limpando scanner anterior...')
         await qrScanner.clear()
         setQrScanner(null)
       }
       
       // Aguardar o DOM estar pronto
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 200))
       
-      // Configurar o scanner QR
-      if (qrReaderRef.current) {
-        console.log('🔧 [QR] Configurando scanner...')
-        
-        const scanner = new Html5QrcodeScanner(
-          "qr-reader",
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-            // Configurações de câmera (preferir traseira, mas aceitar frontal)
-            videoConstraints: {
-              facingMode: 'environment' // Preferir câmera traseira, mas não forçar
-            },
-            // Ocultar elementos técnicos da interface
-            showTorchButtonIfSupported: false,
-            showZoomSliderIfSupported: false,
-            defaultZoomValueIfSupported: 1
+      // Verificar se o elemento existe
+      if (!qrReaderRef.current) {
+        throw new Error('Elemento QR reader não encontrado')
+      }
+      
+      console.log('🔧 [QR] Configurando scanner...')
+      
+      const scanner = new Html5QrcodeScanner(
+        "qr-reader",
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          // Configurações de câmera (preferir traseira, mas aceitar frontal)
+          videoConstraints: {
+            facingMode: 'environment' // Preferir câmera traseira, mas não forçar
           },
-          false // verbose = false para não mostrar logs técnicos
-        )
+          // Ocultar elementos técnicos da interface
+          showTorchButtonIfSupported: false,
+          showZoomSliderIfSupported: false,
+          defaultZoomValueIfSupported: 1
+        },
+        false // verbose = false para não mostrar logs técnicos
+      )
         
         // Callback quando código é detectado
         const onScanSuccess = async (decodedText: string, decodedResult: any) => {
@@ -319,6 +329,7 @@ export default function EmployeePage() {
             console.error('❌ [QR] Erro ao renderizar scanner:', renderError)
             setCameraError(`Erro ao inicializar câmera: ${renderError.message || 'Erro desconhecido'}`)
             setScanning(false)
+            document.body.classList.remove('modal-open')
           }
         }, 200)
         
@@ -328,6 +339,7 @@ export default function EmployeePage() {
     } catch (error: any) {
       console.error('❌ Erro ao iniciar scanner:', error)
       setScanning(false)
+      document.body.classList.remove('modal-open')
       
       // Tratamento específico para erros de câmera
       if (error.name === 'OverconstrainedError') {
@@ -341,7 +353,6 @@ export default function EmployeePage() {
       }
     } finally {
       setIsCheckingCamera(false)
-      document.body.classList.remove('modal-open')
     }
   }
 
@@ -704,16 +715,18 @@ export default function EmployeePage() {
                   </div>
                   
                   <Button 
-                    onClick={startScanning} 
+                    onClick={() => {
+                      console.log('🔘 [BUTTON] Botão clicado!')
+                      console.log('🔘 [BUTTON] Estados:', { scanning, isCheckingCamera, cameraPermission })
+                      startScanning()
+                    }} 
                     className="w-full mt-auto"
-                    disabled={isCheckingCamera || (cameraPermission === 'denied' && !isCheckingCamera)}
+                    disabled={scanning || isCheckingCamera}
                   >
                     <Camera className="h-5 w-5 mr-2" />
-                    {isCheckingCamera ? 'Verificando...' :
-                     cameraPermission === 'checking' ? 'Verificando...' : 
-                     cameraPermission === 'denied' ? 'Câmera Bloqueada' : 
-                     cameraPermission === 'prompt' ? 'Solicitar Câmera' :
-                     'Abrir Scanner'}
+                    {scanning ? 'Abrindo Scanner...' :
+                     isCheckingCamera ? 'Verificando...' :
+                     'Abrir Scanner QR'}
                   </Button>
                 </CardContent>
               </Card>
