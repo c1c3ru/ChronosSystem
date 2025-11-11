@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
 import { rateLimiters } from '@/lib/rate-limit'
 import { apiLogger } from '@/lib/logger'
+import { determineRecordType, getUserWorkingHours, validateRecord, isWeekend } from '@/lib/attendance-logic'
 
 // POST /api/attendance/simple-register - Registrar ponto com QR simples ou seguro
 export const dynamic = 'force-dynamic'
@@ -97,13 +98,57 @@ export async function POST(request: NextRequest) {
 
     console.log('🏢 [SIMPLE] Máquina encontrada:', machine.name, '-', machine.location)
 
-    // Determinar tipo de registro (entrada ou saída)
+    // Buscar último registro para análise inteligente
     const lastRecord = await prisma.attendanceRecord.findFirst({
       where: { userId: session.user.id },
       orderBy: { timestamp: 'desc' }
     })
 
-    const recordType = (!lastRecord || lastRecord.type === 'EXIT') ? 'ENTRY' : 'EXIT'
+    // Obter horários de trabalho do usuário
+    const workingHours = await getUserWorkingHours(session.user.id)
+    const currentTime = new Date()
+
+    // Usar lógica inteligente para determinar tipo de registro
+    const attendanceAnalysis = determineRecordType({
+      userId: session.user.id,
+      currentTime,
+      lastRecord: lastRecord ? {
+        type: lastRecord.type as 'ENTRY' | 'EXIT',
+        timestamp: lastRecord.timestamp
+      } : null,
+      workingHours,
+      isWeekend: isWeekend(currentTime)
+    })
+
+    const recordType = attendanceAnalysis.type
+
+    // Validar se o registro faz sentido
+    const validation = validateRecord({
+      userId: session.user.id,
+      currentTime,
+      lastRecord: lastRecord ? {
+        type: lastRecord.type as 'ENTRY' | 'EXIT',
+        timestamp: lastRecord.timestamp
+      } : null,
+      workingHours,
+      isWeekend: isWeekend(currentTime)
+    }, recordType)
+
+    console.log('🧠 [SMART] Análise inteligente:', {
+      suggestedType: recordType,
+      reason: attendanceAnalysis.reason,
+      confidence: attendanceAnalysis.confidence,
+      warnings: validation.warnings,
+      errors: validation.errors
+    })
+
+    // Se há erros críticos, bloquear registro
+    if (!validation.isValid) {
+      return NextResponse.json({ 
+        error: `Registro bloqueado: ${validation.errors.join(', ')}`,
+        warnings: validation.warnings
+      }, { status: 400 })
+    }
 
     // Verificar se não há registro duplicado no mesmo minuto
     const now = Date.now()
@@ -178,7 +223,14 @@ export async function POST(request: NextRequest) {
         location: machine.location,
         machineName: machine.name
       },
-      message: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} registrada com sucesso às ${recordTime}!`
+      analysis: {
+        reason: attendanceAnalysis.reason,
+        confidence: attendanceAnalysis.confidence,
+        suggestions: attendanceAnalysis.suggestions || [],
+        warnings: validation.warnings
+      },
+      message: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} registrada com sucesso às ${recordTime}!`,
+      smartMessage: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} detectada: ${attendanceAnalysis.reason}`
     })
 
   } catch (error) {

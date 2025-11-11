@@ -400,8 +400,29 @@ export default function EmployeePage() {
           minute: '2-digit'
         })
         
-        setQrResult(`✅ ${recordType} registrada às ${recordTime}`)
-        setLastRegistration(`${recordType} registrada às ${recordTime}`)
+        // Mostrar informação inteligente se disponível
+        const smartInfo = result.analysis ? 
+          `${result.smartMessage} (${result.analysis.confidence === 'high' ? 'Alta confiança' : 
+             result.analysis.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'})` :
+          `${recordType} registrada às ${recordTime}`
+          
+        setQrResult(`✅ ${smartInfo}`)
+        setLastRegistration(smartInfo)
+        
+        // Log da análise inteligente
+        if (result.analysis) {
+          console.log('🧠 [QR] Análise inteligente:', {
+            reason: result.analysis.reason,
+            confidence: result.analysis.confidence,
+            suggestions: result.analysis.suggestions,
+            warnings: result.analysis.warnings
+          })
+          
+          // Mostrar avisos se houver
+          if (result.analysis.warnings.length > 0) {
+            console.warn('⚠️ [QR] Avisos:', result.analysis.warnings)
+          }
+        }
         
         // Aguardar 3 segundos para mostrar o sucesso, depois fechar
         setTimeout(async () => {
