@@ -44,7 +44,7 @@ if (!NEXTAUTH_SECRET) {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  debug: false,
+  debug: process.env.NODE_ENV === 'development',
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -90,6 +90,13 @@ export const authOptions: NextAuthOptions = {
       clientId: GOOGLE_CLIENT_ID!,
       clientSecret: GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
   ],
   session: {
@@ -143,12 +150,26 @@ export const authOptions: NextAuthOptions = {
       console.log('🔵 [SIGNIN] Callback iniciado:', { 
         provider: account?.provider, 
         email: user.email,
-        userId: user.id 
+        userId: user.id,
+        accountType: account?.type,
+        profileData: profile ? { name: profile.name, email: profile.email } : null
       })
       
       if (account?.provider === 'google') {
         try {
           console.log('🔍 [SIGNIN] Processando login Google para:', user.email)
+          console.log('📋 [SIGNIN] Dados do perfil Google:', {
+            name: profile?.name,
+            email: profile?.email,
+            picture: (profile as any)?.picture,
+            email_verified: (profile as any)?.email_verified
+          })
+          
+          // Verificar se o email foi verificado pelo Google
+          if (!(profile as any)?.email_verified) {
+            console.log('❌ [SIGNIN] Email não verificado pelo Google')
+            return false
+          }
           
           // Buscar usuário existente no banco de dados
           const existingUser = await prisma.user.findUnique({
@@ -180,6 +201,13 @@ export const authOptions: NextAuthOptions = {
             user.name = existingUser.name || user.name
             user.image = existingUser.image || user.image
             
+            console.log('🔄 [SIGNIN] Dados do usuário atualizados para JWT:', {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              profileComplete: user.profileComplete
+            })
+            
             return true
           } else {
             // Criar novo usuário automaticamente com Google
@@ -207,10 +235,18 @@ export const authOptions: NextAuthOptions = {
             user.role = newUser.role
             user.profileComplete = newUser.profileComplete
             
+            console.log('🔄 [SIGNIN] Dados do novo usuário para JWT:', {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              profileComplete: user.profileComplete
+            })
+            
             return true
           }
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
+          console.error('❌ [SIGNIN] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
           return false
         }
       }
@@ -219,8 +255,11 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     async redirect({ url, baseUrl }) {
+      console.log('🔄 [REDIRECT] Callback chamado:', { url, baseUrl })
+      
       // Se for callback do Google ou outros providers OAuth
       if (url.includes('/api/auth/callback/')) {
+        console.log('📞 [REDIRECT] Callback OAuth detectado, redirecionando para /')
         // Para callbacks OAuth, sempre redirecionar para a página inicial
         // O middleware irá verificar o role e redirecionar adequadamente
         return `${baseUrl}/`
@@ -228,14 +267,21 @@ export const authOptions: NextAuthOptions = {
       
       // Se for URL relativa, usar baseUrl
       if (url.startsWith('/')) {
+        console.log('🔗 [REDIRECT] URL relativa:', url)
         return `${baseUrl}${url}`
       }
       
       // Se for mesma origem, permitir
-      if (new URL(url).origin === baseUrl) {
-        return url
+      try {
+        if (new URL(url).origin === baseUrl) {
+          console.log('✅ [REDIRECT] Mesma origem permitida:', url)
+          return url
+        }
+      } catch (error) {
+        console.log('❌ [REDIRECT] Erro ao parsear URL:', error)
       }
       
+      console.log('🏠 [REDIRECT] Fallback para baseUrl:', baseUrl)
       return baseUrl
     },
   },
