@@ -407,13 +407,26 @@ export default function CompleteProfilePage() {
                       onChange={(e) => setProfileData(prev => ({ ...prev, department: e.target.value }))}
                     >
                       <option value="">Selecione o departamento</option>
-                      <option value="TI">Tecnologia da Informação</option>
-                      <option value="RH">Recursos Humanos</option>
-                      <option value="FINANCEIRO">Financeiro</option>
-                      <option value="MARKETING">Marketing</option>
-                      <option value="VENDAS">Vendas</option>
-                      <option value="OPERACOES">Operações</option>
-                      <option value="JURIDICO">Jurídico</option>
+                      <option value="COORDENACAO_INFORMATICA">Coordenação de Informática</option>
+                      <option value="COORDENACAO_EDIFICACOES">Coordenação de Edificações</option>
+                      <option value="COORDENACAO_TELECOMUNICACOES">Coordenação de Telecomunicações</option>
+                      <option value="COORDENACAO_LOGISTICA">Coordenação de Logística</option>
+                      <option value="COORDENACAO_MEIO_AMBIENTE">Coordenação de Meio Ambiente</option>
+                      <option value="COORDENACAO_SEGURANCA_TRABALHO">Coordenação de Segurança do Trabalho</option>
+                      <option value="DIRETORIA_ENSINO">Diretoria de Ensino</option>
+                      <option value="DIRETORIA_ADMINISTRACAO">Diretoria de Administração e Planejamento</option>
+                      <option value="COORDENACAO_EXTENSAO">Coordenação de Extensão</option>
+                      <option value="COORDENACAO_PESQUISA">Coordenação de Pesquisa e Inovação</option>
+                      <option value="BIBLIOTECA">Biblioteca</option>
+                      <option value="REGISTRO_ACADEMICO">Registro Acadêmico</option>
+                      <option value="ASSISTENCIA_ESTUDANTIL">Assistência Estudantil</option>
+                      <option value="RECURSOS_HUMANOS">Recursos Humanos</option>
+                      <option value="FINANCEIRO">Setor Financeiro</option>
+                      <option value="PATRIMONIO">Patrimônio</option>
+                      <option value="ALMOXARIFADO">Almoxarifado</option>
+                      <option value="MANUTENCAO">Manutenção</option>
+                      <option value="SEGURANCA">Segurança</option>
+                      <option value="LIMPEZA">Limpeza</option>
                       <option value="OUTROS">Outros</option>
                     </select>
                     {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
