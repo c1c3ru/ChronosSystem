@@ -355,10 +355,6 @@ export default function EmployeePage() {
             document.body.classList.remove('modal-open')
           }
         }, 200)
-        
-      } else {
-        throw new Error('Elemento do scanner não encontrado')
-      }
     } catch (error: any) {
       console.error('❌ Erro ao iniciar scanner:', error)
       setScanning(false)
