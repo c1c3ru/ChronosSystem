@@ -282,6 +282,28 @@ HMAC_SECRET=your-hmac-secret-here
 - ✅ Nunca commitar secrets
 - ✅ Variáveis de ambiente seguras
 
+### ⚠️ ARQUIVOS SENSÍVEIS NO .gitignore
+
+**CRÍTICO:** Os seguintes arquivos NUNCA devem ser commitados:
+
+```gitignore
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.vercel          # ← ADICIONADO para evitar vazamento de tokens
+
+# Vercel
+.vercel/
+```
+
+**Arquivos que contêm informações sensíveis:**
+- `.env.vercel` - Tokens de banco, OAuth, JWT do Vercel
+- `.env.local` - Credenciais locais de desenvolvimento
+- `.vercel/project.json` - IDs de projeto e organização
+
 ## Geolocalização
 
 ### Captura
