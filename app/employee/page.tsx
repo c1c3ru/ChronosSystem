@@ -284,18 +284,10 @@ export default function EmployeePage() {
         "qr-reader",
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          // Configurações básicas de câmera
-          videoConstraints: {
-            facingMode: 'environment'
-          },
-          // Ocultar elementos técnicos da interface
-          showTorchButtonIfSupported: false,
-          showZoomSliderIfSupported: false,
-          defaultZoomValueIfSupported: 1
+          qrbox: 250,
+          aspectRatio: 1.0
         },
-        true // verbose = true para debug temporário
+        false // verbose = false
       )
         
         // Callback quando código é detectado

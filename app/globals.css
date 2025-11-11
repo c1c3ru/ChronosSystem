@@ -257,39 +257,21 @@
   border: none !important;
 }
 
-/* Hide camera selection dropdown - should be transparent to user */
-#qr-reader__camera_selection,
-#qr-reader__camera_permission_button {
+/* Hide only specific technical elements that don't break functionality */
+#qr-reader__camera_selection {
   display: none !important;
 }
 
-/* Hide technical dashboard elements */
-#qr-reader__dashboard,
-#qr-reader__dashboard_section,
 #qr-reader__dashboard_section_csr,
 #qr-reader__dashboard_section_swaplink {
   display: none !important;
 }
 
-/* Hide start/stop buttons - we control this programmatically */
-#qr-reader__start_button,
-#qr-reader__stop_button {
-  display: none !important;
-}
-
-/* Hide any status text that shows technical details */
-#qr-reader__status_span {
-  display: none !important;
-}
-
-/* Hide all technical file input elements */
 #qr-reader input[type="file"] {
   display: none !important;
 }
 
-/* Hide any additional technical elements */
 #qr-reader__files_selector,
-#qr-reader__camera_permission_container,
 #qr-reader__scan_type_change {
   display: none !important;
 }
@@ -317,19 +299,12 @@
   opacity: 0.8 !important;
 }
 
-/* Hide only specific text elements that show technical info */
-#qr-reader div[style*="text-align: center"] span,
-#qr-reader div[style*="margin"] span:not([id]) {
+/* Hide only very specific technical text elements */
+#qr-reader span[title*="Powered by"] {
   display: none !important;
 }
 
-/* Hide elements with very long text (likely hashes) */
-#qr-reader span:not([id]) {
-  max-width: 0 !important;
-  overflow: hidden !important;
-}
-
-#qr-reader span[title*="QR"] {
+#qr-reader div[style*="text-align: center"] > span:last-child {
   display: none !important;
 }
 

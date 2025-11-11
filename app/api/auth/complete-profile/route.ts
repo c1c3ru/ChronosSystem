@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Todos os campos são obrigatórios' }, { status: 400 })
     }
 
-    // Atualizar usuário (usando any para contornar problema temporário do Prisma)
-    const updatedUser = await (prisma.user as any).update({
+    // Atualizar usuário
+    const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         phone,

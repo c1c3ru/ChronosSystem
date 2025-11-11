@@ -1,7 +1,10 @@
 import crypto from 'crypto'
 
-// Chave secreta para HMAC (em produção, deve vir de variável de ambiente)
-const QR_SECRET = process.env.QR_SECRET || 'chronos-qr-secret-key-2024'
+// Chave secreta para HMAC - OBRIGATÓRIA
+const QR_SECRET = process.env.QR_SECRET
+if (!QR_SECRET) {
+  throw new Error('QR_SECRET environment variable is required')
+}
 
 export interface QRPayload {
   machineId: string
@@ -39,7 +42,7 @@ export function generateSecureQR(machineId: string): SecureQRData {
 
   // Gerar assinatura HMAC-SHA256
   const signature = crypto
-    .createHmac('sha256', QR_SECRET)
+    .createHmac('sha256', QR_SECRET!)
     .update(payloadBase64)
     .digest('base64url')
 
@@ -72,7 +75,7 @@ export function validateSecureQR(qrData: string): {
 
     // Recalcular assinatura
     const expectedSignature = crypto
-      .createHmac('sha256', QR_SECRET)
+      .createHmac('sha256', QR_SECRET!)
       .update(payloadBase64)
       .digest('base64url')
 

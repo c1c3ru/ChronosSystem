@@ -3,15 +3,45 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
+import { rateLimiters } from '@/lib/rate-limit'
+import { apiLogger } from '@/lib/logger'
 
 // POST /api/attendance/simple-register - Registrar ponto com QR simples ou seguro
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
+  // Aplicar rate limiting
+  const rateLimitResult = rateLimiters.qrScan(request)
+  if (!rateLimitResult.success) {
+    apiLogger.warn('Rate limit exceeded for QR scan', {
+      ip: request.headers.get('x-forwarded-for') || 'unknown',
+      remaining: rateLimitResult.remaining
+    })
+    
+    return new Response(
+      JSON.stringify({
+        error: 'Muitas tentativas. Tente novamente em alguns segundos.',
+        retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString()
+        }
+      }
+    )
+  }
+
   try {
     const session = await getServerSession(authOptions)
     
     if (!session) {
+      apiLogger.warn('Unauthorized QR scan attempt', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown'
+      })
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
