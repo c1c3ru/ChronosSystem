@@ -43,38 +43,63 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       canvasRef: !!canvasRef.current 
     })
     
-    // Pequeno delay para garantir que o componente está montado e renderizado
-    // Isso é especialmente importante quando o componente é renderizado em um modal
-    let retryTimer: NodeJS.Timeout | null = null
-    const timer = setTimeout(() => {
+    // Função para verificar se elementos estão prontos e iniciar câmera
+    const tryStartCamera = (attempt = 1, maxAttempts = 5) => {
+      console.log(`🔄 [QR] Tentativa ${attempt}/${maxAttempts} - Verificando elementos DOM...`)
+      
       if (videoRef.current && canvasRef.current) {
         console.log('✅ [QR] Elementos DOM prontos, iniciando câmera...')
-        startCamera()
+        startCamera().catch((error) => {
+          console.error('❌ [QR] Erro ao iniciar câmera:', error)
+          setError(error.message || 'Erro ao iniciar câmera')
+        })
       } else {
-        console.warn('⚠️ [QR] Elementos DOM não estão prontos ainda, aguardando...')
-        // Tentar novamente após mais tempo
-        retryTimer = setTimeout(() => {
-          if (videoRef.current && canvasRef.current) {
-            console.log('✅ [QR] Elementos DOM prontos (retry), iniciando câmera...')
-            startCamera()
-          } else {
-            console.error('❌ [QR] Elementos DOM ainda não estão prontos após retry')
-            setError('Erro ao inicializar scanner. Tente novamente.')
-          }
-        }, 500)
+        console.warn(`⚠️ [QR] Elementos DOM não estão prontos (tentativa ${attempt}):`, {
+          videoRef: !!videoRef.current,
+          canvasRef: !!canvasRef.current
+        })
+        
+        if (attempt < maxAttempts) {
+          // Tentar novamente com delay progressivo
+          const delay = attempt * 200 // 200ms, 400ms, 600ms, etc.
+          setTimeout(() => tryStartCamera(attempt + 1, maxAttempts), delay)
+        } else {
+          console.error('❌ [QR] Elementos DOM não ficaram prontos após todas as tentativas')
+          setError('Erro ao inicializar scanner. Os elementos da interface não estão prontos. Tente recarregar a página.')
+        }
       }
-    }, 200) // Delay para garantir que o DOM está pronto
+    }
+    
+    // Iniciar após pequeno delay para garantir renderização
+    const timer = setTimeout(() => tryStartCamera(), 100)
     
     return () => {
       clearTimeout(timer)
-      if (retryTimer) {
-        clearTimeout(retryTimer)
-      }
       if (!isActive) {
         stopCamera()
       }
     }
   }, [isActive]) // Dependência apenas de isActive
+
+  const requestPermission = async () => {
+    try {
+      console.log('🔄 [QR] Tentando novamente...')
+      setError(null)
+      setIsLoading(true)
+      
+      // Parar qualquer stream anterior
+      stopCamera()
+      
+      // Aguardar um pouco antes de tentar novamente
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      await startCamera()
+    } catch (err: any) {
+      console.error('❌ [QR] Erro ao tentar novamente:', err)
+      setError(err.message || 'Erro ao tentar novamente')
+      setIsLoading(false)
+    }
+  }
 
   const startCamera = async () => {
     try {
@@ -82,6 +107,19 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       setError(null)
       
       console.log('📱 [CAMERA] Iniciando câmera...')
+      
+      // VERIFICAÇÃO CRÍTICA: Elementos DOM devem estar disponíveis
+      if (!videoRef.current) {
+        console.error('❌ [CAMERA] Elemento de vídeo não está disponível')
+        throw new Error('Elemento de vídeo não está disponível')
+      }
+      
+      if (!canvasRef.current) {
+        console.error('❌ [CAMERA] Elemento canvas não está disponível')
+        throw new Error('Elemento canvas não está disponível')
+      }
+      
+      console.log('✅ [CAMERA] Elementos DOM verificados e disponíveis')
       
       // Verificar se mediaDevices está disponível
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -326,25 +364,46 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
   const stopCamera = () => {
     console.log('🛑 [CAMERA] Parando câmera...')
     
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-      scanIntervalRef.current = null
+    try {
+      // Parar intervalo de scanning
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current)
+        scanIntervalRef.current = null
+      }
+      
+      // Parar stream da câmera
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
+          try {
+            track.stop()
+            console.log('🛑 [CAMERA] Track parado:', track.kind)
+          } catch (err) {
+            console.warn('⚠️ [CAMERA] Erro ao parar track:', err)
+          }
+        })
+        streamRef.current = null
+      }
+      
+      // Limpar vídeo (verificar se elemento existe)
+      if (videoRef.current) {
+        try {
+          videoRef.current.srcObject = null
+          videoRef.current.pause()
+          console.log('🛑 [CAMERA] Vídeo limpo e pausado')
+        } catch (err) {
+          console.warn('⚠️ [CAMERA] Erro ao limpar vídeo:', err)
+        }
+      }
+      
+      // Resetar estados
+      setHasPermission(false)
+      setIsLoading(false)
+      setError(null)
+      
+      console.log('✅ [CAMERA] Câmera parada com sucesso')
+    } catch (err) {
+      console.error('❌ [CAMERA] Erro ao parar câmera:', err)
     }
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => {
-        track.stop()
-      })
-      streamRef.current = null
-    }
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
-    }
-    
-    setHasPermission(false)
-    setIsLoading(false)
-    setError(null)
   }
 
   const startScanning = async () => {
