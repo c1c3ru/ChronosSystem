@@ -66,6 +66,24 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         
+        // AJUSTE: Anexar listener ANTES do play()
+        videoRef.current.onloadedmetadata = () => {
+          console.log('📹 [CAMERA] Vídeo carregado:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+          setHasPermission(true)
+          setIsLoading(false)
+          startScanning()
+        }
+        
+        // Fallback se onloadedmetadata não disparar
+        setTimeout(() => {
+          if (videoRef.current && videoRef.current.videoWidth > 0 && !hasPermission) {
+            console.log('📹 [CAMERA] Vídeo pronto (fallback)')
+            setHasPermission(true)
+            setIsLoading(false)
+            startScanning()
+          }
+        }, 2000)
+        
         // Aguardar um pouco antes de tentar reproduzir
         await new Promise(resolve => setTimeout(resolve, 100))
         
@@ -73,27 +91,10 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
           await videoRef.current.play()
           console.log('▶️ [CAMERA] Vídeo iniciado')
           
-          // Aguardar metadados carregarem
-          videoRef.current.onloadedmetadata = () => {
-            console.log('📹 [CAMERA] Vídeo carregado:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
-            setHasPermission(true)
-            setIsLoading(false)
-            startScanning()
-          }
-          
-          // Fallback se onloadedmetadata não disparar
-          setTimeout(() => {
-            if (videoRef.current && videoRef.current.videoWidth > 0) {
-              console.log('📹 [CAMERA] Vídeo pronto (fallback)')
-              setHasPermission(true)
-              setIsLoading(false)
-              startScanning()
-            }
-          }, 2000)
-          
         } catch (playError) {
           console.error('❌ [CAMERA] Erro ao reproduzir vídeo:', playError)
           setError('Erro ao iniciar reprodução do vídeo da câmera')
+          stopCamera() // Limpar câmera em caso de erro
         }
       }
       
@@ -165,8 +166,32 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
     
+    // Helper para jsQR
+    const scanWithJsQR = () => {
+      if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
+        // Ajustar tamanho do canvas para o vídeo
+        if (canvas.width !== video.videoWidth) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+        }
+        
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+        
+        return import('jsqr').then((jsQRModule: any) => {
+          const jsQR = jsQRModule.default || jsQRModule
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert',
+          })
+          return code ? code.data : null
+        }).catch(() => null)
+      }
+      return Promise.resolve(null)
+    }
+
     // Tentar usar BarcodeDetector se disponível (mais eficiente)
     if ('BarcodeDetector' in window) {
+      console.log('🚀 [QR] Usando API BarcodeDetector (nativo)')
       const barcodeDetector = new (window as any).BarcodeDetector({
         formats: ['qr_code']
       })
@@ -180,34 +205,34 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
               onScan(barcodes[0].rawValue)
               stopCamera()
               onClose()
+              return
             }
           } catch (err) {
-            // Silenciar erros de detecção
-          }
-        }
-      }, 100) // Verificar a cada 100ms
-      
-    } else {
-      // Fallback: usar jsQR library
-      import('jsqr').then((jsQRModule: any) => {
-        const jsQR = jsQRModule.default || jsQRModule
-        scanIntervalRef.current = setInterval(() => {
-          if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height)
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-            const code = jsQR(imageData.data, imageData.width, imageData.height)
-            
-            if (code) {
-              console.log('✅ [QR] Código detectado via jsQR:', code.data)
-              onScan(code.data)
+            // BarcodeDetector pode falhar, tentar jsQR como fallback
+            console.warn('⚠️ [QR] BarcodeDetector falhou, tentando jsQR...', err)
+            const qrData = await scanWithJsQR()
+            if (qrData) {
+              console.log('✅ [QR] Código detectado via jsQR (fallback):', qrData)
+              onScan(qrData)
               stopCamera()
               onClose()
             }
           }
-        }, 200) // Verificar a cada 200ms (menos intensivo)
-      }).catch(() => {
-        setError('Biblioteca de QR code não disponível. Tente recarregar a página.')
-      })
+        }
+      }, 200) // Verificar a cada 200ms
+      
+    } else {
+      // Fallback: usar jsQR library
+      console.log('🐌 [QR] Usando fallback jsQR (biblioteca)')
+      scanIntervalRef.current = setInterval(async () => {
+        const qrData = await scanWithJsQR()
+        if (qrData) {
+          console.log('✅ [QR] Código detectado via jsQR:', qrData)
+          onScan(qrData)
+          stopCamera()
+          onClose()
+        }
+      }, 300) // Verificar a cada 300ms (jsQR é mais pesado)
     }
   }
 
@@ -271,7 +296,6 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
                 muted
                 autoPlay
                 style={{ 
-                  transform: 'scaleX(-1)',
                   minHeight: '300px',
                   maxHeight: '400px',
                   objectFit: 'cover'
