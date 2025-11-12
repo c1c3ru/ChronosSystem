@@ -21,9 +21,23 @@ export interface SecureQRData {
 }
 
 /**
- * Gera um QR code seguro com assinatura HMAC-SHA256
+ * Valida se QR_SECRET está configurado
  */
-export function generateSecureQR(machineId: string): SecureQRData {
+function validateQRSecret(): void {
+  if (!QR_SECRET) {
+    throw new Error('QR_SECRET não está configurado. Configure a variável de ambiente QR_SECRET.')
+  }
+}
+
+/**
+ * Gera um QR code seguro com assinatura HMAC-SHA256
+ * @param machineId - ID da máquina
+ * @param expiresIn - Tempo de expiração em segundos (padrão: 60 segundos)
+ */
+export function generateSecureQR(machineId: string, expiresIn: number = 60): SecureQRData {
+  // Validar QR_SECRET
+  validateQRSecret()
+  
   // Gerar nonce único
   const nonce = crypto.randomBytes(16).toString('hex')
   
@@ -32,7 +46,7 @@ export function generateSecureQR(machineId: string): SecureQRData {
     machineId,
     timestamp: Date.now(),
     nonce,
-    expiresIn: 300, // 5 minutos (300 segundos)
+    expiresIn, // Usar expiresIn do parâmetro
     version: 'v1'
   }
 
@@ -65,17 +79,22 @@ export function validateSecureQR(qrData: string): {
   error?: string
 } {
   try {
+    // Validar QR_SECRET
+    if (!QR_SECRET) {
+      return { isValid: false, error: 'QR_SECRET não está configurado no servidor' }
+    }
+    
     // Separar payload e signature
     const parts = qrData.split('.')
     if (parts.length !== 2) {
-      return { isValid: false, error: 'Formato de QR inválido' }
+      return { isValid: false, error: 'Formato de QR inválido. Esperado: payload.signature' }
     }
 
     const [payloadBase64, receivedSignature] = parts
 
     // Recalcular assinatura
     const expectedSignature = crypto
-      .createHmac('sha256', QR_SECRET!)
+      .createHmac('sha256', QR_SECRET)
       .update(payloadBase64)
       .digest('base64url')
 

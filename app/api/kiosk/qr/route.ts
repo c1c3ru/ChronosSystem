@@ -34,36 +34,84 @@ export async function GET(request: NextRequest) {
 async function generateQRResponse(machineId: string, machineName: string, location: string) {
   console.log('🔐 Gerando QR code seguro para máquina:', machineId)
   
-  // Gerar QR code seguro com HMAC-SHA256
-  const secureQR = generateSecureQR(machineId)
-  
-  // Calcular tempo de expiração
-  const expiresAt = new Date(Date.now() + 60 * 1000)
-  
-  // Salvar evento QR no banco para auditoria
-  await prisma.qrEvent.create({
-    data: {
-      machineId,
+  try {
+    // Gerar QR code seguro com HMAC-SHA256 (60 segundos de expiração)
+    const secureQR = generateSecureQR(machineId, 60)
+    
+    // Extrair nonce do payload de forma segura
+    let nonce: string
+    let payload: any
+    let expiresAt: Date
+    
+    try {
+      // Decodificar payload
+      const payloadJson = Buffer.from(secureQR.payload, 'base64url').toString('utf8')
+      payload = JSON.parse(payloadJson)
+      
+      // Validar payload
+      if (!payload.nonce) {
+        throw new Error('Nonce não encontrado no payload')
+      }
+      if (!payload.timestamp) {
+        throw new Error('Timestamp não encontrado no payload')
+      }
+      if (!payload.expiresIn) {
+        throw new Error('expiresIn não encontrado no payload')
+      }
+      
+      nonce = payload.nonce
+      
+      // Calcular tempo de expiração baseado no payload
+      expiresAt = new Date(payload.timestamp + (payload.expiresIn * 1000))
+      
+      console.log('✅ [KIOSK] QR code gerado:', {
+        machineId,
+        nonce: nonce.substring(0, 8) + '...',
+        expiresAt: expiresAt.toISOString(),
+        expiresIn: payload.expiresIn
+      })
+    } catch (decodeError: any) {
+      console.error('❌ [KIOSK] Erro ao decodificar payload do QR:', decodeError)
+      throw new Error(`Erro ao gerar QR code: ${decodeError.message}`)
+    }
+    
+    // Salvar evento QR no banco para auditoria
+    await prisma.qrEvent.create({
+      data: {
+        machineId,
+        qrData: secureQR.fullQR,
+        nonce,
+        expiresAt,
+        used: false
+      }
+    })
+
+    console.log('✅ [KIOSK] QR code seguro gerado e salvo no banco')
+    
+    return NextResponse.json({
       qrData: secureQR.fullQR,
-      nonce: JSON.parse(Buffer.from(secureQR.payload, 'base64url').toString()).nonce,
-      expiresAt,
-      used: false
+      machineId,
+      machineName,
+      location,
+      expiresAt: expiresAt.toISOString(),
+      validFor: payload.expiresIn, // Usar expiresIn do payload
+      security: {
+        signed: true,
+        algorithm: 'HMAC-SHA256',
+        version: 'v1'
+      }
+    })
+  } catch (error: any) {
+    console.error('❌ [KIOSK] Erro ao gerar QR code:', error)
+    
+    // Verificar se é erro de QR_SECRET
+    if (error.message && error.message.includes('QR_SECRET')) {
+      return NextResponse.json({ 
+        error: 'Erro de configuração: QR_SECRET não está configurado no servidor',
+        details: error.message
+      }, { status: 500 })
     }
-  })
-
-  console.log('✅ QR code seguro gerado com sucesso')
-
-  return NextResponse.json({
-    qrData: secureQR.fullQR,
-    machineId,
-    machineName,
-    location,
-    expiresAt: expiresAt.toISOString(),
-    validFor: 60, // 60 segundos
-    security: {
-      signed: true,
-      algorithm: 'HMAC-SHA256',
-      version: 'v1'
-    }
-  })
+    
+    throw error
+  }
 }

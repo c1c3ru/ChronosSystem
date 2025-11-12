@@ -22,39 +22,85 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'QR code é obrigatório' }, { status: 400 })
     }
 
-    console.log('🔍 Validando QR code seguro...')
+    console.log('🔍 [QR-SCAN] Validando QR code seguro...')
 
     // Validar QR code seguro com HMAC-SHA256
     const validation = validateSecureQR(qrData)
     
     if (!validation.isValid) {
-      console.log('❌ QR code inválido:', validation.error)
-      return NextResponse.json({ error: validation.error }, { status: 400 })
+      console.log('❌ [QR-SCAN] QR code inválido:', validation.error)
+      return NextResponse.json({ 
+        error: validation.error || 'QR code inválido',
+        code: 'INVALID_QR'
+      }, { status: 400 })
     }
 
-    const { machineId, nonce, timestamp } = validation.payload!
-
-    console.log('✅ QR code válido - Máquina:', machineId, 'Nonce:', nonce.slice(0, 8) + '...')
-
-    // Verificar anti-replay (nonce único)
-    if (isNonceUsed(nonce)) {
-      console.log('❌ Nonce já foi usado:', nonce.slice(0, 8) + '...')
-      return NextResponse.json({ error: 'QR code já foi utilizado (anti-replay)' }, { status: 400 })
+    if (!validation.payload) {
+      console.log('❌ [QR-SCAN] Payload não encontrado no QR code')
+      return NextResponse.json({ 
+        error: 'Payload não encontrado no QR code',
+        code: 'MISSING_PAYLOAD'
+      }, { status: 400 })
     }
 
-    // Verificar se a máquina existe e está ativa
-    const machine = await prisma.machine.findFirst({
-      where: {
-        id: machineId,
-        isActive: true
-      }
+    const { machineId, nonce, timestamp, expiresIn } = validation.payload
+
+    console.log('✅ [QR-SCAN] QR code válido - Máquina:', machineId, 'Nonce:', nonce.substring(0, 8) + '...', 'Expira em:', expiresIn, 'segundos')
+
+    // Verificar se o QR code existe no banco e não foi usado
+    const qrEvent = await prisma.qrEvent.findUnique({
+      where: { nonce },
+      include: { machine: true }
     })
 
-    if (!machine) {
-      return NextResponse.json({ error: 'Máquina não encontrada ou inativa' }, { status: 400 })
+    if (!qrEvent) {
+      console.log('❌ [QR-SCAN] QR code não encontrado no banco:', nonce.substring(0, 8) + '...')
+      return NextResponse.json({ 
+        error: 'QR code não encontrado. Pode ter expirado ou ser inválido.',
+        code: 'QR_NOT_FOUND'
+      }, { status: 404 })
     }
 
-    console.log('🔍 Verificando máquina e nonce no banco...')
+    // Verificar se a máquina do QR corresponde à máquina esperada
+    if (qrEvent.machineId !== machineId) {
+      console.log('❌ [QR-SCAN] QR code inválido para esta máquina:', machineId, 'vs', qrEvent.machineId)
+      return NextResponse.json({ 
+        error: 'QR code inválido para esta máquina',
+        code: 'INVALID_MACHINE'
+      }, { status: 400 })
+    }
+
+    // Verificar se já foi usado
+    if (qrEvent.used) {
+      console.log('❌ [QR-SCAN] QR code já foi usado:', nonce.substring(0, 8) + '...')
+      return NextResponse.json({ 
+        error: 'QR code já foi utilizado. Gere um novo QR code.',
+        code: 'QR_ALREADY_USED'
+      }, { status: 400 })
+    }
+
+    // Verificar se expirou (verificar no banco E no payload)
+    const now = new Date()
+    if (now > qrEvent.expiresAt) {
+      console.log('❌ [QR-SCAN] QR code expirado no banco:', nonce.substring(0, 8) + '...', 'Expiração:', qrEvent.expiresAt.toISOString())
+      return NextResponse.json({ 
+        error: 'QR code expirado. Gere um novo QR code.',
+        code: 'QR_EXPIRED'
+      }, { status: 400 })
+    }
+
+    // Verificar se a máquina está ativa
+    if (!qrEvent.machine.isActive) {
+      console.log('❌ [QR-SCAN] Máquina inativa:', machineId)
+      return NextResponse.json({ 
+        error: 'Máquina não está ativa',
+        code: 'MACHINE_INACTIVE'
+      }, { status: 400 })
+    }
+
+    const machine = qrEvent.machine
+
+    console.log('✅ [QR-SCAN] QR code válido e não usado - Máquina:', machine.name, '-', machine.location)
 
     // Determinar tipo de registro (entrada ou saída)
     const lastRecord = await prisma.attendanceRecord.findFirst({
@@ -106,28 +152,33 @@ export async function POST(request: NextRequest) {
         type: recordType,
         timestamp: new Date(),
         qrData: qrData,
-        hash: recordHash
+        hash: recordHash,
+        prevHash: lastRecord?.hash
+      },
+      include: {
+        machine: {
+          select: {
+            name: true,
+            location: true
+          }
+        }
       }
     })
 
-    // Marcar nonce como usado (anti-replay)
+    // Marcar nonce como usado (anti-replay em memória)
     markNonceAsUsed(nonce)
 
     // Marcar QR como usado no banco para auditoria
-    const existingQrEvent = await prisma.qrEvent.findFirst({
-      where: { nonce: nonce }
+    await prisma.qrEvent.update({
+      where: { id: qrEvent.id },
+      data: { 
+        used: true,
+        usedAt: new Date(),
+        usedBy: session.user.id
+      }
     })
     
-    if (existingQrEvent) {
-      await (prisma.qrEvent as any).update({
-        where: { id: existingQrEvent.id },
-        data: { 
-          used: true,
-          usedAt: new Date(),
-          usedBy: session.user.id
-        }
-      })
-    }
+    console.log('✅ [QR-SCAN] QR code marcado como usado no banco')
 
     // Log de auditoria
     await prisma.auditLog.create({
@@ -139,6 +190,13 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('✅ [QR-SCAN] Registro de ponto criado com sucesso:', {
+      recordId: attendanceRecord.id,
+      type: recordType,
+      timestamp: attendanceRecord.timestamp.toISOString(),
+      machine: machine.name
+    })
+
     return NextResponse.json({
       success: true,
       record: {
@@ -148,11 +206,28 @@ export async function POST(request: NextRequest) {
         location: machine.location,
         machineName: machine.name
       },
-      message: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} registrada com sucesso!`
+      message: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} registrada com sucesso!`,
+      machine: {
+        name: machine.name,
+        location: machine.location
+      }
     })
 
-  } catch (error) {
-    console.error('Erro ao processar QR scan:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+  } catch (error: any) {
+    console.error('❌ [QR-SCAN] Erro ao processar QR scan:', error)
+    
+    // Verificar se é erro de QR_SECRET
+    if (error.message && error.message.includes('QR_SECRET')) {
+      return NextResponse.json({ 
+        error: 'Erro de configuração do servidor: QR_SECRET não está configurado',
+        code: 'SERVER_CONFIG_ERROR'
+      }, { status: 500 })
+    }
+    
+    return NextResponse.json({ 
+      error: 'Erro interno do servidor',
+      code: 'INTERNAL_ERROR',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    }, { status: 500 })
   }
 }
