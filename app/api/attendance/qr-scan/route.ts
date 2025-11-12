@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se expirou (verificar no banco E no payload)
-    const now = new Date()
-    if (now > qrEvent.expiresAt) {
+    const currentTime = new Date()
+    if (currentTime > qrEvent.expiresAt) {
       console.log('❌ [QR-SCAN] QR code expirado no banco:', nonce.substring(0, 8) + '...', 'Expiração:', qrEvent.expiresAt.toISOString())
       return NextResponse.json({ 
         error: 'QR code expirado. Gere um novo QR code.',
@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
     const recordType = (!lastRecord || lastRecord.type === 'EXIT') ? 'ENTRY' : 'EXIT'
 
     // Verificar se não há registro duplicado no mesmo minuto (proteção adicional)
-    const now = Date.now()
-    const oneMinuteAgo = new Date(now - 60 * 1000)
+    const nowTimestamp = Date.now()
+    const oneMinuteAgo = new Date(nowTimestamp - 60 * 1000)
     const recentRecord = await prisma.attendanceRecord.findFirst({
       where: {
         userId: session.user.id,

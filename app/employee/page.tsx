@@ -485,10 +485,10 @@ export default function EmployeePage() {
                     <CardContent className="space-y-4 p-4 sm:p-6">
                       {/* QR Scanner Container - Mobile Optimized */}
                       <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30">
-                        <div 
-                          id="qr-reader" 
-                          ref={qrReaderRef}
-                          className="w-full min-h-[280px] sm:min-h-[320px] lg:min-h-[350px]"
+                        <QRScanner
+                          isActive={scanning}
+                          onScan={processQrCode}
+                          onActivate={() => setScanning(true)}
                         />
                       </div>
                       
@@ -830,12 +830,6 @@ export default function EmployeePage() {
         </div>
       </div>
 
-      {/* Novo Scanner QR */}
-      <QRScanner
-        isActive={showQRScanner}
-        onScan={processQrCode}
-        onActivate={() => setShowQRScanner(true)}
-      />
     </div>
   )
 }
