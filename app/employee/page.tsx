@@ -832,9 +832,9 @@ export default function EmployeePage() {
 
       {/* Novo Scanner QR */}
       <QRScanner
-        isOpen={showQRScanner}
+        isActive={showQRScanner}
         onScan={processQrCode}
-        onClose={stopScanning}
+        onActivate={() => setShowQRScanner(true)}
       />
     </div>
   )
