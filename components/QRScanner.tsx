@@ -211,104 +211,72 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         })
       }
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
+      if (!videoRef.current) {
+        throw new Error('Elemento de vídeo não está disponível')
+      }
+      
+      const video = videoRef.current
+      
+      // Atribuir stream ao vídeo
+      video.srcObject = stream
+      
+      // Configurar atributos do vídeo
+      video.playsInline = true
+      video.muted = true
+      video.autoplay = true
+      
+      console.log('📹 [CAMERA] Stream atribuído ao vídeo, aguardando estar pronto...')
+      
+      // Configurar vídeo imediatamente - não aguardar eventos
+      console.log('📹 [CAMERA] Configurando vídeo...')
+      
+      // Tentar reproduzir o vídeo (sem bloquear)
+      video.play().then(() => {
+        console.log('▶️ [CAMERA] Vídeo iniciado com sucesso')
+      }).catch((playError: any) => {
+        console.warn('⚠️ [CAMERA] Erro ao reproduzir vídeo:', playError.message)
+        // Continuar mesmo com erro - o vídeo pode começar automaticamente
+      })
+      
+      // IMPORTANTE: Sempre definir estados imediatamente após obter o stream
+      // Não aguardar eventos do vídeo - isso pode travar o código
+      console.log('✅ [CAMERA] Stream configurado, mostrando vídeo...')
+      setHasPermission(true)
+      setIsLoading(false)
+      
+      // Aguardar um pouco para o vídeo renderizar, mas não bloquear
+      // Iniciar scanner em background mesmo se o vídeo não estiver totalmente pronto
+      setTimeout(() => {
+        if (!videoRef.current || !videoRef.current.srcObject) {
+          console.error('❌ [CAMERA] Vídeo não está mais disponível')
+          setError('Erro ao inicializar scanner. Tente novamente.')
+          return
+        }
         
-        // Aguardar vídeo estar pronto para reprodução
-        await new Promise<void>((resolve, reject) => {
-          const video = videoRef.current!
-          
-          const onLoaded = () => {
-            console.log('📹 [CAMERA] Vídeo carregado, estado:', video.readyState)
-            if (video.readyState >= 2) { // HAVE_CURRENT_DATA ou superior
-              resolve()
-            }
-          }
-          
-          const onError = () => {
-            console.error('❌ [CAMERA] Erro ao carregar vídeo')
-            reject(new Error('Erro ao carregar vídeo'))
-          }
-          
-          video.addEventListener('loadeddata', onLoaded, { once: true })
-          video.addEventListener('loadedmetadata', onLoaded, { once: true })
-          video.addEventListener('canplay', onLoaded, { once: true })
-          video.addEventListener('error', onError, { once: true })
-          
-          // Tentar reproduzir o vídeo explicitamente
-          const playPromise = video.play()
-          
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                console.log('▶️ [CAMERA] Vídeo iniciado com sucesso')
-                // Verificar se o vídeo realmente está reproduzindo
-                if (video.paused) {
-                  console.warn('⚠️ [CAMERA] Vídeo pausado após play(), tentando novamente...')
-                  video.play().catch(err => {
-                    console.error('❌ [CAMERA] Erro ao reproduzir vídeo novamente:', err)
-                  })
-                }
-                
-                // Aguardar um pouco para garantir que o vídeo está renderizando
-                setTimeout(() => {
-                  if (video.readyState >= 2) {
-                    console.log('✅ [CAMERA] Vídeo pronto para uso')
-                    resolve()
-                  } else {
-                    console.warn('⚠️ [CAMERA] Vídeo não está pronto, mas continuando...')
-                    resolve() // Continuar mesmo assim
-                  }
-                }, 300)
-              })
-              .catch(err => {
-                console.error('❌ [CAMERA] Erro ao reproduzir vídeo:', err)
-                // Tentar continuar mesmo com erro
-                setTimeout(() => {
-                  if (video.readyState >= 2) {
-                    console.log('✅ [CAMERA] Vídeo pronto apesar do erro de play')
-                    resolve()
-                  } else {
-                    console.warn('⚠️ [CAMERA] Continuando mesmo sem vídeo pronto')
-                    resolve() // Continuar mesmo com erro
-                  }
-                }, 500)
-              })
-          } else {
-            // Fallback para navegadores antigos
-            console.log('⚠️ [CAMERA] play() não retorna Promise, usando fallback')
-            setTimeout(() => {
-              resolve()
-            }, 500)
-          }
-          
-          // Timeout de segurança (mais curto)
-          setTimeout(() => {
-            if (video.readyState >= 2) {
-              console.log('✅ [CAMERA] Vídeo pronto (timeout)')
-              resolve()
-            } else {
-              console.warn('⚠️ [CAMERA] Timeout aguardando vídeo, mas continuando...')
-              resolve() // Continuar mesmo com timeout
-            }
-          }, 2000)
+        const currentVideo = videoRef.current
+        
+        // Verificar estado do vídeo
+        console.log('📹 [CAMERA] Estado do vídeo:', {
+          readyState: currentVideo.readyState,
+          paused: currentVideo.paused,
+          videoWidth: currentVideo.videoWidth,
+          videoHeight: currentVideo.videoHeight,
+          srcObject: !!currentVideo.srcObject
         })
         
-        console.log('✅ [CAMERA] Vídeo configurado, iniciando scanner...')
-        setHasPermission(true)
-        setIsLoading(false)
+        // Tentar reproduzir novamente se estiver pausado
+        if (currentVideo.paused) {
+          console.log('🔄 [CAMERA] Vídeo pausado, tentando reproduzir...')
+          currentVideo.play().catch((err: any) => {
+            console.warn('⚠️ [CAMERA] Não foi possível reproduzir vídeo:', err.message)
+          })
+        }
         
-        // Iniciar scanner após vídeo estar pronto (dar tempo para renderizar)
-        setTimeout(() => {
-          if (videoRef.current && videoRef.current.readyState >= 2) {
-            console.log('🔍 [CAMERA] Iniciando scanner de QR code...')
-            startScanning()
-          } else {
-            console.warn('⚠️ [CAMERA] Vídeo ainda não está pronto, mas iniciando scanner...')
-            startScanning()
-          }
-        }, 500)
-      }
+        // Iniciar scanner mesmo se o vídeo não estiver totalmente pronto
+        // O vídeo continuará carregando em background
+        console.log('🔍 [CAMERA] Iniciando scanner de QR code...')
+        startScanning()
+      }, 500)
       
     } catch (err: any) {
       console.error('❌ [CAMERA] Erro ao acessar câmera:', err)
@@ -405,50 +373,44 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       return
     }
 
-    // Aguardar vídeo estar pronto com timeout
-    const waitForVideo = () => {
-      return new Promise<void>((resolve, reject) => {
-        let attempts = 0
-        const maxAttempts = 50 // 5 segundos (50 * 100ms)
-        
-        const checkReady = () => {
-          attempts++
-          
-          if (video.videoWidth > 0 && video.videoHeight > 0) {
-            canvas.width = video.videoWidth
-            canvas.height = video.videoHeight
-            console.log(`🎯 [QR] Canvas configurado: ${canvas.width}x${canvas.height}`)
-            console.log(`🎯 [QR] Vídeo pronto: ${video.readyState} (HAVE_ENOUGH_DATA=${video.HAVE_ENOUGH_DATA})`)
-            resolve()
-          } else if (attempts >= maxAttempts) {
-            console.warn('⚠️ [QR] Timeout aguardando vídeo estar pronto')
-            // Tentar continuar mesmo assim
-            if (video.readyState >= 1) {
-              canvas.width = 640
-              canvas.height = 480
-              console.log('⚠️ [QR] Usando dimensões padrão do canvas')
-              resolve()
-            } else {
-              reject(new Error('Vídeo não está pronto após timeout'))
-            }
-          } else {
-            setTimeout(checkReady, 100)
-          }
+    // Configurar canvas de forma mais simples - não bloquear
+    // Usar dimensões do vídeo se disponíveis, senão usar padrão
+    const setupCanvas = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        console.log(`🎯 [QR] Canvas configurado: ${canvas.width}x${canvas.height}`)
+        return true
+      } else {
+        // Usar dimensões padrão se o vídeo ainda não tem dimensões
+        canvas.width = 640
+        canvas.height = 480
+        console.log('⚠️ [QR] Usando dimensões padrão do canvas (vídeo ainda não tem dimensões)')
+        return false
+      }
+    }
+    
+    // Tentar configurar canvas imediatamente
+    const hasDimensions = setupCanvas()
+    
+    // Se não tem dimensões, tentar atualizar periodicamente (mas não bloquear)
+    if (!hasDimensions) {
+      const dimensionCheckInterval = setInterval(() => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          console.log(`✅ [QR] Canvas atualizado: ${canvas.width}x${canvas.height}`)
+          clearInterval(dimensionCheckInterval)
         }
-        
-        // Iniciar verificação imediatamente
-        checkReady()
-      })
+      }, 200)
+      
+      // Limpar intervalo após 5 segundos
+      setTimeout(() => {
+        clearInterval(dimensionCheckInterval)
+      }, 5000)
     }
-
-    try {
-      await waitForVideo()
-      console.log('✅ [QR] Vídeo pronto, iniciando detecção...')
-    } catch (error) {
-      console.error('❌ [QR] Erro ao aguardar vídeo:', error)
-      setError('Erro ao inicializar câmera. Tente novamente.')
-      return
-    }
+    
+    console.log('✅ [QR] Canvas configurado, iniciando detecção...')
 
     // Tentar BarcodeDetector primeiro (mais eficiente)
     if (window.BarcodeDetector) {
@@ -459,7 +421,12 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       })
 
       scanIntervalRef.current = setInterval(async () => {
-        if (!isActive || video.readyState !== video.HAVE_ENOUGH_DATA) return
+        if (!isActive) return
+        
+        // Verificar se o vídeo tem dados (mas não bloquear se não tiver)
+        if (video.readyState < video.HAVE_CURRENT_DATA) {
+          return // Aguardar vídeo ter dados
+        }
 
         try {
           const barcodes = await barcodeDetector.detect(video)
@@ -469,8 +436,11 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             onScan(qrData)
             stopCamera()
           }
-        } catch (err) {
-          // Ignorar erros de detecção
+        } catch (err: any) {
+          // Ignorar erros de detecção (pode acontecer se o vídeo ainda não está pronto)
+          if (err.message && !err.message.includes('detect')) {
+            console.warn('⚠️ [QR] Erro ao detectar QR:', err.message)
+          }
         }
       }, 500)
 
@@ -484,9 +454,25 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         const jsQR = jsQRLibrary.default
         
         scanIntervalRef.current = setInterval(() => {
-          if (!isActive || video.readyState !== video.HAVE_ENOUGH_DATA) return
+          if (!isActive) return
+          
+          // Verificar se o vídeo tem dados (mas não bloquear se não tiver)
+          if (video.readyState < video.HAVE_CURRENT_DATA) {
+            return // Aguardar vídeo ter dados
+          }
 
           try {
+            // Verificar se o vídeo tem dimensões antes de desenhar
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+              return // Aguardar vídeo ter dimensões
+            }
+            
+            // Atualizar dimensões do canvas se necessário
+            if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+              canvas.width = video.videoWidth
+              canvas.height = video.videoHeight
+            }
+            
             context.drawImage(video, 0, 0, canvas.width, canvas.height)
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
             const code = jsQR(imageData.data, imageData.width, imageData.height, {
@@ -498,8 +484,11 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
               onScan(code.data)
               stopCamera()
             }
-          } catch (err) {
-            // Ignorar erros de detecção
+          } catch (err: any) {
+            // Ignorar erros de detecção (pode acontecer se o vídeo ainda não está pronto)
+            if (err.message && !err.message.includes('drawImage')) {
+              console.warn('⚠️ [QR] Erro ao detectar QR:', err.message)
+            }
           }
         }, 300)
       } catch (importError) {
@@ -574,7 +563,24 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              minHeight: '400px'
+              minHeight: '400px',
+              display: 'block'
+            }}
+            onLoadedMetadata={() => {
+              console.log('📹 [VIDEO] Metadata carregado')
+            }}
+            onLoadedData={() => {
+              console.log('📹 [VIDEO] Dados carregados')
+            }}
+            onCanPlay={() => {
+              console.log('📹 [VIDEO] Pode reproduzir')
+            }}
+            onPlaying={() => {
+              console.log('▶️ [VIDEO] Reproduzindo')
+            }}
+            onError={(e) => {
+              console.error('❌ [VIDEO] Erro no elemento de vídeo:', e)
+              setError('Erro ao carregar vídeo da câmera')
             }}
           />
           
