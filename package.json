@@ -19,6 +19,15 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:qr": "playwright test qr-scanner",
+    "test:e2e:qr:ui": "playwright test qr-scanner --ui",
+    "test:e2e:qr:debug": "playwright test qr-scanner --debug",
+    "test:e2e:qr:chrome": "playwright test qr-scanner --project=chromium",
+    "test:e2e:qr:firefox": "playwright test qr-scanner --project=firefox",
+    "test:e2e:qr:safari": "playwright test qr-scanner --project=webkit",
+    "test:e2e:qr:mobile": "playwright test qr-scanner --project=\"Mobile Chrome\"",
+    "test:e2e:report": "playwright show-report",
+    "test:qr": "./scripts/test-qr-scanner.sh",
     "test:all": "npm run test && npm run test:e2e"
   },
   "dependencies": {
