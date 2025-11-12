@@ -264,6 +264,7 @@ export default function EmployeePage() {
   const startScanning = () => {
     console.log('📷 [QR] Abrindo scanner nativo...')
     setShowQRScanner(true)
+    setScanning(true)
   }
 
   const processQrCode = async (qrData: string) => {

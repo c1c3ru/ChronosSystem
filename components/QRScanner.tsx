@@ -39,14 +39,25 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       
       console.log('📱 [CAMERA] Iniciando câmera nativa...')
       
-      // Solicitar acesso à câmera
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment', // Preferir câmera traseira
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 }
+      // Configuração mais simples primeiro
+      let constraints: MediaStreamConstraints = { video: true }
+      
+      // Tentar câmera traseira se disponível
+      try {
+        constraints = {
+          video: {
+            facingMode: { exact: 'environment' }
+          }
         }
-      })
+      } catch {
+        // Fallback para qualquer câmera
+        constraints = { video: true }
+      }
+      
+      console.log('📱 [CAMERA] Solicitando permissão com constraints:', constraints)
+      
+      // Solicitar acesso à câmera
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
       
       console.log('✅ [CAMERA] Stream obtido:', stream.getTracks().length, 'tracks')
       
@@ -54,13 +65,35 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        videoRef.current.play()
         
-        videoRef.current.onloadedmetadata = () => {
-          console.log('📹 [CAMERA] Vídeo carregado:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
-          setHasPermission(true)
-          setIsLoading(false)
-          startScanning()
+        // Aguardar um pouco antes de tentar reproduzir
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        try {
+          await videoRef.current.play()
+          console.log('▶️ [CAMERA] Vídeo iniciado')
+          
+          // Aguardar metadados carregarem
+          videoRef.current.onloadedmetadata = () => {
+            console.log('📹 [CAMERA] Vídeo carregado:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+            setHasPermission(true)
+            setIsLoading(false)
+            startScanning()
+          }
+          
+          // Fallback se onloadedmetadata não disparar
+          setTimeout(() => {
+            if (videoRef.current && videoRef.current.videoWidth > 0) {
+              console.log('📹 [CAMERA] Vídeo pronto (fallback)')
+              setHasPermission(true)
+              setIsLoading(false)
+              startScanning()
+            }
+          }, 2000)
+          
+        } catch (playError) {
+          console.error('❌ [CAMERA] Erro ao reproduzir vídeo:', playError)
+          setError('Erro ao iniciar reprodução do vídeo da câmera')
         }
       }
       
@@ -69,11 +102,27 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       setIsLoading(false)
       
       if (err.name === 'NotAllowedError') {
-        setError('Permissão da câmera negada. Permita o acesso e tente novamente.')
+        setError('Permissão da câmera negada. Toque no ícone da câmera na barra de endereços e permita o acesso.')
       } else if (err.name === 'NotFoundError') {
         setError('Nenhuma câmera encontrada neste dispositivo.')
       } else if (err.name === 'NotReadableError') {
-        setError('Câmera está sendo usada por outro aplicativo.')
+        setError('Câmera está sendo usada por outro aplicativo. Feche outros apps que usam câmera.')
+      } else if (err.name === 'OverconstrainedError') {
+        // Tentar novamente com configuração mais simples
+        console.log('⚠️ [CAMERA] Câmera traseira não disponível, tentando qualquer câmera...')
+        try {
+          const simpleStream = await navigator.mediaDevices.getUserMedia({ video: true })
+          streamRef.current = simpleStream
+          if (videoRef.current) {
+            videoRef.current.srcObject = simpleStream
+            await videoRef.current.play()
+            setHasPermission(true)
+            setIsLoading(false)
+            startScanning()
+          }
+        } catch (simpleErr) {
+          setError('Nenhuma câmera compatível encontrada.')
+        }
       } else {
         setError(`Erro ao acessar câmera: ${err.message}`)
       }
@@ -213,19 +262,25 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
             </div>
           )}
           
-          {hasPermission && !error && (
+          {hasPermission && !error && !isLoading && (
             <div className="relative">
               <video
                 ref={videoRef}
-                className="w-full h-auto"
+                className="w-full h-auto min-h-[300px] bg-gray-900"
                 playsInline
                 muted
-                style={{ transform: 'scaleX(-1)' }} // Espelhar para parecer mais natural
+                autoPlay
+                style={{ 
+                  transform: 'scaleX(-1)',
+                  minHeight: '300px',
+                  maxHeight: '400px',
+                  objectFit: 'cover'
+                }}
               />
               
               {/* Overlay de scanning */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="border-2 border-primary rounded-lg w-48 h-48 relative">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="border-2 border-primary rounded-lg w-48 h-48 relative animate-pulse">
                   <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
                   <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
                   <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
@@ -237,6 +292,15 @@ export default function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
                 ref={canvasRef}
                 className="hidden"
               />
+            </div>
+          )}
+          
+          {/* Debug info */}
+          {hasPermission && !error && !isLoading && (
+            <div className="text-center mt-2">
+              <p className="text-green-400 text-xs">
+                📹 Câmera ativa - Procurando QR code...
+              </p>
             </div>
           )}
         </div>
