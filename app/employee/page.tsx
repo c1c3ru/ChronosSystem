@@ -20,10 +20,10 @@ import {
   Home,
   Timer
 } from 'lucide-react'
-import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
+import QRScanner from '@/components/QRScanner'
 
 interface WorkStatus {
   isWorking: boolean
@@ -57,15 +57,14 @@ export default function EmployeePage() {
   const [workStatus, setWorkStatus] = useState<WorkStatus | null>(null)
   const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(true)
-  const [scanning, setScanning] = useState(false)
-  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('checking')
-  const [cameraError, setCameraError] = useState<string | null>(null)
-  const [isCheckingCamera, setIsCheckingCamera] = useState(false)
-  const [qrScanner, setQrScanner] = useState<Html5QrcodeScanner | null>(null)
+  const [showQRScanner, setShowQRScanner] = useState(false)
   const [qrResult, setQrResult] = useState<string | null>(null)
   const [processingQr, setProcessingQr] = useState(false)
   const [lastRegistration, setLastRegistration] = useState<string | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const [cameraError, setCameraError] = useState<string | null>(null)
+  const [isCheckingCamera, setIsCheckingCamera] = useState(false)
+  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('prompt')
+  const [scanning, setScanning] = useState(false)
   const qrReaderRef = useRef<HTMLDivElement>(null)
 
   // Verificar permissões da câmera ao carregar
@@ -262,129 +261,9 @@ export default function EmployeePage() {
     }
   }
 
-  const startScanning = async () => {
-    try {
-      console.log('📷 [QR] Iniciando scanner QR...')
-      console.log('📷 [QR] Estado atual - scanning:', scanning, 'cameraPermission:', cameraPermission)
-      
-      setScanning(true)
-      setCameraError(null)
-      setQrResult(null)
-      setIsCheckingCamera(true)
-      
-      // Prevenir scroll do body no mobile
-      document.body.classList.add('modal-open')
-      
-      // Limpar scanner anterior se existir
-      if (qrScanner) {
-        console.log('🧹 [QR] Limpando scanner anterior...')
-        await qrScanner.clear()
-        setQrScanner(null)
-      }
-      
-      // Aguardar o DOM estar pronto
-      await new Promise(resolve => setTimeout(resolve, 200))
-      
-      // Verificar se o elemento existe
-      if (!qrReaderRef.current) {
-        throw new Error('Elemento QR reader não encontrado')
-      }
-      
-      console.log('🔧 [QR] Configurando scanner...')
-      
-      const scanner = new Html5QrcodeScanner(
-        "qr-reader",
-        {
-          fps: 10,
-          qrbox: 250,
-          aspectRatio: 1.0
-        },
-        false // verbose = false
-      )
-        
-        // Callback quando código é detectado
-        const onScanSuccess = async (decodedText: string, decodedResult: any) => {
-          console.log('✅ Código detectado:', decodedText.substring(0, 20) + '...')
-          
-          // Parar o scanner imediatamente
-          try {
-            await scanner.clear()
-            setQrScanner(null)
-          } catch (clearError) {
-            console.log('Scanner finalizado')
-          }
-          
-          // Processar o código
-          await processQrCode(decodedText)
-        }
-        
-        // Callback para erros - com logs úteis para debug
-        const onScanFailure = (error: string) => {
-          // Log apenas erros importantes, não spam de NotFoundException
-          if (!error.includes('NotFoundException') && !error.includes('No MultiFormat Readers')) {
-            console.log('⚠️ [QR] Erro de scan:', error)
-          }
-          
-          // Log a cada 10 tentativas para mostrar que está tentando
-          if (Math.random() < 0.1) {
-            console.log('🔍 [QR] Procurando código QR...')
-          }
-        }
-        
-        // Iniciar o scanner com delay para garantir que o DOM esteja pronto
-        setTimeout(() => {
-          try {
-            console.log('🔧 [QR] Elemento DOM encontrado:', qrReaderRef.current)
-            console.log('🔧 [QR] Iniciando renderização do scanner...')
-            
-            scanner.render(onScanSuccess, onScanFailure)
-            setQrScanner(scanner)
-            
-            console.log('✅ [QR] Scanner QR iniciado com sucesso!')
-            
-            // Verificar se o vídeo foi criado após um pequeno delay
-            setTimeout(() => {
-              const videoElement = qrReaderRef.current?.querySelector('video')
-              const canvasElement = qrReaderRef.current?.querySelector('canvas')
-              console.log('📹 [QR] Vídeo encontrado:', !!videoElement)
-              console.log('🎨 [QR] Canvas encontrado:', !!canvasElement)
-              
-              if (videoElement) {
-                console.log('📹 [QR] Vídeo dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight)
-                console.log('📹 [QR] Vídeo ready state:', videoElement.readyState)
-              }
-              
-              if (!videoElement && !canvasElement) {
-                console.error('❌ [QR] PROBLEMA: Nem vídeo nem canvas foram criados!')
-                setCameraError('Erro: Scanner não conseguiu inicializar o vídeo da câmera')
-              }
-            }, 1000)
-            
-          } catch (renderError: any) {
-            console.error('❌ [QR] Erro ao renderizar scanner:', renderError)
-            setCameraError(`Erro ao inicializar câmera: ${renderError.message || 'Erro desconhecido'}`)
-            setScanning(false)
-            document.body.classList.remove('modal-open')
-          }
-        }, 500) // Delay original
-    } catch (error: any) {
-      console.error('❌ Erro ao iniciar scanner:', error)
-      setScanning(false)
-      document.body.classList.remove('modal-open')
-      
-      // Tratamento específico para erros de câmera
-      if (error.name === 'OverconstrainedError') {
-        setCameraError('Câmera não disponível. Tente usar um dispositivo com câmera traseira.')
-      } else if (error.name === 'NotAllowedError') {
-        setCameraError('Permissão da câmera negada. Permita o acesso e tente novamente.')
-      } else if (error.name === 'NotFoundError') {
-        setCameraError('Nenhuma câmera encontrada neste dispositivo.')
-      } else {
-        setCameraError(`Erro ao acessar câmera: ${error.message}`)
-      }
-    } finally {
-      setIsCheckingCamera(false)
-    }
+  const startScanning = () => {
+    console.log('📷 [QR] Abrindo scanner nativo...')
+    setShowQRScanner(true)
   }
 
   const processQrCode = async (qrData: string) => {
@@ -478,37 +357,13 @@ export default function EmployeePage() {
     }
   }
 
-  const stopScanning = async () => {
-    console.log(' Fechando câmera...')
-    
-    // Remover classe modal-open do body
-    document.body.classList.remove('modal-open')
-    
-    // Limpar scanner
-    if (qrScanner) {
-      try {
-        await qrScanner.clear()
-        console.log(' Scanner finalizado')
-      } catch (error) {
-        console.log('Scanner finalizado')
-      }
-      setQrScanner(null)
-    }
-    
-    // Limpar stream de vídeo se existir
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
-      stream.getTracks().forEach(track => track.stop())
-      videoRef.current.srcObject = null
-    }
-    
-    // Limpar todos os estados relacionados ao scanner
+  const stopScanning = () => {
+    console.log('🔒 [QR] Fechando scanner...')
+    setShowQRScanner(false)
     setScanning(false)
-    setQrResult(null)
     setProcessingQr(false)
     setCameraError(null)
-    
-    console.log('✅ Câmera fechada')
+    setQrResult(null)
   }
 
 
@@ -974,6 +829,12 @@ export default function EmployeePage() {
         </div>
       </div>
 
+      {/* Novo Scanner QR */}
+      <QRScanner
+        isOpen={showQRScanner}
+        onScan={processQrCode}
+        onClose={stopScanning}
+      />
     </div>
   )
 }
