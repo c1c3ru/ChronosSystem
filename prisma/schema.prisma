@@ -62,9 +62,9 @@ model User {
   twoFactorEnabled  Boolean   @default(false)
   
   // Campos para controle de carga horária
-  contractType      String       @default("SUPERIOR_30H") // FUNDAMENTAL_20H, SUPERIOR_30H, ALTERNANCIA_40H, CUSTOM
-  weeklyHours       Int          @default(30) // Horas semanais do contrato
-  dailyHours        Int          @default(6)  // Horas diárias do contrato
+  contractType      String       @default("ESTAGIO_20H") // ESTAGIO_12H, ESTAGIO_20H, ESTAGIO_30H, ESTAGIO_36H, EMPREGO_40H, EMPREGO_44H, CUSTOM
+  weeklyHours       Int          @default(20) // Horas semanais do contrato
+  dailyHours        Int          @default(4)  // Horas diárias do contrato
   hourBalance       Float        @default(0)  // Saldo de horas (positivo ou negativo)
   
   createdAt     DateTime  @default(now())

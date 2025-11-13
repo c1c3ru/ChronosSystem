@@ -26,7 +26,9 @@ export async function POST(request: NextRequest) {
       startDate,
       contractStartDate,
       contractEndDate,
-      siapeNumber
+      siapeNumber,
+      contractType,
+      weeklyHours
     } = await request.json()
 
     // Validações básicas
@@ -63,6 +65,9 @@ export async function POST(request: NextRequest) {
         department,
         startDate: startDate ? new Date(startDate) : null,
         siapeNumber,
+        contractType: contractType || 'ESTAGIO_20H',
+        weeklyHours: weeklyHours || 20,
+        dailyHours: weeklyHours ? Math.round((weeklyHours / 5) * 10) / 10 : 4, // Calcular horas diárias
         role: newRole, // Atualizar role baseado no SIAPE
         profileComplete: true,
         updatedAt: new Date()

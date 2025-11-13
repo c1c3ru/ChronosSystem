@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { toast } from 'sonner'
+import { CONTRACT_TYPES, getContractTypeConfig, validateWorkingHours, formatHours } from '@/lib/contract-types'
 
 interface ProfileData {
   phone?: string
@@ -29,6 +30,8 @@ interface ProfileData {
   contractStartDate?: string
   contractEndDate?: string
   siapeNumber?: string
+  contractType?: string
+  weeklyHours?: number
 }
 
 export default function CompleteProfilePage() {
@@ -147,8 +150,23 @@ export default function CompleteProfilePage() {
       newErrors.siapeNumber = 'Matrícula SIAPE deve ter exatamente 7 dígitos'
     }
 
-    // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
+    // Validar tipo de contrato e carga horária (apenas para funcionários)
     const userRole = session?.user?.role
+    if (userRole === 'EMPLOYEE') {
+      if (!profileData.contractType) {
+        newErrors.contractType = 'Tipo de contrato é obrigatório'
+      } else {
+        const contractConfig = getContractTypeConfig(profileData.contractType)
+        if (contractConfig && profileData.weeklyHours) {
+          const validation = validateWorkingHours(profileData.weeklyHours, contractConfig.category)
+          if (!validation.isValid) {
+            newErrors.weeklyHours = validation.error || 'Carga horária inválida'
+          }
+        }
+      }
+    }
+
+    // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
     if (userRole === 'EMPLOYEE') {
       if (!profileData.startDate) {
         newErrors.startDate = 'Data de início é obrigatória'
@@ -528,6 +546,66 @@ export default function CompleteProfilePage() {
                       Sua matrícula SIAPE determinará automaticamente seu nível de acesso no sistema
                     </p>
                   </div>
+
+                  {/* Tipo de contrato apenas para funcionários */}
+                  {session?.user?.role === 'EMPLOYEE' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                          Tipo de Contrato *
+                        </label>
+                        <select
+                          className={`input ${errors.contractType ? 'border-error' : ''}`}
+                          value={profileData.contractType || ''}
+                          onChange={(e) => {
+                            const contractConfig = getContractTypeConfig(e.target.value)
+                            setProfileData(prev => ({ 
+                              ...prev, 
+                              contractType: e.target.value,
+                              weeklyHours: contractConfig?.weeklyHours || prev.weeklyHours
+                            }))
+                          }}
+                        >
+                          <option value="">Selecione o tipo de contrato</option>
+                          {CONTRACT_TYPES.filter(type => type.id !== 'CUSTOM').map(type => (
+                            <option key={type.id} value={type.id}>
+                              {type.name} - {formatHours(type.dailyHours)}/dia
+                            </option>
+                          ))}
+                        </select>
+                        {errors.contractType && <p className="text-error text-xs mt-1">{errors.contractType}</p>}
+                        {profileData.contractType && (
+                          <p className="text-neutral-400 text-xs mt-1">
+                            {getContractTypeConfig(profileData.contractType)?.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {profileData.contractType && (
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-300 mb-2">
+                            Carga Horária Semanal *
+                          </label>
+                          <input
+                            type="number"
+                            min="12"
+                            max="44"
+                            placeholder="20"
+                            className={`input ${errors.weeklyHours ? 'border-error' : ''}`}
+                            value={profileData.weeklyHours || ''}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0
+                              setProfileData(prev => ({ ...prev, weeklyHours: value }))
+                            }}
+                          />
+                          {errors.weeklyHours && <p className="text-error text-xs mt-1">{errors.weeklyHours}</p>}
+                          <p className="text-neutral-400 text-xs mt-1">
+                            Estágios: 12h a 36h • Empregos: 40h ou 44h
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
 
                   {/* Data de início apenas para funcionários */}
                   {session?.user?.role === 'EMPLOYEE' && (
