@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, signOut } from 'next-auth/react'
 import { 
   User, 
   Mail, 
@@ -11,7 +11,8 @@ import {
   MapPin, 
   Calendar,
   Save,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -41,12 +42,26 @@ export default function CompleteProfilePage() {
   const router = useRouter()
   const [profileData, setProfileData] = useState<ProfileData>({})
   const [loading, setLoading] = useState(false)
-  const [redirecting, setRedirecting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isHydrated, setIsHydrated] = useState(false)
-  const [hasRedirected, setHasRedirected] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
+  const [hasRedirected, setHasRedirected] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Função para voltar (logout e redirecionar para login)
+  const handleGoBack = async () => {
+    try {
+      // Fazer logout
+      await signOut({ redirect: false })
+      // Redirecionar para página de login
+      router.push('/auth/signin')
+    } catch (error) {
+      console.error('Erro ao voltar:', error)
+      // Fallback: redirecionar diretamente
+      router.push('/auth/signin')
+    }
+  }
 
   // Redirect if not authenticated or profile already complete
   useEffect(() => {
@@ -728,8 +743,23 @@ export default function CompleteProfilePage() {
                 </div>
               )}
 
-              {/* Submit Button */}
-              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-neutral-700">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-neutral-700">
+                {/* Botão Voltar */}
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={handleGoBack}
+                  disabled={loading || redirecting}
+                  className="w-full sm:w-auto sm:min-w-[150px] border-neutral-600 text-neutral-300 hover:bg-neutral-800"
+                >
+                  <div className="flex items-center space-x-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>Voltar ao Login</span>
+                  </div>
+                </Button>
+
+                {/* Botão Salvar */}
                 <Button type="submit" disabled={loading || redirecting} className="w-full sm:w-auto sm:min-w-[150px]">
                   {redirecting ? (
                     <div className="flex items-center space-x-2">
