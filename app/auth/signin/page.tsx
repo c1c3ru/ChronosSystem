@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Clock, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { UserExistsAlert } from '@/components/UserExistsAlert'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -14,6 +15,8 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [googleError, setGoogleError] = useState<string | null>(null)
+  const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
+  const [existingUserData, setExistingUserData] = useState<any>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,6 +66,17 @@ export default function SignInPage() {
       toast.error('Erro ao fazer login')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const checkUserExists = async (email: string) => {
+    try {
+      const response = await fetch(`/api/auth/check-user?email=${encodeURIComponent(email)}`)
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Erro ao verificar usuário:', error)
+      return { exists: false }
     }
   }
 
@@ -146,6 +160,30 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      {/* User Exists Alert */}
+      {showUserExistsAlert && existingUserData && (
+        <UserExistsAlert
+          userData={existingUserData}
+          onContinue={() => {
+            setShowUserExistsAlert(false)
+            // Continuar com o login
+            if (existingUserData.profileComplete) {
+              // Se perfil completo, fazer login normal
+              signIn('google', { callbackUrl: '/' })
+            } else {
+              // Se perfil incompleto, ir para completar perfil
+              signIn('google', { callbackUrl: '/auth/complete-profile' })
+            }
+          }}
+          onCancel={() => {
+            setShowUserExistsAlert(false)
+            setExistingUserData(null)
+            setIsGoogleLoading(false)
+            toast.dismiss('google-login')
+          }}
+        />
+      )}
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">

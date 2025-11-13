@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { toast } from 'sonner'
+import { UserExistsAlert } from '@/components/UserExistsAlert'
 import { CONTRACT_TYPES, getContractTypeConfig, validateWorkingHours, formatHours } from '@/lib/contract-types'
 import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
 import { determineRoleFromSiape } from '@/lib/admin-siape'
@@ -47,6 +48,8 @@ export default function CompleteProfilePage() {
   const [redirecting, setRedirecting] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
+  const [existingUserData, setExistingUserData] = useState<any>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   // Função para voltar (logout e redirecionar para login)
