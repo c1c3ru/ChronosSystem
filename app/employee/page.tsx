@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import QRScanner from '@/components/QRScanner'
+import InternshipTimeline from '@/components/InternshipTimeline'
 
 interface WorkStatus {
   isWorking: boolean
@@ -66,6 +67,12 @@ export default function EmployeePage() {
   const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('prompt')
   const [scanning, setScanning] = useState(false)
   const qrReaderRef = useRef<HTMLDivElement>(null)
+  const [userProfile, setUserProfile] = useState<{
+    startDate?: string
+    weeklyHours?: number
+    contractType?: string
+    completedHours?: number
+  } | null>(null)
 
   // Verificar permissões da câmera ao carregar
   useEffect(() => {
@@ -241,6 +248,16 @@ export default function EmployeePage() {
           }))
           
           setRecentRecords(formattedRecords)
+          
+          // Buscar dados do perfil para linha do tempo (se for estagiário)
+          if (data.userProfile) {
+            setUserProfile({
+              startDate: data.userProfile.startDate,
+              weeklyHours: data.userProfile.weeklyHours,
+              contractType: data.userProfile.contractType,
+              completedHours: data.userProfile.completedHours || 0
+            })
+          }
         } else {
           throw new Error(data.error || 'Erro ao carregar dados')
         }
@@ -490,6 +507,16 @@ export default function EmployeePage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Linha do Tempo do Estágio - Apenas para estagiários */}
+            {userProfile && userProfile.contractType?.startsWith('ESTAGIO') && userProfile.startDate && (
+              <InternshipTimeline
+                startDate={userProfile.startDate}
+                weeklyHours={userProfile.weeklyHours || 20}
+                completedHours={userProfile.completedHours || 0}
+                contractType={userProfile.contractType}
+              />
+            )}
 
             {/* Scanner Modal - Mobile First */}
             {scanning && (

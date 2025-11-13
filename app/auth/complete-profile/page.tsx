@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { toast } from 'sonner'
 import { CONTRACT_TYPES, getContractTypeConfig, validateWorkingHours, formatHours } from '@/lib/contract-types'
+import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
 
 interface ProfileData {
   phone?: string
@@ -648,6 +649,48 @@ export default function CompleteProfilePage() {
                       </div>
                       {errors.contractStartDate && <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>}
                     </div>
+
+                    {/* Cálculo automático da data final para estágios */}
+                    {profileData.contractStartDate && profileData.weeklyHours && profileData.contractType?.startsWith('ESTAGIO') && (
+                      <div className="md:col-span-2">
+                        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-blue-400 mb-2">📅 Cálculo Automático do Estágio</h4>
+                          {(() => {
+                            const calculation = calculateInternshipEnd(
+                              new Date(profileData.contractStartDate),
+                              profileData.weeklyHours,
+                              200 // 200 horas obrigatórias
+                            )
+                            const duration = Math.ceil((calculation.estimatedEndDate.getTime() - new Date(profileData.contractStartDate).getTime()) / (1000 * 60 * 60 * 24))
+                            
+                            return (
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-blue-300">Carga horária total:</span>
+                                  <span className="text-white font-medium">200 horas</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-blue-300">Horas por semana:</span>
+                                  <span className="text-white font-medium">{profileData.weeklyHours}h</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-blue-300">Duração estimada:</span>
+                                  <span className="text-white font-medium">{formatDuration(duration)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-blue-300">Data final estimada:</span>
+                                  <span className="text-white font-medium">{formatDate(calculation.estimatedEndDate)}</span>
+                                </div>
+                                <div className="mt-3 p-2 bg-yellow-900/30 border border-yellow-500/30 rounded text-xs text-yellow-300">
+                                  ⚠️ <strong>Importante:</strong> Esta é uma estimativa baseada na frequência perfeita. 
+                                  Faltas ou atrasos podem estender a data final do estágio.
+                                </div>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-neutral-300 mb-2">
