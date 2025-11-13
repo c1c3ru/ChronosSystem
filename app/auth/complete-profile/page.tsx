@@ -132,7 +132,9 @@ export default function CompleteProfilePage() {
   }, [isHydrated, profileData])
 
   const validateForm = () => {
-    console.log('🔍 Validando formulário com dados:', profileData)
+    console.log('🔍 [VALIDAÇÃO] Iniciando validação do formulário...')
+    console.log('📝 [VALIDAÇÃO] Dados atuais:', profileData)
+    
     const newErrors: Record<string, string> = {}
 
     if (!profileData.phone) {
@@ -159,8 +161,10 @@ export default function CompleteProfilePage() {
       newErrors.emergencyPhone = 'Formato inválido. Use: (11) 99999-9999'
     }
 
-    if (!profileData.department) {
-      newErrors.department = 'Departamento é obrigatório'
+    // Departamento só é obrigatório para funcionários (não para ADMINs)
+    const detectedRole = profileData.siapeNumber ? determineRoleFromSiape(profileData.siapeNumber) : 'EMPLOYEE'
+    if (detectedRole === 'EMPLOYEE' && !profileData.department) {
+      newErrors.department = 'Departamento é obrigatório para funcionários'
     }
 
     // Validar matrícula SIAPE (obrigatória para todos)
@@ -171,8 +175,8 @@ export default function CompleteProfilePage() {
     }
 
     // Validar tipo de contrato e carga horária (apenas para funcionários)
-    const userRole = session?.user?.role
-    if (userRole === 'EMPLOYEE') {
+    // Usar role detectado pelo SIAPE, não o role da sessão que pode estar desatualizado
+    if (detectedRole === 'EMPLOYEE') {
       if (!profileData.contractType) {
         newErrors.contractType = 'Tipo de contrato é obrigatório'
       } else {
@@ -206,10 +210,25 @@ export default function CompleteProfilePage() {
       }
     }
 
+    const detectedRoleForLog = profileData.siapeNumber ? determineRoleFromSiape(profileData.siapeNumber) : 'EMPLOYEE'
+    console.log('🎯 [VALIDAÇÃO] Role detectado pelo SIAPE:', detectedRoleForLog)
+    
     if (Object.keys(newErrors).length > 0) {
-      console.log('❌ Erros de validação encontrados:', newErrors)
+      console.log('❌ [VALIDAÇÃO] Erros encontrados:', newErrors)
+      console.log('📋 [VALIDAÇÃO] Campos obrigatórios para', detectedRoleForLog, ':', {
+        phone: !!profileData.phone,
+        address: !!profileData.address,
+        birthDate: !!profileData.birthDate,
+        emergencyContact: !!profileData.emergencyContact,
+        emergencyPhone: !!profileData.emergencyPhone,
+        siapeNumber: !!profileData.siapeNumber,
+        department: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.department : 'N/A (ADMIN)',
+        contractType: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.contractType : 'N/A (ADMIN)',
+        contractStartDate: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
+        contractEndDate: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.contractEndDate : 'N/A (ADMIN)'
+      })
     } else {
-      console.log('✅ Validação passou - todos os campos OK')
+      console.log('✅ [VALIDAÇÃO] Todos os campos OK para', detectedRoleForLog)
     }
     
     setErrors(newErrors)
@@ -760,7 +779,17 @@ export default function CompleteProfilePage() {
                 </Button>
 
                 {/* Botão Salvar */}
-                <Button type="submit" disabled={loading || redirecting} className="w-full sm:w-auto sm:min-w-[150px]">
+                <Button 
+                  type="submit" 
+                  disabled={loading || redirecting} 
+                  className="w-full sm:w-auto sm:min-w-[150px]"
+                  onClick={(e) => {
+                    console.log('🖱️ BOTÃO SALVAR CLICADO!')
+                    console.log('📊 Estado atual:', { loading, redirecting, profileData })
+                    console.log('📝 Dados do formulário no clique:', profileData)
+                    // Não prevenir default aqui, deixar o form submit acontecer
+                  }}
+                >
                   {redirecting ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
