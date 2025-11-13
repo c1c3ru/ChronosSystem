@@ -53,7 +53,14 @@ export async function GET(request: NextRequest) {
           name: true,
           email: true,
           role: true,
+          phone: true,
+          department: true,
+          siapeNumber: true,
+          contractType: true,
+          weeklyHours: true,
+          profileComplete: true,
           createdAt: true,
+          updatedAt: true,
           _count: {
             select: {
               attendanceRecords: true
