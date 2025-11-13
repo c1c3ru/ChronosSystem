@@ -138,26 +138,26 @@ export function generateNonce(): string {
 }
 
 /**
- * Verifica se um nonce já foi usado (implementação em memória simples)
- * Em produção, usar Redis ou banco de dados
+ * OTIMIZAÇÃO: Cache de nonce removido
+ * 
+ * O sistema JÁ usa o banco de dados (QrEvent.used) como fonte principal de verdade.
+ * O cache em memória era redundante e causava problemas em deploys/restarts.
+ * 
+ * A verificação de nonce usado agora é feita APENAS no banco de dados,
+ * que é mais confiável e persistente.
  */
-const usedNonces = new Map<string, number>()
 
 export function isNonceUsed(nonce: string): boolean {
-  // Limpar nonces expirados (older than 5 minutes)
-  const fiveMinutesAgo = Date.now() - (5 * 60 * 1000)
-  const entries = Array.from(usedNonces.entries())
-  for (const [key, timestamp] of entries) {
-    if (timestamp < fiveMinutesAgo) {
-      usedNonces.delete(key)
-    }
-  }
-
-  return usedNonces.has(nonce)
+  // DEPRECATED: Função mantida para compatibilidade
+  // A verificação real é feita no banco de dados via QrEvent.used
+  console.warn('⚠️ [QR-SECURITY] isNonceUsed() está deprecated. Use verificação no banco de dados.')
+  return false
 }
 
 export function markNonceAsUsed(nonce: string): void {
-  usedNonces.set(nonce, Date.now())
+  // DEPRECATED: Função mantida para compatibilidade
+  // O nonce é marcado como usado no banco de dados via QrEvent.used
+  console.warn('⚠️ [QR-SECURITY] markNonceAsUsed() está deprecated. Use QrEvent.used no banco.')
 }
 
 /**

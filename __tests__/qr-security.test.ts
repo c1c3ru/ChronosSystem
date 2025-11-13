@@ -25,7 +25,7 @@ describe('QR Security', () => {
       expect(payloadDecoded.machineId).toBe(machineId)
       expect(payloadDecoded.timestamp).toBeGreaterThan(Date.now() - 1000)
       expect(payloadDecoded.nonce).toBeDefined()
-      expect(payloadDecoded.expiresIn).toBe(300)
+      expect(payloadDecoded.expiresIn).toBe(60)
       expect(payloadDecoded.version).toBe('v1')
     })
 
@@ -96,20 +96,22 @@ describe('QR Security', () => {
     })
   })
 
-  describe('Anti-replay protection', () => {
-    it('should track used nonces', () => {
+  describe('Deprecated nonce functions', () => {
+    it('should have deprecated nonce functions for compatibility', () => {
       const nonce = 'test-nonce-123'
       
+      // Funções deprecated sempre retornam false/void
       expect(isNonceUsed(nonce)).toBe(false)
       
+      // markNonceAsUsed não faz nada (deprecated)
       markNonceAsUsed(nonce)
       
-      expect(isNonceUsed(nonce)).toBe(true)
+      // isNonceUsed ainda retorna false (deprecated)
+      expect(isNonceUsed(nonce)).toBe(false)
     })
 
-    it('should clean up old nonces', () => {
-      // Este teste seria mais complexo em um ambiente real
-      // Por agora, apenas verificamos que a função existe
+    it('should have deprecated functions available for compatibility', () => {
+      // Verificar que as funções deprecated ainda existem
       expect(typeof isNonceUsed).toBe('function')
       expect(typeof markNonceAsUsed).toBe('function')
     })

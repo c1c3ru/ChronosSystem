@@ -275,8 +275,8 @@ export default function EmployeePage() {
       
       console.log('⚙️ [QR] Processando registro de ponto...')
       
-      // Enviar registro de ponto usando API simples (aceita QR seguro e simples)
-      const response = await fetch('/api/attendance/simple-register', {
+      // Enviar registro de ponto usando API unificada (aceita QR seguro, JSON e texto)
+      const response = await fetch('/api/attendance/qr-unified', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -300,9 +300,13 @@ export default function EmployeePage() {
         })
         
         // Mostrar informação inteligente se disponível
+        const qrTypeIcon = result.qrType === 'SECURE' ? '🔒' : 
+                          result.qrType === 'SIMPLE' ? '📝' : '📄'
+        const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' : 
+                              result.analysis?.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'
+        
         const smartInfo = result.analysis ? 
-          `${result.smartMessage} (${result.analysis.confidence === 'high' ? 'Alta confiança' : 
-             result.analysis.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'})` :
+          `${qrTypeIcon} ${result.smartMessage} (${confidenceText})` :
           `${recordType} registrada às ${recordTime}`
           
         setQrResult(`✅ ${smartInfo}`)

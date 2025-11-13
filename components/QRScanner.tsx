@@ -1,8 +1,16 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
-import { Camera, X, AlertTriangle } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
+import { Camera, X, AlertTriangle, Shield, FileText, Edit3, CheckCircle, AlertCircle } from 'lucide-react'
+import { validateQRFormat, validateQRSecurity, getQRFeedback, type QRValidationResult } from '@/lib/qr-validation'
+
+// Declaração global para BarcodeDetector
+declare global {
+  interface Window {
+    BarcodeDetector?: any
+  }
+}
 
 interface QRScannerProps {
   onScan: (data: string) => void
@@ -10,22 +18,19 @@ interface QRScannerProps {
   onActivate: () => void
 }
 
-// Declaração do BarcodeDetector para TypeScript
-declare global {
-  interface Window {
-    BarcodeDetector?: any;
-  }
-}
-
 export default function QRScanner({ onScan, isActive, onActivate }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasPermission, setHasPermission] = useState(false)
+  const [qrValidation, setQrValidation] = useState<QRValidationResult | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const [isRetrying, setIsRetrying] = useState(false)
 
   useEffect(() => {
     if (!isActive) {
@@ -75,6 +80,9 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     
     return () => {
       clearTimeout(timer)
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+      }
       if (!isActive) {
         stopCamera()
       }
@@ -86,6 +94,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       console.log('🔄 [QR] Tentando novamente...')
       setError(null)
       setIsLoading(true)
+      setRetryCount(prev => prev + 1)
       
       // Parar qualquer stream anterior
       stopCamera()
@@ -98,6 +107,83 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       console.error('❌ [QR] Erro ao tentar novamente:', err)
       setError(err.message || 'Erro ao tentar novamente')
       setIsLoading(false)
+      
+      // Retry automático para falhas temporárias
+      if (retryCount < 3 && isTemporaryError(err)) {
+        scheduleAutoRetry()
+      }
+    }
+  }
+
+  // Verificar se é um erro temporário que pode ser resolvido com retry
+  const isTemporaryError = (error: any): boolean => {
+    const temporaryErrors = [
+      'NotReadableError',
+      'TrackStartError',
+      'AbortError',
+      'Elemento de vídeo não está disponível'
+    ]
+    
+    return temporaryErrors.some(errType => 
+      error.name === errType || error.message?.includes(errType)
+    )
+  }
+
+  // Agendar retry automático
+  const scheduleAutoRetry = () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+    }
+    
+    const delay = Math.min(1000 * Math.pow(2, retryCount), 10000) // Exponential backoff, max 10s
+    console.log(`🔄 [QR] Agendando retry automático em ${delay}ms (tentativa ${retryCount + 1})`)
+    
+    setIsRetrying(true)
+    retryTimeoutRef.current = setTimeout(() => {
+      setIsRetrying(false)
+      requestPermission()
+    }, delay)
+  }
+
+  // Validar QR code detectado
+  const validateAndProcessQR = (qrData: string) => {
+    console.log('🔍 [QR] Validando QR code detectado:', qrData.substring(0, 50) + '...')
+    
+    // Validação de formato
+    const validation = validateQRFormat(qrData)
+    setQrValidation(validation)
+    
+    // Validação de segurança
+    const security = validateQRSecurity(qrData)
+    
+    console.log('📋 [QR] Resultado da validação:', {
+      isValid: validation.isValid,
+      type: validation.type,
+      confidence: validation.confidence,
+      machineId: validation.machineId,
+      warnings: validation.warnings,
+      securityRisks: security.risks
+    })
+    
+    // Se há riscos de segurança, avisar mas não bloquear
+    if (!security.isSafe) {
+      console.warn('⚠️ [QR] Riscos de segurança detectados:', security.risks)
+    }
+    
+    // Se validação passou, processar QR
+    if (validation.isValid) {
+      console.log('✅ [QR] QR code válido, processando...')
+      onScan(qrData)
+      stopCamera()
+    } else {
+      console.error('❌ [QR] QR code inválido:', validation.error)
+      setError(validation.error || 'QR code inválido')
+      
+      // Continuar scanning para tentar outro QR
+      setTimeout(() => {
+        setError(null)
+        setQrValidation(null)
+      }, 3000)
     }
   }
 
@@ -491,9 +577,8 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           const barcodes = await barcodeDetector.detect(video)
           if (barcodes.length > 0) {
             const qrData = barcodes[0].rawValue
-            console.log('✅ [QR] Código detectado:', qrData)
-            onScan(qrData)
-            stopCamera()
+            console.log('✅ [QR] Código detectado via BarcodeDetector:', qrData.substring(0, 50) + '...')
+            validateAndProcessQR(qrData)
           }
         } catch (err: any) {
           // Ignorar erros de detecção (pode acontecer se o vídeo ainda não está pronto)
@@ -539,9 +624,8 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             })
             
             if (code) {
-              console.log('✅ [QR] Código detectado via jsQR:', code.data)
-              onScan(code.data)
-              stopCamera()
+              console.log('✅ [QR] Código detectado via jsQR:', code.data.substring(0, 50) + '...')
+              validateAndProcessQR(code.data)
             }
           } catch (err: any) {
             // Ignorar erros de detecção (pode acontecer se o vídeo ainda não está pronto)
@@ -659,6 +743,53 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             </div>
           </div>
           
+          {/* Feedback de validação de QR */}
+          {qrValidation && (
+            <div className="absolute top-4 left-4 right-4 z-20">
+              <div className={`
+                bg-black/80 backdrop-blur-sm rounded-lg p-3 border-l-4
+                ${qrValidation.isValid 
+                  ? qrValidation.type === 'SECURE' 
+                    ? 'border-green-500 text-green-400' 
+                    : qrValidation.type === 'JSON'
+                      ? 'border-yellow-500 text-yellow-400'
+                      : 'border-orange-500 text-orange-400'
+                  : 'border-red-500 text-red-400'
+                }
+              `}>
+                <div className="flex items-center gap-2">
+                  {qrValidation.type === 'SECURE' && <Shield className="h-4 w-4" />}
+                  {qrValidation.type === 'JSON' && <FileText className="h-4 w-4" />}
+                  {qrValidation.type === 'TEXT' && <Edit3 className="h-4 w-4" />}
+                  {!qrValidation.isValid && <AlertCircle className="h-4 w-4" />}
+                  {qrValidation.isValid && <CheckCircle className="h-4 w-4" />}
+                  
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">
+                      {qrValidation.isValid ? 'QR Válido' : 'QR Inválido'}
+                      {qrValidation.machineId && ` - ${qrValidation.machineId}`}
+                    </div>
+                    {qrValidation.error && (
+                      <div className="text-xs opacity-80 mt-1">
+                        {qrValidation.error}
+                      </div>
+                    )}
+                    {qrValidation.warnings && qrValidation.warnings.length > 0 && (
+                      <div className="text-xs opacity-70 mt-1">
+                        ⚠️ {qrValidation.warnings[0]}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="text-xs opacity-60">
+                    {qrValidation.confidence === 'high' ? '🔒' : 
+                     qrValidation.confidence === 'medium' ? '🔓' : '⚠️'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sobreposição escura ao redor do quadrado */}
           <div className="absolute inset-0 pointer-events-none">
             <div 

@@ -248,15 +248,27 @@ export default function AdminPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <Link href="/admin/users/new">
+                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-success/30 hover:border-success/50">
+                  <CardContent className="p-6 text-center">
+                    <div className="bg-success/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-success/30 transition-colors">
+                      <UserPlus className="h-8 w-8 text-success group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Cadastrar Usuário</h3>
+                    <p className="text-neutral-400 text-sm">Adicionar novo estagiário ou supervisor</p>
+                  </CardContent>
+                </Card>
+              </Link>
+
               <Link href="/admin/users">
                 <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
                   <CardContent className="p-6 text-center">
                     <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
-                      <UserPlus className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                      <Users className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">Gerenciar Usuários</h3>
-                    <p className="text-neutral-400 text-sm">Cadastrar e gerenciar estagiários</p>
+                    <p className="text-neutral-400 text-sm">Visualizar e editar usuários</p>
                   </CardContent>
                 </Card>
               </Link>
