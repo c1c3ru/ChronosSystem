@@ -211,46 +211,39 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     }
   }
 
-  // Validar QR code detectado
+  // Processar QR code detectado
   const validateAndProcessQR = (qrData: string) => {
-    console.log('🔍 [QR] Validando QR code detectado:', qrData.substring(0, 50) + '...')
+    console.log('🔍 [QR] QR code detectado:', qrData.substring(0, 50) + '...')
     
-    // Validação de formato
+    // Validação básica apenas para feedback visual
     const validation = validateQRFormat(qrData)
     setQrValidation(validation)
     
     // Validação de segurança
     const security = validateQRSecurity(qrData)
     
-    console.log('📋 [QR] Resultado da validação:', {
-      isValid: validation.isValid,
+    console.log('📋 [QR] Análise do QR:', {
       type: validation.type,
       confidence: validation.confidence,
       machineId: validation.machineId,
-      warnings: validation.warnings,
       securityRisks: security.risks
     })
     
-    // Se há riscos de segurança, avisar mas não bloquear
-    if (!security.isSafe) {
-      console.warn('⚠️ [QR] Riscos de segurança detectados:', security.risks)
-    }
-    
-    // Se validação passou, processar QR
-    if (validation.isValid) {
-      console.log('✅ [QR] QR code válido, processando...')
-      onScan(qrData)
-      stopCamera()
-    } else {
-      console.error('❌ [QR] QR code inválido:', validation.error)
-      setError(validation.error || 'QR code inválido')
-      
-      // Continuar scanning para tentar outro QR
+    // Se há riscos de segurança críticos, bloquear
+    if (!security.isSafe && security.risks.some(risk => risk.includes('malicioso'))) {
+      console.error('❌ [QR] QR code bloqueado por segurança:', security.risks)
+      setError('QR code rejeitado por motivos de segurança')
       setTimeout(() => {
         setError(null)
         setQrValidation(null)
       }, 3000)
+      return
     }
+    
+    // SEMPRE enviar para o servidor - deixar a validação robusta para lá
+    console.log('✅ [QR] Enviando QR para processamento no servidor...')
+    onScan(qrData)
+    stopCamera()
   }
 
   const startCamera = async () => {

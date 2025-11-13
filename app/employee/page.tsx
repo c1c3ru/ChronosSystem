@@ -349,7 +349,28 @@ export default function EmployeePage() {
         
       } else {
         console.error('❌ [QR] Erro no registro:', result.error)
-        setCameraError(result.error || 'Erro ao registrar ponto')
+        
+        // Melhorar mensagem de erro para o usuário
+        let userFriendlyError = result.error || 'Erro ao registrar ponto'
+        
+        // Tratar erros específicos com mensagens mais amigáveis
+        if (result.code === 'MACHINE_NOT_FOUND') {
+          userFriendlyError = 'Máquina não encontrada. Verifique se o QR code está correto.'
+        } else if (result.code === 'QR_NOT_FOUND') {
+          userFriendlyError = 'QR code inválido ou expirado. Gere um novo QR code.'
+        } else if (result.code === 'QR_ALREADY_USED') {
+          userFriendlyError = 'QR code já foi utilizado. Gere um novo QR code.'
+        } else if (result.code === 'DUPLICATE_RECORD') {
+          userFriendlyError = 'Registro já feito recentemente. Aguarde 1 minuto.'
+        } else if (result.code === 'VALIDATION_FAILED') {
+          userFriendlyError = 'Registro não permitido no momento. Verifique o horário.'
+        } else if (result.code === 'UNAUTHORIZED') {
+          userFriendlyError = 'Sessão expirada. Faça login novamente.'
+        } else if (result.code === 'RATE_LIMIT_EXCEEDED') {
+          userFriendlyError = 'Muitas tentativas. Aguarde alguns segundos.'
+        }
+        
+        setCameraError(userFriendlyError)
         setQrResult('')
       }
       

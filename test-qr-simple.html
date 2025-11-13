@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste QR Code Simples</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <h1>Teste de QR Code Simples</h1>
+    
+    <h2>QR Code Texto Simples (ID da Máquina)</h2>
+    <canvas id="qr-text"></canvas>
+    <p>Dados: <code>MACHINE_001</code></p>
+    
+    <h2>QR Code JSON Simples</h2>
+    <canvas id="qr-json"></canvas>
+    <p>Dados: <code>{"machineId": "MACHINE_001", "location": "Entrada Principal"}</code></p>
+    
+    <h2>QR Code JSON com Timestamp</h2>
+    <canvas id="qr-json-ts"></canvas>
+    <p id="json-ts-data"></p>
+    
+    <script>
+        // QR Code texto simples
+        QRCode.toCanvas(document.getElementById('qr-text'), 'MACHINE_001', function (error) {
+            if (error) console.error(error)
+            console.log('QR texto criado!')
+        })
+        
+        // QR Code JSON simples
+        const jsonData = JSON.stringify({
+            machineId: "MACHINE_001",
+            location: "Entrada Principal"
+        })
+        
+        QRCode.toCanvas(document.getElementById('qr-json'), jsonData, function (error) {
+            if (error) console.error(error)
+            console.log('QR JSON criado!')
+        })
+        
+        // QR Code JSON com timestamp
+        const jsonWithTs = JSON.stringify({
+            machineId: "MACHINE_001",
+            location: "Entrada Principal",
+            timestamp: Date.now(),
+            nonce: Math.random().toString(36).substring(7)
+        })
+        
+        document.getElementById('json-ts-data').innerHTML = `Dados: <code>${jsonWithTs}</code>`
+        
+        QRCode.toCanvas(document.getElementById('qr-json-ts'), jsonWithTs, function (error) {
+            if (error) console.error(error)
+            console.log('QR JSON com timestamp criado!')
+        })
+    </script>
+</body>
+</html>
