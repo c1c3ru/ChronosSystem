@@ -28,6 +28,7 @@ interface ProfileData {
   startDate?: string
   contractStartDate?: string
   contractEndDate?: string
+  siapeNumber?: string
 }
 
 export default function CompleteProfilePage() {
@@ -136,6 +137,13 @@ export default function CompleteProfilePage() {
 
     if (!profileData.department) {
       newErrors.department = 'Departamento é obrigatório'
+    }
+
+    // Validar matrícula SIAPE (obrigatória para todos)
+    if (!profileData.siapeNumber) {
+      newErrors.siapeNumber = 'Matrícula SIAPE é obrigatória'
+    } else if (!/^\d{7}$/.test(profileData.siapeNumber)) {
+      newErrors.siapeNumber = 'Matrícula SIAPE deve ter exatamente 7 dígitos'
     }
 
     // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
@@ -430,6 +438,27 @@ export default function CompleteProfilePage() {
                       <option value="OUTROS">Outros</option>
                     </select>
                     {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      Matrícula SIAPE *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="1234567"
+                      className={`input ${errors.siapeNumber ? 'border-error' : ''}`}
+                      value={profileData.siapeNumber || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 7)
+                        setProfileData(prev => ({ ...prev, siapeNumber: value }))
+                      }}
+                      maxLength={7}
+                    />
+                    {errors.siapeNumber && <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>}
+                    <p className="text-neutral-400 text-xs mt-1">
+                      Sua matrícula SIAPE determinará automaticamente seu nível de acesso no sistema
+                    </p>
                   </div>
 
                   {/* Data de início apenas para funcionários */}

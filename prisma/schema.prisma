@@ -54,6 +54,7 @@ model User {
   emergencyPhone    String?
   department        String?
   startDate         DateTime?
+  siapeNumber       String?   // Matrícula SIAPE para controle de admins
   profileComplete   Boolean   @default(false)
   
   // Campos para 2FA

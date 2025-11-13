@@ -210,26 +210,71 @@ export const authOptions: NextAuthOptions = {
             
             return true
           } else {
-            // NOVA ESTRATÉGIA: Não criar usuário automaticamente
-            // Apenas usuários pré-cadastrados podem fazer login
-            console.log('❌ [SIGNIN] Usuário não encontrado no sistema:', user.email)
-            console.log('🚫 [SIGNIN] Apenas usuários pré-cadastrados podem fazer login')
+            // NOVA ESTRATÉGIA: Criar usuário automaticamente para login Google
+            console.log('🆕 [SIGNIN] Criando novo usuário automaticamente:', user.email)
             
-            // Log de tentativa de acesso não autorizado
             try {
-              await prisma.auditLog.create({
+              // Criar novo usuário com role EMPLOYEE por padrão
+              const newUser = await prisma.user.create({
                 data: {
-                  userId: null,
-                  action: 'UNAUTHORIZED_GOOGLE_LOGIN_ATTEMPT',
-                  resource: 'AUTH',
-                  details: `Tentativa de login Google não autorizada: ${user.email}`
+                  email: user.email!,
+                  name: profile?.name || user.name || 'Usuário',
+                  image: (profile as any)?.picture || user.image,
+                  role: 'EMPLOYEE', // Padrão - pode ser alterado no completar perfil
+                  profileComplete: false,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
                 }
               })
-            } catch (logError) {
-              console.error('❌ [SIGNIN] Erro ao registrar tentativa não autorizada:', logError)
+              
+              console.log('✅ [SIGNIN] Novo usuário criado:', {
+                id: newUser.id,
+                email: newUser.email,
+                name: newUser.name,
+                role: newUser.role,
+                profileComplete: newUser.profileComplete
+              })
+              
+              // Atualizar dados do usuário no objeto user para o JWT
+              user.id = newUser.id
+              user.role = newUser.role
+              user.profileComplete = newUser.profileComplete
+              user.name = newUser.name
+              user.image = newUser.image
+              
+              // Log de auditoria
+              await prisma.auditLog.create({
+                data: {
+                  userId: newUser.id,
+                  action: 'AUTO_USER_CREATED_GOOGLE',
+                  resource: 'AUTH',
+                  details: `Usuário criado automaticamente via Google: ${newUser.email}`
+                }
+              })
+              
+              console.log('📝 [SIGNIN] Log de auditoria criado para novo usuário')
+              
+              return true
+              
+            } catch (createError) {
+              console.error('❌ [SIGNIN] Erro ao criar usuário automaticamente:', createError)
+              
+              // Log de erro
+              try {
+                await prisma.auditLog.create({
+                  data: {
+                    userId: null,
+                    action: 'FAILED_AUTO_USER_CREATION',
+                    resource: 'AUTH',
+                    details: `Falha ao criar usuário automaticamente: ${user.email} - ${createError}`
+                  }
+                })
+              } catch (logError) {
+                console.error('❌ [SIGNIN] Erro ao registrar falha de criação:', logError)
+              }
+              
+              return false
             }
-            
-            return false // Bloquear login
           }
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
