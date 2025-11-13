@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { handleCompleteLogout } from '@/lib/logout'
 import { Loading } from '@/components/ui/Loading'
 
 interface DashboardStats {
@@ -159,7 +160,7 @@ export default function AdminPage() {
               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <Users className="h-5 w-5 text-primary" />
               </div>
-              <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
+              <Button variant="ghost" size="sm" onClick={handleCompleteLogout}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>

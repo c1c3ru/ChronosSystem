@@ -1,9 +1,10 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
+import { handleCompleteLogout } from '@/lib/logout'
 
 export function SessionButton() {
   const { data: session, status } = useSession()
@@ -38,7 +39,7 @@ export function SessionButton() {
       <Button 
         variant="ghost" 
         size="sm" 
-        onClick={() => signOut({ callbackUrl: '/' })}
+        onClick={handleCompleteLogout}
         className="bg-slate-800/80 backdrop-blur-sm border border-slate-700 hover:bg-slate-700/80"
       >
         <LogOut className="h-4 w-4" />

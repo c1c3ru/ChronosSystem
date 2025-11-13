@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -23,6 +23,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
+import { handleCompleteLogout } from '@/lib/logout'
 import QRScanner from '@/components/QRScanner'
 import InternshipTimeline from '@/components/InternshipTimeline'
 
@@ -453,7 +454,7 @@ export default function EmployeePage() {
               <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-              <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/' })} className="p-2">
+              <Button variant="ghost" size="sm" onClick={handleCompleteLogout} className="p-2">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
