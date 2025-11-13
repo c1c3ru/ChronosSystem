@@ -214,13 +214,13 @@ export const authOptions: NextAuthOptions = {
             console.log('🆕 [SIGNIN] Criando novo usuário automaticamente:', user.email)
             
             try {
-              // Criar novo usuário com role EMPLOYEE por padrão
+              // Criar novo usuário com role temporário até informar SIAPE
               const newUser = await prisma.user.create({
                 data: {
                   email: user.email!,
                   name: profile?.name || user.name || 'Usuário',
                   image: (profile as any)?.picture || user.image,
-                  role: 'EMPLOYEE', // Padrão - pode ser alterado no completar perfil
+                  role: 'EMPLOYEE', // Temporário - será determinado pelo SIAPE no completar perfil
                   profileComplete: false,
                   createdAt: new Date(),
                   updatedAt: new Date()

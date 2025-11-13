@@ -19,6 +19,7 @@ import { Loading } from '@/components/ui/Loading'
 import { toast } from 'sonner'
 import { CONTRACT_TYPES, getContractTypeConfig, validateWorkingHours, formatHours } from '@/lib/contract-types'
 import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
+import { determineRoleFromSiape } from '@/lib/admin-siape'
 
 interface ProfileData {
   phone?: string
@@ -506,12 +507,24 @@ export default function CompleteProfilePage() {
                     <p className="text-neutral-400 text-xs mt-1">
                       Sua matrícula SIAPE determinará automaticamente seu nível de acesso no sistema
                     </p>
+                    {profileData.siapeNumber && profileData.siapeNumber.length === 7 && (
+                      <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
+                        <p className="text-xs text-neutral-300">
+                          <span className="font-medium">Nível de acesso detectado:</span>{' '}
+                          <span className={`font-semibold ${
+                            determineRoleFromSiape(profileData.siapeNumber) === 'ADMIN' ? 'text-red-400' : 'text-blue-400'
+                          }`}>
+                            {determineRoleFromSiape(profileData.siapeNumber)}
+                          </span>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Informações Profissionais - Apenas para funcionários */}
-              {session?.user?.role === 'EMPLOYEE' && (
+              {/* Informações Profissionais - Apenas para funcionários após determinar role pelo SIAPE */}
+              {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Profissionais</h3>
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
@@ -551,7 +564,7 @@ export default function CompleteProfilePage() {
                     </div>
 
                   {/* Tipo de contrato apenas para funcionários */}
-                  {session?.user?.role === 'EMPLOYEE' && (
+                  {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
                     <>
                       <div>
                         <label className="block text-sm font-medium text-neutral-300 mb-2">
@@ -611,7 +624,7 @@ export default function CompleteProfilePage() {
                   )}
 
                   {/* Data de início apenas para funcionários */}
-                  {session?.user?.role === 'EMPLOYEE' && (
+                  {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
                     <div>
                       <label className="block text-sm font-medium text-neutral-300 mb-2">
                         Data de Início *
@@ -633,7 +646,7 @@ export default function CompleteProfilePage() {
               )}
 
               {/* Informações do Contrato - Apenas para funcionários */}
-              {session?.user?.role === 'EMPLOYEE' && (
+              {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações do Contrato</h3>
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
