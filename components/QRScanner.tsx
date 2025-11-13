@@ -49,15 +49,25 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     })
     
     // Função para verificar se elementos estão prontos e iniciar câmera
-    const tryStartCamera = (attempt = 1, maxAttempts = 5) => {
+    const tryStartCamera = async (attempt = 1, maxAttempts = 5) => {
       console.log(`🔄 [QR] Tentativa ${attempt}/${maxAttempts} - Verificando elementos DOM...`)
       
       if (videoRef.current && canvasRef.current) {
-        console.log('✅ [QR] Elementos DOM prontos, iniciando câmera...')
-        startCamera().catch((error) => {
+        console.log('✅ [QR] Elementos DOM prontos, verificando permissões...')
+        
+        try {
+          // Verificar permissões antes de iniciar
+          const canProceed = await checkPermissions()
+          if (!canProceed) {
+            return
+          }
+          
+          console.log('✅ [QR] Permissões OK, iniciando câmera...')
+          await startCamera()
+        } catch (error: any) {
           console.error('❌ [QR] Erro ao iniciar câmera:', error)
           setError(error.message || 'Erro ao iniciar câmera')
-        })
+        }
       } else {
         console.warn(`⚠️ [QR] Elementos DOM não estão prontos (tentativa ${attempt}):`, {
           videoRef: !!videoRef.current,
@@ -89,12 +99,42 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     }
   }, [isActive]) // Dependência apenas de isActive
 
+  const checkPermissions = async (): Promise<boolean> => {
+    try {
+      // Verificar se a API de permissões está disponível
+      if (navigator.permissions && navigator.permissions.query) {
+        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
+        console.log('📋 [PERMISSIONS] Status da permissão da câmera:', permission.state)
+        
+        if (permission.state === 'denied') {
+          setError('❌ Permissão da câmera negada permanentemente. Redefina as permissões nas configurações do navegador.')
+          return false
+        }
+        
+        return permission.state === 'granted' || permission.state === 'prompt'
+      }
+      
+      // Se a API não estiver disponível, assumir que pode tentar
+      return true
+    } catch (err) {
+      console.warn('⚠️ [PERMISSIONS] Erro ao verificar permissões:', err)
+      return true // Continuar tentando mesmo se não conseguir verificar
+    }
+  }
+
   const requestPermission = async () => {
     try {
       console.log('🔄 [QR] Tentando novamente...')
       setError(null)
       setIsLoading(true)
       setRetryCount(prev => prev + 1)
+      
+      // Verificar permissões primeiro
+      const canProceed = await checkPermissions()
+      if (!canProceed) {
+        setIsLoading(false)
+        return
+      }
       
       // Parar qualquer stream anterior
       stopCamera()
@@ -209,7 +249,12 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       
       // Verificar se mediaDevices está disponível
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('getUserMedia não é suportado neste navegador')
+        throw new Error('getUserMedia não é suportado neste navegador. Use HTTPS ou um navegador moderno.')
+      }
+
+      // Verificar se estamos em contexto seguro (HTTPS ou localhost)
+      if (location.protocol !== 'https:' && !location.hostname.includes('localhost') && location.hostname !== '127.0.0.1') {
+        throw new Error('Acesso à câmera requer HTTPS. Por favor, acesse o site via HTTPS.')
       }
       
       // Parar stream anterior se existir
@@ -218,101 +263,49 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         streamRef.current = null
       }
       
-      // Estratégia para câmera traseira: usar facingMode: 'environment'
-      // Isso força o uso da câmera traseira em dispositivos móveis
       let stream: MediaStream | null = null
       
-      // Primeiro, tentar com facingMode: 'environment' (obrigatório - câmera traseira)
-      try {
-        console.log('📱 [CAMERA] Tentando câmera traseira (facingMode: environment - obrigatório)...')
-        stream = await navigator.mediaDevices.getUserMedia({
+      // Estratégia simplificada: tentar configurações em ordem de preferência
+      const cameraConfigs = [
+        // 1. Qualquer câmera disponível (mais compatível)
+        {
           video: {
-            facingMode: 'environment', // Forçar câmera traseira (obrigatório)
             width: { ideal: 1280, min: 640 },
             height: { ideal: 720, min: 480 }
           }
-        })
-        console.log('✅ [CAMERA] Câmera traseira obtida com sucesso (environment obrigatório)')
-      } catch (envError: any) {
-        console.warn('⚠️ [CAMERA] Erro ao acessar câmera traseira (environment obrigatório):', envError.name)
-        
-        // Se falhar, tentar com ideal (pode usar frontal ou traseira, mas prefere traseira)
-        try {
-          console.log('📱 [CAMERA] Tentando câmera traseira (facingMode: environment - ideal)...')
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: { ideal: 'environment' }, // Preferir câmera traseira (ideal)
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            }
-          })
-          console.log('✅ [CAMERA] Câmera obtida (environment ideal)')
-        } catch (idealError: any) {
-          console.warn('⚠️ [CAMERA] Erro ao acessar câmera (environment ideal):', idealError.name)
-          
-          // Se ainda falhar, tentar listar dispositivos e escolher manualmente
-          try {
-            console.log('📱 [CAMERA] Listando dispositivos para encontrar câmera traseira...')
-            
-            // Primeiro, precisamos de permissão para listar dispositivos com labels
-            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
-            tempStream.getTracks().forEach(track => track.stop()) // Parar stream temporário
-            
-            // Agora listar dispositivos (labels estarão disponíveis após getUserMedia)
-            const devices = await navigator.mediaDevices.enumerateDevices()
-            const videoDevices = devices.filter(d => d.kind === 'videoinput')
-            console.log('📹 [CAMERA] Dispositivos de vídeo encontrados:', videoDevices.length)
-            
-            // Encontrar câmera traseira (geralmente tem label contendo "back", "rear", "environment", etc)
-            const backCamera = videoDevices.find(device => {
-              const label = device.label.toLowerCase()
-              return label.includes('back') || 
-                     label.includes('rear') || 
-                     label.includes('environment') ||
-                     label.includes('traseira') ||
-                     label.includes('posterior') ||
-                     label.includes('camera 1') || // Alguns dispositivos numeram as câmeras
-                     (videoDevices.length > 1 && device.deviceId === videoDevices[1].deviceId) // Segunda câmera geralmente é traseira
-            })
-            
-            if (backCamera && backCamera.deviceId) {
-              console.log('📱 [CAMERA] Câmera traseira encontrada:', backCamera.label)
-              stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                  deviceId: { exact: backCamera.deviceId },
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 }
-                }
-              })
-              console.log('✅ [CAMERA] Câmera traseira obtida por deviceId')
-            } else {
-              // Se não encontrou, tentar qualquer câmera (última tentativa)
-              console.warn('⚠️ [CAMERA] Câmera traseira não encontrada, usando qualquer câmera disponível...')
-              stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                  facingMode: 'environment' // Tentar novamente
-                }
-              })
-              console.log('✅ [CAMERA] Câmera obtida (fallback)')
-            }
-          } catch (deviceError: any) {
-            console.error('❌ [CAMERA] Erro ao listar dispositivos:', deviceError)
-            // Última tentativa: qualquer câmera disponível
-            try {
-              stream = await navigator.mediaDevices.getUserMedia({ 
-                video: true // Sem restrições - última tentativa
-              })
-              console.log('✅ [CAMERA] Câmera obtida (última tentativa - qualquer câmera)')
-            } catch (lastError: any) {
-              console.error('❌ [CAMERA] Todas as tentativas falharam:', lastError)
-              throw lastError
-            }
+        },
+        // 2. Tentar câmera traseira se disponível
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
           }
+        },
+        // 3. Configuração mínima
+        {
+          video: true
+        }
+      ]
+      
+      let lastError: any = null
+      
+      for (let i = 0; i < cameraConfigs.length; i++) {
+        try {
+          console.log(`📱 [CAMERA] Tentativa ${i + 1}/${cameraConfigs.length}...`)
+          stream = await navigator.mediaDevices.getUserMedia(cameraConfigs[i])
+          console.log(`✅ [CAMERA] Câmera obtida na tentativa ${i + 1}`)
+          break
+        } catch (configError: any) {
+          console.warn(`⚠️ [CAMERA] Tentativa ${i + 1} falhou:`, configError.name)
+          lastError = configError
+          continue
         }
       }
       
       if (!stream) {
-        throw new Error('Não foi possível obter stream de vídeo após todas as tentativas')
+        console.error('❌ [CAMERA] Nenhuma configuração de câmera funcionou')
+        throw lastError || new Error('Não foi possível acessar a câmera')
       }
       
       console.log('✅ [CAMERA] Stream obtido:', {
@@ -349,58 +342,70 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       video.muted = true
       video.autoplay = true
       
-      console.log('📹 [CAMERA] Stream atribuído ao vídeo, aguardando estar pronto...')
+      console.log('📹 [CAMERA] Stream atribuído ao vídeo, configurando reprodução...')
       
-      // Configurar vídeo imediatamente - não aguardar eventos
-      console.log('📹 [CAMERA] Configurando vídeo...')
-      
-      // Tentar reproduzir o vídeo (sem bloquear)
-      video.play().then(() => {
-        console.log('▶️ [CAMERA] Vídeo iniciado com sucesso')
-      }).catch((playError: any) => {
-        console.warn('⚠️ [CAMERA] Erro ao reproduzir vídeo:', playError.message)
-        // Continuar mesmo com erro - o vídeo pode começar automaticamente
+      // Aguardar o vídeo estar pronto para reproduzir
+      const waitForVideo = new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Timeout aguardando vídeo estar pronto'))
+        }, 10000) // 10 segundos timeout
+        
+        const checkVideo = () => {
+          if (video.readyState >= video.HAVE_ENOUGH_DATA) {
+            clearTimeout(timeout)
+            resolve()
+          } else {
+            setTimeout(checkVideo, 100)
+          }
+        }
+        
+        // Começar verificação imediatamente
+        checkVideo()
+        
+        // Também escutar eventos
+        video.addEventListener('loadeddata', () => {
+          clearTimeout(timeout)
+          resolve()
+        }, { once: true })
+        
+        video.addEventListener('canplay', () => {
+          clearTimeout(timeout)
+          resolve()
+        }, { once: true })
       })
       
-      // IMPORTANTE: Sempre definir estados imediatamente após obter o stream
-      // Não aguardar eventos do vídeo - isso pode travar o código
-      console.log('✅ [CAMERA] Stream configurado, mostrando vídeo...')
+      // Tentar reproduzir o vídeo
+      try {
+        await video.play()
+        console.log('▶️ [CAMERA] Vídeo reproduzindo')
+      } catch (playError: any) {
+        console.warn('⚠️ [CAMERA] Erro ao reproduzir vídeo:', playError.message)
+        // Continuar mesmo com erro - alguns navegadores bloqueiam autoplay
+      }
+      
+      // Aguardar vídeo estar pronto (com timeout)
+      try {
+        await waitForVideo
+        console.log('✅ [CAMERA] Vídeo pronto para scanning')
+      } catch (videoError: any) {
+        console.warn('⚠️ [CAMERA] Timeout aguardando vídeo, continuando...', videoError.message)
+        // Continuar mesmo com timeout - pode funcionar
+      }
+      
+      // Definir estados de sucesso
       setHasPermission(true)
       setIsLoading(false)
       
-      // Aguardar um pouco para o vídeo renderizar, mas não bloquear
-      // Iniciar scanner em background mesmo se o vídeo não estiver totalmente pronto
+      // Iniciar scanner após pequeno delay
       setTimeout(() => {
-        if (!videoRef.current || !videoRef.current.srcObject) {
-          console.error('❌ [CAMERA] Vídeo não está mais disponível')
+        if (videoRef.current && videoRef.current.srcObject) {
+          console.log('🔍 [CAMERA] Iniciando scanner de QR code...')
+          startScanning()
+        } else {
+          console.error('❌ [CAMERA] Vídeo não está mais disponível para scanning')
           setError('Erro ao inicializar scanner. Tente novamente.')
-          return
         }
-        
-        const currentVideo = videoRef.current
-        
-        // Verificar estado do vídeo
-        console.log('📹 [CAMERA] Estado do vídeo:', {
-          readyState: currentVideo.readyState,
-          paused: currentVideo.paused,
-          videoWidth: currentVideo.videoWidth,
-          videoHeight: currentVideo.videoHeight,
-          srcObject: !!currentVideo.srcObject
-        })
-        
-        // Tentar reproduzir novamente se estiver pausado
-        if (currentVideo.paused) {
-          console.log('🔄 [CAMERA] Vídeo pausado, tentando reproduzir...')
-          currentVideo.play().catch((err: any) => {
-            console.warn('⚠️ [CAMERA] Não foi possível reproduzir vídeo:', err.message)
-          })
-        }
-        
-        // Iniciar scanner mesmo se o vídeo não estiver totalmente pronto
-        // O vídeo continuará carregando em background
-        console.log('🔍 [CAMERA] Iniciando scanner de QR code...')
-        startScanning()
-      }, 500)
+      }, 1000)
       
     } catch (err: any) {
       console.error('❌ [CAMERA] Erro ao acessar câmera:', err)
@@ -412,37 +417,21 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       setIsLoading(false)
       
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Permissão da câmera negada. Por favor, permita o acesso à câmera nas configurações do navegador e tente novamente.')
+        setError('❌ Permissão da câmera negada. Clique no ícone da câmera na barra de endereços e permita o acesso.')
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setError('Nenhuma câmera encontrada neste dispositivo.')
+        setError('❌ Nenhuma câmera encontrada. Verifique se há uma câmera conectada ao dispositivo.')
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-        setError('Câmera está sendo usada por outro aplicativo. Feche outros apps que usam a câmera e tente novamente.')
+        setError('❌ Câmera em uso por outro app. Feche outros aplicativos que usam a câmera e tente novamente.')
       } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
-        // Tentar com configuração mais simples como fallback
-        try {
-          console.log('🔄 [CAMERA] Tentando com configuração mais simples...')
-          const simpleStream = await navigator.mediaDevices.getUserMedia({ 
-            video: {
-              facingMode: 'environment'
-            }
-          })
-          streamRef.current = simpleStream
-          if (videoRef.current) {
-            videoRef.current.srcObject = simpleStream
-            await videoRef.current.play()
-            setHasPermission(true)
-            setIsLoading(false)
-            setTimeout(() => startScanning(), 100)
-            return
-          }
-        } catch (simpleErr: any) {
-          console.error('❌ [CAMERA] Erro mesmo com configuração simples:', simpleErr)
-          setError('Não foi possível acessar a câmera. Verifique se a câmera está disponível e as permissões estão concedidas.')
-        }
+        setError('❌ Configuração da câmera não suportada. Tente usar um dispositivo diferente.')
+      } else if (err.message?.includes('HTTPS')) {
+        setError('🔒 Acesso à câmera requer HTTPS. Acesse o site via https:// ou use localhost.')
       } else if (err.message?.includes('getUserMedia')) {
-        setError('Navegador não suporta acesso à câmera. Use um navegador moderno (Chrome, Firefox, Safari).')
+        setError('❌ Navegador não suporta câmera. Use Chrome, Firefox ou Safari atualizado.')
+      } else if (err.message?.includes('Timeout')) {
+        setError('⏱️ Timeout ao inicializar câmera. Verifique a conexão e tente novamente.')
       } else {
-        setError(`Erro ao acessar câmera: ${err.message || 'Erro desconhecido'}`)
+        setError(`❌ Erro: ${err.message || 'Falha ao acessar câmera. Verifique permissões e tente novamente.'}`)
       }
     }
   }
@@ -676,12 +665,30 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       
       {error && (
         <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95">
-          <div>
+          <div className="max-w-md">
             <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <p className="text-red-400 text-base font-medium mb-2">Erro ao acessar câmera</p>
-            <p className="text-red-300 text-sm mb-6 px-4">{error}</p>
+            <p className="text-red-300 text-sm mb-6 px-4 leading-relaxed">{error}</p>
+            
+            {/* Dicas específicas baseadas no tipo de erro */}
+            {error.includes('Permissão') && (
+              <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3 mb-4 text-xs text-blue-300">
+                <p className="font-medium mb-1">💡 Como permitir acesso:</p>
+                <p>1. Clique no ícone 🔒 ou 📹 na barra de endereços</p>
+                <p>2. Selecione "Permitir" para câmera</p>
+                <p>3. Recarregue a página se necessário</p>
+              </div>
+            )}
+            
+            {error.includes('HTTPS') && (
+              <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-3 mb-4 text-xs text-yellow-300">
+                <p className="font-medium mb-1">🔒 Contexto seguro necessário:</p>
+                <p>Acesse via https:// ou use localhost para desenvolvimento</p>
+              </div>
+            )}
+            
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={startCamera} size="sm" className="bg-green-500 hover:bg-green-600">
+              <Button onClick={requestPermission} size="sm" className="bg-green-500 hover:bg-green-600">
                 <Camera className="h-4 w-4 mr-2" />
                 Tentar Novamente
               </Button>
