@@ -638,24 +638,6 @@ export default function CompleteProfilePage() {
                     </>
                   )}
 
-                  {/* Data de início apenas para funcionários */}
-                  {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
-                        Data de Início *
-                      </label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                        <input
-                          type="date"
-                          className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
-                          value={profileData.startDate || ''}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, startDate: e.target.value }))}
-                        />
-                      </div>
-                      {errors.startDate && <p className="text-error text-xs mt-1">{errors.startDate}</p>}
-                    </div>
-                  )}
                 </div>
               </div>
               )}

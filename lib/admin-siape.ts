@@ -7,6 +7,7 @@
 
 export const AUTHORIZED_ADMIN_SIAPE = [
   // Adicione aqui as matrículas SIAPE dos administradores autorizados
+  '2231232',  // SIAPE do administrador (Cicero Jose Sousa da Silva)
   '2283496',  // Exemplo - substitua pelas matrículas reais
   '2418058',  // Exemplo - substitua pelas matrículas reais
   '1525904',  // Exemplo - substitua pelas matrículas reais
