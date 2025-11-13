@@ -264,14 +264,22 @@ export default function CompleteProfilePage() {
         await update()
         
         // Aguardar um pouco para a sessão atualizar
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Forçar atualização da sessão novamente para garantir
+        console.log('🔄 Forçando segunda atualização da sessão...')
+        await update()
+        
+        // Aguardar mais um pouco
         await new Promise(resolve => setTimeout(resolve, 500))
         
         // Usar URL de redirecionamento da API
         const redirectUrl = result.redirectUrl || '/employee'
         console.log('🔄 Redirecionando para:', redirectUrl)
         
-        // Redirecionamento simples e confiável
-        window.location.href = redirectUrl
+        // Redirecionamento com reload completo para forçar nova verificação do middleware
+        console.log('🔄 Forçando reload completo...')
+        window.location.replace(redirectUrl)
         
       } else {
         const error = await response.json()

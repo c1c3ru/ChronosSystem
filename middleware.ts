@@ -29,7 +29,9 @@ export default withAuth(
         role,
         profileComplete,
         userId: token.sub,
-        email: token.email
+        email: token.email,
+        tokenIat: token.iat,
+        tokenExp: token.exp
       })
       
       // Verificar se o usuário tem role válido
@@ -40,8 +42,22 @@ export default withAuth(
       
       // Verificar se perfil está completo (exceto na própria página de completar perfil)
       if (profileComplete === false && pathname !== '/auth/complete-profile') {
-        console.log('📝 [MIDDLEWARE] Perfil incompleto -> complete-profile')
+        console.log('📝 [MIDDLEWARE] Perfil incompleto -> complete-profile', {
+          profileComplete,
+          pathname,
+          userId: token.sub
+        })
         return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
+      }
+      
+      // Debug: Log quando perfil está completo
+      if (profileComplete === true) {
+        console.log('✅ [MIDDLEWARE] Perfil completo, permitindo acesso', {
+          profileComplete,
+          pathname,
+          role,
+          userId: token.sub
+        })
       }
       
       // Se usuário autenticado está na página inicial, redirecionar para dashboard apropriado
