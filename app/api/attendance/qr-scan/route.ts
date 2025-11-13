@@ -9,6 +9,11 @@ import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
+  // ⚠️ API DEPRECATED - Adicionar monitoramento
+  console.warn('⚠️ [DEPRECATED] /api/attendance/qr-scan está deprecated. Use /api/attendance/qr-unified')
+  console.warn('📊 [MIGRATION] IP:', request.headers.get('x-forwarded-for') || 'unknown')
+  console.warn('📊 [MIGRATION] User-Agent:', request.headers.get('user-agent')?.substring(0, 100) || 'unknown')
+  
   try {
     const session = await getServerSession(authOptions)
     
@@ -194,7 +199,7 @@ export async function POST(request: NextRequest) {
       machine: machine.name
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       record: {
         id: attendanceRecord.id,
@@ -207,8 +212,22 @@ export async function POST(request: NextRequest) {
       machine: {
         name: machine.name,
         location: machine.location
+      },
+      // Adicionar aviso de deprecação na resposta
+      _deprecated: {
+        warning: 'Esta API está deprecated. Use /api/attendance/qr-unified',
+        replacement: '/api/attendance/qr-unified',
+        sunset: '2024-12-31'
       }
     })
+
+    // Adicionar headers de deprecação
+    response.headers.set('X-API-Deprecated', 'true')
+    response.headers.set('X-API-Replacement', '/api/attendance/qr-unified')
+    response.headers.set('X-API-Sunset', '2024-12-31')
+    response.headers.set('Warning', '299 - "API deprecated. Use /api/attendance/qr-unified"')
+
+    return response
 
   } catch (error: any) {
     console.error('❌ [QR-SCAN] Erro ao processar QR scan:', error)

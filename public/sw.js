@@ -153,7 +153,7 @@ async function syncOfflineData() {
     
     for (const record of offlineRecords) {
       try {
-        await fetch('/api/attendance/qr-scan', {
+        await fetch('/api/attendance/qr-unified', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
