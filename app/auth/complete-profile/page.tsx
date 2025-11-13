@@ -40,6 +40,7 @@ export default function CompleteProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isHydrated, setIsHydrated] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
+  const [success, setSuccess] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   // Redirect if not authenticated or profile already complete
@@ -215,11 +216,15 @@ export default function CompleteProfilePage() {
         const result = await response.json()
         console.log('✅ Perfil salvo com sucesso:', result)
         
+        // Mostrar estado de sucesso
+        setSuccess(true)
+        setErrors({}) // Limpar erros
+        
         // Mostrar toast de sucesso
         toast.success('Perfil completado com sucesso!')
         
         // Aguardar um pouco para o toast aparecer
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 2000))
         
         // Mostrar estado de redirecionamento
         setRedirecting(true)
@@ -287,8 +292,71 @@ export default function CompleteProfilePage() {
           <CardContent className="p-4 sm:p-6">
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {errors.general && (
-                <div className="p-3 sm:p-4 bg-error/20 border border-error/50 rounded-lg text-error text-sm">
-                  {errors.general}
+                <div className="p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-red-400">
+                        Erro ao Completar Perfil
+                      </h3>
+                      <p className="mt-1 text-sm text-red-300">
+                        {errors.general}
+                      </p>
+                      <div className="mt-3 flex space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setErrors({})}
+                          className="text-xs text-red-400 hover:text-red-300 underline"
+                        >
+                          Fechar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setErrors({})
+                            // Tentar enviar novamente
+                            const form = formRef.current
+                            if (form) {
+                              form.requestSubmit()
+                            }
+                          }}
+                          className="text-xs text-red-400 hover:text-red-300 underline"
+                        >
+                          Tentar Novamente
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {success && (
+                <div className="p-4 bg-green-900/30 border border-green-500/50 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-green-400">
+                        Perfil Completado com Sucesso!
+                      </h3>
+                      <p className="mt-1 text-sm text-green-300">
+                        Suas informações foram salvas. Você será redirecionado em instantes...
+                      </p>
+                      {redirecting && (
+                        <div className="mt-3 flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400"></div>
+                          <span className="text-xs text-green-400">Redirecionando...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 

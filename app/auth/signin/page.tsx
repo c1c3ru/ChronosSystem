@@ -13,6 +13,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [googleError, setGoogleError] = useState<string | null>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,14 +69,77 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true)
+      setGoogleError(null)
       toast.loading('Verificando usuário...', { id: 'google-login' })
       
-      await signIn('google', { 
-        callbackUrl: '/' // Deixar o middleware gerenciar o redirecionamento
+      const result = await signIn('google', { 
+        callbackUrl: '/',
+        redirect: false // Não redirecionar automaticamente para capturar erros
       })
+      
+      if (result?.error) {
+        console.error('Google login error:', result.error)
+        
+        let errorMessage = 'Erro ao fazer login com Google'
+        
+        // Tratar diferentes tipos de erro
+        switch (result.error) {
+          case 'AccessDenied':
+            errorMessage = '❌ Acesso negado. Usuário não autorizado no sistema.'
+            setGoogleError('Apenas usuários autorizados podem acessar o sistema. Entre em contato com o administrador.')
+            break
+          case 'OAuthSignin':
+            errorMessage = '❌ Erro na autenticação Google. Tente novamente.'
+            setGoogleError('Falha na comunicação com o Google. Verifique sua conexão.')
+            break
+          case 'OAuthCallback':
+            errorMessage = '❌ Erro no callback do Google. Tente novamente.'
+            setGoogleError('Erro no retorno da autenticação. Tente fazer login novamente.')
+            break
+          case 'OAuthCreateAccount':
+            errorMessage = '❌ Erro ao criar conta. Tente novamente.'
+            setGoogleError('Não foi possível criar sua conta. Verifique se o email está correto.')
+            break
+          case 'EmailCreateAccount':
+            errorMessage = '❌ Email já está em uso com outro provedor.'
+            setGoogleError('Este email já está associado a outro método de login.')
+            break
+          case 'Callback':
+            errorMessage = '❌ Erro de callback. Tente novamente.'
+            setGoogleError('Erro no processo de autenticação. Tente novamente.')
+            break
+          case 'OAuthAccountNotLinked':
+            errorMessage = '❌ Conta não vinculada. Use o mesmo método de login anterior.'
+            setGoogleError('Esta conta Google não está vinculada. Use o método de login original.')
+            break
+          case 'EmailSignin':
+            errorMessage = '❌ Erro no login por email.'
+            setGoogleError('Problema com a verificação do email.')
+            break
+          case 'CredentialsSignin':
+            errorMessage = '❌ Credenciais inválidas.'
+            setGoogleError('Credenciais de login inválidas.')
+            break
+          case 'SessionRequired':
+            errorMessage = '❌ Sessão necessária.'
+            setGoogleError('É necessário fazer login para acessar esta página.')
+            break
+          default:
+            errorMessage = `❌ Erro desconhecido: ${result.error}`
+            setGoogleError('Ocorreu um erro inesperado. Tente novamente ou entre em contato com o suporte.')
+        }
+        
+        toast.error(errorMessage, { id: 'google-login' })
+      } else if (result?.ok) {
+        toast.success('Login realizado com sucesso!', { id: 'google-login' })
+        // Redirecionar manualmente após sucesso
+        window.location.href = '/'
+      }
     } catch (error) {
       console.error('Google login error:', error)
-      toast.error('Erro ao fazer login com Google', { id: 'google-login' })
+      toast.error('❌ Erro inesperado ao fazer login com Google', { id: 'google-login' })
+      setGoogleError('Erro inesperado. Verifique sua conexão com a internet e tente novamente.')
+    } finally {
       setIsGoogleLoading(false)
     }
   }
@@ -198,6 +262,35 @@ export default function SignInPage() {
               'Entrar com Google'
             )}
           </button>
+
+          {/* Google Error Display */}
+          {googleError && (
+            <div className="mt-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-red-400">
+                    Erro no Login Google
+                  </h3>
+                  <p className="mt-1 text-sm text-red-300">
+                    {googleError}
+                  </p>
+                  <div className="mt-3">
+                    <button
+                      onClick={() => setGoogleError(null)}
+                      className="text-xs text-red-400 hover:text-red-300 underline"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Demo Accounts */}
         </div>
