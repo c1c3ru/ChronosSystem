@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST='{"components/QRScanner.tsx -> jsqr":{"id":9801,"files":["static/chunks/d0f5a89a.4484cd369cc16f9d.js"]}}';

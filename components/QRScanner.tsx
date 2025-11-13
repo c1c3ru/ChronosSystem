@@ -701,130 +701,130 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         </div>
       )}
       
-      {hasPermission && !error && !isLoading && (
-        <div className="relative w-full h-full">
-          <video
-            ref={videoRef}
-            className="w-full h-full bg-gray-900"
-            playsInline
-            muted
-            autoPlay
-            style={{ 
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              minHeight: '400px',
-              display: 'block'
-            }}
-            onLoadedMetadata={() => {
-              console.log('📹 [VIDEO] Metadata carregado')
-            }}
-            onLoadedData={() => {
-              console.log('📹 [VIDEO] Dados carregados')
-            }}
-            onCanPlay={() => {
-              console.log('📹 [VIDEO] Pode reproduzir')
-            }}
-            onPlaying={() => {
-              console.log('▶️ [VIDEO] Reproduzindo')
-            }}
-            onError={(e) => {
-              console.error('❌ [VIDEO] Erro no elemento de vídeo:', e)
-              setError('Erro ao carregar vídeo da câmera')
-            }}
-          />
-          
-          {/* Overlay de scanning */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="border-2 border-green-500 rounded-lg w-64 h-64 sm:w-72 sm:h-72 relative shadow-lg">
-              {/* Cantos do quadrado */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500 rounded-tl-lg"></div>
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500 rounded-tr-lg"></div>
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500 rounded-bl-lg"></div>
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500 rounded-br-lg"></div>
-              
-              {/* Linha de scanning animada */}
-              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-green-500 opacity-50">
-                <div className="absolute -top-1 left-1/2 w-6 h-3 bg-green-500 rounded-full transform -translate-x-1/2 animate-pulse"></div>
-              </div>
+      {/* Elementos de vídeo e canvas sempre presentes (mas ocultos quando necessário) */}
+      <div className={`relative w-full h-full ${hasPermission && !error && !isLoading ? '' : 'hidden'}`}>
+        <video
+          ref={videoRef}
+          className="w-full h-full bg-gray-900"
+          playsInline
+          muted
+          autoPlay
+          style={{ 
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            minHeight: '400px',
+            display: 'block'
+          }}
+          onLoadedMetadata={() => {
+            console.log('📹 [VIDEO] Metadata carregado')
+          }}
+          onLoadedData={() => {
+            console.log('📹 [VIDEO] Dados carregados')
+          }}
+          onCanPlay={() => {
+            console.log('📹 [VIDEO] Pode reproduzir')
+          }}
+          onPlaying={() => {
+            console.log('▶️ [VIDEO] Reproduzindo')
+          }}
+          onError={(e) => {
+            console.error('❌ [VIDEO] Erro no elemento de vídeo:', e)
+            setError('Erro ao carregar vídeo da câmera')
+          }}
+        />
+        
+        {/* Overlay de scanning */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="border-2 border-green-500 rounded-lg w-64 h-64 sm:w-72 sm:h-72 relative shadow-lg">
+            {/* Cantos do quadrado */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500 rounded-tl-lg"></div>
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500 rounded-tr-lg"></div>
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500 rounded-bl-lg"></div>
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500 rounded-br-lg"></div>
+            
+            {/* Linha de scanning animada */}
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-green-500 opacity-50">
+              <div className="absolute -top-1 left-1/2 w-6 h-3 bg-green-500 rounded-full transform -translate-x-1/2 animate-pulse"></div>
             </div>
           </div>
-          
-          {/* Feedback de validação de QR */}
-          {qrValidation && (
-            <div className="absolute top-4 left-4 right-4 z-20">
-              <div className={`
-                bg-black/80 backdrop-blur-sm rounded-lg p-3 border-l-4
-                ${qrValidation.isValid 
-                  ? qrValidation.type === 'SECURE' 
-                    ? 'border-green-500 text-green-400' 
-                    : qrValidation.type === 'JSON'
-                      ? 'border-yellow-500 text-yellow-400'
-                      : 'border-orange-500 text-orange-400'
-                  : 'border-red-500 text-red-400'
-                }
-              `}>
-                <div className="flex items-center gap-2">
-                  {qrValidation.type === 'SECURE' && <Shield className="h-4 w-4" />}
-                  {qrValidation.type === 'JSON' && <FileText className="h-4 w-4" />}
-                  {qrValidation.type === 'TEXT' && <Edit3 className="h-4 w-4" />}
-                  {!qrValidation.isValid && <AlertCircle className="h-4 w-4" />}
-                  {qrValidation.isValid && <CheckCircle className="h-4 w-4" />}
-                  
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">
-                      {qrValidation.isValid ? 'QR Válido' : 'QR Inválido'}
-                      {qrValidation.machineId && ` - ${qrValidation.machineId}`}
+        </div>
+        
+        {/* Feedback de validação de QR */}
+        {qrValidation && (
+          <div className="absolute top-4 left-4 right-4 z-20">
+            <div className={`
+              bg-black/80 backdrop-blur-sm rounded-lg p-3 border-l-4
+              ${qrValidation.isValid 
+                ? qrValidation.type === 'SECURE' 
+                  ? 'border-green-500 text-green-400' 
+                  : qrValidation.type === 'JSON'
+                    ? 'border-yellow-500 text-yellow-400'
+                    : 'border-orange-500 text-orange-400'
+                : 'border-red-500 text-red-400'
+              }
+            `}>
+              <div className="flex items-center gap-2">
+                {qrValidation.type === 'SECURE' && <Shield className="h-4 w-4" />}
+                {qrValidation.type === 'JSON' && <FileText className="h-4 w-4" />}
+                {qrValidation.type === 'TEXT' && <Edit3 className="h-4 w-4" />}
+                {!qrValidation.isValid && <AlertCircle className="h-4 w-4" />}
+                {qrValidation.isValid && <CheckCircle className="h-4 w-4" />}
+                
+                <div className="flex-1">
+                  <div className="text-sm font-medium">
+                    {qrValidation.isValid ? 'QR Válido' : 'QR Inválido'}
+                    {qrValidation.machineId && ` - ${qrValidation.machineId}`}
+                  </div>
+                  {qrValidation.error && (
+                    <div className="text-xs opacity-80 mt-1">
+                      {qrValidation.error}
                     </div>
-                    {qrValidation.error && (
-                      <div className="text-xs opacity-80 mt-1">
-                        {qrValidation.error}
-                      </div>
-                    )}
-                    {qrValidation.warnings && qrValidation.warnings.length > 0 && (
-                      <div className="text-xs opacity-70 mt-1">
-                        ⚠️ {qrValidation.warnings[0]}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="text-xs opacity-60">
-                    {qrValidation.confidence === 'high' ? '🔒' : 
-                     qrValidation.confidence === 'medium' ? '🔓' : '⚠️'}
-                  </div>
+                  )}
+                  {qrValidation.warnings && qrValidation.warnings.length > 0 && (
+                    <div className="text-xs opacity-70 mt-1">
+                      ⚠️ {qrValidation.warnings[0]}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="text-xs opacity-60">
+                  {qrValidation.confidence === 'high' ? '🔒' : 
+                   qrValidation.confidence === 'medium' ? '🔓' : '⚠️'}
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Sobreposição escura ao redor do quadrado */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div 
-              className="absolute inset-0 bg-black/50"
-              style={{
-                clipPath: 'polygon(0% 0%, 0% 100%, calc(50% - 128px) 100%, calc(50% - 128px) calc(50% - 128px), calc(50% + 128px) calc(50% - 128px), calc(50% + 128px) calc(50% + 128px), calc(50% - 128px) calc(50% + 128px), calc(50% - 128px) 100%, 100% 100%, 100% 0%)'
-              }}
-            />
-          </div>
-          
-          {/* Botão de fechar */}
-          <div className="absolute top-4 right-4 z-20">
-            <Button
-              onClick={stopCamera}
-              variant="ghost"
-              size="sm"
-              className="bg-black/70 border border-white/30 text-white hover:bg-black/90 backdrop-blur-sm"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          <canvas
-            ref={canvasRef}
-            className="hidden"
+        {/* Sobreposição escura ao redor do quadrado */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            style={{
+              clipPath: 'polygon(0% 0%, 0% 100%, calc(50% - 128px) 100%, calc(50% - 128px) calc(50% - 128px), calc(50% + 128px) calc(50% - 128px), calc(50% + 128px) calc(50% + 128px), calc(50% - 128px) calc(50% + 128px), calc(50% - 128px) 100%, 100% 100%, 100% 0%)'
+            }}
           />
         </div>
-      )}
+        
+        {/* Botão de fechar */}
+        <div className="absolute top-4 right-4 z-20">
+          <Button
+            onClick={stopCamera}
+            variant="ghost"
+            size="sm"
+            className="bg-black/70 border border-white/30 text-white hover:bg-black/90 backdrop-blur-sm"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Canvas sempre presente (oculto) */}
+      <canvas
+        ref={canvasRef}
+        className="hidden"
+      />
       
       {/* Status - só mostrar se não houver erro nem loading */}
       {hasPermission && !error && !isLoading && (
