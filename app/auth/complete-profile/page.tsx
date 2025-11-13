@@ -254,10 +254,17 @@ export default function CompleteProfilePage() {
         toast.success('Perfil completado com sucesso!')
         
         // Aguardar um pouco para o toast aparecer
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
         // Mostrar estado de redirecionamento
         setRedirecting(true)
+        
+        // Atualizar sessão para refletir mudanças no banco
+        console.log('🔄 Atualizando sessão...')
+        await update()
+        
+        // Aguardar um pouco para a sessão atualizar
+        await new Promise(resolve => setTimeout(resolve, 500))
         
         // Usar URL de redirecionamento da API
         const redirectUrl = result.redirectUrl || '/employee'

@@ -52,14 +52,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
     }
 
-    // Validações específicas por role
-    const userRole = session.user.role
-    if (userRole === 'EMPLOYEE') {
+    // Validações específicas por role (usar newRole, não o role antigo da sessão)
+    if (newRole === 'EMPLOYEE') {
       if (!startDate || !contractStartDate || !contractEndDate) {
         return NextResponse.json({ error: 'Funcionários devem preencher todas as datas' }, { status: 400 })
       }
     }
 
+    console.log(`📝 [COMPLETE-PROFILE] Atualizando usuário ${session.user.id} com role: ${newRole}`)
+    
     // Atualizar usuário
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -80,6 +81,14 @@ export async function POST(request: NextRequest) {
         profileComplete: true,
         updatedAt: new Date()
       }
+    })
+    
+    console.log(`✅ [COMPLETE-PROFILE] Usuário atualizado:`, {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      profileComplete: updatedUser.profileComplete,
+      siapeNumber: updatedUser.siapeNumber
     })
 
     // Log de auditoria
