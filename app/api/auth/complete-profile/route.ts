@@ -32,18 +32,25 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // Validações básicas
-    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone || !department || !siapeNumber) {
+    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone || !siapeNumber) {
       return NextResponse.json({ error: 'Todos os campos básicos são obrigatórios' }, { status: 400 })
+    }
+
+    // Determinar role baseado na matrícula SIAPE
+    const newRole = determineRoleFromSiape(siapeNumber)
+    console.log(`🔍 [COMPLETE-PROFILE] SIAPE ${siapeNumber} -> Role: ${newRole}`)
+
+    // Validações específicas para funcionários (não para ADMIN/SUPERVISOR)
+    if (newRole === 'EMPLOYEE') {
+      if (!department) {
+        return NextResponse.json({ error: 'Departamento é obrigatório para funcionários' }, { status: 400 })
+      }
     }
 
     // Validar formato da matrícula SIAPE
     if (!/^\d{7}$/.test(siapeNumber)) {
       return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
     }
-
-    // Determinar role baseado na matrícula SIAPE
-    const newRole = determineRoleFromSiape(siapeNumber)
-    console.log(`🔍 [COMPLETE-PROFILE] SIAPE ${siapeNumber} -> Role: ${newRole}`)
 
     // Validações específicas por role
     const userRole = session.user.role
@@ -62,12 +69,13 @@ export async function POST(request: NextRequest) {
         birthDate: new Date(birthDate),
         emergencyContact,
         emergencyPhone,
-        department,
+        department: newRole === 'EMPLOYEE' ? department : 'DIRECAO_GERAL', // Padrão para ADMINs
         startDate: startDate ? new Date(startDate) : null,
         siapeNumber,
-        contractType: contractType || 'ESTAGIO_20H',
-        weeklyHours: weeklyHours || 20,
-        dailyHours: weeklyHours ? Math.round((weeklyHours / 5) * 10) / 10 : 4, // Calcular horas diárias
+        contractType: newRole === 'EMPLOYEE' ? (contractType || 'ESTAGIO_20H') : 'EMPREGO_40H', // Padrão para ADMINs
+        weeklyHours: newRole === 'EMPLOYEE' ? (weeklyHours || 20) : 40, // Padrão para ADMINs
+        dailyHours: newRole === 'EMPLOYEE' ? 
+          (weeklyHours ? Math.round((weeklyHours / 5) * 10) / 10 : 4) : 8, // Padrão para ADMINs
         role: newRole, // Atualizar role baseado no SIAPE
         profileComplete: true,
         updatedAt: new Date()

@@ -165,10 +165,8 @@ export default function CompleteProfilePage() {
           }
         }
       }
-    }
 
-    // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
-    if (userRole === 'EMPLOYEE') {
+      // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
       if (!profileData.startDate) {
         newErrors.startDate = 'Data de início é obrigatória'
       }
@@ -183,10 +181,7 @@ export default function CompleteProfilePage() {
 
       // Validar se data de fim é posterior à data de início
       if (profileData.contractStartDate && profileData.contractEndDate) {
-        const startDate = new Date(profileData.contractStartDate)
-        const endDate = new Date(profileData.contractEndDate)
-        
-        if (endDate <= startDate) {
+        if (new Date(profileData.contractEndDate) <= new Date(profileData.contractStartDate)) {
           newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
         }
       }
@@ -488,45 +483,10 @@ export default function CompleteProfilePage() {
                 </div>
               </div>
 
-              {/* Informações Profissionais */}
+              {/* Matrícula SIAPE - Obrigatória para todos */}
               <div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Profissionais</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Institucionais</h3>
                 <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Departamento *
-                    </label>
-                    <select
-                      className={`input ${errors.department ? 'border-error' : ''}`}
-                      value={profileData.department || ''}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, department: e.target.value }))}
-                    >
-                      <option value="">Selecione o departamento</option>
-                      <option value="COORDENACAO_INFORMATICA">Coordenação de Informática</option>
-                      <option value="COORDENACAO_EDIFICACOES">Coordenação de Edificações</option>
-                      <option value="COORDENACAO_TELECOMUNICACOES">Coordenação de Telecomunicações</option>
-                      <option value="COORDENACAO_PEDAGOGICA">Coordenação Pedagógica</option>
-                      <option value="COORDENACAO_MEIO_AMBIENTE">Coordenação de Meio Ambiente</option>
-                      <option value="DIRECAO_GERAL">Direção Geral</option>
-                      <option value="DIRETORIA_ENSINO">Diretoria de Ensino</option>
-                      <option value="DIRETORIA_ADMINISTRACAO">Diretoria de Administração e Planejamento</option>
-                      <option value="COORDENACAO_EXTENSAO">Coordenação de Extensão</option>
-                      <option value="COORDENACAO_PESQUISA">Coordenação de Pesquisa e Inovação</option>
-                      <option value="BIBLIOTECA">Biblioteca</option>
-                      <option value="REGISTRO_ACADEMICO">Registro Acadêmico</option>
-                      <option value="ASSISTENCIA_ESTUDANTIL">Assistência Estudantil</option>
-                      <option value="RECURSOS_HUMANOS">Recursos Humanos</option>
-                      <option value="FINANCEIRO">Setor Financeiro</option>
-                      <option value="PATRIMONIO">Patrimônio</option>
-                      <option value="ALMOXARIFADO">Almoxarifado</option>
-                      <option value="MANUTENCAO">Manutenção</option>
-                      <option value="SEGURANCA">Segurança</option>
-                      <option value="LIMPEZA">Limpeza</option>
-                      <option value="OUTROS">Outros</option>
-                    </select>
-                    {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-2">
                       Matrícula SIAPE *
@@ -547,6 +507,48 @@ export default function CompleteProfilePage() {
                       Sua matrícula SIAPE determinará automaticamente seu nível de acesso no sistema
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Informações Profissionais - Apenas para funcionários */}
+              {session?.user?.role === 'EMPLOYEE' && (
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Profissionais</h3>
+                  <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        Departamento *
+                      </label>
+                      <select
+                        className={`input ${errors.department ? 'border-error' : ''}`}
+                        value={profileData.department || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, department: e.target.value }))}
+                      >
+                        <option value="">Selecione o departamento</option>
+                        <option value="COORDENACAO_INFORMATICA">Coordenação de Informática</option>
+                        <option value="COORDENACAO_EDIFICACOES">Coordenação de Edificações</option>
+                        <option value="COORDENACAO_TELECOMUNICACOES">Coordenação de Telecomunicações</option>
+                        <option value="COORDENACAO_PEDAGOGICA">Coordenação Pedagógica</option>
+                        <option value="COORDENACAO_MEIO_AMBIENTE">Coordenação de Meio Ambiente</option>
+                        <option value="DIRECAO_GERAL">Direção Geral</option>
+                        <option value="DIRETORIA_ENSINO">Diretoria de Ensino</option>
+                        <option value="DIRETORIA_ADMINISTRACAO">Diretoria de Administração e Planejamento</option>
+                        <option value="COORDENACAO_EXTENSAO">Coordenação de Extensão</option>
+                        <option value="COORDENACAO_PESQUISA">Coordenação de Pesquisa e Inovação</option>
+                        <option value="BIBLIOTECA">Biblioteca</option>
+                        <option value="REGISTRO_ACADEMICO">Registro Acadêmico</option>
+                        <option value="ASSISTENCIA_ESTUDANTIL">Assistência Estudantil</option>
+                        <option value="RECURSOS_HUMANOS">Recursos Humanos</option>
+                        <option value="FINANCEIRO">Setor Financeiro</option>
+                        <option value="PATRIMONIO">Patrimônio</option>
+                        <option value="ALMOXARIFADO">Almoxarifado</option>
+                        <option value="MANUTENCAO">Manutenção</option>
+                        <option value="SEGURANCA">Segurança</option>
+                        <option value="LIMPEZA">Limpeza</option>
+                        <option value="OUTROS">Outros</option>
+                      </select>
+                      {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
+                    </div>
 
                   {/* Tipo de contrato apenas para funcionários */}
                   {session?.user?.role === 'EMPLOYEE' && (
@@ -628,6 +630,7 @@ export default function CompleteProfilePage() {
                   )}
                 </div>
               </div>
+              )}
 
               {/* Informações do Contrato - Apenas para funcionários */}
               {session?.user?.role === 'EMPLOYEE' && (
