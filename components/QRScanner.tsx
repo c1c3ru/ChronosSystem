@@ -31,6 +31,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
   const [qrValidation, setQrValidation] = useState<QRValidationResult | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
+  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('environment')
 
   useEffect(() => {
     if (!isActive) {
@@ -185,6 +186,31 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     }, delay)
   }
 
+  // Função para alternar entre câmeras
+  const switchCamera = async () => {
+    try {
+      console.log('🔄 [CAMERA] Alternando câmera...')
+      setIsLoading(true)
+      
+      // Parar câmera atual
+      stopCamera()
+      
+      // Alternar facing mode
+      const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment'
+      setCurrentFacingMode(newFacingMode)
+      
+      // Aguardar um pouco e reiniciar com nova câmera
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await startCamera()
+      
+      console.log(`✅ [CAMERA] Câmera alternada para: ${newFacingMode === 'environment' ? 'traseira' : 'frontal'}`)
+    } catch (err: any) {
+      console.error('❌ [CAMERA] Erro ao alternar câmera:', err)
+      setError('Erro ao alternar câmera. Tente novamente.')
+      setIsLoading(false)
+    }
+  }
+
   // Validar QR code detectado
   const validateAndProcessQR = (qrData: string) => {
     console.log('🔍 [QR] Validando QR code detectado:', qrData.substring(0, 50) + '...')
@@ -265,24 +291,32 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       
       let stream: MediaStream | null = null
       
-      // Estratégia simplificada: tentar configurações em ordem de preferência
+      // Estratégia baseada no facing mode atual
       const cameraConfigs = [
-        // 1. Qualquer câmera disponível (mais compatível)
+        // 1. Câmera específica obrigatória
+        {
+          video: {
+            facingMode: { exact: currentFacingMode },
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          }
+        },
+        // 2. Câmera específica preferencial
+        {
+          video: {
+            facingMode: { ideal: currentFacingMode },
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          }
+        },
+        // 3. Qualquer câmera com resolução boa
         {
           video: {
             width: { ideal: 1280, min: 640 },
             height: { ideal: 720, min: 480 }
           }
         },
-        // 2. Tentar câmera traseira se disponível
-        {
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          }
-        },
-        // 3. Configuração mínima
+        // 4. Configuração mínima (último recurso)
         {
           video: true
         }
@@ -300,6 +334,48 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           console.warn(`⚠️ [CAMERA] Tentativa ${i + 1} falhou:`, configError.name)
           lastError = configError
           continue
+        }
+      }
+      
+      // Se nenhuma configuração funcionou, tentar encontrar câmera traseira manualmente
+      if (!stream) {
+        console.log('🔍 [CAMERA] Tentando encontrar câmera traseira manualmente...')
+        try {
+          // Primeiro obter permissão básica
+          const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
+          tempStream.getTracks().forEach(track => track.stop())
+          
+          // Listar dispositivos disponíveis
+          const devices = await navigator.mediaDevices.enumerateDevices()
+          const videoDevices = devices.filter(d => d.kind === 'videoinput')
+          console.log('📹 [CAMERA] Dispositivos encontrados:', videoDevices.map(d => ({ id: d.deviceId, label: d.label })))
+          
+          // Procurar câmera traseira por label ou posição
+          const backCamera = videoDevices.find(device => {
+            const label = device.label.toLowerCase()
+            return label.includes('back') || 
+                   label.includes('rear') || 
+                   label.includes('environment') ||
+                   label.includes('traseira') ||
+                   label.includes('posterior') ||
+                   label.includes('camera 1') ||
+                   label.includes('0, facing back') ||
+                   (videoDevices.length > 1 && videoDevices.indexOf(device) === 1) // Segunda câmera geralmente é traseira
+          })
+          
+          if (backCamera) {
+            console.log('📱 [CAMERA] Câmera traseira encontrada:', backCamera.label)
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                deviceId: { exact: backCamera.deviceId },
+                width: { ideal: 1280, min: 640 },
+                height: { ideal: 720, min: 480 }
+              }
+            })
+            console.log('✅ [CAMERA] Câmera traseira obtida por deviceId')
+          }
+        } catch (deviceError: any) {
+          console.warn('⚠️ [CAMERA] Erro ao buscar câmera traseira manualmente:', deviceError.message)
         }
       }
       
@@ -807,8 +883,20 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           />
         </div>
         
-        {/* Botão de fechar */}
-        <div className="absolute top-4 right-4 z-20">
+        {/* Botões de controle */}
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          {/* Botão para alternar câmera */}
+          <Button
+            onClick={switchCamera}
+            variant="ghost"
+            size="sm"
+            className="bg-black/70 border border-white/30 text-white hover:bg-black/90 backdrop-blur-sm"
+            title={`Alternar para câmera ${currentFacingMode === 'environment' ? 'frontal' : 'traseira'}`}
+          >
+            <Camera className="h-5 w-5" />
+          </Button>
+          
+          {/* Botão de fechar */}
           <Button
             onClick={stopCamera}
             variant="ghost"
@@ -829,8 +917,11 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       {/* Status - só mostrar se não houver erro nem loading */}
       {hasPermission && !error && !isLoading && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-          <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm border border-green-500/30">
-            ✅ Scanner ativo - Aponte para o QR code
+          <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm border border-green-500/30 flex items-center gap-2">
+            <span>✅ Scanner ativo - Aponte para o QR code</span>
+            <span className="text-xs opacity-70">
+              📹 {currentFacingMode === 'environment' ? 'Traseira' : 'Frontal'}
+            </span>
           </div>
         </div>
       )}
