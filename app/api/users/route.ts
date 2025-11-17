@@ -13,9 +13,19 @@ const createUserSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  department: z.string().optional()
+  phone: z.string().min(1, 'Telefone é obrigatório'),
+  address: z.string().min(1, 'Endereço é obrigatório'),
+  birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
+  emergencyContact: z.string().min(1, 'Contato de emergência é obrigatório'),
+  emergencyPhone: z.string().min(1, 'Telefone de emergência é obrigatório'),
+  department: z.string().optional(),
+  siapeNumber: z.string().optional(),
+  hasSiape: z.boolean().optional(),
+  startDate: z.string().optional(),
+  contractStartDate: z.string().optional(),
+  contractEndDate: z.string().optional(),
+  contractType: z.string().optional(),
+  weeklyHours: z.number().optional()
 })
 
 // GET /api/users - Listar usuários
@@ -101,6 +111,33 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
 
+    // Validações específicas para SIAPE
+    if (validatedData.hasSiape && validatedData.siapeNumber) {
+      if (!/^\d{7}$/.test(validatedData.siapeNumber)) {
+        return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
+      }
+    }
+
+    // Validações específicas para funcionários
+    if (validatedData.role === 'EMPLOYEE') {
+      if (!validatedData.department) {
+        return NextResponse.json({ error: 'Departamento é obrigatório para funcionários' }, { status: 400 })
+      }
+      if (!validatedData.startDate || !validatedData.contractStartDate || !validatedData.contractEndDate) {
+        return NextResponse.json({ error: 'Datas são obrigatórias para funcionários' }, { status: 400 })
+      }
+      if (!validatedData.contractType) {
+        return NextResponse.json({ error: 'Tipo de contrato é obrigatório para funcionários' }, { status: 400 })
+      }
+      
+      // Validar se data de fim é posterior à data de início
+      if (validatedData.contractStartDate && validatedData.contractEndDate) {
+        if (new Date(validatedData.contractEndDate) <= new Date(validatedData.contractStartDate)) {
+          return NextResponse.json({ error: 'Data de fim deve ser posterior à data de início' }, { status: 400 })
+        }
+      }
+    }
+
     // Verificar se email já existe
     const existingUser = await prisma.user.findUnique({
       where: { email: validatedData.email }
@@ -113,7 +150,7 @@ export async function POST(request: NextRequest) {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(validatedData.password, 10)
 
-    const user = await prisma.user.create({
+    const user = await (prisma as any).user.create({
       data: {
         name: validatedData.name,
         email: validatedData.email,
@@ -121,7 +158,17 @@ export async function POST(request: NextRequest) {
         role: validatedData.role,
         phone: validatedData.phone,
         address: validatedData.address,
-        department: validatedData.department
+        birthDate: validatedData.birthDate ? new Date(validatedData.birthDate) : null,
+        emergencyContact: validatedData.emergencyContact,
+        emergencyPhone: validatedData.emergencyPhone,
+        department: validatedData.department,
+        siapeNumber: validatedData.siapeNumber,
+        startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
+        contractStartDate: validatedData.contractStartDate ? new Date(validatedData.contractStartDate) : null,
+        contractEndDate: validatedData.contractEndDate ? new Date(validatedData.contractEndDate) : null,
+        contractType: validatedData.contractType,
+        weeklyHours: validatedData.weeklyHours,
+        profileComplete: true // Admin já preenche tudo
       },
       select: {
         id: true,

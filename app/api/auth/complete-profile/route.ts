@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     // Validações básicas
-    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone || !siapeNumber) {
+    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone) {
       return NextResponse.json({ error: 'Todos os campos básicos são obrigatórios' }, { status: 400 })
     }
 
-    // Determinar role baseado na matrícula SIAPE
-    const newRole = determineRoleFromSiape(siapeNumber)
-    console.log(`🔍 [COMPLETE-PROFILE] SIAPE ${siapeNumber} -> Role: ${newRole}`)
+    // Determinar role baseado na matrícula SIAPE (se fornecida)
+    const newRole = siapeNumber ? determineRoleFromSiape(siapeNumber) : 'EMPLOYEE'
+    console.log(`🔍 [COMPLETE-PROFILE] SIAPE ${siapeNumber || 'N/A'} -> Role: ${newRole}`)
 
     // Validações específicas para funcionários (não para ADMIN/SUPERVISOR)
     if (newRole === 'EMPLOYEE') {
@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validar formato da matrícula SIAPE
-    if (!/^\d{7}$/.test(siapeNumber)) {
+    // Validar formato da matrícula SIAPE (apenas se fornecida)
+    if (siapeNumber && !/^\d{7}$/.test(siapeNumber)) {
       return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
     }
 

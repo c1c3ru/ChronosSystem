@@ -34,6 +34,7 @@ interface ProfileData {
   contractStartDate?: string
   contractEndDate?: string
   siapeNumber?: string
+  hasSiape?: boolean
   contractType?: string
   weeklyHours?: number
 }
@@ -167,11 +168,13 @@ export default function CompleteProfilePage() {
       newErrors.department = 'Departamento é obrigatório para funcionários'
     }
 
-    // Validar matrícula SIAPE (obrigatória para todos)
-    if (!profileData.siapeNumber) {
-      newErrors.siapeNumber = 'Matrícula SIAPE é obrigatória'
-    } else if (!/^\d{7}$/.test(profileData.siapeNumber)) {
-      newErrors.siapeNumber = 'Matrícula SIAPE deve ter exatamente 7 dígitos'
+    // Validar matrícula SIAPE (apenas se hasSiape for true)
+    if (profileData.hasSiape) {
+      if (!profileData.siapeNumber) {
+        newErrors.siapeNumber = 'Matrícula SIAPE é obrigatória quando selecionada'
+      } else if (!/^\d{7}$/.test(profileData.siapeNumber)) {
+        newErrors.siapeNumber = 'Matrícula SIAPE deve ter exatamente 7 dígitos'
+      }
     }
 
     // Validar tipo de contrato e carga horária (apenas para funcionários)
@@ -536,43 +539,71 @@ export default function CompleteProfilePage() {
                 </div>
               </div>
 
-              {/* Matrícula SIAPE - Obrigatória para todos */}
+              {/* Informações Institucionais */}
               <div>
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Institucionais</h3>
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Matrícula SIAPE *
-                    </label>
+                
+                {/* Toggle para SIAPE */}
+                <div className="mb-4">
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
-                      type="text"
-                      placeholder="1234567"
-                      className={`input ${errors.siapeNumber ? 'border-error' : ''}`}
-                      value={profileData.siapeNumber || ''}
+                      type="checkbox"
+                      checked={profileData.hasSiape || false}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 7)
-                        setProfileData(prev => ({ ...prev, siapeNumber: value }))
+                        setProfileData(prev => ({ 
+                          ...prev, 
+                          hasSiape: e.target.checked,
+                          siapeNumber: e.target.checked ? prev.siapeNumber : ''
+                        }))
                       }}
-                      maxLength={7}
+                      className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 rounded focus:ring-primary"
                     />
-                    {errors.siapeNumber && <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>}
-                    <p className="text-neutral-400 text-xs mt-1">
-                      Sua matrícula SIAPE determinará automaticamente seu nível de acesso no sistema
-                    </p>
-                    {profileData.siapeNumber && profileData.siapeNumber.length === 7 && (
-                      <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
-                        <p className="text-xs text-neutral-300">
-                          <span className="font-medium">Nível de acesso detectado:</span>{' '}
-                          <span className={`font-semibold ${
-                            determineRoleFromSiape(profileData.siapeNumber) === 'ADMIN' ? 'text-red-400' : 'text-blue-400'
-                          }`}>
-                            {determineRoleFromSiape(profileData.siapeNumber)}
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                    <span className="text-sm font-medium text-neutral-300">
+                      Possuo matrícula SIAPE (servidor público)
+                    </span>
+                  </label>
+                  <p className="text-neutral-400 text-xs mt-1 ml-7">
+                    Marque esta opção se você é servidor público federal com matrícula SIAPE
+                  </p>
                 </div>
+
+                {/* Campo SIAPE - apenas se selecionado */}
+                {profileData.hasSiape && (
+                  <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        Matrícula SIAPE *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="1234567"
+                        className={`input ${errors.siapeNumber ? 'border-error' : ''}`}
+                        value={profileData.siapeNumber || ''}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 7)
+                          setProfileData(prev => ({ ...prev, siapeNumber: value }))
+                        }}
+                        maxLength={7}
+                      />
+                      {errors.siapeNumber && <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>}
+                      <p className="text-neutral-400 text-xs mt-1">
+                        Sua matrícula SIAPE determinará automaticamente seu nível de acesso no sistema
+                      </p>
+                      {profileData.siapeNumber && profileData.siapeNumber.length === 7 && (
+                        <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
+                          <p className="text-xs text-neutral-300">
+                            <span className="font-medium">Nível de acesso detectado:</span>{' '}
+                            <span className={`font-semibold ${
+                              determineRoleFromSiape(profileData.siapeNumber) === 'ADMIN' ? 'text-red-400' : 'text-blue-400'
+                            }`}>
+                              {determineRoleFromSiape(profileData.siapeNumber)}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Informações Profissionais - Apenas para funcionários após determinar role pelo SIAPE */}

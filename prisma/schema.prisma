@@ -63,6 +63,8 @@ model User {
   
   // Campos para controle de carga horária
   contractType      String       @default("ESTAGIO_20H") // ESTAGIO_12H, ESTAGIO_20H, ESTAGIO_30H, ESTAGIO_36H, EMPREGO_40H, EMPREGO_44H, CUSTOM
+  contractStartDate DateTime?    // Data de início do contrato
+  contractEndDate   DateTime?    // Data de fim do contrato
   weeklyHours       Int          @default(20) // Horas semanais do contrato
   dailyHours        Int          @default(4)  // Horas diárias do contrato
   hourBalance       Float        @default(0)  // Saldo de horas (positivo ou negativo)
@@ -78,6 +80,7 @@ model User {
   reviewedJustifications Justification[] @relation("JustificationReviewer")
   qrEvents          QrEvent[]
   hourBalances      HourBalance[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model VerificationToken {
@@ -86,6 +89,21 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  used      Boolean  @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId])
 }
 
 model Machine {
