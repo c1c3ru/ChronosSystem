@@ -18,7 +18,8 @@ import {
   X,
   CheckCircle,
   Home,
-  Timer
+  Timer,
+  Lock
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -736,6 +737,29 @@ export default function EmployeePage() {
                   <Button variant="secondary" className="w-full mt-auto">
                     Ver Histórico
                   </Button>
+                </CardContent>
+              </Card>
+
+              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+                <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
+                  <div className="bg-neutral-700/40 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Lock className="h-10 w-10 text-primary" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
+                    Senha e segurança
+                  </h3>
+                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
+                    Altere sua senha com segurança sempre que precisar.
+                  </p>
+                  <div className="flex-1"></div>
+                  <Button asChild variant="secondary" className="w-full mt-auto">
+                    <Link href="/auth/change-password">
+                      Alterar senha
+                    </Link>
+                  </Button>
+                  <p className="text-[11px] text-neutral-500 text-center mt-3">
+                    Se esquecer a senha e não conseguir acessar, use a opção "Esqueci minha senha" na tela de login.
+                  </p>
                 </CardContent>
               </Card>
 

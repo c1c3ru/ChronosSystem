@@ -13,6 +13,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isResetLoading, setIsResetLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [googleError, setGoogleError] = useState<string | null>(null)
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
@@ -66,6 +67,41 @@ export default function SignInPage() {
       toast.error('Erro ao fazer login')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error('Informe seu email para solicitar a redefinição de senha')
+      return
+    }
+
+    try {
+      setIsResetLoading(true)
+
+      const response = await fetch('/api/auth/request-password-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(
+          data.message ||
+          'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.'
+        )
+      } else {
+        toast.error(data.error || 'Erro ao solicitar redefinição de senha')
+      }
+    } catch (error) {
+      console.error('Erro ao solicitar reset de senha:', error)
+      toast.error('Erro ao solicitar redefinição de senha')
+    } finally {
+      setIsResetLoading(false)
     }
   }
 
@@ -244,6 +280,15 @@ export default function SignInPage() {
                 </button>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={isResetLoading}
+              className="text-xs text-slate-400 text-right mt-1 hover:text-slate-200 disabled:opacity-50 w-full"
+            >
+              {isResetLoading ? 'Enviando link de redefinição...' : 'Esqueci minha senha'}
+            </button>
 
             {/* Submit Button */}
             <button
