@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
+import { toast } from 'sonner'
 
 interface MachineData {
   name: string
@@ -75,6 +76,7 @@ export default function NewMachinePage() {
 
     try {
       setLoading(true)
+      console.log('📝 Enviando máquina:', machineData)
       
       const response = await fetch('/api/machines', {
         method: 'POST',
@@ -84,14 +86,26 @@ export default function NewMachinePage() {
         body: JSON.stringify(machineData)
       })
 
+      console.log('📡 Resposta da API:', response.status, response.statusText)
+      const data = await response.json()
+      console.log('📦 Dados retornados:', data)
+
       if (response.ok) {
-        router.push('/admin/machines')
+        toast.success('Máquina criada com sucesso!')
+        setTimeout(() => {
+          router.push('/admin/machines')
+        }, 1000)
       } else {
-        const error = await response.json()
-        setErrors({ general: error.message || 'Erro ao criar máquina' })
+        const errorMessage = data.error || data.message || 'Erro ao criar máquina'
+        console.error('❌ Erro:', errorMessage)
+        setErrors({ general: errorMessage })
+        toast.error(errorMessage)
       }
     } catch (error) {
-      setErrors({ general: 'Erro interno. Tente novamente.' })
+      console.error('❌ Erro ao enviar:', error)
+      const errorMessage = 'Erro interno. Tente novamente.'
+      setErrors({ general: errorMessage })
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
