@@ -72,7 +72,7 @@ export default function SemesterReportPage() {
             <Button variant="primary" size="md">
               Salvar Rascunho
             </Button>
-            <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+            <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
               Imprimir
             </Button>
           </div>
