@@ -28,7 +28,12 @@ export async function POST(request: NextRequest) {
       contractEndDate,
       siapeNumber,
       contractType,
-      weeklyHours
+      weeklyHours,
+      shift,
+      shiftStartTime,
+      shiftEndTime,
+      workingDaysPerWeek,
+      allowFlexibleHours
     } = await request.json()
 
     // Validações básicas
@@ -77,6 +82,12 @@ export async function POST(request: NextRequest) {
         weeklyHours: newRole === 'EMPLOYEE' ? (weeklyHours || 20) : 40, // Padrão para ADMINs
         dailyHours: newRole === 'EMPLOYEE' ? 
           (weeklyHours ? Math.round((weeklyHours / 5) * 10) / 10 : 4) : 8, // Padrão para ADMINs
+        // Campos de turno
+        shift: shift || 'MORNING',
+        shiftStartTime: shiftStartTime || '08:00',
+        shiftEndTime: shiftEndTime || '12:00',
+        workingDaysPerWeek: workingDaysPerWeek || 5,
+        allowFlexibleHours: allowFlexibleHours || false,
         role: newRole, // Atualizar role baseado no SIAPE
         profileComplete: true,
         updatedAt: new Date()

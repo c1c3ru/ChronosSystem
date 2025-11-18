@@ -37,6 +37,11 @@ interface ProfileData {
   hasSiape?: boolean
   contractType?: string
   weeklyHours?: number
+  shift?: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'
+  shiftStartTime?: string
+  shiftEndTime?: string
+  workingDaysPerWeek?: number
+  allowFlexibleHours?: boolean
 }
 
 export default function CompleteProfilePage() {
