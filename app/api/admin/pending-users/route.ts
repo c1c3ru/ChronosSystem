@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // Extrair emails únicos das tentativas
     const emailsFromLogs = unauthorizedAttempts
-      .map(log => {
+      .map((log: any) => {
         if (!log.details) return null
         const match = log.details.match(/não autorizada: (.+)$/)
         return match ? match[1] : null
