@@ -261,7 +261,7 @@ export default function KioskPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Chronos Kiosk</h1>
-              {machines.length > 1 ? (
+              {machines.length > 0 ? (
                 <select
                   value={selectedMachineId}
                   onChange={(e) => handleMachineChange(e.target.value)}
@@ -276,7 +276,7 @@ export default function KioskPage() {
               ) : (
                 <div className="flex items-center text-neutral-400 mt-1">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {machineInfo.name} - {machineInfo.location}
+                  Nenhuma máquina disponível
                 </div>
               )}
             </div>
