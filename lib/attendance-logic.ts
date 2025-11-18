@@ -3,6 +3,8 @@
  * Considera horários de trabalho, contexto temporal e regras de negócio
  */
 
+import { prisma } from '@/lib/prisma'
+
 interface WorkingHours {
   start: string // "08:00"
   end: string   // "17:00"
@@ -281,11 +283,31 @@ export function isWeekend(date: Date): boolean {
 }
 
 /**
- * Obtém horários de trabalho do usuário (futura implementação)
+ * Obtém horários de trabalho do usuário do banco de dados
  */
 export async function getUserWorkingHours(userId: string): Promise<WorkingHours> {
-  // TODO: Buscar do banco de dados baseado no usuário/departamento
-  // Por enquanto, retorna padrão IFCE
+  try {
+    const user = await (prisma as any).user.findUnique({
+      where: { id: userId },
+      select: {
+        shiftStartTime: true,
+        shiftEndTime: true
+      }
+    })
+
+    if (user && user.shiftStartTime && user.shiftEndTime) {
+      return {
+        start: user.shiftStartTime,
+        end: user.shiftEndTime,
+        lunchStart: DEFAULT_WORKING_HOURS.lunchStart,
+        lunchEnd: DEFAULT_WORKING_HOURS.lunchEnd
+      }
+    }
+  } catch (error) {
+    console.warn('Erro ao buscar horários do usuário, usando padrão:', error)
+  }
+
+  // Fallback para padrão IFCE
   return DEFAULT_WORKING_HOURS
 }
 

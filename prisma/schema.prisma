@@ -69,6 +69,13 @@ model User {
   dailyHours        Int          @default(4)  // Horas diárias do contrato
   hourBalance       Float        @default(0)  // Saldo de horas (positivo ou negativo)
   
+  // Campos para controle de turno e horários
+  shift             String       @default("MORNING") // MORNING (manhã), AFTERNOON (tarde), NIGHT (noite), HYBRID (híbrido)
+  shiftStartTime    String       @default("08:00") // Horário de início do turno (HH:MM)
+  shiftEndTime      String       @default("12:00") // Horário de fim do turno (HH:MM)
+  workingDaysPerWeek Int         @default(5) // Dias de trabalho por semana (para cálculo de horas diárias)
+  allowFlexibleHours Boolean     @default(false) // Permite horas flexíveis?
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
