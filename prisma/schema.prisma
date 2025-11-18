@@ -88,6 +88,7 @@ model User {
   qrEvents          QrEvent[]
   hourBalances      HourBalance[]
   passwordResetTokens PasswordResetToken[]
+  formDrafts        FormDraft[]
 }
 
 model VerificationToken {
@@ -222,6 +223,22 @@ model HourBalance {
   
   @@index([userId, date])
   @@index([date])
+}
+
+model FormDraft {
+  id            String   @id @default(cuid())
+  userId        String
+  formType      String   // "final-report", "monthly-report", "internship-registration", etc
+  formData      Json     // Dados do formulário em JSON
+  status        String   @default("DRAFT") // "DRAFT", "SUBMITTED"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, formType])
+  @@index([userId, formType])
+  @@index([status])
 }
 
 // Roles: "ADMIN", "SUPERVISOR", "EMPLOYEE"
