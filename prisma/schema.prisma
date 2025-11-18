@@ -142,6 +142,9 @@ model AttendanceRecord {
   // Hash para integridade
   hash      String
   prevHash  String?
+  
+  // Justificativa para saída antecipada
+  justification String?
 
   user    User    @relation(fields: [userId], references: [id])
   machine Machine @relation(fields: [machineId], references: [id])

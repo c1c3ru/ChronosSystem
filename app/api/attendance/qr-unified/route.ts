@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       }, { status: 401 })
     }
 
-    const { qrData, location } = await request.json()
+    const { qrData, location, justification } = await request.json()
 
     if (!qrData) {
       return NextResponse.json({ 
@@ -337,7 +337,8 @@ export async function POST(request: NextRequest) {
         hash: recordHash,
         prevHash: lastRecord?.hash,
         latitude: location?.latitude,
-        longitude: location?.longitude
+        longitude: location?.longitude,
+        justification: justification || null // Adicionar justificativa se fornecida
       },
       include: {
         machine: {

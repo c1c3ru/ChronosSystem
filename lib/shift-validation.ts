@@ -27,6 +27,8 @@ interface ShiftValidationResult {
   allowedExitWindow: { start: string; end: string }
   warnings: string[]
   suggestions: string[]
+  requiresJustification?: boolean // Se saída antecipada requer justificativa
+  justificationReason?: string // Motivo da justificativa necessária
 }
 
 // Horários padrão do setor de informática
@@ -210,6 +212,22 @@ export function validateExitTime(
 
   const warnings: string[] = []
   const suggestions: string[] = []
+  let requiresJustification = false
+  let justificationReason = ''
+
+  // Converter horário de saída esperado para minutos
+  const [expectedEndHour, expectedEndMin] = config.shiftEndTime.split(':').map(Number)
+  const expectedEndMinutes = expectedEndHour * 60 + expectedEndMin
+  const actualExitMinutes = exitTime.getHours() * 60 + exitTime.getMinutes()
+  const minutesEarly = expectedEndMinutes - actualExitMinutes
+
+  // Verificar se saiu mais de 10 minutos antes do horário esperado
+  if (minutesEarly > 10) {
+    requiresJustification = true
+    justificationReason = `Saída ${minutesEarly} minutos antes do horário esperado (${config.shiftEndTime}). Justificativa obrigatória.`
+    warnings.push(`Saída antecipada: ${minutesEarly} minutos antes do esperado`)
+    suggestions.push(`Adicione uma justificativa para a saída antecipada`)
+  }
 
   // Verificar se trabalhou menos do que o esperado
   if (workedHours < expectedDailyHours - tolerance) {
@@ -240,7 +258,9 @@ export function validateExitTime(
     allowedEntryWindow,
     allowedExitWindow,
     warnings,
-    suggestions
+    suggestions,
+    requiresJustification,
+    justificationReason
   }
 }
 
