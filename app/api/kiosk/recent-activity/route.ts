@@ -38,7 +38,7 @@ export async function GET() {
     })
 
     // Formatar dados para o frontend
-    const formattedActivity = recentActivity.map(record => ({
+    const formattedActivity = recentActivity.map((record: any) => ({
       id: record.id,
       user: record.user.name || record.user.email.split('@')[0], // Nome ou primeira parte do email
       type: record.type,

@@ -103,8 +103,8 @@ export async function GET(request: NextRequest) {
     // Agrupar registros por dia e analisar
     const recordsByDay = groupRecordsByDay(recentRecords)
     const analyzedDays = recordsByDay
-      .map(dayRecords => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
-      .filter(day => day !== null) // Remover dias inválidos
+      .map((dayRecords: any) => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
+      .filter((day: any) => day !== null) // Remover dias inválidos
 
     // Contar justificativas pendentes
     const pendingJustifications = await prisma.justification.count({

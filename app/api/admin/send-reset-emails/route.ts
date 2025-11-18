@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
       last7Days: emailLogs.filter(log => 
         log.timestamp >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       ).length,
-      recentLogs: emailLogs.slice(0, 10).map(log => ({
+      recentLogs: emailLogs.slice(0, 10).map((log: any) => ({
         id: log.id,
         timestamp: log.timestamp,
         details: log.details,

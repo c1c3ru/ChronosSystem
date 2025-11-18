@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      justifications: justifications.map(j => ({
+      justifications: justifications.map((j: any) => ({
         id: j.id,
         type: j.type,
         date: j.date.toLocaleDateString('pt-BR'),

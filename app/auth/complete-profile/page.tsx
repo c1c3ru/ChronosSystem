@@ -705,7 +705,7 @@ export default function CompleteProfilePage() {
                           }}
                         >
                           <option value="">Selecione o tipo de contrato</option>
-                          {CONTRACT_TYPES.filter(type => type.id !== 'CUSTOM').map(type => (
+                          {CONTRACT_TYPES.filter((type: any) => type.id !== 'CUSTOM').map((type: any) => (
                             <option key={type.id} value={type.id}>
                               {type.name} - {formatHours(type.dailyHours)}/dia
                             </option>

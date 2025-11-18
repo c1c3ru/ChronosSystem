@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Formatar dados para o frontend
-    const activity = recentRecords.map(record => ({
+    const activity = recentRecords.map((record: any) => ({
       id: record.id,
       user: record.user.name || record.user.email,
       action: record.type === 'ENTRY' ? 'registrou entrada' : 'registrou saída',

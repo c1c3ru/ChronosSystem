@@ -97,7 +97,7 @@ function generateCSVReport(records: any[], users: any[], period: number) {
   ]
 
   // Dados do CSV
-  const csvData = records.map(record => [
+  const csvData = records.map((record: any) => [
     new Date(record.timestamp).toLocaleString('pt-BR'),
     record.user?.name || 'N/A',
     record.user?.email || 'N/A',
@@ -110,7 +110,7 @@ function generateCSVReport(records: any[], users: any[], period: number) {
   // Construir CSV
   const csvContent = [
     headers.join(','),
-    ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+    ...csvData.map((row: any) => row.map((cell: any) => `"${cell}"`).join(','))
   ].join('\n')
 
   // Adicionar BOM para UTF-8

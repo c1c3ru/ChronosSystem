@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
         } : null,
         todayHours
       },
-      recentRecords: recentRecords.map(record => ({
+      recentRecords: recentRecords.map((record: any) => ({
         id: record.id,
         timestamp: record.timestamp,
         type: record.type,

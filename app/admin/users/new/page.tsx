@@ -684,7 +684,7 @@ export default function NewUserPage() {
                           onChange={(e) => setUserData(prev => ({ ...prev, contractType: e.target.value }))}
                         >
                           <option value="">Selecione o tipo</option>
-                          {CONTRACT_TYPES.map(type => (
+                          {CONTRACT_TYPES.map((type: any) => (
                             <option key={type.id} value={type.id}>
                               {type.name}
                             </option>
