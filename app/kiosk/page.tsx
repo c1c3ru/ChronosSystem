@@ -13,6 +13,13 @@ interface QRData {
   validFor: number
 }
 
+interface Machine {
+  id: string
+  name: string
+  location: string
+  isActive: boolean
+}
+
 export default function KioskPage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
@@ -20,11 +27,38 @@ export default function KioskPage() {
   const [isOnline, setIsOnline] = useState(true)
   const [timeLeft, setTimeLeft] = useState(0)
   const [recentScans, setRecentScans] = useState<any[]>([])
-  const [machineInfo] = useState({
+  const [machines, setMachines] = useState<Machine[]>([])
+  const [selectedMachineId, setSelectedMachineId] = useState<string>('')
+  const [machineInfo, setMachineInfo] = useState({
     name: 'Terminal Principal',
     location: 'Recepção - Térreo',
     id: 'cm123456789' // ID real da máquina
   })
+
+  // Carregar máquinas disponíveis
+  useEffect(() => {
+    const fetchMachines = async () => {
+      try {
+        const response = await fetch('/api/machines')
+        if (response.ok) {
+          const data = await response.json()
+          setMachines(data.machines || [])
+          if (data.machines && data.machines.length > 0) {
+            setSelectedMachineId(data.machines[0].id)
+            setMachineInfo({
+              id: data.machines[0].id,
+              name: data.machines[0].name,
+              location: data.machines[0].location
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar máquinas:', error)
+      }
+    }
+    
+    fetchMachines()
+  }, [])
 
   // Atualizar relógio a cada segundo (apenas no cliente)
   useEffect(() => {
@@ -108,6 +142,19 @@ export default function KioskPage() {
       setTimeLeft(60) // 60 segundos
     } catch (error) {
       console.error('Erro ao gerar QR de fallback:', error)
+    }
+  }
+
+  // Função para mudar de máquina
+  const handleMachineChange = (machineId: string) => {
+    const selected = machines.find(m => m.id === machineId)
+    if (selected) {
+      setSelectedMachineId(machineId)
+      setMachineInfo({
+        id: selected.id,
+        name: selected.name,
+        location: selected.location
+      })
     }
   }
 
@@ -208,10 +255,24 @@ export default function KioskPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Chronos Kiosk</h1>
-              <div className="flex items-center text-neutral-400 mt-1">
-                <MapPin className="h-4 w-4 mr-1" />
-                {machineInfo.name} - {machineInfo.location}
-              </div>
+              {machines.length > 1 ? (
+                <select
+                  value={selectedMachineId}
+                  onChange={(e) => handleMachineChange(e.target.value)}
+                  className="mt-2 px-3 py-1 bg-neutral-700/50 border border-neutral-600 rounded-lg text-sm text-neutral-300 hover:bg-neutral-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {machines.map((machine) => (
+                    <option key={machine.id} value={machine.id}>
+                      {machine.name} - {machine.location}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="flex items-center text-neutral-400 mt-1">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {machineInfo.name} - {machineInfo.location}
+                </div>
+              )}
             </div>
           </div>
           
