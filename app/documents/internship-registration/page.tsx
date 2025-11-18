@@ -3,6 +3,8 @@
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export default function InternshipRegistrationPage() {
   return (
@@ -128,12 +130,12 @@ export default function InternshipRegistrationPage() {
             </div>
 
             <div className="flex gap-4 pt-6">
-              <button type="submit" className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 font-semibold text-sm transition-colors">
+              <Button type="submit" variant="primary" size="md" className="flex-1">
                 Salvar Rascunho
-              </button>
-              <button type="button" onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-semibold text-sm transition-colors">
+              </Button>
+              <Button type="button" variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
                 Imprimir
-              </button>
+              </Button>
             </div>
           </form>
         </div>

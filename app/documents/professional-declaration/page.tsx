@@ -3,11 +3,13 @@
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export default function ProfessionalDeclarationPage() {
   return (
-    <div className="bg-white p-12 max-w-[210mm] mx-auto min-h-screen">
-      <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
+    <div className="bg-card p-12 max-w-[210mm] mx-auto min-h-screen">
+      <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Voltar
       </Link>
@@ -56,12 +58,12 @@ export default function ProfessionalDeclarationPage() {
       </div>
 
       <div className="flex gap-4 pt-6 mt-6">
-        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+        <Button variant="primary" size="md">
           Salvar Rascunho
-        </button>
+        </Button>
         <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
           Imprimir
-        </button>
+        </Button>
       </div>
     </div>
   )

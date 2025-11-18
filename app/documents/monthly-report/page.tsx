@@ -2,18 +2,20 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { FormHeader } from '@/components/FormHeader'
+import { FormHeader }
+import { Button }
+import { Card } from '@/components/FormHeader'
 
 export default function MonthlyReportPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+        <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg text-sm text-gray-800">
+        <div className="bg-card p-8 shadow-lg border-t-4 border-primary-500 rounded-lg text-sm text-foreground">
         <FormHeader 
           title="Relatório Mensal de Atividades"
           showImages={true}
@@ -35,7 +37,7 @@ export default function MonthlyReportPage() {
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded border border-gray-200 grid grid-cols-2 gap-6 text-sm">
+          <div className="bg-background p-4 rounded border border-gray-200 grid grid-cols-2 gap-6 text-sm">
             <div>
               <p className="font-bold mb-2 text-gray-700">Período</p>
               <div className="flex gap-2">
@@ -84,12 +86,12 @@ export default function MonthlyReportPage() {
           </div>
 
           <div className="flex gap-4 pt-6">
-            <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+            <Button variant="primary" size="md">
               Salvar Rascunho
-            </button>
+            </Button>
             <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
               Imprimir
-            </button>
+            </Button>
           </div>
         </form>
         </div>

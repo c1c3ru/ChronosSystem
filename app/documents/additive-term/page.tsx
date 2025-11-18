@@ -2,24 +2,26 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { FormHeader } from '@/components/FormHeader'
+import { FormHeader }
+import { Button }
+import { Card } from '@/components/FormHeader'
 
 export default function AdditiveTermPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+        <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div className="bg-white p-8 shadow-lg border-t-4 border-blue-800 rounded-lg">
+        <div className="bg-card p-8 shadow-lg border-t-4 border-blue-800 rounded-lg">
         <FormHeader 
           title="Termo Aditivo a Compromisso de Estágio"
           showImages={true}
         />
         
-          <div className="mb-6 p-4 border border-gray-300 rounded-lg bg-gray-50">
+          <div className="mb-6 p-4 border border-gray-300 rounded-lg bg-background">
             <p className="text-sm font-bold text-gray-900 mb-3">Partes:</p>
           <div className="grid grid-cols-1 gap-2">
               <input type="text" className="text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Instituição Concedente (Empresa)" />
@@ -83,12 +85,12 @@ export default function AdditiveTermPage() {
         </div>
 
         <div className="flex gap-4 pt-6 mt-6">
-          <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+          <Button variant="primary" size="md">
             Salvar Rascunho
-          </button>
+          </Button>
           <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
             Imprimir
-          </button>
+          </Button>
         </div>
         </div>
       </div>

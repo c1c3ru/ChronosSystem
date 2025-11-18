@@ -3,16 +3,18 @@
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export default function SemesterReportPage() {
   return (
-    <div className="bg-gray-50 p-8 text-sm min-h-screen">
-      <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
+    <div className="bg-background p-8 text-sm min-h-screen">
+      <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Voltar
       </Link>
 
-      <div className="max-w-3xl mx-auto bg-white p-8 shadow border-t-4 border-green-600">
+      <div className="max-w-3xl mx-auto bg-card p-8 shadow border-t-4 border-primary-500">
         <FormHeader 
           title="Relatório Semestral de Atividades"
           showImages={true}
@@ -36,7 +38,7 @@ export default function SemesterReportPage() {
             <h3 className="font-bold text-center mb-4 uppercase">Avaliação do Discente</h3>
             <p className="text-xs text-center mb-2 italic">Conceitos: 1-Insatisfatório, 2-Pouco Satisfatório, 3-Satisfatório, 4-Muito Satisfatório</p>
             
-            <table className="w-full text-left bg-white border">
+            <table className="w-full text-left bg-card border">
               <thead className="bg-gray-200">
                 <tr>
                   <th className="p-2 border">Critério</th>
@@ -67,12 +69,12 @@ export default function SemesterReportPage() {
           </div>
 
           <div className="flex gap-4 pt-6">
-            <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+            <Button variant="primary" size="md">
               Salvar Rascunho
-            </button>
+            </Button>
             <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
               Imprimir
-            </button>
+            </Button>
           </div>
         </form>
       </div>

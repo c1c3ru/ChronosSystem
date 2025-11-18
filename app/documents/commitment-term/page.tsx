@@ -2,30 +2,32 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { FormHeader } from '@/components/FormHeader'
+import { FormHeader }
+import { Button }
+import { Card } from '@/components/FormHeader'
 
 export default function CommitmentTermPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+        <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg text-sm text-gray-800">
+        <div className="bg-card p-8 shadow-lg border-t-4 border-primary-500 rounded-lg text-sm text-foreground">
 
       <FormHeader 
         title="TERMO DE COMPROMISSO DE ESTÁGIO"
         showImages={true}
       />
 
-          <p className="mb-4 text-sm text-gray-800">
+          <p className="mb-4 text-sm text-foreground">
             Nos termos da Lei nº 11.788, de 25/09/2008, celebram entre si este Termo:
           </p>
 
-          <div className="space-y-4 mb-6 border border-gray-300 p-4 rounded-lg bg-gray-50">
-            <div className="text-sm text-gray-800">
+          <div className="space-y-4 mb-6 border border-gray-300 p-4 rounded-lg bg-background">
+            <div className="text-sm text-foreground">
               <span className="font-bold text-gray-900">INSTITUIÇÃO DE ENSINO:</span> IFCE Campus Maracanaú<br />
               <span className="font-bold text-gray-900">CNPJ:</span> 10.744.098/0009-00
             </div>
@@ -42,13 +44,13 @@ export default function CommitmentTermPage() {
           </div>
 
           <h2 className="text-base font-bold text-gray-900 uppercase mt-6 mb-3">Cláusula Primeira – Do Objeto e Vigência</h2>
-          <p className="text-sm text-gray-800 mb-4">
+          <p className="text-sm text-foreground mb-4">
             O estágio será <strong>OBRIGATÓRIO</strong>, realizado de forma <input type="text" className="text-sm border-b border-black w-32 text-center bg-transparent focus:outline-none" placeholder="Presencial/Remoto" />.
             Vigência de <input type="date" className="text-sm border-b border-black bg-transparent focus:outline-none" /> a <input type="date" className="text-sm border-b border-black bg-transparent focus:outline-none" />.
           </p>
 
           <h2 className="text-base font-bold text-gray-900 uppercase mt-6 mb-3">Cláusula Quinta – Do Seguro e Bolsa</h2>
-          <p className="text-sm text-gray-800">
+          <p className="text-sm text-foreground">
             Apólice de Seguro Nº <input type="text" className="text-sm border-b border-black w-32 bg-transparent focus:outline-none" /> da Seguradora <input type="text" className="text-sm border-b border-black w-40 bg-transparent focus:outline-none" />.
           </p>
       <p className="mt-2">
@@ -78,12 +80,12 @@ export default function CommitmentTermPage() {
       </div>
 
       <div className="flex gap-4 pt-6 mt-6">
-        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+        <Button variant="primary" size="md">
           Salvar Rascunho
-        </button>
+        </Button>
         <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
           Imprimir
-        </button>
+        </Button>
       </div>
         </div>
       </div>
