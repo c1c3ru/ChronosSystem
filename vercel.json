@@ -15,7 +15,8 @@
   },
   "build": {
     "env": {
-      "NEXT_TELEMETRY_DISABLED": "1"
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING": "1"
     }
   },
   "headers": [
