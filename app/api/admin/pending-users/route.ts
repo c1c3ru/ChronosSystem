@@ -46,12 +46,12 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const existingEmails = existingUsers.map(user => user.email)
-    const pendingEmails = uniqueEmails.filter(email => !existingEmails.includes(email))
+    const existingEmails = existingUsers.map((user: any) => user.email)
+    const pendingEmails = uniqueEmails.filter((email: any) => !existingEmails.includes(email))
 
     // Agrupar tentativas por email
-    const pendingUsers = pendingEmails.map(email => {
-      const attempts = unauthorizedAttempts.filter(log => 
+    const pendingUsers = pendingEmails.map((email: any) => {
+      const attempts = unauthorizedAttempts.filter((log: any) => 
         log.details && log.details.includes(email)
       )
       
