@@ -395,7 +395,7 @@ export async function POST(request: NextRequest) {
 
     // Resposta unificada
     const typeLabel = recordType === 'ENTRY' ? 'Entrada' : 'Saída'
-    const typeEmoji = recordType === 'ENTRY' ? '🟢 ENTRADA' : '🔴 SAÍDA'
+    const typeIcon = recordType === 'ENTRY' ? 'login' : 'logout'
     
     return NextResponse.json({
       success: true,
@@ -403,7 +403,7 @@ export async function POST(request: NextRequest) {
         id: attendanceRecord.id,
         type: recordType,
         typeLabel: typeLabel,
-        typeEmoji: typeEmoji,
+        typeIcon: typeIcon,
         timestamp: attendanceRecord.timestamp,
         time: recordTime,
         location: machine.location,
@@ -420,9 +420,9 @@ export async function POST(request: NextRequest) {
         name: machine.name,
         location: machine.location
       },
-      message: `${typeEmoji} registrada com sucesso às ${recordTime}!`,
-      smartMessage: `${typeEmoji} detectada: ${attendanceAnalysis.reason}`,
-      displayMessage: `${typeEmoji}\n${typeLabel} às ${recordTime}\nMáquina: ${machine.name}`
+      message: `${typeLabel} registrada com sucesso às ${recordTime}!`,
+      smartMessage: `${typeLabel} detectada: ${attendanceAnalysis.reason}`,
+      displayMessage: `${typeLabel} às ${recordTime}\nMáquina: ${machine.name}`
     })
 
   } catch (error: any) {

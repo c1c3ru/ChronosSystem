@@ -10,18 +10,28 @@ import {
   Camera, 
   History, 
   AlertTriangle, 
-  Calendar, 
-  MapPin, 
-  Play, 
-  Square,
-  Clock,
-  X,
-  CheckCircle,
-  Home,
+  AlertCircle, 
+  CheckCircle, 
+  Clock, 
+  Zap, 
+  TrendingUp, 
+  Shield, 
+  Settings, 
+  Bell, 
+  Menu, 
+  X, 
+  Eye, 
+  EyeOff, 
   Timer,
   Lock,
   FileText,
-  ChevronRight
+  ChevronRight,
+  LogIn,
+  Home,
+  MapPin,
+  Play,
+  Square,
+  Calendar
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -315,22 +325,19 @@ export default function EmployeePage() {
         
         // Mostrar feedback de sucesso imediatamente
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
-        const typeEmoji = result.record.typeEmoji || (result.record.type === 'ENTRY' ? '🟢 ENTRADA' : '🔴 SAÍDA')
         const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit'
         })
         
         // Mostrar informação inteligente se disponível
-        const qrTypeIcon = result.qrType === 'SECURE' ? '🔒' : 
-                          result.qrType === 'SIMPLE' ? '📝' : '📄'
         const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' : 
                               result.analysis?.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'
         
         // Criar mensagem com destaque visual claro
-        const displayMessage = `${typeEmoji}\n${recordTime}\n${result.record.machineName}`
+        const displayMessage = `${recordType}\n${recordTime}\n${result.record.machineName}`
         const smartInfo = result.analysis ? 
-          `${qrTypeIcon} ${result.smartMessage} (${confidenceText})` :
+          `${result.smartMessage} (${confidenceText})` :
           `${recordType} registrada às ${recordTime}`
           
         setQrResult(`✅ ${displayMessage}`)

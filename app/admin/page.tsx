@@ -19,7 +19,8 @@ import {
   TrendingUp,
   Activity,
   Trash2,
-  Filter
+  Filter,
+  LogIn
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -362,9 +363,17 @@ export default function AdminPage() {
                     filteredActivity.map((activity) => (
                       <div key={activity.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group">
                         <div className="flex items-center space-x-4 flex-1">
-                          <div className={`h-3 w-3 rounded-full flex-shrink-0 ${
-                            activity.type === 'ENTRY' ? 'bg-primary' : 'bg-warning'
-                          }`}></div>
+                          <div className={`p-2 rounded-lg flex-shrink-0 ${
+                            activity.type === 'ENTRY' 
+                              ? 'bg-primary/20 text-primary' 
+                              : 'bg-warning/20 text-warning'
+                          }`}>
+                            {activity.type === 'ENTRY' ? (
+                              <LogIn className="h-4 w-4" />
+                            ) : (
+                              <LogOut className="h-4 w-4" />
+                            )}
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-white text-sm truncate">
                               <span className="font-medium">{activity.user}</span> {activity.action}
