@@ -2,24 +2,29 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { FormHeader } from '@/components/FormHeader'
 
 export default function AdditiveTermPage() {
   return (
-    <div className="bg-gray-50 p-8 text-sm min-h-screen">
-      <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar
-      </Link>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-4xl mx-auto">
+        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
+        </Link>
 
-      <div className="max-w-4xl mx-auto bg-white p-8 shadow border-t-4 border-blue-800">
-        <h1 className="text-xl font-bold text-center mb-6 uppercase">Termo Aditivo a Compromisso de Estágio</h1>
+        <div className="bg-white p-8 shadow-lg border-t-4 border-blue-800 rounded-lg">
+        <FormHeader 
+          title="Termo Aditivo a Compromisso de Estágio"
+          showImages={true}
+        />
         
-        <div className="mb-6 p-4 border bg-gray-50">
-          <p className="font-bold mb-2">Partes:</p>
+          <div className="mb-6 p-4 border border-gray-300 rounded-lg bg-gray-50">
+            <p className="text-sm font-bold text-gray-900 mb-3">Partes:</p>
           <div className="grid grid-cols-1 gap-2">
-            <input type="text" className="border p-1 rounded" placeholder="Instituição Concedente (Empresa)" />
-            <input type="text" className="border p-1 rounded" placeholder="Nome do Estagiário" />
-            <input type="text" className="border p-1 rounded" placeholder="Termo de Compromisso Original (Data)" />
+              <input type="text" className="text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Instituição Concedente (Empresa)" />
+              <input type="text" className="text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nome do Estagiário" />
+              <input type="text" className="text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Termo de Compromisso Original (Data)" />
           </div>
         </div>
 
@@ -84,6 +89,7 @@ export default function AdditiveTermPage() {
           <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
             Imprimir
           </button>
+        </div>
         </div>
       </div>
     </div>

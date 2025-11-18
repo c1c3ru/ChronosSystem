@@ -68,14 +68,24 @@ export default function DetailedReportsPage() {
     }
   }, [session])
 
-  const loadDetailedRecords = async () => {
+  const loadDetailedRecords = async (page: number = 1) => {
     try {
       setLoading(true)
-      const response = await fetch('/api/attendance/detailed')
+      const params = new URLSearchParams()
+      params.append('page', page.toString())
+      params.append('limit', '50')
+      if (searchTerm) params.append('search', searchTerm)
+      if (dateFilter) params.append('date', dateFilter)
+      if (typeFilter !== 'ALL') params.append('type', typeFilter)
+      if (userFilter !== 'ALL') params.append('role', userFilter)
+
+      const response = await fetch(`/api/attendance/detailed-paginated?${params}`)
       
       if (response.ok) {
         const data = await response.json()
-        setRecords(data)
+        setRecords(data.data)
+        // Armazenar informações de paginação (você pode adicionar estado para isso)
+        console.log('Paginação:', data.pagination)
       }
     } catch (error) {
       console.error('Erro ao carregar registros detalhados:', error)
@@ -84,19 +94,8 @@ export default function DetailedReportsPage() {
     }
   }
 
-  const filteredRecords = records.filter(record => {
-    const matchesSearch = record.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.machine.name.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesDate = !dateFilter || 
-                       new Date(record.timestamp).toDateString() === new Date(dateFilter).toDateString()
-    
-    const matchesType = typeFilter === 'ALL' || record.type === typeFilter
-    const matchesUser = userFilter === 'ALL' || record.user.role === userFilter
-
-    return matchesSearch && matchesDate && matchesType && matchesUser
-  })
+  // Registros já vêm filtrados da API
+  const filteredRecords = records
 
   const getTypeColor = (type: string) => {
     return type === 'ENTRY' ? 'text-success bg-success/20' : 'text-error bg-error/20'

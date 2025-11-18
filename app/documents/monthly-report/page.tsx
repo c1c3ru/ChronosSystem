@@ -2,20 +2,22 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { FormHeader } from '@/components/FormHeader'
 
 export default function MonthlyReportPage() {
   return (
-    <div className="bg-gray-100 p-8 min-h-screen">
-      <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar
-      </Link>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-4xl mx-auto">
+        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
+        </Link>
 
-      <div className="max-w-3xl mx-auto bg-white p-8 shadow-md border-l-8 border-red-600">
-        <header className="text-center mb-6 border-b pb-4">
-          <h1 className="font-bold uppercase text-gray-800">IFCE Campus Maracanaú</h1>
-          <h2 className="text-xl font-bold text-red-600 mt-2 uppercase">Relatório Mensal de Atividades</h2>
-        </header>
+        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg text-sm text-gray-800">
+        <FormHeader 
+          title="Relatório Mensal de Atividades"
+          showImages={true}
+        />
 
         <form className="space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">

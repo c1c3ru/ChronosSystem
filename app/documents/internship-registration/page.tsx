@@ -2,78 +2,77 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { FormHeader } from '@/components/FormHeader'
 
 export default function InternshipRegistrationPage() {
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
+        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600">
-          <header className="text-center mb-6">
-            <h1 className="font-bold text-sm uppercase">Pró-Reitoria de Extensão</h1>
-            <h2 className="font-bold text-sm uppercase">Coordenação de Estágios e Acompanhamento de Egressos</h2>
-            <h3 className="text-sm">IFCE Campus Maracanaú</h3>
-            <h3 className="text-xl font-bold mt-4 text-green-600 uppercase">Solicitação de Cadastro no Estágio</h3>
-          </header>
+        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg">
+          <FormHeader 
+            title="Solicitação de Cadastro no Estágio"
+            showImages={true}
+          />
 
-          <form className="space-y-4 text-sm">
-            <fieldset className="border p-4 rounded">
-              <legend className="font-bold px-2 text-gray-700">Dados do Discente</legend>
+          <form className="space-y-4 text-sm text-gray-800">
+            <fieldset className="border border-gray-300 p-4 rounded-lg bg-gray-50">
+              <legend className="font-bold px-2 text-sm text-gray-700">Dados do Discente</legend>
               <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3"><label className="block font-semibold">Nome</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-1"><label className="block font-semibold">CPF</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-4"><label className="block font-semibold">Nome Social</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-3"><label className="block font-semibold">Curso</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-1"><label className="block font-semibold">Matrícula</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-4"><label className="block font-semibold">Endereço</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-2"><label className="block font-semibold">Bairro</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-1"><label className="block font-semibold">Município-UF</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-1"><label className="block font-semibold">CEP</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-1"><label className="block font-semibold">Telefone</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-3"><label className="block font-semibold">E-mail Institucional</label><input type="email" className="w-full border p-1 rounded" /></div>
+                <div className="col-span-3"><label className="block text-sm font-semibold text-gray-700 mb-1">Nome</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">CPF</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-4"><label className="block text-sm font-semibold text-gray-700 mb-1">Nome Social</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-3"><label className="block text-sm font-semibold text-gray-700 mb-1">Curso</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">Matrícula</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-4"><label className="block text-sm font-semibold text-gray-700 mb-1">Endereço</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-2"><label className="block text-sm font-semibold text-gray-700 mb-1">Bairro</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">Município-UF</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">CEP</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">Telefone</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-3"><label className="block text-sm font-semibold text-gray-700 mb-1">E-mail Institucional</label><input type="email" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
               </div>
             </fieldset>
 
-            <fieldset className="border p-4 rounded bg-gray-50">
+            <fieldset className="border border-gray-300 p-4 rounded-lg bg-gray-50">
               <div className="grid grid-cols-2 gap-8">
                 <div>
-                  <p className="font-bold mb-2">Cor/Raça</p>
+                  <p className="text-sm font-bold text-gray-900 mb-2">Cor/Raça</p>
                   <div className="space-y-1">
-                    <label className="flex items-center gap-2"><input type="radio" name="raca" /> Amarelo(a)</label>
-                    <label className="flex items-center gap-2"><input type="radio" name="raca" /> Branco(a)</label>
-                    <label className="flex items-center gap-2"><input type="radio" name="raca" /> Indígena</label>
-                    <label className="flex items-center gap-2"><input type="radio" name="raca" /> Pardo(a)</label>
-                    <label className="flex items-center gap-2"><input type="radio" name="raca" /> Preto(a)</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="radio" name="raca" /> Amarelo(a)</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="radio" name="raca" /> Branco(a)</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="radio" name="raca" /> Indígena</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="radio" name="raca" /> Pardo(a)</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="radio" name="raca" /> Preto(a)</label>
                   </div>
                 </div>
                 <div>
-                  <p className="font-bold mb-2">Pessoa com Deficiência</p>
+                  <p className="text-sm font-bold text-gray-900 mb-2">Pessoa com Deficiência</p>
                   <div className="space-y-1">
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Auditiva</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Visual</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Motora</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Intelectual</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="checkbox" /> Auditiva</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="checkbox" /> Visual</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="checkbox" /> Motora</label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800"><input type="checkbox" /> Intelectual</label>
                   </div>
                 </div>
               </div>
             </fieldset>
 
-            <fieldset className="border p-4 rounded">
-              <legend className="font-bold px-2 text-gray-700">Dados da Concedente</legend>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3"><label className="block font-semibold">Razão Social</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-1"><label className="block font-semibold">CNPJ</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-4"><label className="block font-semibold">Endereço Completo</label><input type="text" className="w-full border p-1 rounded" /></div>
-                <div className="col-span-4 border-t pt-2 mt-2">
-                  <p className="font-bold text-green-600 mb-2">Supervisor do Estágio</p>
+            <fieldset className="border border-gray-300 p-4 rounded-lg bg-gray-50">
+              <legend className="font-bold px-2 text-sm text-gray-700">Dados da Concedente</legend>
+              <div className="grid grid-cols-4 gap-4 mt-4">
+                <div className="col-span-3"><label className="block text-sm font-semibold text-gray-700 mb-1">Razão Social</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">CNPJ</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-4"><label className="block text-sm font-semibold text-gray-700 mb-1">Endereço Completo</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                <div className="col-span-4 border-t border-gray-300 pt-4 mt-4">
+                  <p className="text-sm font-bold text-green-700 mb-3">Supervisor do Estágio</p>
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="col-span-1"><label className="block font-semibold">Nome</label><input type="text" className="w-full border p-1 rounded" /></div>
-                    <div className="col-span-1"><label className="block font-semibold">Cargo</label><input type="text" className="w-full border p-1 rounded" /></div>
-                    <div className="col-span-1"><label className="block font-semibold">Telefone</label><input type="text" className="w-full border p-1 rounded" /></div>
+                    <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">Nome</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                    <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">Cargo</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+                    <div className="col-span-1"><label className="block text-sm font-semibold text-gray-700 mb-1">Telefone</label><input type="text" className="w-full text-sm border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
                   </div>
                 </div>
               </div>
@@ -123,16 +122,16 @@ export default function InternshipRegistrationPage() {
               </table>
             </fieldset>
 
-            <div className="flex justify-between pt-12 px-8 text-center">
-              <div className="border-t border-black w-1/3 pt-2">Assinatura do Discente</div>
-              <div className="border-t border-black w-1/3 pt-2">Assinatura do Orientador</div>
+            <div className="flex justify-between pt-12 px-8 text-center mt-8 border-t border-gray-300">
+              <div className="border-t border-black w-1/3 pt-2 text-xs text-gray-700">Assinatura do Discente</div>
+              <div className="border-t border-black w-1/3 pt-2 text-xs text-gray-700">Assinatura do Orientador</div>
             </div>
 
             <div className="flex gap-4 pt-6">
-              <button type="submit" className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+              <button type="submit" className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 font-semibold text-sm transition-colors">
                 Salvar Rascunho
               </button>
-              <button type="button" onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+              <button type="button" onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-semibold text-sm transition-colors">
                 Imprimir
               </button>
             </div>

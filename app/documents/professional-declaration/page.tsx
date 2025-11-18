@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { FormHeader } from '@/components/FormHeader'
 
 export default function ProfessionalDeclarationPage() {
   return (
@@ -11,7 +12,10 @@ export default function ProfessionalDeclarationPage() {
         Voltar
       </Link>
 
-      <h1 className="text-xl font-bold text-center mb-8 underline uppercase">Declaração de Atividades Profissionais</h1>
+      <FormHeader 
+        title="Declaração de Atividades Profissionais"
+        showImages={true}
+      />
       
       <p className="text-justify mb-6">
         Para fins de <strong>APROVEITAMENTO</strong> de atividades profissionais como estágio supervisionado obrigatório, a instituição abaixo declara os seguintes fatos:

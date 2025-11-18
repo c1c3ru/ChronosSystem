@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { FormHeader } from '@/components/FormHeader'
 
 export default function SemesterReportPage() {
   return (
@@ -12,10 +13,10 @@ export default function SemesterReportPage() {
       </Link>
 
       <div className="max-w-3xl mx-auto bg-white p-8 shadow border-t-4 border-green-600">
-        <header className="text-center mb-6 font-bold text-gray-800 uppercase">
-          <h1>Pró-Reitoria de Extensão - IFCE</h1>
-          <h2 className="text-xl mt-2 text-green-600">Relatório Semestral de Atividades</h2>
-        </header>
+        <FormHeader 
+          title="Relatório Semestral de Atividades"
+          showImages={true}
+        />
 
         <form className="space-y-4">
           <div className="grid grid-cols-2 gap-4 border p-4 rounded">

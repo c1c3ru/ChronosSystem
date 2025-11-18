@@ -856,17 +856,23 @@ export default function EmployeePage() {
             <>
               {/* Recent Records */}
               <Card variant="glass">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center text-white">
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    Registros Recentes
+                    Últimos 5 Dias
                   </CardTitle>
+                  <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                    <Link href="/employee/attendance-history" className="flex items-center">
+                      Ver todos
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
                 </CardHeader>
                 <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentRecords.length > 0 ? (
                     recentRecords.map((record) => (
-                      <div key={record.id} className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden">
+                      <div key={record.id} className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden border border-neutral-700/30">
                         {/* Alertas - se houver */}
                         {record.alerts && record.alerts.length > 0 && (
                           <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border-l-4 border-red-500 p-3">
@@ -893,49 +899,12 @@ export default function EmployeePage() {
                         )}
                         
                         {/* Conteúdo principal do registro */}
-                        <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="text-center min-w-[60px]">
-                              <p className="text-white font-medium">{record.date}</p>
-                            </div>
-                            <div className="h-8 w-px bg-neutral-600"></div>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-3">
                             <div>
-                              <div className="flex items-center space-x-4 text-sm">
-                                {record.entry && (
-                                  <div className="flex items-center space-x-1">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span className="text-green-400 font-medium">
-                                      Entrada: {record.entry}
-                                    </span>
-                                  </div>
-                                )}
-                                {record.exit && (
-                                  <>
-                                    <span className="text-neutral-500">•</span>
-                                    <div className="flex items-center space-x-1">
-                                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                      <span className="text-orange-400 font-medium">
-                                        Saída: {record.exit}
-                                      </span>
-                                    </div>
-                                  </>
-                                )}
-                                {!record.entry && record.status === 'Ausente' && (
-                                  <div className="flex items-center space-x-1">
-                                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                    <span className="text-red-400 font-medium">
-                                      Ausente
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-neutral-400 text-xs mt-1 flex items-center">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {record.location} • Total: {record.hours}
-                              </p>
+                              <p className="text-white font-semibold text-sm">{record.date}</p>
+                              <p className="text-neutral-400 text-xs">Total: {record.hours}</p>
                             </div>
-                          </div>
-                          <div className="text-right">
                             <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                               record.status === 'Completo' 
                                 ? 'bg-success/20 text-success border border-success/30'
@@ -948,6 +917,39 @@ export default function EmployeePage() {
                               {record.status}
                             </span>
                           </div>
+
+                          {/* Entradas e Saídas */}
+                          <div className="space-y-2">
+                            {record.entry && (
+                              <div className="flex items-center space-x-2 text-sm">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-green-400 font-medium">Entrada:</span>
+                                <span className="text-neutral-300">{record.entry}</span>
+                              </div>
+                            )}
+                            {record.exit && (
+                              <div className="flex items-center space-x-2 text-sm">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                <span className="text-orange-400 font-medium">Saída:</span>
+                                <span className="text-neutral-300">{record.exit}</span>
+                              </div>
+                            )}
+                            {!record.entry && record.status === 'Ausente' && (
+                              <div className="flex items-center space-x-2 text-sm">
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <span className="text-red-400 font-medium">Ausente</span>
+                              </div>
+                            )}
+                            {!record.entry && !record.exit && record.status !== 'Ausente' && (
+                              <p className="text-neutral-500 text-xs italic">Sem registros</p>
+                            )}
+                          </div>
+
+                          {/* Localização */}
+                          <p className="text-neutral-400 text-xs mt-2 flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {record.location}
+                          </p>
                         </div>
                       </div>
                     ))
@@ -960,12 +962,6 @@ export default function EmployeePage() {
                       <p className="text-neutral-500 text-sm">Seus registros de ponto aparecerão aqui</p>
                     </div>
                   )}
-                </div>
-                
-                <div className="mt-6 text-center">
-                  <Button variant="ghost" className="text-primary hover:text-primary/80">
-                    Ver todos os registros
-                  </Button>
                 </div>
                 </CardContent>
               </Card>

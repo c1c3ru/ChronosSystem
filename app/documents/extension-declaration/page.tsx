@@ -2,29 +2,33 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { FormHeader } from '@/components/FormHeader'
 
 export default function ExtensionDeclarationPage() {
   return (
-    <div className="bg-white p-12 max-w-[210mm] mx-auto border-2 border-gray-200 m-4 min-h-screen">
-      <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar
-      </Link>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-4xl mx-auto">
+        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
+        </Link>
 
-      <div className="text-center mb-8">
-        <h1 className="font-bold uppercase text-sm">Instituto Federal do Ceará</h1>
-        <h2 className="font-bold uppercase text-xl mt-4">Declaração de Participação em Projeto</h2>
-      </div>
+        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg">
 
-      <form className="space-y-6">
-        <div>
-          <label className="block font-bold text-sm">Nome do Declarante (Orientador/Coordenador):</label>
-          <input type="text" className="w-full border-b border-black p-1 bg-yellow-50" />
-        </div>
+          <FormHeader 
+            title="Declaração de Participação em Projeto"
+            showImages={true}
+          />
 
-        <p className="text-justify py-4">
-          Declaro, para fins de equiparação a estágio supervisionado, que o(a) discente abaixo participou das atividades descritas:
-        </p>
+          <form className="space-y-6 text-sm text-gray-800">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Nome do Declarante (Orientador/Coordenador):</label>
+              <input type="text" className="w-full text-sm border-b border-black p-2 bg-gray-50 focus:outline-none" />
+            </div>
+
+            <p className="text-justify py-4 text-sm text-gray-800">
+              Declaro, para fins de equiparação a estágio supervisionado, que o(a) discente abaixo participou das atividades descritas:
+            </p>
 
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2"><label className="font-bold text-sm block">Discente</label><input type="text" className="w-full border-b border-black bg-gray-50" /></div>
@@ -74,6 +78,8 @@ export default function ExtensionDeclarationPage() {
           </button>
         </div>
       </form>
+        </div>
+      </div>
     </div>
   )
 }
