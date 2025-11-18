@@ -233,7 +233,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      activeTokens: activeTokens.map(token => ({
+      activeTokens: activeTokens.map((token: any) => ({
         id: token.id,
         token: token.token,
         expires: token.expires,
