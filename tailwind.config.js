@@ -256,6 +256,76 @@ module.exports = {
   },
   plugins: [
     require("tailwindcss-animate"), 
-    require("@tailwindcss/forms")
+    require("@tailwindcss/forms"),
+    // Component classes using design tokens
+    function({ addComponents, theme }) {
+      const buttons = {
+        '.btn': {
+          '@apply inline-flex items-center justify-center rounded-lg font-semibold transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed': {},
+        },
+        '.btn-primary': {
+          '@apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700': {},
+        },
+        '.btn-secondary': {
+          '@apply bg-neutral-800 text-neutral-100 border border-neutral-600 hover:bg-neutral-700 active:bg-neutral-600': {},
+        },
+        '.btn-ghost': {
+          '@apply bg-transparent text-neutral-300 hover:bg-neutral-800 active:bg-neutral-700': {},
+        },
+        '.btn-destructive': {
+          '@apply bg-error-500 text-white hover:bg-error-600 active:bg-error-700': {},
+        },
+        '.btn-sm': {
+          '@apply px-3 py-1 text-sm': {},
+        },
+        '.btn-md': {
+          '@apply px-4 py-2 text-base': {},
+        },
+        '.btn-lg': {
+          '@apply px-6 py-3 text-lg': {},
+        },
+      }
+
+      const cards = {
+        '.card': {
+          '@apply rounded-lg border border-neutral-700 bg-neutral-800 bg-opacity-50 shadow-lg': {},
+        },
+        '.card-elevated': {
+          '@apply rounded-lg border border-neutral-700 bg-neutral-800 shadow-xl': {},
+        },
+        '.card-glass': {
+          '@apply rounded-lg border border-neutral-700 border-opacity-30 bg-neutral-900 bg-opacity-20 backdrop-blur-md shadow-lg': {},
+        },
+      }
+
+      const badges = {
+        '.badge': {
+          '@apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold': {},
+        },
+        '.badge-primary': {
+          '@apply bg-primary-100 text-primary-900': {},
+        },
+        '.badge-secondary': {
+          '@apply bg-neutral-700 text-neutral-100': {},
+        },
+        '.badge-success': {
+          '@apply bg-success-100 text-success-900': {},
+        },
+        '.badge-warning': {
+          '@apply bg-warning-100 text-warning-900': {},
+        },
+        '.badge-error': {
+          '@apply bg-error-100 text-error-900': {},
+        },
+      }
+
+      const inputs = {
+        '.input': {
+          '@apply rounded-lg border border-neutral-600 bg-neutral-900 bg-opacity-50 px-4 py-2 text-neutral-100 placeholder-neutral-400 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500': {},
+        },
+      }
+
+      addComponents({ ...buttons, ...cards, ...badges, ...inputs })
+    }
   ],
 }

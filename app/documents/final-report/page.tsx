@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
 import { FormExportButtons } from '@/components/FormExportButtons'
+import { Card } from '@/components/ui/Card'
 import { getDraft, populateFormWithData } from '@/lib/form-drafts'
 
 export default function FinalReportPage() {
@@ -26,14 +27,14 @@ export default function FinalReportPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+        <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div ref={formRef} className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg text-sm text-gray-800">
+        <Card ref={formRef} className="border-t-4 border-primary-500 text-sm text-foreground">
           <form>
             <FormHeader 
               title="RELATÓRIO FINAL DE ESTÁGIO OBRIGATÓRIO"
@@ -112,7 +113,7 @@ export default function FinalReportPage() {
 
             <FormExportButtons formType="final-report" formRef={formRef} />
           </form>
-        </div>
+        </Card>
       </div>
     </div>
   )

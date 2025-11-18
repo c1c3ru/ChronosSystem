@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Download, Save, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { printElementAsPDF } from '@/lib/pdf-generator'
 import { saveDraft, removeDraftLocally } from '@/lib/form-drafts'
 import { toast } from 'sonner'
@@ -88,31 +89,38 @@ export function FormExportButtons({
   }
 
   return (
-    <div className="flex gap-3 pt-6 mt-6 flex-wrap">
-      <button
+    <div className="flex gap-4 pt-8 mt-8 flex-wrap">
+      <Button
+        variant="primary"
+        size="md"
         onClick={handleSaveDraft}
         disabled={isSaving}
-        className="flex items-center gap-2 flex-1 min-w-[200px] bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        loading={isSaving}
+        className="flex-1 min-w-[200px]"
       >
-        <Save className="h-4 w-4" />
+        <Save className="h-4 w-4 mr-2" />
         {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-      </button>
+      </Button>
 
-      <button
+      <Button
+        variant="secondary"
+        size="md"
         onClick={handlePrintPDF}
-        className="flex items-center gap-2 flex-1 min-w-[200px] bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-semibold transition-colors"
+        className="flex-1 min-w-[200px]"
       >
-        <Download className="h-4 w-4" />
+        <Download className="h-4 w-4 mr-2" />
         Gerar PDF
-      </button>
+      </Button>
 
-      <button
+      <Button
+        variant="destructive"
+        size="md"
         onClick={handleClearDraft}
-        className="flex items-center gap-2 flex-1 min-w-[200px] bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 font-semibold transition-colors"
+        className="flex-1 min-w-[200px]"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-4 w-4 mr-2" />
         Limpar Rascunho
-      </button>
+      </Button>
     </div>
   )
 }
