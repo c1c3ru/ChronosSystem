@@ -2,9 +2,9 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { FormHeader }
-import { Button }
-import { Card } from '@/components/FormHeader'
+import { FormHeader } from '@/components/FormHeader'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export default function CommitmentTermPage() {
   return (
@@ -83,7 +83,7 @@ export default function CommitmentTermPage() {
         <Button variant="primary" size="md">
           Salvar Rascunho
         </Button>
-        <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+        <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
           Imprimir
         </Button>
       </div>

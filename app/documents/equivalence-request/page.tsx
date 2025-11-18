@@ -64,7 +64,7 @@ export default function EquivalenceRequestPage() {
               <Button variant="primary" size="md">
                 Salvar Rascunho
               </Button>
-              <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-semibold text-sm transition-colors">
+              <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
                 Imprimir
               </Button>
             </div>
