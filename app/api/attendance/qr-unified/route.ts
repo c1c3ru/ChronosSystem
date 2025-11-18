@@ -159,6 +159,9 @@ export async function POST(request: NextRequest) {
           throw new Error('machineId não encontrado no JSON')
         }
         
+        // Sanitizar machineId
+        machineId = String(machineId).trim()
+        
         console.log('📝 [QR-UNIFIED] QR JSON simples aceito, machineId:', machineId)
         
         // Para QR JSON, verificar se tem expiração
@@ -187,6 +190,16 @@ export async function POST(request: NextRequest) {
       } catch {
         // ESTRATÉGIA 3: Usar como texto direto (ID da máquina)
         machineId = qrData.trim()
+        
+        // Validar se machineId não está vazio após trim
+        if (!machineId || machineId.length === 0) {
+          console.log('❌ [QR-UNIFIED] QR code vazio após processamento')
+          return NextResponse.json({ 
+            error: 'QR code inválido ou vazio',
+            code: 'INVALID_QR_DATA'
+          }, { status: 400 })
+        }
+        
         console.log('📝 [QR-UNIFIED] QR como texto direto, machineId:', machineId)
       }
     }
@@ -201,10 +214,24 @@ export async function POST(request: NextRequest) {
 
     if (!machine) {
       console.log('❌ [QR-UNIFIED] Máquina não encontrada ou inativa:', machineId)
+      
+      // Verificar se a máquina existe mas está inativa
+      const inactiveMachine = await prisma.machine.findFirst({
+        where: { id: machineId }
+      })
+      
+      if (inactiveMachine && !inactiveMachine.isActive) {
+        return NextResponse.json({ 
+          error: `Máquina '${inactiveMachine.name}' está inativa. Contate o administrador.`,
+          code: 'MACHINE_INACTIVE'
+        }, { status: 400 })
+      }
+      
+      // Máquina não existe
       return NextResponse.json({ 
-        error: `Máquina '${machineId}' não encontrada ou inativa`,
+        error: 'Máquina não encontrada. Verifique se o QR code está correto.',
         code: 'MACHINE_NOT_FOUND'
-      }, { status: 400 })
+      }, { status: 404 })
     }
 
     console.log('🏢 [QR-UNIFIED] Máquina encontrada:', machine.name, '-', machine.location)
