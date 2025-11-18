@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { FilterSelect } from '@/components/ui/FilterSelect'
 import { handleCompleteLogout } from '@/lib/logout'
 import { Loading } from '@/components/ui/Loading'
 import { toast } from 'sonner'
@@ -343,18 +344,15 @@ export default function AdminPage() {
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
                     Atividade Recente
                   </CardTitle>
-                  <div className="flex items-center space-x-3 bg-neutral-800/50 px-4 py-2 rounded-lg border border-neutral-700">
-                    <Filter className="h-4 w-4 text-primary" />
-                    <select
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value as 'ALL' | 'ENTRY' | 'EXIT')}
-                      className="bg-transparent text-sm text-neutral-300 cursor-pointer focus:outline-none font-medium"
-                    >
-                      <option value="ALL" className="bg-neutral-800">Todas as atividades</option>
-                      <option value="ENTRY" className="bg-neutral-800">🟢 Apenas Entradas</option>
-                      <option value="EXIT" className="bg-neutral-800">🔴 Apenas Saídas</option>
-                    </select>
-                  </div>
+                  <FilterSelect
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as 'ALL' | 'ENTRY' | 'EXIT')}
+                    options={[
+                      { value: 'ALL', label: 'Todas as atividades' },
+                      { value: 'ENTRY', label: '→ Apenas Entradas' },
+                      { value: 'EXIT', label: '← Apenas Saídas' }
+                    ]}
+                  />
                 </div>
               </CardHeader>
               <CardContent>
