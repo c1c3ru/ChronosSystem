@@ -205,6 +205,11 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Backward compatibility for text-white */
+  .text-white {
+    @apply text-foreground;
+  }
 }
 
 /* === ADDITIONAL ANIMATIONS === */
