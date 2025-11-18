@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 // GET /api/attendance/detailed - Registros detalhados para relatório
 
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       const simulatedRecords = [
         {
           id: 'sim-1',
-          timestamp: new Date().toISOString(),
+          timestamp: getNowInFortaleza().toISOString(),
           type: 'ENTRY',
           user: {
             name: 'João Silva',
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
         },
         {
           id: 'sim-2',
-          timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date(getNowInFortaleza().getTime() - 8 * 60 * 60 * 1000).toISOString(),
           type: 'EXIT',
           user: {
             name: 'João Silva',
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
         },
         {
           id: 'sim-3',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date(getNowInFortaleza().getTime() - 24 * 60 * 60 * 1000).toISOString(),
           type: 'ENTRY',
           user: {
             name: 'Maria Santos',

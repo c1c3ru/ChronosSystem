@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
 
     return NextResponse.json({
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: getNowInFortaleza().toISOString(),
       version: process.env.npm_package_version || '2.0.0',
       environment: process.env.NODE_ENV || 'development',
       database: {
@@ -38,7 +39,7 @@ export async function GET() {
     
     return NextResponse.json({
       status: 'unhealthy',
-      timestamp: new Date().toISOString(),
+      timestamp: getNowInFortaleza().toISOString(),
       error: 'Database connection failed'
     }, {
       status: 503,

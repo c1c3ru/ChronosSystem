@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 // POST /api/attendance/qr-scan - Registrar ponto via QR code
 
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se expirou (verificar no banco E no payload)
-    const currentTime = new Date()
+    const currentTime = getNowInFortaleza()
     if (currentTime > qrEvent.expiresAt) {
       console.log('❌ [QR-SCAN] QR code expirado no banco:', nonce.substring(0, 8) + '...', 'Expiração:', qrEvent.expiresAt.toISOString())
       return NextResponse.json({ 
@@ -116,8 +117,8 @@ export async function POST(request: NextRequest) {
     const recordType = (!lastRecord || lastRecord.type === 'EXIT') ? 'ENTRY' : 'EXIT'
 
     // Verificar se não há registro duplicado no mesmo minuto (proteção adicional)
-    const nowTimestamp = Date.now()
-    const oneMinuteAgo = new Date(nowTimestamp - 60 * 1000)
+    const now = getNowInFortaleza()
+    const oneMinuteAgo = new Date(now.getTime() - 60 * 1000)
     const recentRecord = await prisma.attendanceRecord.findFirst({
       where: {
         userId: session.user.id,
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         machineId: machineId,
         type: recordType,
-        timestamp: new Date(),
+        timestamp: getNowInFortaleza(),
         qrData: qrData,
         hash: recordHash,
         prevHash: lastRecord?.hash
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
       where: { id: qrEvent.id },
       data: { 
         used: true,
-        usedAt: new Date(),
+        usedAt: getNowInFortaleza(),
         usedBy: session.user.id
       }
     })
