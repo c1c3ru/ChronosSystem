@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { determineRoleFromSiape } from '@/lib/admin-siape'
+import { getContractTypeConfig } from '@/lib/contract-types'
+import { getShiftStartTime } from '@/lib/shift-validation'
 
 // POST /api/auth/complete-profile - Completar perfil após login com Google
 
@@ -28,10 +30,7 @@ export async function POST(request: NextRequest) {
       contractEndDate,
       siapeNumber,
       contractType,
-      weeklyHours,
       shift,
-      shiftStartTime,
-      shiftEndTime,
       workingDaysPerWeek,
       allowFlexibleHours
     } = await request.json()
@@ -66,6 +65,16 @@ export async function POST(request: NextRequest) {
 
     console.log(`📝 [COMPLETE-PROFILE] Atualizando usuário ${session.user.id} com role: ${newRole}`)
     
+    // Determinar carga horária e horários de turno baseado no tipo de contrato e turno
+    const finalContractType = newRole === 'EMPLOYEE' ? (contractType || 'ESTAGIO_20H') : 'EMPREGO_40H'
+    const contractConfig = getContractTypeConfig(finalContractType)
+    const finalWeeklyHours = contractConfig?.weeklyHours || 20
+    const finalDailyHours = contractConfig?.dailyHours || 4
+    
+    // Obter horários padrão do turno
+    const finalShift = shift || 'MORNING'
+    const shiftTimes = getShiftStartTime(finalShift as any)
+    
     // Atualizar usuário
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -78,14 +87,13 @@ export async function POST(request: NextRequest) {
         department: newRole === 'EMPLOYEE' ? department : 'DIRECAO_GERAL', // Padrão para ADMINs
         startDate: startDate ? new Date(startDate) : null,
         siapeNumber,
-        contractType: newRole === 'EMPLOYEE' ? (contractType || 'ESTAGIO_20H') : 'EMPREGO_40H', // Padrão para ADMINs
-        weeklyHours: newRole === 'EMPLOYEE' ? (weeklyHours || 20) : 40, // Padrão para ADMINs
-        dailyHours: newRole === 'EMPLOYEE' ? 
-          (weeklyHours ? Math.round((weeklyHours / 5) * 10) / 10 : 4) : 8, // Padrão para ADMINs
+        contractType: finalContractType,
+        weeklyHours: finalWeeklyHours,
+        dailyHours: finalDailyHours,
         // Campos de turno
-        shift: shift || 'MORNING',
-        shiftStartTime: shiftStartTime || '08:00',
-        shiftEndTime: shiftEndTime || '12:00',
+        shift: finalShift,
+        shiftStartTime: shiftTimes.start,
+        shiftEndTime: shiftTimes.end,
         workingDaysPerWeek: workingDaysPerWeek || 5,
         allowFlexibleHours: allowFlexibleHours || false,
         role: newRole, // Atualizar role baseado no SIAPE

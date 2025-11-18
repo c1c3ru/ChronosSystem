@@ -378,3 +378,16 @@ export function getShiftDescription(shift: 'MORNING' | 'AFTERNOON' | 'NIGHT' | '
   }
   return descriptions[shift] || shift
 }
+
+/**
+ * Retorna os horários padrão de início e fim para cada turno
+ */
+export function getShiftStartTime(shift: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'): { start: string; end: string } {
+  const shiftTimes: Record<string, { start: string; end: string }> = {
+    MORNING: { start: '08:00', end: '12:00' },      // 4h de manhã
+    AFTERNOON: { start: '13:00', end: '17:00' },    // 4h de tarde
+    NIGHT: { start: '18:00', end: '22:00' },        // 4h de noite
+    HYBRID: { start: '08:00', end: '14:00' }        // 6h híbrido
+  }
+  return shiftTimes[shift] || { start: '08:00', end: '12:00' }
+}

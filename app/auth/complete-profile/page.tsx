@@ -36,10 +36,7 @@ interface ProfileData {
   siapeNumber?: string
   hasSiape?: boolean
   contractType?: string
-  weeklyHours?: number
   shift?: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'
-  shiftStartTime?: string
-  shiftEndTime?: string
   workingDaysPerWeek?: number
   allowFlexibleHours?: boolean
 }
@@ -187,14 +184,6 @@ export default function CompleteProfilePage() {
     if (detectedRole === 'EMPLOYEE') {
       if (!profileData.contractType) {
         newErrors.contractType = 'Tipo de contrato é obrigatório'
-      } else {
-        const contractConfig = getContractTypeConfig(profileData.contractType)
-        if (contractConfig && profileData.weeklyHours) {
-          const validation = validateWorkingHours(profileData.weeklyHours, contractConfig.category)
-          if (!validation.isValid) {
-            newErrors.weeklyHours = validation.error || 'Carga horária inválida'
-          }
-        }
       }
 
       // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
@@ -701,11 +690,9 @@ export default function CompleteProfilePage() {
                           className={`input ${errors.contractType ? 'border-error' : ''}`}
                           value={profileData.contractType || ''}
                           onChange={(e) => {
-                            const contractConfig = getContractTypeConfig(e.target.value)
                             setProfileData(prev => ({ 
                               ...prev, 
-                              contractType: e.target.value,
-                              weeklyHours: contractConfig?.weeklyHours || prev.weeklyHours
+                              contractType: e.target.value
                             }))
                           }}
                         >
@@ -724,29 +711,6 @@ export default function CompleteProfilePage() {
                         )}
                       </div>
 
-                      {profileData.contractType && (
-                        <div>
-                          <label className="block text-sm font-medium text-neutral-300 mb-2">
-                            Carga Horária Semanal *
-                          </label>
-                          <input
-                            type="number"
-                            min="12"
-                            max="44"
-                            placeholder="20"
-                            className={`input ${errors.weeklyHours ? 'border-error' : ''}`}
-                            value={profileData.weeklyHours || ''}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 0
-                              setProfileData(prev => ({ ...prev, weeklyHours: value }))
-                            }}
-                          />
-                          {errors.weeklyHours && <p className="text-error text-xs mt-1">{errors.weeklyHours}</p>}
-                          <p className="text-neutral-400 text-xs mt-1">
-                            Estágios: 12h a 36h • Empregos: 40h ou 44h
-                          </p>
-                        </div>
-                      )}
                     </>
                   )}
 
@@ -775,47 +739,6 @@ export default function CompleteProfilePage() {
                       {errors.contractStartDate && <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>}
                     </div>
 
-                    {/* Cálculo automático da data final para estágios */}
-                    {profileData.contractStartDate && profileData.weeklyHours && profileData.contractType?.startsWith('ESTAGIO') && (
-                      <div className="md:col-span-2">
-                        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-blue-400 mb-2">📅 Cálculo Automático do Estágio</h4>
-                          {(() => {
-                            const calculation = calculateInternshipEnd(
-                              new Date(profileData.contractStartDate),
-                              profileData.weeklyHours,
-                              200 // 200 horas obrigatórias
-                            )
-                            const duration = Math.ceil((calculation.estimatedEndDate.getTime() - new Date(profileData.contractStartDate).getTime()) / (1000 * 60 * 60 * 24))
-                            
-                            return (
-                              <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-blue-300">Carga horária total:</span>
-                                  <span className="text-white font-medium">200 horas</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-blue-300">Horas por semana:</span>
-                                  <span className="text-white font-medium">{profileData.weeklyHours}h</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-blue-300">Duração estimada:</span>
-                                  <span className="text-white font-medium">{formatDuration(duration)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-blue-300">Data final estimada:</span>
-                                  <span className="text-white font-medium">{formatDate(calculation.estimatedEndDate)}</span>
-                                </div>
-                                <div className="mt-3 p-2 bg-yellow-900/30 border border-yellow-500/30 rounded text-xs text-yellow-300">
-                                  ⚠️ <strong>Importante:</strong> Esta é uma estimativa baseada na frequência perfeita. 
-                                  Faltas ou atrasos podem estender a data final do estágio.
-                                </div>
-                              </div>
-                            )
-                          })()}
-                        </div>
-                      </div>
-                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-neutral-300 mb-2">
