@@ -6,22 +6,37 @@ import { generateSecureQR } from '@/lib/qr-security'
 export async function GET(request: NextRequest) {
   try {
     console.log('Kiosk QR API called')
-    // Para o kiosk, vamos usar uma máquina padrão ou a primeira disponível
-    const machine = await prisma.machine.findFirst({
-      where: { isActive: true }
-    })
+    
+    // Obter machineId do query param ou usar a primeira máquina ativa
+    const { searchParams } = new URL(request.url)
+    const machineId = searchParams.get('machineId')
 
-    if (!machine) {
-      // Se não houver máquina, criar uma padrão
-      const defaultMachine = await prisma.machine.create({
-        data: {
-          name: 'Kiosk Principal',
-          location: 'Entrada Principal',
-          isActive: true
-        }
+    let machine
+
+    if (machineId) {
+      // Se machineId foi fornecido, usar essa máquina
+      machine = await prisma.machine.findUnique({
+        where: { id: machineId }
       })
-      
-      return generateQRResponse(defaultMachine.id, defaultMachine.name, defaultMachine.location)
+
+      if (!machine || !machine.isActive) {
+        return NextResponse.json(
+          { error: 'Máquina não encontrada ou inativa' },
+          { status: 404 }
+        )
+      }
+    } else {
+      // Caso contrário, usar a primeira máquina ativa
+      machine = await prisma.machine.findFirst({
+        where: { isActive: true }
+      })
+
+      if (!machine) {
+        return NextResponse.json(
+          { error: 'Nenhuma máquina disponível. Configure máquinas no painel admin.' },
+          { status: 404 }
+        )
+      }
     }
 
     return generateQRResponse(machine.id, machine.name, machine.location)

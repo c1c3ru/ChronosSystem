@@ -39,16 +39,17 @@ export default function KioskPage() {
   useEffect(() => {
     const fetchMachines = async () => {
       try {
-        const response = await fetch('/api/machines')
+        const response = await fetch('/api/kiosk/machines')
         if (response.ok) {
           const data = await response.json()
-          setMachines(data.machines || [])
-          if (data.machines && data.machines.length > 0) {
-            setSelectedMachineId(data.machines[0].id)
+          const machinesList = data.machines || []
+          setMachines(machinesList)
+          if (machinesList.length > 0) {
+            setSelectedMachineId(machinesList[0].id)
             setMachineInfo({
-              id: data.machines[0].id,
-              name: data.machines[0].name,
-              location: data.machines[0].location
+              id: machinesList[0].id,
+              name: machinesList[0].name,
+              location: machinesList[0].location
             })
           }
         }
@@ -75,7 +76,12 @@ export default function KioskPage() {
   // Gerar QR code dinâmico
   const generateQRCode = async () => {
     try {
-      const response = await fetch('/api/kiosk/qr', {
+      const url = new URL('/api/kiosk/qr', window.location.origin)
+      if (machineInfo.id) {
+        url.searchParams.append('machineId', machineInfo.id)
+      }
+      
+      const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
