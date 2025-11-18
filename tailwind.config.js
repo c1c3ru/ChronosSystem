@@ -117,7 +117,10 @@ module.exports = {
       destructive: {
         DEFAULT: '#ef4444',
         foreground: '#ffffff'
-      }
+      },
+      transparent: 'transparent',
+      white: '#ffffff',
+      black: '#000000'
     },
 
     // Typography with design tokens

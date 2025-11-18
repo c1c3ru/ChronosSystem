@@ -2,9 +2,9 @@
 
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { FormHeader }
-import { Button }
-import { Card } from '@/components/FormHeader'
+import { FormHeader } from '@/components/FormHeader'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export default function AdditiveTermPage() {
   return (
