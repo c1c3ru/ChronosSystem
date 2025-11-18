@@ -14,7 +14,7 @@ npx prisma generate || echo "⚠️ Prisma generate falhou, continuando com cach
 
 # Build do Next.js
 echo "🏗️ Buildando Next.js..."
-next build
+npx next build
 
 if [ $? -eq 0 ]; then
   echo "✅ Build concluído com sucesso!"
