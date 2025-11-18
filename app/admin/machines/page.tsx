@@ -104,6 +104,19 @@ export default function MachinesPage() {
   }
 
   const deleteMachine = async (machineId: string) => {
+    const machine = machines.find(m => m.id === machineId)
+    
+    if (!machine) return
+    
+    // Se tem registros, avisar que precisa desativar
+    if (machine._count?.attendanceRecords > 0) {
+      toast.error(
+        `Esta máquina tem ${machine._count.attendanceRecords} registro(s) de ponto. Desative-a em vez de excluir.`,
+        { duration: 5000 }
+      )
+      return
+    }
+    
     if (!confirm('Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.')) return
     
     try {
@@ -117,7 +130,14 @@ export default function MachinesPage() {
         toast.success('Máquina excluída com sucesso!')
         loadMachines() // Recarregar lista
       } else {
-        toast.error(data.error || 'Erro ao excluir máquina')
+        if (data.code === 'MACHINE_HAS_RECORDS') {
+          toast.error(
+            `Não é possível excluir: ${data.recordCount} registro(s) de ponto associado(s). Desative a máquina em vez disso.`,
+            { duration: 5000 }
+          )
+        } else {
+          toast.error(data.error || 'Erro ao excluir máquina')
+        }
       }
     } catch (error) {
       console.error('Erro ao excluir máquina:', error)
@@ -255,7 +275,16 @@ export default function MachinesPage() {
                       variant="ghost" 
                       size="sm"
                       onClick={() => deleteMachine(machine.id)}
-                      className="text-red-400 hover:text-red-300"
+                      disabled={machine._count?.attendanceRecords > 0}
+                      title={machine._count?.attendanceRecords > 0 
+                        ? `Máquina tem ${machine._count.attendanceRecords} registro(s). Desative em vez de excluir.`
+                        : 'Excluir máquina'
+                      }
+                      className={`${
+                        machine._count?.attendanceRecords > 0
+                          ? 'text-neutral-500 cursor-not-allowed opacity-50'
+                          : 'text-red-400 hover:text-red-300'
+                      }`}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Excluir

@@ -146,7 +146,9 @@ export async function DELETE(
     // Verificar se há registros associados
     if (machine._count.attendanceRecords > 0) {
       return NextResponse.json({ 
-        error: 'Não é possível deletar máquina com registros de ponto associados' 
+        error: `Não é possível deletar máquina com ${machine._count.attendanceRecords} registro(s) de ponto associado(s). Desative a máquina em vez de excluir.`,
+        code: 'MACHINE_HAS_RECORDS',
+        recordCount: machine._count.attendanceRecords
       }, { status: 400 })
     }
 
