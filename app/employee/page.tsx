@@ -315,6 +315,7 @@ export default function EmployeePage() {
         
         // Mostrar feedback de sucesso imediatamente
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
+        const typeEmoji = result.record.typeEmoji || (result.record.type === 'ENTRY' ? '🟢 ENTRADA' : '🔴 SAÍDA')
         const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit'
@@ -326,12 +327,14 @@ export default function EmployeePage() {
         const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' : 
                               result.analysis?.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'
         
+        // Criar mensagem com destaque visual claro
+        const displayMessage = `${typeEmoji}\n${recordTime}\n${result.record.machineName}`
         const smartInfo = result.analysis ? 
           `${qrTypeIcon} ${result.smartMessage} (${confidenceText})` :
           `${recordType} registrada às ${recordTime}`
           
-        setQrResult(`✅ ${smartInfo}`)
-        setLastRegistration(smartInfo)
+        setQrResult(`✅ ${displayMessage}`)
+        setLastRegistration(displayMessage)
         
         // Log da análise inteligente
         if (result.analysis) {

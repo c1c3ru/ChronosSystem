@@ -394,11 +394,16 @@ export async function POST(request: NextRequest) {
     console.log(`✅ [QR-UNIFIED] ${recordType} registrada para ${session.user.email} às ${recordTime} (${isSecureQR ? 'QR Seguro' : 'QR Simples'})`)
 
     // Resposta unificada
+    const typeLabel = recordType === 'ENTRY' ? 'Entrada' : 'Saída'
+    const typeEmoji = recordType === 'ENTRY' ? '🟢 ENTRADA' : '🔴 SAÍDA'
+    
     return NextResponse.json({
       success: true,
       record: {
         id: attendanceRecord.id,
         type: recordType,
+        typeLabel: typeLabel,
+        typeEmoji: typeEmoji,
         timestamp: attendanceRecord.timestamp,
         time: recordTime,
         location: machine.location,
@@ -415,8 +420,9 @@ export async function POST(request: NextRequest) {
         name: machine.name,
         location: machine.location
       },
-      message: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} registrada com sucesso às ${recordTime}!`,
-      smartMessage: `${recordType === 'ENTRY' ? 'Entrada' : 'Saída'} detectada: ${attendanceAnalysis.reason}`
+      message: `${typeEmoji} registrada com sucesso às ${recordTime}!`,
+      smartMessage: `${typeEmoji} detectada: ${attendanceAnalysis.reason}`,
+      displayMessage: `${typeEmoji}\n${typeLabel} às ${recordTime}\nMáquina: ${machine.name}`
     })
 
   } catch (error: any) {
