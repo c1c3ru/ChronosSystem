@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Verificar quantas faltas/atrasos sem justificativa
-    const unjustifiedIssues = analyzedDays.filter(day => 
+    const unjustifiedIssues = analyzedDays.filter((day: any) => 
       day && day.alerts && day.alerts.length > 0 && !day.hasJustification
     ).length
 
@@ -174,8 +174,8 @@ function analyzeTodayRecords(records: any[], workingHours: WorkingHours) {
     }
   }
 
-  const entries = records.filter(r => r && r.type === 'ENTRY' && r.timestamp)
-  const exits = records.filter(r => r && r.type === 'EXIT' && r.timestamp)
+  const entries = records.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
+  const exits = records.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
   const alerts: any[] = []
 
     // Verificar primeiro registro (entrada)
@@ -318,8 +318,8 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
       return null
     }
 
-    const entries = dayRecords.filter(r => r && r.type === 'ENTRY' && r.timestamp)
-    const exits = dayRecords.filter(r => r && r.type === 'EXIT' && r.timestamp)
+    const entries = dayRecords.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
+    const exits = dayRecords.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
     const alerts: any[] = []
 
     // Análise similar ao dia atual

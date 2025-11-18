@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         const match = log.details.match(/não autorizada: (.+)$/)
         return match ? match[1] : null
       })
-      .filter(email => email !== null)
+      .filter((email: any) => email !== null)
 
     // Remover duplicatas e emails que já existem no sistema
     const uniqueEmails = Array.from(new Set(emailsFromLogs))

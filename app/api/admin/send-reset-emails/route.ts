@@ -156,10 +156,10 @@ export async function GET(request: NextRequest) {
     // Estatísticas
     const stats = {
       totalEmailsSent: emailLogs.length,
-      last24Hours: emailLogs.filter(log => 
+      last24Hours: emailLogs.filter((log: any) => 
         log.timestamp >= new Date(Date.now() - 24 * 60 * 60 * 1000)
       ).length,
-      last7Days: emailLogs.filter(log => 
+      last7Days: emailLogs.filter((log: any) => 
         log.timestamp >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       ).length,
       recentLogs: emailLogs.slice(0, 10).map((log: any) => ({

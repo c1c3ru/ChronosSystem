@@ -205,8 +205,8 @@ function generatePDFReport(records: any[], users: any[], period: number) {
             <h3>Resumo</h3>
             <p><strong>Total de Usuários:</strong> ${users.length}</p>
             <p><strong>Total de Registros:</strong> ${records.length}</p>
-            <p><strong>Registros de Entrada:</strong> ${records.filter(r => r.type === 'ENTRY').length}</p>
-            <p><strong>Registros de Saída:</strong> ${records.filter(r => r.type === 'EXIT').length}</p>
+            <p><strong>Registros de Entrada:</strong> ${records.filter((r: any) => r.type === 'ENTRY').length}</p>
+            <p><strong>Registros de Saída:</strong> ${records.filter((r: any) => r.type === 'EXIT').length}</p>
         </div>
 
         <table>
