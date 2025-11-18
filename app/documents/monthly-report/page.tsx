@@ -92,6 +92,7 @@ export default function MonthlyReportPage() {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )
