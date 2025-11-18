@@ -65,6 +65,22 @@ export async function POST(request: NextRequest) {
 
     console.log(`📝 [COMPLETE-PROFILE] Atualizando usuário ${session.user.id} com role: ${newRole}`)
     
+    // Verificar se o usuário existe
+    const existingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, email: true, name: true }
+    })
+    
+    if (!existingUser) {
+      console.error(`❌ [COMPLETE-PROFILE] Usuário ${session.user.id} não encontrado no banco`)
+      return NextResponse.json({ 
+        error: 'Usuário não encontrado',
+        message: 'Usuário não encontrado no banco de dados'
+      }, { status: 404 })
+    }
+    
+    console.log(`✅ [COMPLETE-PROFILE] Usuário encontrado:`, existingUser)
+    
     // Determinar carga horária e horários de turno baseado no tipo de contrato e turno
     const finalContractType = newRole === 'EMPLOYEE' ? (contractType || 'ESTAGIO_20H') : 'EMPREGO_40H'
     const contractConfig = getContractTypeConfig(finalContractType)
@@ -74,6 +90,17 @@ export async function POST(request: NextRequest) {
     // Obter horários padrão do turno
     const finalShift = shift || 'MORNING'
     const shiftTimes = getShiftStartTime(finalShift as any)
+    
+    console.log(`📝 [COMPLETE-PROFILE] Dados a atualizar:`, {
+      phone,
+      address,
+      birthDate,
+      emergencyContact,
+      emergencyPhone,
+      department,
+      contractType: finalContractType,
+      weeklyHours: finalWeeklyHours
+    })
     
     // Atualizar usuário
     const updatedUser = await prisma.user.update({
@@ -130,7 +157,20 @@ export async function POST(request: NextRequest) {
       forceReload: true // Flag para forçar reload completo
     })
   } catch (error) {
-    console.error('Erro ao completar perfil:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    console.error('❌ Erro ao completar perfil:', error)
+    
+    // Log detalhado do erro
+    if (error instanceof Error) {
+      console.error('Mensagem de erro:', error.message)
+      console.error('Stack:', error.stack)
+    }
+    
+    // Retornar erro mais detalhado para debug
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return NextResponse.json({ 
+      error: 'Erro ao salvar perfil',
+      details: errorMessage,
+      message: errorMessage
+    }, { status: 500 })
   }
 }
