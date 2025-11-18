@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 5000 -H 0.0.0.0",
-    "build": "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma generate && next build",
-    "postinstall": "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma generate || true",
+    "build": "next build",
+    "postinstall": "prisma generate || true",
     "start": "next start -p 5000 -H 0.0.0.0",
     "lint": "next lint",
     "db:push": "prisma db push",
