@@ -19,7 +19,9 @@ import {
   CheckCircle,
   Home,
   Timer,
-  Lock
+  Lock,
+  FileText,
+  ChevronRight
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -760,6 +762,61 @@ export default function EmployeePage() {
                   <p className="text-[11px] text-neutral-500 text-center mt-3">
                     Se esquecer a senha e não conseguir acessar, use a opção "Esqueci minha senha" na tela de login.
                   </p>
+                </CardContent>
+              </Card>
+
+              {/* Documents */}
+              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+                <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
+                  <div className="bg-blue-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-blue-500/30 transition-colors">
+                    <FileText className="h-10 w-10 text-blue-400" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 text-center">
+                    Documentos de Estágio
+                  </h3>
+                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6 text-center">
+                    Acesse formulários e documentos necessários
+                  </p>
+                  <div className="flex-1"></div>
+                  
+                  <div className="space-y-2">
+                    <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Solicitação de Cadastro</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Termo de Compromisso</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Relatório Final</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Relatório Mensal</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Relatório Semestral</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Termo Aditivo</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Solicitação de Equiparação</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Declaração Profissional</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                    <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                      <span>Declaração de Extensão</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </a>
+                  </div>
                 </CardContent>
               </Card>
 

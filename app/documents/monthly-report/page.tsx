@@ -1,0 +1,96 @@
+'use client'
+
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+
+export default function MonthlyReportPage() {
+  return (
+    <div className="bg-gray-100 p-8 min-h-screen">
+      <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Voltar
+      </Link>
+
+      <div className="max-w-3xl mx-auto bg-white p-8 shadow-md border-l-8 border-red-600">
+        <header className="text-center mb-6 border-b pb-4">
+          <h1 className="font-bold uppercase text-gray-800">IFCE Campus Maracanaú</h1>
+          <h2 className="text-xl font-bold text-red-600 mt-2 uppercase">Relatório Mensal de Atividades</h2>
+        </header>
+
+        <form className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="col-span-2">
+              <label className="block text-gray-700 font-bold">Estagiário(a)</label>
+              <input type="text" className="w-full border border-gray-300 p-2 rounded focus:border-red-600 outline-none" />
+            </div>
+            <div>
+              <label className="block text-gray-700 font-bold">Supervisor</label>
+              <input type="text" className="w-full border border-gray-300 p-2 rounded focus:border-red-600 outline-none" />
+            </div>
+            <div>
+              <label className="block text-gray-700 font-bold">Orientador</label>
+              <input type="text" className="w-full border border-gray-300 p-2 rounded focus:border-red-600 outline-none" />
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded border border-gray-200 grid grid-cols-2 gap-6 text-sm">
+            <div>
+              <p className="font-bold mb-2 text-gray-700">Período</p>
+              <div className="flex gap-2">
+                <input type="date" className="border p-1 w-full" />
+                <span className="self-center">a</span>
+                <input type="date" className="border p-1 w-full" />
+              </div>
+            </div>
+            <div>
+              <p className="font-bold mb-2 text-gray-700">Carga Horária (Horas)</p>
+              <div className="flex gap-2">
+                <input type="number" placeholder="No Mês" className="border p-1 w-full" />
+                <input type="number" placeholder="Total" className="border p-1 w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Principais Atividades Desenvolvidas</label>
+              <textarea className="w-full border border-gray-300 p-2 rounded h-32 focus:ring-1 focus:ring-red-600 outline-none"></textarea>
+            </div>
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Dificuldades Encontradas</label>
+              <textarea className="w-full border border-gray-300 p-2 rounded h-20 focus:ring-1 focus:ring-red-600 outline-none"></textarea>
+            </div>
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Soluções Adotadas</label>
+              <textarea className="w-full border border-gray-300 p-2 rounded h-20 focus:ring-1 focus:ring-red-600 outline-none"></textarea>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 pt-8 mt-8 text-center text-xs">
+            <div>
+              <div className="border-t border-black pt-2">Estagiário</div>
+              <input type="date" className="mt-1 text-center" />
+            </div>
+            <div>
+              <div className="border-t border-black pt-2">Supervisor</div>
+              <input type="date" className="mt-1 text-center" />
+            </div>
+            <div>
+              <div className="border-t border-black pt-2">Orientador</div>
+              <input type="date" className="mt-1 text-center" />
+            </div>
+          </div>
+
+          <div className="flex gap-4 pt-6">
+            <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+              Salvar Rascunho
+            </button>
+            <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+              Imprimir
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
