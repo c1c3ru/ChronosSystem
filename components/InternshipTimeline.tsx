@@ -75,8 +75,8 @@ export default function InternshipTimeline({
             <div 
               className={`h-full rounded-full transition-all duration-500 ${
                 progress.isOnTrack 
-                  ? 'bg-gradient-to-r from-green-500 to-primary' 
-                  : 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                  ? 'bg-gradient-to-r from-success-500 to-primary-500' 
+                  : 'bg-gradient-to-r from-warning-500 to-error-500'
               }`}
               style={{ width: `${Math.min(progress.progressPercentage, 100)}%` }}
             />
@@ -88,23 +88,23 @@ export default function InternshipTimeline({
           {/* Status Atual */}
           <div className={`p-4 rounded-lg border ${
             progress.isOnTrack 
-              ? 'bg-green-900/20 border-green-500/30' 
-              : 'bg-yellow-900/20 border-yellow-500/30'
+              ? 'bg-success-900/20 border-success-500/30' 
+              : 'bg-warning-900/20 border-warning-500/30'
           }`}>
             <div className="flex items-center space-x-2 mb-2">
               {progress.isOnTrack ? (
-                <CheckCircle className="h-4 w-4 text-green-400" />
+                <CheckCircle className="h-4 w-4 text-success-400" />
               ) : (
-                <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                <AlertTriangle className="h-4 w-4 text-warning-400" />
               )}
               <span className={`text-sm font-medium ${
-                progress.isOnTrack ? 'text-green-400' : 'text-yellow-400'
+                progress.isOnTrack ? 'text-success-400' : 'text-warning-400'
               }`}>
                 {progress.isOnTrack ? 'No Cronograma' : 'Atenção Necessária'}
               </span>
             </div>
             <p className={`text-xs ${
-              progress.isOnTrack ? 'text-green-300' : 'text-yellow-300'
+              progress.isOnTrack ? 'text-success-300' : 'text-warning-300'
             }`}>
               {progress.isOnTrack 
                 ? 'Você está cumprindo o cronograma previsto'
@@ -114,12 +114,12 @@ export default function InternshipTimeline({
           </div>
 
           {/* Tempo Restante */}
-          <div className="p-4 rounded-lg border bg-blue-900/20 border-blue-500/30">
+          <div className="p-4 rounded-lg border bg-info-900/20 border-info-500/30">
             <div className="flex items-center space-x-2 mb-2">
-              <Clock className="h-4 w-4 text-blue-400" />
-              <span className="text-sm font-medium text-blue-400">Tempo Restante</span>
+              <Clock className="h-4 w-4 text-info-400" />
+              <span className="text-sm font-medium text-info-400">Tempo Restante</span>
             </div>
-            <p className="text-xs text-blue-300">
+            <p className="text-xs text-info-300">
               {progress.daysRemaining > 0 
                 ? `${formatDuration(progress.daysRemaining)} (${progress.remainingHours}h)`
                 : 'Estágio concluído!'
@@ -145,9 +145,9 @@ export default function InternshipTimeline({
                   {/* Indicador */}
                   <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
                     isCompleted 
-                      ? 'bg-green-500 border-green-500' 
+                      ? 'bg-success-500 border-success-500' 
                       : isCurrent
-                        ? 'bg-primary border-primary animate-pulse'
+                        ? 'bg-primary-500 border-primary-500 animate-pulse'
                         : 'bg-transparent border-neutral-500'
                   }`}>
                     {isCompleted && (
@@ -158,7 +158,7 @@ export default function InternshipTimeline({
                   {/* Linha conectora */}
                   {index < milestones.length - 1 && (
                     <div className={`absolute w-0.5 h-6 ml-1.5 mt-4 ${
-                      isCompleted ? 'bg-green-500' : 'bg-neutral-600'
+                      isCompleted ? 'bg-success-500' : 'bg-neutral-600'
                     }`} />
                   )}
                   
@@ -167,9 +167,9 @@ export default function InternshipTimeline({
                     <div className="flex justify-between items-center">
                       <span className={`text-sm font-medium ${
                         isCompleted 
-                          ? 'text-green-400' 
+                          ? 'text-success-400' 
                           : isCurrent 
-                            ? 'text-primary' 
+                            ? 'text-primary-400' 
                             : 'text-neutral-400'
                       }`}>
                         {milestone.label}
@@ -205,11 +205,11 @@ export default function InternshipTimeline({
                 {progress.delayDays ? 'Nova Previsão' : 'Previsão de Término'}
               </span>
             </div>
-            <p className={`text-sm ${progress.delayDays ? 'text-yellow-400' : 'text-white'}`}>
+            <p className={`text-sm ${progress.delayDays ? 'text-warning-400' : 'text-white'}`}>
               {formatDate(progress.actualEndDate || progress.estimatedEndDate)}
             </p>
             {progress.delayDays && (
-              <p className="text-xs text-yellow-300 mt-1">
+              <p className="text-xs text-warning-300 mt-1">
                 {formatDuration(progress.delayDays)} de atraso
               </p>
             )}

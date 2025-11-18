@@ -3,17 +3,19 @@
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export default function ExtensionDeclarationPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-sm font-medium">
+        <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div className="bg-white p-8 shadow-lg border-t-4 border-green-600 rounded-lg">
+        <Card className="border-t-4 border-primary-500">
 
           <FormHeader 
             title="Declaração de Participação em Projeto"
@@ -70,15 +72,15 @@ export default function ExtensionDeclarationPage() {
         </div>
 
         <div className="flex gap-4 pt-6">
-          <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold">
+          <Button variant="primary" size="md" className="flex-1">
             Salvar Rascunho
-          </button>
-          <button onClick={() => window.print()} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+          </Button>
+          <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
             Imprimir
-          </button>
+          </Button>
         </div>
       </form>
-        </div>
+        </Card>
       </div>
     </div>
   )

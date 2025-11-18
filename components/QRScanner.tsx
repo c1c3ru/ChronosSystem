@@ -703,14 +703,16 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
   if (!isActive) {
     return (
       <div className="text-center py-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+        <div className="w-20 h-20 bg-gradient-to-br from-secondary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
           <Camera className="h-10 w-10 text-white" />
         </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-2">Scanner QR Code</h3>
-        <p className="text-gray-600 mb-6">Clique no botão abaixo para ativar a câmera</p>
+        <h3 className="text-xl font-bold text-neutral-800 mb-2">Scanner QR Code</h3>
+        <p className="text-neutral-600 mb-6">Clique no botão abaixo para ativar a câmera</p>
         <Button
+          variant="primary"
+          size="lg"
           onClick={onActivate}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-8 py-3 text-lg font-semibold shadow-lg"
+          className="px-8 shadow-lg"
         >
           <Camera className="h-5 w-5 mr-2" />
           Ativar Scanner
@@ -725,9 +727,9 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10">
           <div>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
             <p className="text-white text-base font-medium">Iniciando câmera...</p>
-            <p className="text-gray-400 text-sm mt-2">Aguarde um momento</p>
+            <p className="text-neutral-400 text-sm mt-2">Aguarde um momento</p>
           </div>
         </div>
       )}
@@ -735,13 +737,13 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       {error && (
         <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95">
           <div className="max-w-md">
-            <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <p className="text-red-400 text-base font-medium mb-2">Erro ao acessar câmera</p>
-            <p className="text-red-300 text-sm mb-6 px-4 leading-relaxed">{error}</p>
+            <AlertTriangle className="h-12 w-12 text-error-400 mx-auto mb-4" />
+            <p className="text-error-400 text-base font-medium mb-2">Erro ao acessar câmera</p>
+            <p className="text-error-300 text-sm mb-6 px-4 leading-relaxed">{error}</p>
             
             {/* Dicas específicas baseadas no tipo de erro */}
             {error.includes('Permissão') && (
-              <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3 mb-4 text-xs text-blue-300">
+              <div className="bg-info-900/30 border border-info-500/30 rounded-lg p-3 mb-4 text-xs text-info-300">
                 <p className="font-medium mb-1">💡 Como permitir acesso:</p>
                 <p>1. Clique no ícone 🔒 ou 📹 na barra de endereços</p>
                 <p>2. Selecione "Permitir" para câmera</p>
@@ -750,14 +752,14 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             )}
             
             {error.includes('HTTPS') && (
-              <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-3 mb-4 text-xs text-yellow-300">
+              <div className="bg-warning-900/30 border border-warning-500/30 rounded-lg p-3 mb-4 text-xs text-warning-300">
                 <p className="font-medium mb-1">🔒 Contexto seguro necessário:</p>
                 <p>Acesse via https:// ou use localhost para desenvolvimento</p>
               </div>
             )}
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={requestPermission} size="sm" className="bg-green-500 hover:bg-green-600">
+              <Button onClick={requestPermission} variant="primary" size="sm">
                 <Camera className="h-4 w-4 mr-2" />
                 Tentar Novamente
               </Button>
@@ -774,7 +776,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       <div className={`relative w-full h-full ${hasPermission && !error && !isLoading ? '' : 'hidden'}`}>
         <video
           ref={videoRef}
-          className="w-full h-full bg-gray-900"
+          className="w-full h-full bg-neutral-900"
           playsInline
           muted
           autoPlay
@@ -805,16 +807,16 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         
         {/* Overlay de scanning */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="border-2 border-green-500 rounded-lg w-64 h-64 sm:w-72 sm:h-72 relative shadow-lg">
+          <div className="border-2 border-primary-500 rounded-lg w-64 h-64 sm:w-72 sm:h-72 relative shadow-lg">
             {/* Cantos do quadrado */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500 rounded-tl-lg"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500 rounded-tr-lg"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500 rounded-bl-lg"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500 rounded-br-lg"></div>
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-500 rounded-tl-lg"></div>
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 rounded-tr-lg"></div>
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 rounded-bl-lg"></div>
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 rounded-br-lg"></div>
             
             {/* Linha de scanning animada */}
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-green-500 opacity-50">
-              <div className="absolute -top-1 left-1/2 w-6 h-3 bg-green-500 rounded-full transform -translate-x-1/2 animate-pulse"></div>
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-primary-500 opacity-50">
+              <div className="absolute -top-1 left-1/2 w-6 h-3 bg-primary-500 rounded-full transform -translate-x-1/2 animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -826,11 +828,11 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
               bg-black/80 backdrop-blur-sm rounded-lg p-3 border-l-4
               ${qrValidation.isValid 
                 ? qrValidation.type === 'SECURE' 
-                  ? 'border-green-500 text-green-400' 
+                  ? 'border-primary-500 text-primary-400' 
                   : qrValidation.type === 'JSON'
-                    ? 'border-yellow-500 text-yellow-400'
-                    : 'border-orange-500 text-orange-400'
-                : 'border-red-500 text-red-400'
+                    ? 'border-warning-500 text-warning-400'
+                    : 'border-info-500 text-info-400'
+                : 'border-error-500 text-error-400'
               }
             `}>
               <div className="flex items-center gap-2">
@@ -910,7 +912,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       {/* Status - só mostrar se não houver erro nem loading */}
       {hasPermission && !error && !isLoading && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-          <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm border border-green-500/30 flex items-center gap-2">
+          <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm border border-primary-500/30 flex items-center gap-2">
             <span>✅ Scanner ativo - Aponte para o QR code</span>
             <span className="text-xs opacity-70">
               📹 {currentFacingMode === 'environment' ? 'Traseira' : 'Frontal'}
