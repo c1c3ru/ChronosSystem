@@ -337,21 +337,21 @@ export default function AdminPage() {
             {/* Recent Activity */}
             <Card variant="glass">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <CardTitle className="flex items-center text-white">
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
                     Atividade Recente
                   </CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Filter className="h-4 w-4 text-neutral-400" />
+                  <div className="flex items-center space-x-3 bg-neutral-800/50 px-4 py-2 rounded-lg border border-neutral-700">
+                    <Filter className="h-4 w-4 text-primary" />
                     <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value as 'ALL' | 'ENTRY' | 'EXIT')}
-                      className="bg-neutral-700/50 border border-neutral-600 rounded-lg px-3 py-1 text-sm text-neutral-300 hover:bg-neutral-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="bg-transparent text-sm text-neutral-300 cursor-pointer focus:outline-none font-medium"
                     >
-                      <option value="ALL">Todas</option>
-                      <option value="ENTRY">🟢 Entradas</option>
-                      <option value="EXIT">🔴 Saídas</option>
+                      <option value="ALL" className="bg-neutral-800">Todas as atividades</option>
+                      <option value="ENTRY" className="bg-neutral-800">🟢 Apenas Entradas</option>
+                      <option value="EXIT" className="bg-neutral-800">🔴 Apenas Saídas</option>
                     </select>
                   </div>
                 </div>
@@ -360,22 +360,24 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   {filteredActivity.length > 0 ? (
                     filteredActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-center space-x-4 p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group">
-                        <div className={`h-3 w-3 rounded-full ${
-                          activity.type === 'ENTRY' ? 'bg-primary' : 'bg-warning'
-                        }`}></div>
-                        <div className="flex-1">
-                          <p className="text-white text-sm">
-                            <span className="font-medium">{activity.user}</span> {activity.action}
-                          </p>
-                          <p className="text-neutral-400 text-xs">{activity.timestamp}</p>
+                      <div key={activity.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group">
+                        <div className="flex items-center space-x-4 flex-1">
+                          <div className={`h-3 w-3 rounded-full flex-shrink-0 ${
+                            activity.type === 'ENTRY' ? 'bg-primary' : 'bg-warning'
+                          }`}></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm truncate">
+                              <span className="font-medium">{activity.user}</span> {activity.action}
+                            </p>
+                            <p className="text-neutral-400 text-xs">{activity.timestamp}</p>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Clock className="h-4 w-4 text-neutral-400" />
+                        <div className="flex items-center space-x-3 ml-4 flex-shrink-0">
+                          <Clock className="h-4 w-4 text-neutral-500" />
                           <button
                             onClick={() => deleteRecord(activity.id, activity.type)}
                             disabled={deletingId === activity.id}
-                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Deletar registro"
                           >
                             <Trash2 className="h-4 w-4" />
