@@ -14,7 +14,7 @@ export default function SemesterReportPage() {
         Voltar
       </Link>
 
-      <div className="max-w-3xl mx-auto bg-card p-8 shadow border-t-4 border-primary-500">
+      <Card className="max-w-3xl mx-auto border-t-4 border-primary-500">
         <FormHeader 
           title="Relatório Semestral de Atividades"
           showImages={true}
@@ -77,7 +77,7 @@ export default function SemesterReportPage() {
             </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }
