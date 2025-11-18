@@ -6,6 +6,7 @@ import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
 import { rateLimiters } from '@/lib/rate-limit'
 import { apiLogger } from '@/lib/logger'
 import { determineRecordType, getUserWorkingHours, validateRecord, isWeekend } from '@/lib/attendance-logic'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 /**
  * API UNIFICADA PARA QR CODES
@@ -331,7 +332,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         machineId: machineId,
         type: recordType,
-        timestamp: new Date(),
+        timestamp: getNowInFortaleza(),
         qrData: qrData,
         hash: recordHash,
         prevHash: lastRecord?.hash,
