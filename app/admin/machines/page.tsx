@@ -13,11 +13,14 @@ import {
   ArrowLeft,
   Search,
   Power,
-  PowerOff
+  PowerOff,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
+import { toast } from 'sonner'
 
 interface Machine {
   id: string
@@ -86,27 +89,39 @@ export default function MachinesPage() {
         body: JSON.stringify({ isActive: !isActive })
       })
       
+      const data = await response.json()
+      
       if (response.ok) {
+        toast.success(`Máquina ${!isActive ? 'ativada' : 'desativada'} com sucesso!`)
         loadMachines() // Recarregar lista
+      } else {
+        toast.error(data.error || 'Erro ao alterar status da máquina')
       }
     } catch (error) {
       console.error('Erro ao alterar status da máquina:', error)
+      toast.error('Erro ao alterar status da máquina')
     }
   }
 
   const deleteMachine = async (machineId: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta máquina?')) return
+    if (!confirm('Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.')) return
     
     try {
       const response = await fetch(`/api/machines/${machineId}`, {
         method: 'DELETE'
       })
       
+      const data = await response.json()
+      
       if (response.ok) {
+        toast.success('Máquina excluída com sucesso!')
         loadMachines() // Recarregar lista
+      } else {
+        toast.error(data.error || 'Erro ao excluir máquina')
       }
     } catch (error) {
       console.error('Erro ao excluir máquina:', error)
+      toast.error('Erro ao excluir máquina')
     }
   }
 
@@ -182,13 +197,14 @@ export default function MachinesPage() {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => toggleMachine(machine.id, machine.isActive)}
-                      className={`p-1 rounded ${
+                      title={machine.isActive ? 'Clique para desativar' : 'Clique para ativar'}
+                      className={`p-2 rounded transition-all ${
                         machine.isActive 
-                          ? 'text-success hover:bg-success/10' 
-                          : 'text-neutral-500 hover:bg-neutral-700'
+                          ? 'text-success bg-success/10 hover:bg-success/20' 
+                          : 'text-neutral-500 bg-neutral-700/50 hover:bg-neutral-700'
                       }`}
                     >
-                      {machine.isActive ? <Power className="h-4 w-4" /> : <PowerOff className="h-4 w-4" />}
+                      {machine.isActive ? <Power className="h-5 w-5" /> : <PowerOff className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>
