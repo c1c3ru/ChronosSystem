@@ -263,7 +263,7 @@ function analyzeTodayRecords(records: any[], workingHours: WorkingHours) {
 function groupRecordsByDay(records: any[]) {
   const groups = new Map<string, any[]>()
   
-  records.forEach(record => {
+  records.forEach((record: any) => {
     if (!record || !record.timestamp) {
       console.warn('⚠️ [API] Registro inválido encontrado:', record)
       return

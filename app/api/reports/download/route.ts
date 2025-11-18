@@ -222,7 +222,7 @@ function generatePDFReport(records: any[], users: any[], period: number) {
                 </tr>
             </thead>
             <tbody>
-                ${records.map(record => `
+                ${records.map((record: any) => `
                     <tr>
                         <td>${new Date(record.timestamp).toLocaleString('pt-BR')}</td>
                         <td>${record.user?.name || 'N/A'}</td>

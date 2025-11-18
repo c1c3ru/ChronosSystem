@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     // Analisar registros para encontrar atrasos (entrada após 8:30)
     const entriesByDate = new Map()
     
-    attendanceRecords.forEach(record => {
+    attendanceRecords.forEach((record: any) => {
       const dateKey = record.timestamp.toDateString()
       
       if (record.type === 'ENTRY') {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Verificar atrasos (entrada após 8:30)
-    entriesByDate.forEach((entries, dateKey) => {
+    entriesByDate.forEach((entries: any, dateKey: any) => {
       const firstEntry = entries.sort((a: any, b: any) => a.timestamp.getTime() - b.timestamp.getTime())[0]
       const entryTime = firstEntry.timestamp
       const expectedTime = new Date(entryTime)
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar quais dias não têm registro de entrada
-    workDays.forEach(dateKey => {
+    workDays.forEach((dateKey: any) => {
       if (!entriesByDate.has(dateKey)) {
         const justificationKey = dateKey + '-ABSENCE'
         
