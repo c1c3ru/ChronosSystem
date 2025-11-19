@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getNowInFortaleza } from '@/lib/timezone'
+import { redisHealthCheck } from '@/lib/redis'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`
-    
+
+    // Check Redis connection
+    const redisHealth = await redisHealthCheck()
+
     // Get basic stats
     const [userCount, machineCount] = await Promise.all([
       prisma.user.count(),
@@ -23,6 +28,10 @@ export async function GET() {
         users: userCount,
         machines: machineCount
       },
+      redis: {
+        status: redisHealth.healthy ? 'connected' : 'disconnected',
+        message: redisHealth.message
+      },
       uptime: process.uptime(),
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
@@ -34,9 +43,9 @@ export async function GET() {
         'Cache-Control': 'no-store, max-age=0'
       }
     })
-  } catch (error) {
-    console.error('Health check failed:', error)
-    
+  } catch (error: any) {
+    logger.error('Health check failed', { error: error.message })
+
     return NextResponse.json({
       status: 'unhealthy',
       timestamp: getNowInFortaleza().toISOString(),

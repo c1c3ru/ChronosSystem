@@ -57,7 +57,7 @@ export default function KioskPage() {
         console.error('Erro ao carregar máquinas:', error)
       }
     }
-    
+
     fetchMachines()
   }, [])
 
@@ -65,7 +65,7 @@ export default function KioskPage() {
   useEffect(() => {
     // Definir o horário inicial apenas no cliente
     setCurrentTime(new Date())
-    
+
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
@@ -80,7 +80,7 @@ export default function KioskPage() {
       if (machineInfo.id) {
         url.searchParams.append('machineId', machineInfo.id)
       }
-      
+
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
@@ -91,11 +91,11 @@ export default function KioskPage() {
       if (response.ok) {
         const text = await response.text()
         console.log('Response text:', text)
-        
+
         try {
           const data: QRData = JSON.parse(text)
           setQrData(data)
-        
+
           // Gerar imagem do QR code
           const qrUrl = await QRCode.toDataURL(data.qrData, {
             width: 320,
@@ -106,7 +106,7 @@ export default function KioskPage() {
             },
             errorCorrectionLevel: 'M'
           })
-          
+
           setQrCodeUrl(qrUrl)
           setTimeLeft(data.validFor)
         } catch (parseError) {
@@ -133,7 +133,7 @@ export default function KioskPage() {
         nonce: Math.random().toString(36).substring(7),
         fallback: true
       }
-      
+
       const qrString = JSON.stringify(fallbackData)
       const qrUrl = await QRCode.toDataURL(qrString, {
         width: 320,
@@ -143,7 +143,7 @@ export default function KioskPage() {
           light: '#ffffff'
         }
       })
-      
+
       setQrCodeUrl(qrUrl)
       setTimeLeft(60) // 60 segundos
     } catch (error) {
@@ -167,7 +167,7 @@ export default function KioskPage() {
   // Gerar QR code inicial e configurar regeneração automática a cada 60 segundos
   useEffect(() => {
     generateQRCode()
-    
+
     const qrTimer = setInterval(generateQRCode, 60 * 1000) // 60 segundos
 
     return () => clearInterval(qrTimer)
@@ -205,7 +205,7 @@ export default function KioskPage() {
     try {
       const response = await fetch('/api/kiosk/recent-activity')
       const data = await response.json()
-      
+
       if (data.success) {
         setRecentScans(data.activity)
       } else {
@@ -221,9 +221,9 @@ export default function KioskPage() {
   // Buscar atividade inicial e configurar polling a cada 30 segundos
   useEffect(() => {
     fetchRecentActivity()
-    
+
     const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
-    
+
     return () => clearInterval(activityTimer)
   }, [])
 
@@ -281,7 +281,7 @@ export default function KioskPage() {
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-6">
             <div className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}>
               {isOnline ? <Wifi className="h-5 w-5" /> : <WifiOff className="h-5 w-5" />}
@@ -308,17 +308,17 @@ export default function KioskPage() {
               <h2 className="text-3xl font-semibold text-white mb-6">
                 Registrar Ponto
               </h2>
-              
+
               {qrCodeUrl ? (
                 <div className="flex flex-col items-center">
                   <div className="bg-white p-6 rounded-2xl mb-4 shadow-2xl">
-                    <img 
-                      src={qrCodeUrl} 
+                    <img
+                      src={qrCodeUrl}
                       alt="QR Code para registro de ponto"
                       className="w-80 h-80"
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between w-full text-sm">
                     <div className="flex items-center text-neutral-400">
                       <RotateCw className="h-4 w-4 mr-2" />
@@ -347,7 +347,7 @@ export default function KioskPage() {
                 </div>
                 <div className="flex items-center text-neutral-300">
                   <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">2</div>
-                  <span>Toque em "Registrar Ponto"</span>
+                  <span>Toque em &quot;Registrar Ponto&quot;</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
                   <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">3</div>
@@ -369,14 +369,13 @@ export default function KioskPage() {
               <Users className="h-5 w-5 text-primary mr-2" />
               <h3 className="text-lg font-semibold text-white">Atividade Recente</h3>
             </div>
-            
+
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {recentScans.map((scan) => (
                 <div key={scan.id} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
                   <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-3 ${
-                      scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
-                    }`}></div>
+                    <div className={`w-3 h-3 rounded-full mr-3 ${scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
+                      }`}></div>
                     <div>
                       <p className="text-white font-medium text-sm">{scan.user}</p>
                       <p className="text-xs text-neutral-400">

@@ -53,7 +53,7 @@ export default function DeclarationPage() {
           <div className="bg-neutral-800 rounded-lg p-4 border border-neutral-700">
             <h3 className="text-white font-semibold mb-2">📄 Exportação</h3>
             <p className="text-sm text-neutral-400">
-              Clique em "Exportar PDF" para gerar e imprimir o documento.
+              Clique em &quot;Exportar PDF&quot; para gerar e imprimir o documento.
             </p>
           </div>
 

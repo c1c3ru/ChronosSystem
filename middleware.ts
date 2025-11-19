@@ -1,5 +1,7 @@
 import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
+import { getSecurityHeaders } from '@/lib/security-headers'
+import { logger } from '@/lib/logger'
 
 export default withAuth(
   function middleware(req) {
@@ -8,10 +10,10 @@ export default withAuth(
 
     // Rotas que requerem autenticação
     const protectedRoutes = ['/admin', '/employee', '/api/users', '/api/machines', '/api/attendance', '/api/dashboard']
-    
+
     // Verificar se a rota atual é protegida
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
-    
+
     if (isProtectedRoute && !token) {
       // Redirecionar para login se não autenticado
       const signInUrl = new URL('/auth/signin', req.url)
@@ -23,57 +25,50 @@ export default withAuth(
     if (token) {
       const profileComplete = token.profileComplete as boolean
       const role = token.role as string
-      
-      console.log('🔄 [MIDDLEWARE] Usuário autenticado:', {
+
+      logger.debug('Middleware: User authenticated', {
         pathname,
         role,
         profileComplete,
-        userId: token.sub,
-        email: token.email,
-        tokenIat: token.iat,
-        tokenExp: token.exp
+        userId: token.sub
       })
-      
+
       // Verificar se o usuário tem role válido
       if (!role || !['ADMIN', 'SUPERVISOR', 'EMPLOYEE'].includes(role)) {
-        console.log('❌ [MIDDLEWARE] Role inválido, forçando logout')
+        logger.security('Invalid role detected', { userId: token.sub, role })
         return NextResponse.redirect(new URL('/auth/signin?error=InvalidRole', req.url))
       }
-      
+
       // Verificar se perfil está completo (exceto na própria página de completar perfil)
       if (profileComplete === false && pathname !== '/auth/complete-profile') {
-        console.log('📝 [MIDDLEWARE] Perfil incompleto -> complete-profile', {
-          profileComplete,
-          pathname,
-          userId: token.sub
+        logger.debug('Incomplete profile, redirecting', {
+          userId: token.sub,
+          pathname
         })
         return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
       }
-      
+
       // Debug: Log quando perfil está completo
       if (profileComplete === true) {
-        console.log('✅ [MIDDLEWARE] Perfil completo, permitindo acesso', {
-          profileComplete,
+        logger.debug('Profile complete, allowing access', {
           pathname,
           role,
           userId: token.sub
         })
       }
-      
+
       // Se usuário autenticado está na página inicial, redirecionar para dashboard apropriado
       if (pathname === '/') {
-        console.log('🏠 [MIDDLEWARE] Usuário na página inicial, redirecionando...')
-        
+        logger.debug('Redirecting from home page', { role })
+
         // Redirecionamento baseado no role REAL do usuário
         if (role === 'ADMIN' || role === 'SUPERVISOR') {
-          console.log(`👑 [MIDDLEWARE] ${role} -> /admin`)
           return NextResponse.redirect(new URL('/admin', req.url))
         } else if (role === 'EMPLOYEE') {
-          console.log('👤 [MIDDLEWARE] Employee -> /employee')
           return NextResponse.redirect(new URL('/employee', req.url))
         }
       }
-      
+
       // Se o perfil está completo e está na página de completar perfil, redirecionar
       if (profileComplete === true && pathname === '/auth/complete-profile') {
         if (role === 'ADMIN' || role === 'SUPERVISOR') {
@@ -82,7 +77,7 @@ export default withAuth(
           return NextResponse.redirect(new URL('/employee', req.url))
         }
       }
-      
+
       // Se o perfil não está completo e não está na página de completar perfil
       if (profileComplete === false && isProtectedRoute && pathname !== '/auth/complete-profile') {
         return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
@@ -95,38 +90,36 @@ export default withAuth(
         // Redirecionar para página do employee se não for admin/supervisor
         return NextResponse.redirect(new URL('/employee', req.url))
       }
-      
+
     }
 
     // APIs administrativas
-    if (pathname.startsWith('/api/users') || 
-        pathname.startsWith('/api/machines') || 
-        pathname.startsWith('/api/dashboard')) {
+    if (pathname.startsWith('/api/users') ||
+      pathname.startsWith('/api/machines') ||
+      pathname.startsWith('/api/dashboard')) {
       if (!token || !['ADMIN', 'SUPERVISOR'].includes(token.role as string)) {
         return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
       }
     }
 
-    // Criar resposta com headers de permissões
+    // Criar resposta com headers de segurança
     const response = NextResponse.next()
-    
-    // Adicionar headers de permissões para câmera
-    response.headers.set('Permissions-Policy', 'camera=*, microphone=*, geolocation=*')
-    response.headers.set('Feature-Policy', 'camera *; microphone *; geolocation *')
-    
-    // Headers de segurança adicionais
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-    
-    console.log('🔒 [MIDDLEWARE] Headers de permissões adicionados para:', pathname)
-    
+
+    // Aplicar headers de segurança completos
+    const securityHeaders = getSecurityHeaders()
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value)
+    })
+
+    logger.debug('Security headers applied', { pathname })
+
     return response
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
-        
+
         // Permitir acesso às rotas públicas
         const publicRoutes = ['/', '/auth/signin', '/auth/signup', '/auth/complete-profile', '/kiosk']
         if (publicRoutes.includes(pathname)) {

@@ -31,18 +31,21 @@ import { getNowInFortaleza } from '@/lib/timezone'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
-  // Aplicar rate limiting
-  const rateLimitResult = rateLimiters.qrScan(request)
+  // Aplicar rate limiting (async)
+  const rateLimitResult = await rateLimiters.qrScan(request)
   if (!rateLimitResult.success) {
+    const retryAfter = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+
     apiLogger.warn('Rate limit exceeded for QR scan', {
       ip: request.headers.get('x-forwarded-for') || 'unknown',
-      remaining: rateLimitResult.remaining
+      remaining: rateLimitResult.remaining,
+      retryAfter
     })
-    
+
     return new Response(
       JSON.stringify({
         error: 'Muitas tentativas. Tente novamente em alguns segundos.',
-        retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000),
+        retryAfter,
         code: 'RATE_LIMIT_EXCEEDED'
       }),
       {
@@ -51,7 +54,8 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'X-RateLimit-Limit': rateLimitResult.limit.toString(),
           'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-          'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString()
+          'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          'Retry-After': retryAfter.toString()
         }
       }
     )
@@ -59,12 +63,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       apiLogger.warn('Unauthorized QR scan attempt', {
         ip: request.headers.get('x-forwarded-for') || 'unknown'
       })
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Não autenticado',
         code: 'UNAUTHORIZED'
       }, { status: 401 })
@@ -73,14 +77,16 @@ export async function POST(request: NextRequest) {
     const { qrData, location, justification } = await request.json()
 
     if (!qrData) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'QR code é obrigatório',
         code: 'MISSING_QR_DATA'
       }, { status: 400 })
     }
 
-    console.log('🔍 [QR-UNIFIED] Processando QR code para usuário:', session.user.email)
-    console.log('🔍 [QR-UNIFIED] QR data preview:', qrData.substring(0, 50) + '...')
+    apiLogger.debug('Processing QR code', {
+      userId: session.user.id,
+      qrPreview: qrData.substring(0, 20) + '...'
+    })
 
     let machineId: string
     let isSecureQR = false
@@ -88,14 +94,15 @@ export async function POST(request: NextRequest) {
 
     // ESTRATÉGIA 1: Tentar validar como QR seguro (HMAC-SHA256)
     const secureValidation = validateSecureQR(qrData)
-    
+
     if (secureValidation.isValid && secureValidation.payload) {
-      console.log('✅ [QR-UNIFIED] QR seguro detectado e válido')
+      apiLogger.debug('Secure QR detected and valid', {
+        machineId: secureValidation.payload.machineId,
+        expiresIn: secureValidation.payload.expiresIn
+      })
       isSecureQR = true
       machineId = secureValidation.payload.machineId
       const { nonce, timestamp, expiresIn } = secureValidation.payload
-
-      console.log('🔐 [QR-UNIFIED] QR seguro - Máquina:', machineId, 'Nonce:', nonce.substring(0, 8) + '...', 'Expira em:', expiresIn, 'segundos')
 
       // Verificar se o QR code existe no banco e não foi usado
       qrEvent = await prisma.qrEvent.findUnique({
@@ -104,8 +111,8 @@ export async function POST(request: NextRequest) {
       })
 
       if (!qrEvent) {
-        console.log('❌ [QR-UNIFIED] QR seguro não encontrado no banco:', nonce.substring(0, 8) + '...')
-        return NextResponse.json({ 
+        apiLogger.warn('Secure QR not found in database', { userId: session.user.id })
+        return NextResponse.json({
           error: 'QR code não encontrado. Pode ter expirado ou ser inválido.',
           code: 'QR_NOT_FOUND'
         }, { status: 404 })
@@ -113,8 +120,8 @@ export async function POST(request: NextRequest) {
 
       // Verificar se a máquina do QR corresponde à máquina esperada
       if (qrEvent.machineId !== machineId) {
-        console.log('❌ [QR-UNIFIED] QR seguro inválido para esta máquina:', machineId, 'vs', qrEvent.machineId)
-        return NextResponse.json({ 
+        apiLogger.warn('QR machine mismatch', { expected: machineId, actual: qrEvent.machineId })
+        return NextResponse.json({
           error: 'QR code inválido para esta máquina',
           code: 'INVALID_MACHINE'
         }, { status: 400 })
@@ -122,8 +129,8 @@ export async function POST(request: NextRequest) {
 
       // Verificar se já foi usado
       if (qrEvent.used) {
-        console.log('❌ [QR-UNIFIED] QR seguro já foi usado:', nonce.substring(0, 8) + '...')
-        return NextResponse.json({ 
+        apiLogger.warn('QR already used', { userId: session.user.id })
+        return NextResponse.json({
           error: 'QR code já foi utilizado. Gere um novo QR code.',
           code: 'QR_ALREADY_USED'
         }, { status: 400 })
@@ -132,8 +139,8 @@ export async function POST(request: NextRequest) {
       // Verificar se expirou
       const currentTime = new Date()
       if (currentTime > qrEvent.expiresAt) {
-        console.log('❌ [QR-UNIFIED] QR seguro expirado:', nonce.substring(0, 8) + '...', 'Expiração:', qrEvent.expiresAt.toISOString())
-        return NextResponse.json({ 
+        apiLogger.warn('QR expired', { expiresAt: qrEvent.expiresAt.toISOString() })
+        return NextResponse.json({
           error: 'QR code expirado. Gere um novo QR code.',
           code: 'QR_EXPIRED'
         }, { status: 400 })
@@ -141,67 +148,67 @@ export async function POST(request: NextRequest) {
 
       // Verificar se a máquina está ativa
       if (!qrEvent.machine.isActive) {
-        console.log('❌ [QR-UNIFIED] Máquina inativa (QR seguro):', machineId)
-        return NextResponse.json({ 
+        apiLogger.warn('Machine inactive', { machineId })
+        return NextResponse.json({
           error: 'Máquina não está ativa',
           code: 'MACHINE_INACTIVE'
         }, { status: 400 })
       }
 
     } else {
-      console.log('⚠️ [QR-UNIFIED] QR não é seguro, tentando formatos alternativos...')
-      
+      apiLogger.debug('QR not secure, trying alternative formats')
+
       // ESTRATÉGIA 2: Tentar como JSON simples
       try {
         const qrJson = JSON.parse(qrData)
         machineId = qrJson.machineId || qrJson.id
-        
+
         if (!machineId) {
           throw new Error('machineId não encontrado no JSON')
         }
-        
+
         // Sanitizar machineId
         machineId = String(machineId).trim()
-        
-        console.log('📝 [QR-UNIFIED] QR JSON simples aceito, machineId:', machineId)
-        
+
+        apiLogger.debug('Simple JSON QR accepted', { machineId })
+
         // Para QR JSON, verificar se tem expiração
         if (qrJson.expires && Date.now() > qrJson.expires) {
-          return NextResponse.json({ 
+          return NextResponse.json({
             error: 'QR code expirado',
             code: 'QR_EXPIRED'
           }, { status: 400 })
         }
-        
+
         // Se tem nonce, verificar no banco
         if (qrJson.nonce) {
           qrEvent = await prisma.qrEvent.findUnique({
             where: { nonce: qrJson.nonce },
             include: { machine: true }
           })
-          
+
           if (qrEvent && qrEvent.used) {
-            return NextResponse.json({ 
+            return NextResponse.json({
               error: 'QR code já foi utilizado',
               code: 'QR_ALREADY_USED'
             }, { status: 400 })
           }
         }
-        
+
       } catch {
         // ESTRATÉGIA 3: Usar como texto direto (ID da máquina)
         machineId = qrData.trim()
-        
+
         // Validar se machineId não está vazio após trim
         if (!machineId || machineId.length === 0) {
-          console.log('❌ [QR-UNIFIED] QR code vazio após processamento')
-          return NextResponse.json({ 
+          apiLogger.warn('Empty QR code after processing')
+          return NextResponse.json({
             error: 'QR code inválido ou vazio',
             code: 'INVALID_QR_DATA'
           }, { status: 400 })
         }
-        
-        console.log('📝 [QR-UNIFIED] QR como texto direto, machineId:', machineId)
+
+        apiLogger.debug('Direct text QR', { machineId })
       }
     }
 
@@ -214,28 +221,28 @@ export async function POST(request: NextRequest) {
     })
 
     if (!machine) {
-      console.log('❌ [QR-UNIFIED] Máquina não encontrada ou inativa:', machineId)
-      
+      apiLogger.warn('Machine not found or inactive', { machineId })
+
       // Verificar se a máquina existe mas está inativa
       const inactiveMachine = await prisma.machine.findFirst({
         where: { id: machineId }
       })
-      
+
       if (inactiveMachine && !inactiveMachine.isActive) {
-        return NextResponse.json({ 
+        return NextResponse.json({
           error: `Máquina '${inactiveMachine.name}' está inativa. Contate o administrador.`,
           code: 'MACHINE_INACTIVE'
         }, { status: 400 })
       }
-      
+
       // Máquina não existe
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Máquina não encontrada. Verifique se o QR code está correto.',
         code: 'MACHINE_NOT_FOUND'
       }, { status: 404 })
     }
 
-    console.log('🏢 [QR-UNIFIED] Máquina encontrada:', machine.name, '-', machine.location)
+    apiLogger.debug('Machine found', { machineName: machine.name, location: machine.location })
 
     // Buscar último registro para análise inteligente
     const lastRecord = await prisma.attendanceRecord.findFirst({
@@ -273,18 +280,18 @@ export async function POST(request: NextRequest) {
       isWeekend: isWeekend(currentTime)
     }, recordType)
 
-    console.log('🧠 [QR-UNIFIED] Análise inteligente:', {
+    apiLogger.debug('Intelligent analysis', {
       qrType: isSecureQR ? 'SECURE' : 'SIMPLE',
       suggestedType: recordType,
       reason: attendanceAnalysis.reason,
       confidence: attendanceAnalysis.confidence,
-      warnings: validation.warnings,
-      errors: validation.errors
+      warnings: validation.warnings.length,
+      errors: validation.errors.length
     })
 
     // Se há erros críticos, bloquear registro
     if (!validation.isValid) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: `Registro bloqueado: ${validation.errors.join(', ')}`,
         warnings: validation.warnings,
         code: 'VALIDATION_FAILED'
@@ -305,7 +312,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (recentRecord) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: `Registro de ${recordType === 'ENTRY' ? 'entrada' : 'saída'} já feito recentemente. Aguarde 1 minuto.`,
         code: 'DUPLICATE_RECORD'
       }, { status: 400 })
@@ -355,21 +362,21 @@ export async function POST(request: NextRequest) {
       // Marcar QR como usado no banco para auditoria
       await prisma.qrEvent.update({
         where: { id: qrEvent.id },
-        data: { 
+        data: {
           used: true,
           usedAt: new Date(),
           usedBy: session.user.id
         }
       })
-      
-      console.log('✅ [QR-UNIFIED] QR seguro marcado como usado no banco')
+
+      apiLogger.debug('Secure QR marked as used')
     }
 
     // Para QR JSON com nonce, marcar como usado
     if (!isSecureQR && qrEvent) {
       await prisma.qrEvent.update({
         where: { id: qrEvent.id },
-        data: { 
+        data: {
           used: true,
           usedAt: new Date(),
           usedBy: session.user.id
@@ -392,12 +399,17 @@ export async function POST(request: NextRequest) {
       minute: '2-digit'
     })
 
-    console.log(`✅ [QR-UNIFIED] ${recordType} registrada para ${session.user.email} às ${recordTime} (${isSecureQR ? 'QR Seguro' : 'QR Simples'})`)
+    apiLogger.audit('ATTENDANCE_RECORDED', 'ATTENDANCE_RECORD', {
+      userId: session.user.id,
+      recordType,
+      time: recordTime,
+      qrType: isSecureQR ? 'SECURE' : 'SIMPLE'
+    })
 
     // Resposta unificada
     const typeLabel = recordType === 'ENTRY' ? 'Entrada' : 'Saída'
     const typeIcon = recordType === 'ENTRY' ? 'login' : 'logout'
-    
+
     return NextResponse.json({
       success: true,
       record: {
@@ -427,23 +439,23 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('❌ [QR-UNIFIED] Erro ao processar QR scan:', error)
-    
+    // Error already logged by apiLogger below
+
     apiLogger.error('QR scan processing error', {
       error: error.message,
       stack: error.stack,
       userId: (await getServerSession(authOptions))?.user?.id
     })
-    
+
     // Verificar se é erro de QR_SECRET
     if (error.message && error.message.includes('QR_SECRET')) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Erro de configuração do servidor: QR_SECRET não está configurado',
         code: 'SERVER_CONFIG_ERROR'
       }, { status: 500 })
     }
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       error: 'Erro interno do servidor',
       code: 'INTERNAL_ERROR',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined

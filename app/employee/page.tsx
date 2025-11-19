@@ -4,24 +4,24 @@ import { useState, useEffect, useRef } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  User, 
-  LogOut, 
-  Camera, 
-  History, 
-  AlertTriangle, 
-  AlertCircle, 
-  CheckCircle, 
-  Clock, 
-  Zap, 
-  TrendingUp, 
-  Shield, 
-  Settings, 
-  Bell, 
-  Menu, 
-  X, 
-  Eye, 
-  EyeOff, 
+import {
+  User,
+  LogOut,
+  Camera,
+  History,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Zap,
+  TrendingUp,
+  Shield,
+  Settings,
+  Bell,
+  Menu,
+  X,
+  Eye,
+  EyeOff,
   Timer,
   Lock,
   FileText,
@@ -98,7 +98,7 @@ export default function EmployeePage() {
       setIsCheckingCamera(true)
       setCameraError(null)
       console.log('🔍 [CAMERA] Verificando permissões da câmera...')
-      
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setCameraPermission('denied')
         setCameraError('Câmera não suportada neste dispositivo')
@@ -133,32 +133,32 @@ export default function EmployeePage() {
       // MÉTODO 1: Testar acesso direto à câmera (mais confiável)
       try {
         console.log('🎥 [CAMERA] Testando acesso direto à câmera...')
-        
+
         // Solicitar permissão explícita da câmera
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
             facingMode: 'environment', // Preferir câmera traseira
             width: { ideal: 1280 },
             height: { ideal: 720 }
-          } 
+          }
         })
-        
+
         console.log('✅ [CAMERA] Acesso à câmera concedido!')
         console.log('📹 [CAMERA] Stream obtido:', stream.getTracks().length, 'tracks')
-        
+
         // Parar o stream imediatamente (só estamos testando permissão)
         stream.getTracks().forEach(track => {
           track.stop()
           console.log('🛑 [CAMERA] Track parado:', track.kind)
         })
-        
+
         setCameraPermission('granted')
         console.log('✅ [CAMERA] Permissão definida como granted')
         return
-        
+
       } catch (directError: any) {
         console.log('⚠️ [CAMERA] Erro no acesso direto:', directError.name, directError.message)
-        
+
         // Tratar erros específicos
         if (directError.name === 'NotAllowedError') {
           setCameraPermission('denied')
@@ -173,7 +173,7 @@ export default function EmployeePage() {
           setCameraError('Câmera está sendo usada por outro aplicativo.')
           return
         }
-        
+
         // Continuar para outros métodos se não for erro crítico
         console.log('🔄 [CAMERA] Tentando método alternativo...')
       }
@@ -183,10 +183,10 @@ export default function EmployeePage() {
         try {
           const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
           const permState = permission.state as 'granted' | 'denied' | 'prompt'
-          
+
           console.log('🔍 [CAMERA] Permissions API:', permState)
           setCameraPermission(permState)
-          
+
           // Escutar mudanças de permissão
           permission.onchange = () => {
             const newState = permission.state as 'granted' | 'denied' | 'prompt'
@@ -218,7 +218,7 @@ export default function EmployeePage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -234,18 +234,18 @@ export default function EmployeePage() {
   const loadEmployeeData = async () => {
     try {
       setLoading(true)
-      
+
       // Buscar dados reais do usuário com análise de alertas
       console.log('🔍 [EMPLOYEE] Buscando dados do dashboard...')
       const response = await fetch('/api/employee/dashboard-enhanced')
-      
+
       if (response.ok) {
         const data = await response.json()
-        
+
         if (data.success) {
           // Definir status de trabalho
           setWorkStatus(data.workStatus)
-          
+
           // Usar os dados já analisados da nova API
           const formattedRecords = data.analyzedDays.map((day: any) => ({
             id: `day-${day.date}`,
@@ -253,16 +253,16 @@ export default function EmployeePage() {
             entry: day.entry,
             exit: day.exit,
             hours: day.totalHours,
-            status: day.status === 'completed' ? 'Completo' : 
-                   day.status === 'incomplete' ? 'Incompleto' :
-                   day.status === 'absent' ? 'Ausente' : 'Em andamento',
+            status: day.status === 'completed' ? 'Completo' :
+              day.status === 'incomplete' ? 'Incompleto' :
+                day.status === 'absent' ? 'Ausente' : 'Em andamento',
             location: day.location,
             alerts: day.alerts,
             hasJustification: day.hasJustification
           }))
-          
+
           setRecentRecords(formattedRecords)
-          
+
           // Buscar dados do perfil para linha do tempo (se for estagiário)
           if (data.userProfile) {
             setUserProfile({
@@ -303,9 +303,9 @@ export default function EmployeePage() {
       setProcessingQr(true)
       setCameraError('')
       setQrResult('')
-      
+
       console.log('⚙️ [QR] Processando registro de ponto...')
-      
+
       // Enviar registro de ponto usando API unificada (aceita QR seguro, JSON e texto)
       const response = await fetch('/api/attendance/qr-unified', {
         method: 'POST',
@@ -316,33 +316,33 @@ export default function EmployeePage() {
           qrData: qrData
         })
       })
-      
+
       const result = await response.json()
       console.log('📡 [QR] Resposta da API:', result)
-      
+
       if (response.ok && result.success) {
         console.log('✅ [QR] Ponto registrado com sucesso!')
-        
+
         // Mostrar feedback de sucesso imediatamente
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
         const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit'
         })
-        
+
         // Mostrar informação inteligente se disponível
-        const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' : 
-                              result.analysis?.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'
-        
+        const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' :
+          result.analysis?.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'
+
         // Criar mensagem com destaque visual claro
         const displayMessage = `${recordType}\n${recordTime}\n${result.record.machineName}`
-        const smartInfo = result.analysis ? 
+        const smartInfo = result.analysis ?
           `${result.smartMessage} (${confidenceText})` :
           `${recordType} registrada às ${recordTime}`
-          
+
         setQrResult(`✅ ${displayMessage}`)
         setLastRegistration(displayMessage)
-        
+
         // Log da análise inteligente
         if (result.analysis) {
           console.log('🧠 [QR] Análise inteligente:', {
@@ -351,39 +351,39 @@ export default function EmployeePage() {
             suggestions: result.analysis.suggestions,
             warnings: result.analysis.warnings
           })
-          
+
           // Mostrar avisos se houver
           if (result.analysis.warnings.length > 0) {
             console.warn('⚠️ [QR] Avisos:', result.analysis.warnings)
           }
         }
-        
+
         // Aguardar 3 segundos para mostrar o sucesso, depois fechar
         setTimeout(async () => {
           console.log('🔄 [QR] Finalizando e atualizando dados...')
-          
+
           // Fechar scanner
           await stopScanning()
-          
+
           // Atualizar dados da página
           setTimeout(async () => {
             await loadEmployeeData()
             console.log('✅ [QR] Dados atualizados!')
-            
+
             // Limpar notificação após 5 segundos
             setTimeout(() => {
               setLastRegistration(null)
             }, 5000)
           }, 500)
-          
+
         }, 3000) // Aumentar tempo para 3 segundos
-        
+
       } else {
         console.error('❌ [QR] Erro no registro:', result.error)
-        
+
         // Melhorar mensagem de erro para o usuário
         let userFriendlyError = result.error || 'Erro ao registrar ponto'
-        
+
         // Tratar erros específicos com mensagens mais amigáveis
         if (result.code === 'MACHINE_NOT_FOUND') {
           userFriendlyError = 'Máquina não encontrada. Verifique se o QR code está correto.'
@@ -400,11 +400,11 @@ export default function EmployeePage() {
         } else if (result.code === 'RATE_LIMIT_EXCEEDED') {
           userFriendlyError = 'Muitas tentativas. Aguarde alguns segundos.'
         }
-        
+
         setCameraError(userFriendlyError)
         setQrResult('')
       }
-      
+
     } catch (error: any) {
       console.error('❌ [QR] Erro ao processar registro:', error)
       setCameraError(`Erro ao registrar ponto: ${error.message}`)
@@ -457,7 +457,7 @@ export default function EmployeePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Right Section */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="text-right hidden sm:block">
@@ -477,7 +477,7 @@ export default function EmployeePage() {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-          
+
           {/* Notificação de Último Registro */}
           {lastRegistration && (
             <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4 animate-in slide-in-from-top-2 duration-300">
@@ -494,365 +494,364 @@ export default function EmployeePage() {
           {/* Status Card */}
           <Card variant="glass" className="overflow-hidden">
             <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-4 h-4 rounded-full ${
-                      workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-4 h-4 rounded-full ${workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
                     }`}></div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-white">
-                        {workStatus?.isWorking ? 'Trabalhando' : 'Fora do expediente'}
-                      </h2>
-                      {workStatus?.lastRecord && (
-                        <p className="text-neutral-400 flex items-center mt-1">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          Último registro: {workStatus.lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'} às {workStatus.lastRecord.time} - {workStatus.lastRecord.location}
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      {workStatus?.isWorking ? 'Trabalhando' : 'Fora do expediente'}
+                    </h2>
+                    {workStatus?.lastRecord && (
+                      <p className="text-neutral-400 flex items-center mt-1">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        Último registro: {workStatus.lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'} às {workStatus.lastRecord.time} - {workStatus.lastRecord.location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center text-primary mb-2">
+                    <Timer className="h-5 w-5 mr-2" />
+                    <span className="text-2xl font-bold">{workStatus?.todayHours}</span>
+                  </div>
+                  <p className="text-neutral-400 text-sm">Horas hoje</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Linha do Tempo do Estágio - Apenas para estagiários */}
+          {userProfile && userProfile.contractType?.startsWith('ESTAGIO') && userProfile.startDate && (
+            <InternshipTimeline
+              startDate={userProfile.startDate}
+              weeklyHours={userProfile.weeklyHours || 20}
+              completedHours={userProfile.completedHours || 0}
+              contractType={userProfile.contractType}
+            />
+          )}
+
+          {/* Scanner Modal - Mobile First */}
+          {scanning && (
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-modal flex items-start sm:items-center justify-center overflow-y-auto">
+              <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md lg:max-w-lg mx-auto flex items-start sm:items-center justify-center p-4 sm:p-6">
+                <Card variant="glass" className="w-full max-w-none sm:max-w-md lg:max-w-lg">
+                  <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 border-b border-white/10">
+                    <CardTitle className="text-white text-lg sm:text-xl">Registrar Ponto</CardTitle>
+                    <Button
+                      onClick={stopScanning}
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/10 p-2 rounded-full"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4 p-4 sm:p-6">
+                    {/* QR Scanner Container - Mobile Optimized */}
+                    <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30">
+                      <QRScanner
+                        isActive={scanning}
+                        onScan={processQrCode}
+                        onActivate={() => setScanning(true)}
+                      />
+                    </div>
+
+                    {/* Status Messages - Mobile Optimized */}
+                    {processingQr && (
+                      <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-4">
+                        <div className="flex items-center justify-center space-x-3">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-info-400"></div>
+                          <p className="text-info-400 text-base font-medium">Registrando ponto...</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {qrResult && (
+                      <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <CheckCircle className="h-5 w-5 text-success-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-success-400 text-base break-words">{qrResult}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {cameraError && (
+                      <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <AlertTriangle className="h-5 w-5 text-error-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-error-400 text-base break-words">{cameraError}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {!cameraError && !qrResult && !processingQr && (
+                      <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4">
+                        <p className="text-success-400 text-center text-sm font-medium mb-2">
+                          📱 Aponte a câmera para o código QR da máquina
                         </p>
-                      )}
+                        <p className="text-success-300 text-center text-xs">
+                          • Mantenha o QR dentro do quadrado verde<br />
+                          • Certifique-se de que há boa iluminação<br />
+                          • Mantenha a câmera estável
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Cancel Button */}
+                    <div className="text-center space-y-4 pt-2">
+                      <Button
+                        onClick={stopScanning}
+                        variant="secondary"
+                        className="w-full py-3 text-base font-medium"
+                        disabled={processingQr}
+                      >
+                        {processingQr ? 'Processando...' : 'Cancelar'}
+                      </Button>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center text-primary mb-2">
-                      <Timer className="h-5 w-5 mr-2" />
-                      <span className="text-2xl font-bold">{workStatus?.todayHours}</span>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* Main Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {/* QR Code Scanner */}
+            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+              <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
+                <div className="bg-primary/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-primary/30 transition-colors">
+                  {workStatus?.isWorking ? (
+                    <Square className="h-10 w-10 text-primary" />
+                  ) : (
+                    <Play className="h-10 w-10 text-primary" />
+                  )}
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
+                  {workStatus?.isWorking ? 'Registrar Saída' : 'Registrar Entrada'}
+                </h3>
+                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
+                  Use a câmera para registrar seu ponto na máquina
+                </p>
+
+                {/* Área flexível para alertas */}
+                <div className="flex-1 mb-6">
+                  {/* Status de verificação */}
+                  {isCheckingCamera && (
+                    <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-3 mb-4">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-info-400 mx-auto mb-2"></div>
+                        <p className="text-info-400 text-sm">Preparando câmera...</p>
+                      </div>
                     </div>
-                    <p className="text-neutral-400 text-sm">Horas hoje</p>
-                  </div>
+                  )}
+
+                  {/* Status da Câmera */}
+                  {!isCheckingCamera && cameraPermission === 'denied' && (
+                    <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-3 mb-4">
+                      <div className="text-center">
+                        <AlertTriangle className="h-6 w-6 text-error-400 mx-auto mb-2" />
+                        <p className="text-error-400 text-sm font-medium mb-2">Câmera Bloqueada</p>
+                        <p className="text-error-400 text-xs mb-3">
+                          Para registrar seu ponto, permita o acesso à câmera quando solicitado
+                        </p>
+                        <div className="space-y-2">
+                          <Button
+                            onClick={async () => {
+                              console.log('🔄 [CAMERA] Solicitando permissão explícita...')
+                              setCameraPermission('checking')
+                              setCameraError(null)
+                              setIsCheckingCamera(true)
+
+                              try {
+                                // Solicitar permissão explícita
+                                const stream = await navigator.mediaDevices.getUserMedia({
+                                  video: {
+                                    facingMode: 'environment',
+                                    width: { ideal: 640 },
+                                    height: { ideal: 480 }
+                                  }
+                                })
+
+                                console.log('✅ [CAMERA] Permissão concedida!')
+                                stream.getTracks().forEach(track => track.stop())
+                                setCameraPermission('granted')
+                                setCameraError(null)
+
+                              } catch (error: any) {
+                                console.error('❌ [CAMERA] Permissão negada:', error)
+                                setCameraPermission('denied')
+                                setCameraError('Permissão da câmera é necessária para escanear QR codes')
+                              }
+
+                              setIsCheckingCamera(false)
+                            }}
+                            size="sm"
+                            variant="ghost"
+                            className="text-error-400 border-error-400/50 hover:bg-error-500/10"
+                          >
+                            Permitir Câmera
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {cameraError && cameraPermission !== 'denied' && (
+                    <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-3 mb-4">
+                      <p className="text-orange-400 text-xs">{cameraError}</p>
+                      <Button
+                        onClick={() => {
+                          setCameraError(null)
+                          checkCameraPermission()
+                        }}
+                        size="sm"
+                        variant="ghost"
+                        className="text-orange-400 border-orange-400/50 hover:bg-orange-500/10 mt-2"
+                      >
+                        Tentar Novamente
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={() => {
+                    console.log('🔘 [BUTTON] Botão clicado!')
+                    console.log('🔘 [BUTTON] Estados:', { scanning, isCheckingCamera, cameraPermission })
+                    startScanning()
+                  }}
+                  className="w-full mt-auto"
+                  disabled={scanning || isCheckingCamera}
+                >
+                  <Camera className="h-5 w-5 mr-2" />
+                  {scanning ? 'Abrindo Scanner...' :
+                    isCheckingCamera ? 'Verificando...' :
+                      'Abrir Scanner QR'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* History */}
+            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+              <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
+                <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-secondary-500/30 transition-colors">
+                  <History className="h-10 w-10 text-secondary-500" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
+                  Histórico Completo
+                </h3>
+                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
+                  Visualize seu histórico de registros e relatórios mensais
+                </p>
+                <div className="flex-1"></div>
+                <Button variant="secondary" className="w-full mt-auto">
+                  Ver Histórico
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+              <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
+                <div className="bg-neutral-700/40 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <Lock className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
+                  Senha e segurança
+                </h3>
+                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
+                  Altere sua senha com segurança sempre que precisar.
+                </p>
+                <div className="flex-1"></div>
+                <Button asChild variant="secondary" className="w-full mt-auto">
+                  <Link href="/auth/change-password">
+                    Alterar senha
+                  </Link>
+                </Button>
+                <p className="text-[11px] text-neutral-500 text-center mt-3">
+                  Se esquecer a senha e não conseguir acessar, use a opção &quot;Esqueci minha senha&quot; na tela de login.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Documents */}
+            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+              <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
+                <div className="bg-info-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-info-500/30 transition-colors">
+                  <FileText className="h-10 w-10 text-info-400" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 text-center">
+                  Documentos de Estágio
+                </h3>
+                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6 text-center">
+                  Acesse formulários e documentos necessários
+                </p>
+                <div className="flex-1"></div>
+
+                <div className="space-y-2">
+                  <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Solicitação de Cadastro</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Termo de Compromisso</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Relatório Final</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Relatório Mensal</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Relatório Semestral</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Termo Aditivo</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Solicitação de Equiparação</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Declaração Profissional</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Declaração de Extensão</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Linha do Tempo do Estágio - Apenas para estagiários */}
-            {userProfile && userProfile.contractType?.startsWith('ESTAGIO') && userProfile.startDate && (
-              <InternshipTimeline
-                startDate={userProfile.startDate}
-                weeklyHours={userProfile.weeklyHours || 20}
-                completedHours={userProfile.completedHours || 0}
-                contractType={userProfile.contractType}
-              />
-            )}
-
-            {/* Scanner Modal - Mobile First */}
-            {scanning && (
-              <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-modal flex items-start sm:items-center justify-center overflow-y-auto">
-                <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md lg:max-w-lg mx-auto flex items-start sm:items-center justify-center p-4 sm:p-6">
-                  <Card variant="glass" className="w-full max-w-none sm:max-w-md lg:max-w-lg">
-                    <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 border-b border-white/10">
-                      <CardTitle className="text-white text-lg sm:text-xl">Registrar Ponto</CardTitle>
-                      <Button 
-                        onClick={stopScanning} 
-                        variant="ghost" 
-                        size="sm"
-                        className="text-white hover:bg-white/10 p-2 rounded-full"
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4 p-4 sm:p-6">
-                      {/* QR Scanner Container - Mobile Optimized */}
-                      <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30">
-                        <QRScanner
-                          isActive={scanning}
-                          onScan={processQrCode}
-                          onActivate={() => setScanning(true)}
-                        />
-                      </div>
-                      
-                      {/* Status Messages - Mobile Optimized */}
-                      {processingQr && (
-                        <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-4">
-                          <div className="flex items-center justify-center space-x-3">
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-info-400"></div>
-                            <p className="text-info-400 text-base font-medium">Registrando ponto...</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {qrResult && (
-                        <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4">
-                          <div className="flex items-start space-x-3">
-                            <CheckCircle className="h-5 w-5 text-success-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-success-400 text-base break-words">{qrResult}</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {cameraError && (
-                        <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-4">
-                          <div className="flex items-start space-x-3">
-                            <AlertTriangle className="h-5 w-5 text-error-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-error-400 text-base break-words">{cameraError}</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {!cameraError && !qrResult && !processingQr && (
-                        <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4">
-                          <p className="text-success-400 text-center text-sm font-medium mb-2">
-                            📱 Aponte a câmera para o código QR da máquina
-                          </p>
-                          <p className="text-success-300 text-center text-xs">
-                            • Mantenha o QR dentro do quadrado verde<br/>
-                            • Certifique-se de que há boa iluminação<br/>
-                            • Mantenha a câmera estável
-                          </p>
-                        </div>
-                      )}
-                      
-                      {/* Cancel Button */}
-                      <div className="text-center space-y-4 pt-2">
-                        <Button 
-                          onClick={stopScanning} 
-                          variant="secondary" 
-                          className="w-full py-3 text-base font-medium"
-                          disabled={processingQr}
-                        >
-                          {processingQr ? 'Processando...' : 'Cancelar'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {/* Main Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              {/* QR Code Scanner */}
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-                <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
-                  <div className="bg-primary/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-primary/30 transition-colors">
-                    {workStatus?.isWorking ? (
-                      <Square className="h-10 w-10 text-primary" />
-                    ) : (
-                      <Play className="h-10 w-10 text-primary" />
-                    )}
+            {/* Justifications */}
+            <Link href="/employee/justifications">
+              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer h-full">
+                <CardContent className="p-8 text-center flex flex-col h-full">
+                  <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
+                    <AlertTriangle className="h-10 w-10 text-warning" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                    {workStatus?.isWorking ? 'Registrar Saída' : 'Registrar Entrada'}
+                  <h3 className="text-xl font-semibold text-white mb-3">
+                    Justificativas
                   </h3>
-                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                    Use a câmera para registrar seu ponto na máquina
+                  <p className="text-neutral-400 text-sm mb-6">
+                    Justifique atrasos e faltas (&gt;30 min)
                   </p>
-                  
-                  {/* Área flexível para alertas */}
-                  <div className="flex-1 mb-6">
-                    {/* Status de verificação */}
-                    {isCheckingCamera && (
-                      <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-3 mb-4">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-info-400 mx-auto mb-2"></div>
-                          <p className="text-info-400 text-sm">Preparando câmera...</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Status da Câmera */}
-                    {!isCheckingCamera && cameraPermission === 'denied' && (
-                      <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-3 mb-4">
-                        <div className="text-center">
-                          <AlertTriangle className="h-6 w-6 text-error-400 mx-auto mb-2" />
-                          <p className="text-error-400 text-sm font-medium mb-2">Câmera Bloqueada</p>
-                          <p className="text-error-400 text-xs mb-3">
-                            Para registrar seu ponto, permita o acesso à câmera quando solicitado
-                          </p>
-                          <div className="space-y-2">
-                            <Button 
-                              onClick={async () => {
-                                console.log('🔄 [CAMERA] Solicitando permissão explícita...')
-                                setCameraPermission('checking')
-                                setCameraError(null)
-                                setIsCheckingCamera(true)
-                                
-                                try {
-                                  // Solicitar permissão explícita
-                                  const stream = await navigator.mediaDevices.getUserMedia({ 
-                                    video: { 
-                                      facingMode: 'environment',
-                                      width: { ideal: 640 },
-                                      height: { ideal: 480 }
-                                    } 
-                                  })
-                                  
-                                  console.log('✅ [CAMERA] Permissão concedida!')
-                                  stream.getTracks().forEach(track => track.stop())
-                                  setCameraPermission('granted')
-                                  setCameraError(null)
-                                  
-                                } catch (error: any) {
-                                  console.error('❌ [CAMERA] Permissão negada:', error)
-                                  setCameraPermission('denied')
-                                  setCameraError('Permissão da câmera é necessária para escanear QR codes')
-                                }
-                                
-                                setIsCheckingCamera(false)
-                              }} 
-                              size="sm" 
-                              variant="ghost"
-                              className="text-error-400 border-error-400/50 hover:bg-error-500/10"
-                            >
-                              Permitir Câmera
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {cameraError && cameraPermission !== 'denied' && (
-                      <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-3 mb-4">
-                        <p className="text-orange-400 text-xs">{cameraError}</p>
-                        <Button 
-                          onClick={() => {
-                            setCameraError(null)
-                            checkCameraPermission()
-                          }} 
-                          size="sm" 
-                          variant="ghost"
-                          className="text-orange-400 border-orange-400/50 hover:bg-orange-500/10 mt-2"
-                        >
-                          Tentar Novamente
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <Button 
-                    onClick={() => {
-                      console.log('🔘 [BUTTON] Botão clicado!')
-                      console.log('🔘 [BUTTON] Estados:', { scanning, isCheckingCamera, cameraPermission })
-                      startScanning()
-                    }} 
-                    className="w-full mt-auto"
-                    disabled={scanning || isCheckingCamera}
-                  >
-                    <Camera className="h-5 w-5 mr-2" />
-                    {scanning ? 'Abrindo Scanner...' :
-                     isCheckingCamera ? 'Verificando...' :
-                     'Abrir Scanner QR'}
+                  <div className="flex-1"></div>
+                  <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10 mt-auto">
+                    Gerenciar
                   </Button>
                 </CardContent>
               </Card>
+            </Link>
+          </div>
 
-              {/* History */}
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-                <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
-                  <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-secondary-500/30 transition-colors">
-                    <History className="h-10 w-10 text-secondary-500" />
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                    Histórico Completo
-                  </h3>
-                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                    Visualize seu histórico de registros e relatórios mensais
-                  </p>
-                  <div className="flex-1"></div>
-                  <Button variant="secondary" className="w-full mt-auto">
-                    Ver Histórico
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-                <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
-                  <div className="bg-neutral-700/40 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                    <Lock className="h-10 w-10 text-primary" />
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                    Senha e segurança
-                  </h3>
-                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                    Altere sua senha com segurança sempre que precisar.
-                  </p>
-                  <div className="flex-1"></div>
-                  <Button asChild variant="secondary" className="w-full mt-auto">
-                    <Link href="/auth/change-password">
-                      Alterar senha
-                    </Link>
-                  </Button>
-                  <p className="text-[11px] text-neutral-500 text-center mt-3">
-                    Se esquecer a senha e não conseguir acessar, use a opção "Esqueci minha senha" na tela de login.
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Documents */}
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-                <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
-                  <div className="bg-info-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-info-500/30 transition-colors">
-                    <FileText className="h-10 w-10 text-info-400" />
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 text-center">
-                    Documentos de Estágio
-                  </h3>
-                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6 text-center">
-                    Acesse formulários e documentos necessários
-                  </p>
-                  <div className="flex-1"></div>
-                  
-                  <div className="space-y-2">
-                    <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Solicitação de Cadastro</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Termo de Compromisso</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Relatório Final</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Relatório Mensal</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Relatório Semestral</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Termo Aditivo</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Solicitação de Equiparação</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Declaração Profissional</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                      <span>Declaração de Extensão</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Justifications */}
-              <Link href="/employee/justifications">
-                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer h-full">
-                  <CardContent className="p-8 text-center flex flex-col h-full">
-                    <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
-                      <AlertTriangle className="h-10 w-10 text-warning" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-3">
-                      Justificativas
-                    </h3>
-                    <p className="text-neutral-400 text-sm mb-6">
-                      Justifique atrasos e faltas (&gt;30 min)
-                    </p>
-                    <div className="flex-1"></div>
-                    <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10 mt-auto">
-                      Gerenciar
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-
-            {!loading && (
+          {!loading && (
             <>
               {/* Recent Records */}
               <Card variant="glass">
@@ -869,100 +868,99 @@ export default function EmployeePage() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                <div className="space-y-3">
-                  {recentRecords.length > 0 ? (
-                    recentRecords.map((record) => (
-                      <div key={record.id} className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden border border-neutral-700/30">
-                        {/* Alertas - se houver */}
-                        {record.alerts && record.alerts.length > 0 && (
-                          <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border-l-4 border-red-500 p-3">
-                            <div className="flex items-start space-x-2">
-                              <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-                              <div className="flex-1">
-                                <p className="text-red-400 text-xs font-medium mb-1">Atenção Necessária</p>
-                                {record.alerts.map((alert, idx) => (
-                                  <p key={idx} className="text-red-300 text-xs">
-                                    • {alert.message}
-                                  </p>
-                                ))}
-                                {!record.hasJustification && (
-                                  <Link 
-                                    href="/employee/justifications"
-                                    className="inline-flex items-center text-xs text-red-400 hover:text-red-300 mt-2 underline"
-                                  >
-                                    Justificar agora
-                                  </Link>
-                                )}
+                  <div className="space-y-3">
+                    {recentRecords.length > 0 ? (
+                      recentRecords.map((record) => (
+                        <div key={record.id} className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden border border-neutral-700/30">
+                          {/* Alertas - se houver */}
+                          {record.alerts && record.alerts.length > 0 && (
+                            <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border-l-4 border-red-500 p-3">
+                              <div className="flex items-start space-x-2">
+                                <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <p className="text-red-400 text-xs font-medium mb-1">Atenção Necessária</p>
+                                  {record.alerts.map((alert, idx) => (
+                                    <p key={idx} className="text-red-300 text-xs">
+                                      • {alert.message}
+                                    </p>
+                                  ))}
+                                  {!record.hasJustification && (
+                                    <Link
+                                      href="/employee/justifications"
+                                      className="inline-flex items-center text-xs text-red-400 hover:text-red-300 mt-2 underline"
+                                    >
+                                      Justificar agora
+                                    </Link>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
-                        
-                        {/* Conteúdo principal do registro */}
-                        <div className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <p className="text-white font-semibold text-sm">{record.date}</p>
-                              <p className="text-neutral-400 text-xs">Total: {record.hours}</p>
+                          )}
+
+                          {/* Conteúdo principal do registro */}
+                          <div className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <p className="text-white font-semibold text-sm">{record.date}</p>
+                                <p className="text-neutral-400 text-xs">Total: {record.hours}</p>
+                              </div>
+                              <span className={`text-xs px-3 py-1 rounded-full font-medium ${record.status === 'Completo'
+                                  ? 'bg-success/20 text-success border border-success/30'
+                                  : record.status === 'Incompleto'
+                                    ? 'bg-warning/20 text-warning border border-warning/30'
+                                    : record.status === 'Ausente'
+                                      ? 'bg-error/20 text-error border border-error/30'
+                                      : 'bg-info/20 text-info border border-info/30'
+                                }`}>
+                                {record.status}
+                              </span>
                             </div>
-                            <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                              record.status === 'Completo' 
-                                ? 'bg-success/20 text-success border border-success/30'
-                                : record.status === 'Incompleto'
-                                ? 'bg-warning/20 text-warning border border-warning/30'
-                                : record.status === 'Ausente'
-                                ? 'bg-error/20 text-error border border-error/30'
-                                : 'bg-info/20 text-info border border-info/30'
-                            }`}>
-                              {record.status}
-                            </span>
-                          </div>
 
-                          {/* Entradas e Saídas */}
-                          <div className="space-y-2">
-                            {record.entry && (
-                              <div className="flex items-center space-x-2 text-sm">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span className="text-green-400 font-medium">Entrada:</span>
-                                <span className="text-neutral-300">{record.entry}</span>
-                              </div>
-                            )}
-                            {record.exit && (
-                              <div className="flex items-center space-x-2 text-sm">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                <span className="text-orange-400 font-medium">Saída:</span>
-                                <span className="text-neutral-300">{record.exit}</span>
-                              </div>
-                            )}
-                            {!record.entry && record.status === 'Ausente' && (
-                              <div className="flex items-center space-x-2 text-sm">
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <span className="text-red-400 font-medium">Ausente</span>
-                              </div>
-                            )}
-                            {!record.entry && !record.exit && record.status !== 'Ausente' && (
-                              <p className="text-neutral-500 text-xs italic">Sem registros</p>
-                            )}
-                          </div>
+                            {/* Entradas e Saídas */}
+                            <div className="space-y-2">
+                              {record.entry && (
+                                <div className="flex items-center space-x-2 text-sm">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span className="text-green-400 font-medium">Entrada:</span>
+                                  <span className="text-neutral-300">{record.entry}</span>
+                                </div>
+                              )}
+                              {record.exit && (
+                                <div className="flex items-center space-x-2 text-sm">
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                  <span className="text-orange-400 font-medium">Saída:</span>
+                                  <span className="text-neutral-300">{record.exit}</span>
+                                </div>
+                              )}
+                              {!record.entry && record.status === 'Ausente' && (
+                                <div className="flex items-center space-x-2 text-sm">
+                                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                  <span className="text-red-400 font-medium">Ausente</span>
+                                </div>
+                              )}
+                              {!record.entry && !record.exit && record.status !== 'Ausente' && (
+                                <p className="text-neutral-500 text-xs italic">Sem registros</p>
+                              )}
+                            </div>
 
-                          {/* Localização */}
-                          <p className="text-neutral-400 text-xs mt-2 flex items-center">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {record.location}
-                          </p>
+                            {/* Localização */}
+                            <p className="text-neutral-400 text-xs mt-2 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {record.location}
+                            </p>
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="bg-neutral-800/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                          <Clock className="h-8 w-8 text-neutral-500" />
+                        </div>
+                        <p className="text-neutral-400 mb-2">Nenhum registro encontrado</p>
+                        <p className="text-neutral-500 text-sm">Seus registros de ponto aparecerão aqui</p>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="bg-neutral-800/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <Clock className="h-8 w-8 text-neutral-500" />
-                      </div>
-                      <p className="text-neutral-400 mb-2">Nenhum registro encontrado</p>
-                      <p className="text-neutral-500 text-sm">Seus registros de ponto aparecerão aqui</p>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </>

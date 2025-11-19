@@ -24,7 +24,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
   const streamRef = useRef<MediaStream | null>(null)
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasPermission, setHasPermission] = useState(false)
@@ -39,30 +39,30 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       stopCamera()
       return
     }
-    
+
     console.log('🎯 [QR] Scanner ativado, iniciando câmera...')
-    console.log('🎯 [QR] Estados:', { 
-      isLoading, 
-      hasPermission, 
-      error, 
+    console.log('🎯 [QR] Estados:', {
+      isLoading,
+      hasPermission,
+      error,
       videoRef: !!videoRef.current,
-      canvasRef: !!canvasRef.current 
+      canvasRef: !!canvasRef.current
     })
-    
+
     // Função para verificar se elementos estão prontos e iniciar câmera
     const tryStartCamera = async (attempt = 1, maxAttempts = 5) => {
       console.log(`🔄 [QR] Tentativa ${attempt}/${maxAttempts} - Verificando elementos DOM...`)
-      
+
       if (videoRef.current && canvasRef.current) {
         console.log('✅ [QR] Elementos DOM prontos, verificando permissões...')
-        
+
         try {
           // Verificar permissões antes de iniciar
           const canProceed = await checkPermissions()
           if (!canProceed) {
             return
           }
-          
+
           console.log('✅ [QR] Permissões OK, iniciando câmera...')
           await startCamera()
         } catch (error: any) {
@@ -74,7 +74,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           videoRef: !!videoRef.current,
           canvasRef: !!canvasRef.current
         })
-        
+
         if (attempt < maxAttempts) {
           // Tentar novamente com delay progressivo
           const delay = attempt * 200 // 200ms, 400ms, 600ms, etc.
@@ -85,10 +85,10 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         }
       }
     }
-    
+
     // Iniciar após pequeno delay para garantir renderização
     const timer = setTimeout(() => tryStartCamera(), 100)
-    
+
     return () => {
       clearTimeout(timer)
       if (retryTimeoutRef.current) {
@@ -106,15 +106,15 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       if (navigator.permissions && navigator.permissions.query) {
         const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
         console.log('📋 [PERMISSIONS] Status da permissão da câmera:', permission.state)
-        
+
         if (permission.state === 'denied') {
           setError('❌ Permissão da câmera negada permanentemente. Redefina as permissões nas configurações do navegador.')
           return false
         }
-        
+
         return permission.state === 'granted' || permission.state === 'prompt'
       }
-      
+
       // Se a API não estiver disponível, assumir que pode tentar
       return true
     } catch (err) {
@@ -129,26 +129,26 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       setError(null)
       setIsLoading(true)
       setRetryCount(prev => prev + 1)
-      
+
       // Verificar permissões primeiro
       const canProceed = await checkPermissions()
       if (!canProceed) {
         setIsLoading(false)
         return
       }
-      
+
       // Parar qualquer stream anterior
       stopCamera()
-      
+
       // Aguardar um pouco antes de tentar novamente
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       await startCamera()
     } catch (err: any) {
       console.error('❌ [QR] Erro ao tentar novamente:', err)
       setError(err.message || 'Erro ao tentar novamente')
       setIsLoading(false)
-      
+
       // Retry automático para falhas temporárias
       if (retryCount < 3 && isTemporaryError(err)) {
         scheduleAutoRetry()
@@ -164,8 +164,8 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       'AbortError',
       'Elemento de vídeo não está disponível'
     ]
-    
-    return temporaryErrors.some(errType => 
+
+    return temporaryErrors.some(errType =>
       error.name === errType || error.message?.includes(errType)
     )
   }
@@ -175,10 +175,10 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     if (retryTimeoutRef.current) {
       clearTimeout(retryTimeoutRef.current)
     }
-    
+
     const delay = Math.min(1000 * Math.pow(2, retryCount), 10000) // Exponential backoff, max 10s
     console.log(`🔄 [QR] Agendando retry automático em ${delay}ms (tentativa ${retryCount + 1})`)
-    
+
     setIsRetrying(true)
     retryTimeoutRef.current = setTimeout(() => {
       setIsRetrying(false)
@@ -191,18 +191,18 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     try {
       console.log('🔄 [CAMERA] Alternando câmera...')
       setIsLoading(true)
-      
+
       // Parar câmera atual
       stopCamera()
-      
+
       // Alternar facing mode
       const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment'
       setCurrentFacingMode(newFacingMode)
-      
+
       // Aguardar um pouco e reiniciar com nova câmera
       await new Promise(resolve => setTimeout(resolve, 500))
       await startCamera()
-      
+
       console.log(`✅ [CAMERA] Câmera alternada para: ${newFacingMode === 'environment' ? 'traseira' : 'frontal'}`)
     } catch (err: any) {
       console.error('❌ [CAMERA] Erro ao alternar câmera:', err)
@@ -214,21 +214,21 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
   // Processar QR code detectado
   const validateAndProcessQR = (qrData: string) => {
     console.log('🔍 [QR] QR code detectado:', qrData.substring(0, 50) + '...')
-    
+
     // Validação básica apenas para feedback visual
     const validation = validateQRFormat(qrData)
     setQrValidation(validation)
-    
+
     // Validação de segurança
     const security = validateQRSecurity(qrData)
-    
+
     console.log('📋 [QR] Análise do QR:', {
       type: validation.type,
       confidence: validation.confidence,
       machineId: validation.machineId,
       securityRisks: security.risks
     })
-    
+
     // Se há riscos de segurança críticos, bloquear
     if (!security.isSafe && security.risks.some(risk => risk.includes('malicioso'))) {
       console.error('❌ [QR] QR code bloqueado por segurança:', security.risks)
@@ -239,7 +239,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       }, 3000)
       return
     }
-    
+
     // SEMPRE enviar para o servidor - deixar a validação robusta para lá
     console.log('✅ [QR] Enviando QR para processamento no servidor...')
     onScan(qrData)
@@ -250,22 +250,22 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     try {
       setIsLoading(true)
       setError(null)
-      
+
       console.log('📱 [CAMERA] Iniciando câmera...')
-      
+
       // VERIFICAÇÃO CRÍTICA: Elementos DOM devem estar disponíveis
       if (!videoRef.current) {
         console.error('❌ [CAMERA] Elemento de vídeo não está disponível')
         throw new Error('Elemento de vídeo não está disponível')
       }
-      
+
       if (!canvasRef.current) {
         console.error('❌ [CAMERA] Elemento canvas não está disponível')
         throw new Error('Elemento canvas não está disponível')
       }
-      
+
       console.log('✅ [CAMERA] Elementos DOM verificados e disponíveis')
-      
+
       // Verificar se mediaDevices está disponível
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('getUserMedia não é suportado neste navegador. Use HTTPS ou um navegador moderno.')
@@ -275,15 +275,15 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       if (location.protocol !== 'https:' && !location.hostname.includes('localhost') && location.hostname !== '127.0.0.1') {
         throw new Error('Acesso à câmera requer HTTPS. Por favor, acesse o site via HTTPS.')
       }
-      
+
       // Parar stream anterior se existir
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop())
         streamRef.current = null
       }
-      
+
       let stream: MediaStream | null = null
-      
+
       // Estratégia baseada no facing mode atual
       const cameraConfigs = [
         // 1. Câmera específica obrigatória
@@ -314,9 +314,9 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           video: true
         }
       ]
-      
+
       let lastError: any = null
-      
+
       for (let i = 0; i < cameraConfigs.length; i++) {
         try {
           console.log(`📱 [CAMERA] Tentativa ${i + 1}/${cameraConfigs.length}...`)
@@ -329,7 +329,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           continue
         }
       }
-      
+
       // Se nenhuma configuração funcionou, tentar encontrar câmera traseira manualmente
       if (!stream) {
         console.log('🔍 [CAMERA] Tentando encontrar câmera traseira manualmente...')
@@ -337,25 +337,25 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           // Primeiro obter permissão básica
           const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
           tempStream.getTracks().forEach(track => track.stop())
-          
+
           // Listar dispositivos disponíveis
           const devices = await navigator.mediaDevices.enumerateDevices()
           const videoDevices = devices.filter(d => d.kind === 'videoinput')
           console.log('📹 [CAMERA] Dispositivos encontrados:', videoDevices.map(d => ({ id: d.deviceId, label: d.label })))
-          
+
           // Procurar câmera traseira por label ou posição
           const backCamera = videoDevices.find(device => {
             const label = device.label.toLowerCase()
-            return label.includes('back') || 
-                   label.includes('rear') || 
-                   label.includes('environment') ||
-                   label.includes('traseira') ||
-                   label.includes('posterior') ||
-                   label.includes('camera 1') ||
-                   label.includes('0, facing back') ||
-                   (videoDevices.length > 1 && videoDevices.indexOf(device) === 1) // Segunda câmera geralmente é traseira
+            return label.includes('back') ||
+              label.includes('rear') ||
+              label.includes('environment') ||
+              label.includes('traseira') ||
+              label.includes('posterior') ||
+              label.includes('camera 1') ||
+              label.includes('0, facing back') ||
+              (videoDevices.length > 1 && videoDevices.indexOf(device) === 1) // Segunda câmera geralmente é traseira
           })
-          
+
           if (backCamera) {
             console.log('📱 [CAMERA] Câmera traseira encontrada:', backCamera.label)
             stream = await navigator.mediaDevices.getUserMedia({
@@ -371,20 +371,20 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           console.warn('⚠️ [CAMERA] Erro ao buscar câmera traseira manualmente:', deviceError.message)
         }
       }
-      
+
       if (!stream) {
         console.error('❌ [CAMERA] Nenhuma configuração de câmera funcionou')
         throw lastError || new Error('Não foi possível acessar a câmera')
       }
-      
+
       console.log('✅ [CAMERA] Stream obtido:', {
         tracks: stream.getTracks().length,
         videoTracks: stream.getVideoTracks().length,
         settings: stream.getVideoTracks()[0]?.getSettings()
       })
-      
+
       streamRef.current = stream
-      
+
       // Verificar qual câmera está sendo usada
       const videoTrack = stream.getVideoTracks()[0]
       if (videoTrack) {
@@ -396,29 +396,29 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           deviceId: settings.deviceId
         })
       }
-      
+
       if (!videoRef.current) {
         throw new Error('Elemento de vídeo não está disponível')
       }
-      
+
       const video = videoRef.current
-      
+
       // Atribuir stream ao vídeo
       video.srcObject = stream
-      
+
       // Configurar atributos do vídeo
       video.playsInline = true
       video.muted = true
       video.autoplay = true
-      
+
       console.log('📹 [CAMERA] Stream atribuído ao vídeo, configurando reprodução...')
-      
+
       // Aguardar o vídeo estar pronto para reproduzir
       const waitForVideo = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Timeout aguardando vídeo estar pronto'))
         }, 10000) // 10 segundos timeout
-        
+
         const checkVideo = () => {
           if (video.readyState >= video.HAVE_ENOUGH_DATA) {
             clearTimeout(timeout)
@@ -427,22 +427,22 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             setTimeout(checkVideo, 100)
           }
         }
-        
+
         // Começar verificação imediatamente
         checkVideo()
-        
+
         // Também escutar eventos
         video.addEventListener('loadeddata', () => {
           clearTimeout(timeout)
           resolve()
         }, { once: true })
-        
+
         video.addEventListener('canplay', () => {
           clearTimeout(timeout)
           resolve()
         }, { once: true })
       })
-      
+
       // Tentar reproduzir o vídeo
       try {
         await video.play()
@@ -451,7 +451,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         console.warn('⚠️ [CAMERA] Erro ao reproduzir vídeo:', playError.message)
         // Continuar mesmo com erro - alguns navegadores bloqueiam autoplay
       }
-      
+
       // Aguardar vídeo estar pronto (com timeout)
       try {
         await waitForVideo
@@ -460,11 +460,11 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         console.warn('⚠️ [CAMERA] Timeout aguardando vídeo, continuando...', videoError.message)
         // Continuar mesmo com timeout - pode funcionar
       }
-      
+
       // Definir estados de sucesso
       setHasPermission(true)
       setIsLoading(false)
-      
+
       // Iniciar scanner após pequeno delay
       setTimeout(() => {
         if (videoRef.current && videoRef.current.srcObject) {
@@ -475,7 +475,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           setError('Erro ao inicializar scanner. Tente novamente.')
         }
       }, 1000)
-      
+
     } catch (err: any) {
       console.error('❌ [CAMERA] Erro ao acessar câmera:', err)
       console.error('❌ [CAMERA] Detalhes do erro:', {
@@ -484,7 +484,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         stack: err.stack
       })
       setIsLoading(false)
-      
+
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('❌ Permissão da câmera negada. Clique no ícone da câmera na barra de endereços e permita o acesso.')
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -507,14 +507,14 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
 
   const stopCamera = () => {
     console.log('🛑 [CAMERA] Parando câmera...')
-    
+
     try {
       // Parar intervalo de scanning
       if (scanIntervalRef.current) {
         clearInterval(scanIntervalRef.current)
         scanIntervalRef.current = null
       }
-      
+
       // Parar stream da câmera
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
@@ -527,7 +527,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         })
         streamRef.current = null
       }
-      
+
       // Limpar vídeo (verificar se elemento existe)
       if (videoRef.current) {
         try {
@@ -538,12 +538,12 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           console.warn('⚠️ [CAMERA] Erro ao limpar vídeo:', err)
         }
       }
-      
+
       // Resetar estados
       setHasPermission(false)
       setIsLoading(false)
       setError(null)
-      
+
       console.log('✅ [CAMERA] Câmera parada com sucesso')
     } catch (err) {
       console.error('❌ [CAMERA] Erro ao parar câmera:', err)
@@ -556,9 +556,9 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       console.log('⏸️ [QR] videoRef:', !!videoRef.current, 'canvasRef:', !!canvasRef.current)
       return
     }
-    
+
     console.log('🔍 [QR] Iniciando detecção de QR code...')
-    
+
     const canvas = canvasRef.current
     const context = canvas.getContext('2d', { willReadFrequently: true })
     const video = videoRef.current
@@ -592,10 +592,10 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         return false
       }
     }
-    
+
     // Tentar configurar canvas imediatamente
     const hasDimensions = setupCanvas()
-    
+
     // Se não tem dimensões, tentar atualizar periodicamente (mas não bloquear)
     if (!hasDimensions) {
       const dimensionCheckInterval = setInterval(() => {
@@ -606,26 +606,26 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           clearInterval(dimensionCheckInterval)
         }
       }, 200)
-      
+
       // Limpar intervalo após 5 segundos
       setTimeout(() => {
         clearInterval(dimensionCheckInterval)
       }, 5000)
     }
-    
+
     console.log('✅ [QR] Canvas configurado, iniciando detecção...')
 
     // Tentar BarcodeDetector primeiro (mais eficiente)
     if (window.BarcodeDetector) {
       console.log('🔍 [QR] Usando BarcodeDetector nativo')
-      
+
       const barcodeDetector = new window.BarcodeDetector({
         formats: ['qr_code']
       })
 
       scanIntervalRef.current = setInterval(async () => {
         if (!isActive) return
-        
+
         // Verificar se o vídeo tem dados (mas não bloquear se não tiver)
         if (video.readyState < video.HAVE_CURRENT_DATA) {
           return // Aguardar vídeo ter dados
@@ -649,15 +649,15 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     } else {
       // Fallback para jsQR
       console.log('🔍 [QR] Usando jsQR (fallback)')
-      
+
       try {
         // Importação dinâmica da biblioteca
         const jsQRLibrary = await import('jsqr')
         const jsQR = jsQRLibrary.default
-        
+
         scanIntervalRef.current = setInterval(() => {
           if (!isActive) return
-          
+
           // Verificar se o vídeo tem dados (mas não bloquear se não tiver)
           if (video.readyState < video.HAVE_CURRENT_DATA) {
             return // Aguardar vídeo ter dados
@@ -668,19 +668,19 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             if (video.videoWidth === 0 || video.videoHeight === 0) {
               return // Aguardar vídeo ter dimensões
             }
-            
+
             // Atualizar dimensões do canvas se necessário
             if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
               canvas.width = video.videoWidth
               canvas.height = video.videoHeight
             }
-            
+
             context.drawImage(video, 0, 0, canvas.width, canvas.height)
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
             const code = jsQR(imageData.data, imageData.width, imageData.height, {
               inversionAttempts: 'dontInvert',
             })
-            
+
             if (code) {
               console.log('✅ [QR] Código detectado via jsQR:', code.data.substring(0, 50) + '...')
               validateAndProcessQR(code.data)
@@ -733,31 +733,31 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           </div>
         </div>
       )}
-      
+
       {error && (
         <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95">
           <div className="max-w-md">
             <AlertTriangle className="h-12 w-12 text-error-400 mx-auto mb-4" />
             <p className="text-error-400 text-base font-medium mb-2">Erro ao acessar câmera</p>
             <p className="text-error-300 text-sm mb-6 px-4 leading-relaxed">{error}</p>
-            
+
             {/* Dicas específicas baseadas no tipo de erro */}
             {error.includes('Permissão') && (
               <div className="bg-info-900/30 border border-info-500/30 rounded-lg p-3 mb-4 text-xs text-info-300">
                 <p className="font-medium mb-1">💡 Como permitir acesso:</p>
                 <p>1. Clique no ícone 🔒 ou 📹 na barra de endereços</p>
-                <p>2. Selecione "Permitir" para câmera</p>
+                <p>2. Selecione &quot;Permitir&quot; para câmera</p>
                 <p>3. Recarregue a página se necessário</p>
               </div>
             )}
-            
+
             {error.includes('HTTPS') && (
               <div className="bg-warning-900/30 border border-warning-500/30 rounded-lg p-3 mb-4 text-xs text-warning-300">
                 <p className="font-medium mb-1">🔒 Contexto seguro necessário:</p>
                 <p>Acesse via https:// ou use localhost para desenvolvimento</p>
               </div>
             )}
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button onClick={requestPermission} variant="primary" size="sm">
                 <Camera className="h-4 w-4 mr-2" />
@@ -771,7 +771,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           </div>
         </div>
       )}
-      
+
       {/* Elementos de vídeo e canvas sempre presentes (mas ocultos quando necessário) */}
       <div className={`relative w-full h-full ${hasPermission && !error && !isLoading ? '' : 'hidden'}`}>
         <video
@@ -780,7 +780,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           playsInline
           muted
           autoPlay
-          style={{ 
+          style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
@@ -804,7 +804,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             setError('Erro ao carregar vídeo da câmera')
           }}
         />
-        
+
         {/* Overlay de scanning */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="border-2 border-primary-500 rounded-lg w-64 h-64 sm:w-72 sm:h-72 relative shadow-lg">
@@ -813,22 +813,22 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
             <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 rounded-tr-lg"></div>
             <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 rounded-bl-lg"></div>
             <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 rounded-br-lg"></div>
-            
+
             {/* Linha de scanning animada */}
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-primary-500 opacity-50">
               <div className="absolute -top-1 left-1/2 w-6 h-3 bg-primary-500 rounded-full transform -translate-x-1/2 animate-pulse"></div>
             </div>
           </div>
         </div>
-        
+
         {/* Feedback de validação de QR */}
         {qrValidation && (
           <div className="absolute top-4 left-4 right-4 z-20">
             <div className={`
               bg-black/80 backdrop-blur-sm rounded-lg p-3 border-l-4
-              ${qrValidation.isValid 
-                ? qrValidation.type === 'SECURE' 
-                  ? 'border-primary-500 text-primary-400' 
+              ${qrValidation.isValid
+                ? qrValidation.type === 'SECURE'
+                  ? 'border-primary-500 text-primary-400'
                   : qrValidation.type === 'JSON'
                     ? 'border-warning-500 text-warning-400'
                     : 'border-info-500 text-info-400'
@@ -841,7 +841,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
                 {qrValidation.type === 'TEXT' && <Edit3 className="h-4 w-4" />}
                 {!qrValidation.isValid && <AlertCircle className="h-4 w-4" />}
                 {qrValidation.isValid && <CheckCircle className="h-4 w-4" />}
-                
+
                 <div className="flex-1">
                   <div className="text-sm font-medium">
                     {qrValidation.isValid ? 'QR Válido' : 'QR Inválido'}
@@ -858,10 +858,10 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
                     </div>
                   )}
                 </div>
-                
+
                 <div className="text-xs opacity-60">
-                  {qrValidation.confidence === 'high' ? '🔒' : 
-                   qrValidation.confidence === 'medium' ? '🔓' : '⚠️'}
+                  {qrValidation.confidence === 'high' ? '🔒' :
+                    qrValidation.confidence === 'medium' ? '🔓' : '⚠️'}
                 </div>
               </div>
             </div>
@@ -870,14 +870,14 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
 
         {/* Sobreposição escura ao redor do quadrado */}
         <div className="absolute inset-0 pointer-events-none">
-          <div 
+          <div
             className="absolute inset-0 bg-black/50"
             style={{
               clipPath: 'polygon(0% 0%, 0% 100%, calc(50% - 128px) 100%, calc(50% - 128px) calc(50% - 128px), calc(50% + 128px) calc(50% - 128px), calc(50% + 128px) calc(50% + 128px), calc(50% - 128px) calc(50% + 128px), calc(50% - 128px) 100%, 100% 100%, 100% 0%)'
             }}
           />
         </div>
-        
+
         {/* Botões de controle */}
         <div className="absolute top-4 right-4 z-20 flex gap-2">
           {/* Botão para alternar câmera */}
@@ -890,7 +890,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           >
             <Camera className="h-5 w-5" />
           </Button>
-          
+
           {/* Botão de fechar */}
           <Button
             onClick={stopCamera}
@@ -902,13 +902,13 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
           </Button>
         </div>
       </div>
-      
+
       {/* Canvas sempre presente (oculto) */}
       <canvas
         ref={canvasRef}
         className="hidden"
       />
-      
+
       {/* Status - só mostrar se não houver erro nem loading */}
       {hasPermission && !error && !isLoading && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
