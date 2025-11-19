@@ -55,7 +55,8 @@ class KeyboardShortcutManager {
             }
         }
 
-        for (const shortcut of this.shortcuts.values()) {
+        const shortcuts = Array.from(this.shortcuts.values())
+        for (const shortcut of shortcuts) {
             const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase()
             const ctrlMatches = !!shortcut.ctrlKey === event.ctrlKey
             const shiftMatches = !!shortcut.shiftKey === event.shiftKey
