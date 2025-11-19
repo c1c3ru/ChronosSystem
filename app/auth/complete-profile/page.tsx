@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { toast } from 'sonner'
 import { UserExistsAlert } from '@/components/UserExistsAlert'
+import { ShiftConfigForm } from '@/components/ShiftConfigForm'
 import { CONTRACT_TYPES, getContractTypeConfig, validateWorkingHours, formatHours } from '@/lib/contract-types'
 import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
 import { determineRoleFromSiape } from '@/lib/admin-siape'
@@ -758,6 +759,22 @@ export default function CompleteProfilePage() {
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Configuração de Turno - Apenas para funcionários */}
+              {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
+                <ShiftConfigForm
+                  shift={(profileData.shift as any) || 'MORNING'}
+                  shiftStartTime={profileData.shiftStartTime || '08:00'}
+                  shiftEndTime={profileData.shiftEndTime || '12:00'}
+                  workingDaysPerWeek={profileData.workingDaysPerWeek || 5}
+                  allowFlexibleHours={profileData.allowFlexibleHours || false}
+                  contractType={profileData.contractType}
+                  onChange={(field, value) => {
+                    setProfileData(prev => ({ ...prev, [field]: value }))
+                  }}
+                  errors={errors}
+                />
               )}
 
               {/* Action Buttons */}
