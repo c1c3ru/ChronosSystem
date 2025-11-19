@@ -3,7 +3,11 @@
  * Usa html2pdf.js para gerar PDFs reais que podem ser baixados
  */
 
-import html2pdf from 'html2pdf.js'
+// Dynamic import to avoid SSR issues
+const loadHtml2Pdf = async () => {
+  const html2pdf = await import('html2pdf.js')
+  return html2pdf.default || html2pdf
+}
 
 export interface PDFOptions {
   filename: string
@@ -26,6 +30,7 @@ export async function printElementAsPDF(
   options: PDFOptions
 ): Promise<void> {
   const { filename, margin = 10, pagebreak } = options
+  const html2pdf = await loadHtml2Pdf()
 
   // Configurações do html2pdf
   const opt = {
@@ -96,6 +101,7 @@ export async function generateCustomPDF(
   }
 ): Promise<void> {
   const { filename, orientation = 'portrait', format = 'a4', margin = 10 } = options
+  const html2pdf = await loadHtml2Pdf()
 
   const opt = {
     margin: margin,
@@ -136,6 +142,7 @@ export async function generatePDFBlob(
   options: PDFOptions
 ): Promise<Blob> {
   const { margin = 10, pagebreak } = options
+  const html2pdf = await loadHtml2Pdf()
 
   const opt = {
     margin: margin,

@@ -8,6 +8,7 @@ import { saveDraft, removeDraftLocally } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import type { FormType } from '@/lib/form-drafts'
 import { PDFPreviewModal } from '@/components/PDFPreviewModal'
+import { haptic } from '@/lib/haptic'
 
 interface FormExportButtonsProps {
   formType: FormType
@@ -26,12 +27,14 @@ export function FormExportButtons({
   const [showPreview, setShowPreview] = useState(false)
 
   const handleSaveDraft = async () => {
+    haptic.tap()
     try {
       setIsSaving(true)
 
       // Extrai dados do formulário
       const form = formRef.current?.querySelector('form') as HTMLFormElement
       if (!form) {
+        haptic.error()
         toast.error('Formulário não encontrado')
         return
       }
@@ -52,6 +55,7 @@ export function FormExportButtons({
 
       // Salva o rascunho
       await saveDraft(formType, data)
+      haptic.success()
       toast.success('Rascunho salvo com sucesso!')
 
       if (onSaveDraft) {
@@ -59,6 +63,7 @@ export function FormExportButtons({
       }
     } catch (error) {
       console.error('Erro ao salvar rascunho:', error)
+      haptic.error()
       toast.error('Erro ao salvar rascunho')
     } finally {
       setIsSaving(false)
@@ -66,8 +71,10 @@ export function FormExportButtons({
   }
 
   const handlePreviewPDF = async () => {
+    haptic.tap()
     try {
       if (!formRef.current) {
+        haptic.error()
         toast.error('Formulário não encontrado')
         return
       }
@@ -81,9 +88,11 @@ export function FormExportButtons({
 
       setPdfBlob(blob)
       setShowPreview(true)
+      haptic.success()
       toast.dismiss()
     } catch (error) {
       console.error('Erro ao gerar preview:', error)
+      haptic.error()
       toast.error('Erro ao gerar visualização do PDF')
     } finally {
       setIsGenerating(false)
@@ -91,12 +100,15 @@ export function FormExportButtons({
   }
 
   const handleClearDraft = () => {
+    haptic.warning()
     try {
       removeDraftLocally(formType)
+      haptic.success()
       toast.success('Rascunho removido')
       window.location.reload()
     } catch (error) {
       console.error('Erro ao remover rascunho:', error)
+      haptic.error()
       toast.error('Erro ao remover rascunho')
     }
   }

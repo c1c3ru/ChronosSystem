@@ -2,7 +2,7 @@
  * Biblioteca para gerenciar rascunhos de formulários
  */
 
-export type FormType = 
+export type FormType =
   | 'final-report'
   | 'monthly-report'
   | 'internship-registration'
@@ -22,6 +22,8 @@ export interface FormDraftData {
  * Salva um rascunho de formulário localmente (localStorage)
  */
 export function saveDraftLocally(formType: FormType, formData: Record<string, any>): void {
+  if (typeof window === 'undefined') return // Skip on server
+
   try {
     const key = `form_draft_${formType}`
     const draft = {
@@ -40,6 +42,8 @@ export function saveDraftLocally(formType: FormType, formData: Record<string, an
  * Recupera um rascunho salvo localmente
  */
 export function getDraftLocally(formType: FormType): Record<string, any> | null {
+  if (typeof window === 'undefined') return null // Skip on server
+
   try {
     const key = `form_draft_${formType}`
     const draft = localStorage.getItem(key)
@@ -58,6 +62,8 @@ export function getDraftLocally(formType: FormType): Record<string, any> | null 
  * Remove um rascunho salvo localmente
  */
 export function removeDraftLocally(formType: FormType): void {
+  if (typeof window === 'undefined') return // Skip on server
+
   try {
     const key = `form_draft_${formType}`
     localStorage.removeItem(key)
@@ -163,6 +169,8 @@ export async function getDraft(formType: FormType): Promise<Record<string, any> 
  * Limpa todos os rascunhos locais
  */
 export function clearAllLocalDrafts(): void {
+  if (typeof window === 'undefined') return // Skip on server
+
   try {
     const keys = Object.keys(localStorage)
     keys.forEach((key) => {
