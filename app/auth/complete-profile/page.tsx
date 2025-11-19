@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { signIn, signOut } from 'next-auth/react'
 import { 
   User, 
@@ -57,6 +57,13 @@ export default function CompleteProfilePage() {
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
   const [existingUserData, setExistingUserData] = useState<any>(null)
   const formRef = useRef<HTMLFormElement>(null)
+
+  const effectiveRole = useMemo(() => {
+    if (profileData.siapeNumber && profileData.siapeNumber.length === 7) {
+      return determineRoleFromSiape(profileData.siapeNumber)
+    }
+    return session?.user?.role || 'EMPLOYEE'
+  }, [profileData.siapeNumber, session?.user?.role])
 
   // Função para voltar (logout e redirecionar para login)
   const handleGoBack = async () => {
@@ -167,9 +174,8 @@ export default function CompleteProfilePage() {
       newErrors.emergencyPhone = 'Formato inválido. Use: (11) 99999-9999'
     }
 
-    // Departamento só é obrigatório para funcionários (não para ADMINs)
-    const detectedRole = profileData.siapeNumber ? determineRoleFromSiape(profileData.siapeNumber) : 'EMPLOYEE'
-    if (detectedRole === 'EMPLOYEE' && !profileData.department) {
+    // Departamento só é obrigatório para funcionários
+    if (effectiveRole === 'EMPLOYEE' && !profileData.department) {
       newErrors.department = 'Departamento é obrigatório para funcionários'
     }
 
@@ -183,8 +189,7 @@ export default function CompleteProfilePage() {
     }
 
     // Validar tipo de contrato e carga horária (apenas para funcionários)
-    // Usar role detectado pelo SIAPE, não o role da sessão que pode estar desatualizado
-    if (detectedRole === 'EMPLOYEE') {
+    if (effectiveRole === 'EMPLOYEE') {
       if (!profileData.contractType) {
         newErrors.contractType = 'Tipo de contrato é obrigatório'
       }
@@ -210,25 +215,24 @@ export default function CompleteProfilePage() {
       }
     }
 
-    const detectedRoleForLog = profileData.siapeNumber ? determineRoleFromSiape(profileData.siapeNumber) : 'EMPLOYEE'
-    console.log('🎯 [VALIDAÇÃO] Role detectado pelo SIAPE:', detectedRoleForLog)
+    console.log('🎯 [VALIDAÇÃO] Role efetivo:', effectiveRole)
     
     if (Object.keys(newErrors).length > 0) {
       console.log('❌ [VALIDAÇÃO] Erros encontrados:', newErrors)
-      console.log('📋 [VALIDAÇÃO] Campos obrigatórios para', detectedRoleForLog, ':', {
+      console.log('📋 [VALIDAÇÃO] Campos obrigatórios para', effectiveRole, ':', {
         phone: !!profileData.phone,
         address: !!profileData.address,
         birthDate: !!profileData.birthDate,
         emergencyContact: !!profileData.emergencyContact,
         emergencyPhone: !!profileData.emergencyPhone,
         siapeNumber: !!profileData.siapeNumber,
-        department: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.department : 'N/A (ADMIN)',
-        contractType: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.contractType : 'N/A (ADMIN)',
-        contractStartDate: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
-        contractEndDate: detectedRoleForLog === 'EMPLOYEE' ? !!profileData.contractEndDate : 'N/A (ADMIN)'
+        department: effectiveRole === 'EMPLOYEE' ? !!profileData.department : 'N/A (ADMIN)',
+        contractType: effectiveRole === 'EMPLOYEE' ? !!profileData.contractType : 'N/A (ADMIN)',
+        contractStartDate: effectiveRole === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
+        contractEndDate: effectiveRole === 'EMPLOYEE' ? !!profileData.contractEndDate : 'N/A (ADMIN)'
       })
     } else {
-      console.log('✅ [VALIDAÇÃO] Todos os campos OK para', detectedRoleForLog)
+      console.log('✅ [VALIDAÇÃO] Todos os campos OK para', effectiveRole)
     }
     
     setErrors(newErrors)
@@ -604,7 +608,7 @@ export default function CompleteProfilePage() {
               </div>
 
               {/* Informações Profissionais - Apenas para funcionários após determinar role pelo SIAPE */}
-              {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
+              {effectiveRole === 'EMPLOYEE' && (
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Profissionais</h3>
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
@@ -682,8 +686,24 @@ export default function CompleteProfilePage() {
                       {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        Início no IFCE/órgão *
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="date"
+                          className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
+                          value={profileData.startDate || ''}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, startDate: e.target.value }))}
+                        />
+                      </div>
+                      {errors.startDate && <p className="text-error text-xs mt-1">{errors.startDate}</p>}
+                    </div>
+
                   {/* Tipo de contrato apenas para funcionários */}
-                  {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
+                  {effectiveRole === 'EMPLOYEE' && (
                     <>
                       <div>
                         <label className="block text-sm font-medium text-neutral-300 mb-2">
@@ -722,7 +742,7 @@ export default function CompleteProfilePage() {
               )}
 
               {/* Informações do Contrato - Apenas para funcionários */}
-              {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
+              {effectiveRole === 'EMPLOYEE' && (
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações do Contrato</h3>
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
@@ -764,7 +784,7 @@ export default function CompleteProfilePage() {
               )}
 
               {/* Configuração de Turno - Apenas para funcionários */}
-              {session?.user?.role === 'EMPLOYEE' && profileData.siapeNumber && determineRoleFromSiape(profileData.siapeNumber) === 'EMPLOYEE' && (
+              {effectiveRole === 'EMPLOYEE' && (
                 <ShiftConfigForm
                   shift={(profileData.shift as any) || 'MORNING'}
                   shiftStartTime={profileData.shiftStartTime || '08:00'}

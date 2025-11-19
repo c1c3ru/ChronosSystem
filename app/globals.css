@@ -189,6 +189,40 @@
   .animate-slide-up {
     animation: slide-up 0.3s ease-out;
   }
+
+  /* Document layout */
+  .document-page {
+    @apply bg-white text-neutral-900 rounded-2xl shadow-xl border border-neutral-200 p-6 sm:p-8 space-y-6;
+  }
+
+  .document-section {
+    @apply border border-neutral-200 rounded-xl p-4 sm:p-6 bg-white shadow-sm space-y-4;
+  }
+
+  .document-heading {
+    @apply text-sm font-semibold uppercase tracking-wide text-neutral-600;
+  }
+
+  .document-grid {
+    @apply grid grid-cols-1 gap-4 md:grid-cols-2;
+  }
+
+  .document-input {
+    @apply w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 bg-white placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60;
+  }
+
+  .document-textarea {
+    @apply document-input min-h-[120px] resize-y;
+  }
+
+  .document-table {
+    @apply w-full border border-neutral-200 text-sm;
+  }
+
+  .document-table th,
+  .document-table td {
+    @apply border border-neutral-200 px-3 py-2 text-left;
+  }
 }
 
 /* === UTILITY STYLES === */
@@ -209,6 +243,10 @@
   /* Backward compatibility for text-white */
   .text-white {
     @apply text-foreground;
+  }
+
+  .no-print {
+    @apply print:hidden;
   }
 }
 
