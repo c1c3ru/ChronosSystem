@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function MonthlyReportPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
@@ -89,9 +92,10 @@ export default function MonthlyReportPage() {
             <Button variant="primary" size="md">
               Salvar Rascunho
             </Button>
-            <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-              Imprimir
-            </Button>
+            <FormPDFExport
+              formId="monthly-report-form"
+              fileName="relatorio-mensal"
+            />
           </div>
         </form>
         </div>
