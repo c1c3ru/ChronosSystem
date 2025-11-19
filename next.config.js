@@ -2,6 +2,7 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    optimizePackageImports: ['lucide-react', 'recharts'],
   },
   // Otimizações de build
   swcMinify: true,

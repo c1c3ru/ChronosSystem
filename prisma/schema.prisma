@@ -89,6 +89,11 @@ model User {
   hourBalances      HourBalance[]
   passwordResetTokens PasswordResetToken[]
   formDrafts        FormDraft[]
+  
+  @@index([role])
+  @@index([department])
+  @@index([contractType])
+  @@index([shift])
 }
 
 model VerificationToken {
@@ -152,6 +157,8 @@ model AttendanceRecord {
 
   @@index([userId, timestamp])
   @@index([machineId, timestamp])
+  @@index([userId, type, timestamp])
+  @@index([timestamp])
 }
 
 model QrEvent {
@@ -171,6 +178,7 @@ model QrEvent {
   @@index([nonce])
   @@index([machineId, createdAt])
   @@index([used, expiresAt])
+  @@index([expiresAt])
 }
 
 model AuditLog {
@@ -205,6 +213,7 @@ model Justification {
 
   @@index([userId, date])
   @@index([status])
+  @@index([status, date])
 }
 
 model HourBalance {
@@ -221,7 +230,7 @@ model HourBalance {
   
   user User @relation(fields: [userId], references: [id])
   
-  @@index([userId, date])
+  @@index([userId, date(sort: Desc)])
   @@index([date])
 }
 

@@ -3,27 +3,47 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-
+import { handleApiError } from '@/lib/error-handler'
+import { requireAuth, requireAdmin } from '@/lib/auth-helpers'
+import { MachineCache } from '@/lib/cache'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
+
 const createMachineSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   location: z.string().min(2, 'Localização deve ter pelo menos 2 caracteres'),
-  isActive: z.boolean().optional().default(true)
+  isActive: z.boolean().optional().default(true),
 })
 
-// GET /api/machines - Listar máquinas
+/**
+ * GET /api/machines - List all machines
+ *
+ * Lists all point-of-attendance machines in the system.
+ * Supports filtering by active status.
+ *
+ * @param request - Next.js request object
+ * @returns JSON array of machines with attendance statistics
+ *
+ * @example
+ * GET /api/machines?active=true
+ * Response: [{ id, name, location, isActive, _count: { attendanceRecords, qrEvents } }]
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    }
+    requireAuth(session)
 
     const { searchParams } = new URL(request.url)
     const activeOnly = searchParams.get('active') === 'true'
+
+    // Try to get from cache for active machines (most common query)
+    if (activeOnly) {
+      const cachedMachines = await MachineCache.getActive()
+      if (cachedMachines) {
+        return NextResponse.json(cachedMachines)
+      }
+    }
 
     const where = activeOnly ? { isActive: true } : {}
 
@@ -39,28 +59,42 @@ export async function GET(request: NextRequest) {
         _count: {
           select: {
             attendanceRecords: true,
-            qrEvents: true
-          }
-        }
+            qrEvents: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     })
+
+    // Cache active machines
+    if (activeOnly) {
+      await MachineCache.setActive(machines)
+    }
 
     return NextResponse.json(machines)
   } catch (error) {
-    console.error('Erro ao buscar máquinas:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    return handleApiError(error, { route: '/api/machines', method: 'GET' })
   }
 }
 
-// POST /api/machines - Criar máquina
+/**
+ * POST /api/machines - Create a new machine
+ *
+ * Creates a new point-of-attendance machine.
+ * Requires ADMIN or SUPERVISOR role.
+ *
+ * @param request - Next.js request object with machine data in body
+ * @returns JSON object of created machine
+ *
+ * @example
+ * POST /api/machines
+ * Body: { name: "Recepção", location: "Térreo - Entrada Principal", isActive: true }
+ * Response: { id, name, location, isActive, createdAt }
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
+    const authenticatedSession = requireAdmin(session)
 
     const body = await request.json()
     const validatedData = createMachineSchema.parse(body)
@@ -72,30 +106,28 @@ export async function POST(request: NextRequest) {
         name: true,
         location: true,
         isActive: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     })
 
-    // Log de auditoria
+    // Audit log
     await prisma.auditLog.create({
       data: {
-        userId: session.user.id,
+        userId: authenticatedSession.user.id,
         action: 'CREATE_MACHINE',
         resource: 'MACHINE',
-        details: `Máquina criada: ${machine.name} - ${machine.location}`
-      }
+        details: `Máquina criada: ${machine.name} - ${machine.location}`,
+      },
     })
+
+    // Invalidate machine cache
+    await MachineCache.invalidateAll()
 
     return NextResponse.json(machine, { status: 201 })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
-    }
-
-    console.error('Erro ao criar máquina:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    return handleApiError(error, {
+      route: '/api/machines',
+      method: 'POST',
+    })
   }
 }

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { UserCache } from '@/lib/cache'
 
 
 // Force dynamic rendering
@@ -32,7 +33,7 @@ const createUserSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -42,6 +43,15 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || ''
     const role = searchParams.get('role') || ''
+
+    // Create cache key based on query params
+    const cacheKey = `page:${page}:limit:${limit}:search:${search}:role:${role}`
+
+    // Try to get from cache
+    const cachedData = await UserCache.getList(cacheKey)
+    if (cachedData) {
+      return NextResponse.json(cachedData)
+    }
 
     const where = {
       AND: [
@@ -84,7 +94,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where })
     ])
 
-    return NextResponse.json({
+    const response = {
       users,
       pagination: {
         page,
@@ -92,7 +102,12 @@ export async function GET(request: NextRequest) {
         total,
         pages: Math.ceil(total / limit)
       }
-    })
+    }
+
+    // Cache the result
+    await UserCache.setList(response.users, cacheKey)
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Erro ao buscar usuários:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
@@ -103,7 +118,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -129,7 +144,7 @@ export async function POST(request: NextRequest) {
       if (!validatedData.contractType) {
         return NextResponse.json({ error: 'Tipo de contrato é obrigatório para funcionários' }, { status: 400 })
       }
-      
+
       // Validar se data de fim é posterior à data de início
       if (validatedData.contractStartDate && validatedData.contractEndDate) {
         if (new Date(validatedData.contractEndDate) <= new Date(validatedData.contractStartDate)) {
@@ -189,12 +204,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Invalidate user cache
+    await UserCache.invalidateAll()
+
     return NextResponse.json(user, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
+      return NextResponse.json({
+        error: 'Dados inválidos',
+        details: error.errors
       }, { status: 400 })
     }
 

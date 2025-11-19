@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { UserCache } from '@/lib/cache'
 
 
 // Force dynamic rendering
@@ -25,7 +26,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -82,7 +83,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -146,12 +147,16 @@ export async function PUT(
       }
     })
 
+    // Invalidate user cache
+    await UserCache.invalidate(params.id)
+    await UserCache.invalidateAll()
+
     return NextResponse.json(user)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
+      return NextResponse.json({
+        error: 'Dados inválidos',
+        details: error.errors
       }, { status: 400 })
     }
 
@@ -167,7 +172,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -199,6 +204,10 @@ export async function DELETE(
         details: `Usuário deletado: ${user.email} (${user.role})`
       }
     })
+
+    // Invalidate user cache
+    await UserCache.invalidate(params.id)
+    await UserCache.invalidateAll()
 
     return NextResponse.json({ message: 'Usuário deletado com sucesso' })
   } catch (error) {
