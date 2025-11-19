@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Save, Trash2 } from 'lucide-react'
+import { Eye, Save, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { printElementAsPDF } from '@/lib/pdf-generator'
+import { generatePDFBlob } from '@/lib/pdf-generator'
 import { saveDraft, removeDraftLocally } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import type { FormType } from '@/lib/form-drafts'
+import { PDFPreviewModal } from '@/components/PDFPreviewModal'
 
 interface FormExportButtonsProps {
   formType: FormType
@@ -20,6 +21,9 @@ export function FormExportButtons({
   onSaveDraft,
 }: FormExportButtonsProps) {
   const [isSaving, setIsSaving] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
 
   const handleSaveDraft = async () => {
     try {
@@ -61,19 +65,28 @@ export function FormExportButtons({
     }
   }
 
-  const handlePrintPDF = () => {
+  const handlePreviewPDF = async () => {
     try {
       if (!formRef.current) {
         toast.error('Formulário não encontrado')
         return
       }
 
-      const filename = `${formType}-${new Date().toISOString().split('T')[0]}`
-      printElementAsPDF(formRef.current, { filename })
-      toast.success('Abrindo impressora...')
+      setIsGenerating(true)
+      toast.info('Gerando visualização...')
+
+      const blob = await generatePDFBlob(formRef.current, {
+        filename: formType
+      })
+
+      setPdfBlob(blob)
+      setShowPreview(true)
+      toast.dismiss()
     } catch (error) {
-      console.error('Erro ao imprimir PDF:', error)
-      toast.error('Erro ao gerar PDF')
+      console.error('Erro ao gerar preview:', error)
+      toast.error('Erro ao gerar visualização do PDF')
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -88,39 +101,70 @@ export function FormExportButtons({
     }
   }
 
+  const getFilename = () => {
+    const date = new Date().toISOString().split('T')[0]
+    // Mapeia tipos de formulário para nomes amigáveis
+    const names: Record<string, string> = {
+      'final-report': 'relatorio-final',
+      'monthly-report': 'relatorio-mensal',
+      'internship-registration': 'ficha-cadastro',
+      'commitment-term': 'termo-compromisso',
+      'additive-term': 'termo-aditivo',
+      'equivalence-request': 'aproveitamento-estudos',
+      'extension-declaration': 'declaracao-prorrogacao',
+      'professional-declaration': 'declaracao-profissional',
+      'semester-report': 'relatorio-semestral'
+    }
+
+    const friendlyName = names[formType] || formType
+    return `${friendlyName}-${date}`
+  }
+
   return (
-    <div className="flex gap-4 pt-8 mt-8 flex-wrap">
-      <Button
-        variant="primary"
-        size="md"
-        onClick={handleSaveDraft}
-        disabled={isSaving}
-        loading={isSaving}
-        className="flex-1 min-w-[200px]"
-      >
-        <Save className="h-4 w-4 mr-2" />
-        {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-      </Button>
+    <>
+      <div className="flex gap-4 pt-8 mt-8 flex-wrap">
+        <Button
+          variant="primary"
+          size="md"
+          onClick={handleSaveDraft}
+          disabled={isSaving || isGenerating}
+          loading={isSaving}
+          className="flex-1 min-w-[200px]"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+        </Button>
 
-      <Button
-        variant="secondary"
-        size="md"
-        onClick={handlePrintPDF}
-        className="flex-1 min-w-[200px]"
-      >
-        <Download className="h-4 w-4 mr-2" />
-        Gerar PDF
-      </Button>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={handlePreviewPDF}
+          disabled={isGenerating}
+          loading={isGenerating}
+          className="flex-1 min-w-[200px]"
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          Visualizar PDF
+        </Button>
 
-      <Button
-        variant="destructive"
-        size="md"
-        onClick={handleClearDraft}
-        className="flex-1 min-w-[200px]"
-      >
-        <Trash2 className="h-4 w-4 mr-2" />
-        Limpar Rascunho
-      </Button>
-    </div>
+        <Button
+          variant="destructive"
+          size="md"
+          onClick={handleClearDraft}
+          disabled={isSaving || isGenerating}
+          className="flex-1 min-w-[200px]"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Limpar Rascunho
+        </Button>
+      </div>
+
+      <PDFPreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        pdfBlob={pdfBlob}
+        filename={getFilename()}
+      />
+    </>
   )
 }

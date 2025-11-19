@@ -1,84 +1,180 @@
 /**
  * Biblioteca para gerar PDFs dos formulários
- * Usa a API de impressão do navegador (window.print)
+ * Usa html2pdf.js para gerar PDFs reais que podem ser baixados
  */
+
+import html2pdf from 'html2pdf.js'
 
 export interface PDFOptions {
   filename: string
   title?: string
+  margin?: number | [number, number, number, number]
+  pagebreak?: {
+    mode?: string | string[]
+    before?: string | string[]
+    after?: string | string[]
+    avoid?: string | string[]
+  }
 }
 
 /**
- * Imprime um elemento como PDF
- * Abre a caixa de diálogo de impressão do navegador
+ * Gera e baixa um PDF do elemento HTML
+ * Usa html2pdf.js para criar um PDF real
  */
-export function printElementAsPDF(
+export async function printElementAsPDF(
   element: HTMLElement,
   options: PDFOptions
-): void {
-  const { filename } = options
+): Promise<void> {
+  const { filename, margin = 10, pagebreak } = options
 
-  // Cria um iframe oculto
-  const iframe = document.createElement('iframe')
-  iframe.style.display = 'none'
-  document.body.appendChild(iframe)
-
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-  if (!iframeDoc) {
-    console.error('Não foi possível acessar o documento do iframe')
-    return
+  // Configurações do html2pdf
+  const opt = {
+    margin: margin,
+    filename: `${filename}.pdf`,
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      letterRendering: true,
+      logging: false
+    },
+    jsPDF: {
+      unit: 'mm' as const,
+      format: 'a4' as const,
+      orientation: 'portrait' as const
+    },
+    pagebreak: pagebreak || {
+      mode: ['avoid-all', 'css', 'legacy'],
+      before: '.page-break-before',
+      after: '.page-break-after',
+      avoid: '.no-page-break'
+    }
   }
 
-  // Copia o HTML do elemento
-  iframeDoc.open()
-  iframeDoc.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>${filename}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          @media print {
-            body { margin: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        ${element.innerHTML}
-      </body>
-    </html>
-  `)
-  iframeDoc.close()
+  try {
+    // Clona o elemento para não afetar a página
+    const clone = element.cloneNode(true) as HTMLElement
 
-  // Aguarda o carregamento e imprime
-  setTimeout(() => {
-    iframe.contentWindow?.print()
-    // Remove o iframe após a impressão
-    setTimeout(() => {
-      document.body.removeChild(iframe)
-    }, 100)
-  }, 250)
+    // Remove elementos que não devem aparecer no PDF
+    const noPrintElements = clone.querySelectorAll('.no-print')
+    noPrintElements.forEach(el => el.remove())
+
+    // Aplica estilos para impressão
+    clone.style.backgroundColor = 'white'
+    clone.style.color = 'black'
+    clone.style.padding = '20px'
+
+    // Gera o PDF
+    await html2pdf().set(opt).from(clone).save()
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error)
+    throw new Error('Falha ao gerar PDF')
+  }
 }
 
 /**
- * Exporta um elemento como PDF usando a API de impressão
- * com nome de arquivo personalizado
+ * Exporta um elemento como PDF
+ * Wrapper para printElementAsPDF com opções simplificadas
  */
-export function exportElementAsPDF(
+export async function exportElementAsPDF(
   element: HTMLElement,
   filename: string
-): void {
+): Promise<void> {
+  await printElementAsPDF(element, { filename })
+}
+
+/**
+ * Gera PDF com configurações customizadas
+ */
+export async function generateCustomPDF(
+  element: HTMLElement,
+  options: {
+    filename: string
+    orientation?: 'portrait' | 'landscape'
+    format?: string
+    margin?: number | [number, number, number, number]
+  }
+): Promise<void> {
+  const { filename, orientation = 'portrait', format = 'a4', margin = 10 } = options
+
   const opt = {
-    margin: 10,
+    margin: margin,
     filename: `${filename}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      letterRendering: true
+    },
+    jsPDF: {
+      unit: 'mm' as const,
+      format: format as any,
+      orientation: orientation
+    }
   }
 
-  // Usa a API de impressão nativa
-  printElementAsPDF(element, { filename })
+  try {
+    const clone = element.cloneNode(true) as HTMLElement
+    const noPrintElements = clone.querySelectorAll('.no-print')
+    noPrintElements.forEach(el => el.remove())
+
+    clone.style.backgroundColor = 'white'
+    clone.style.color = 'black'
+
+    await html2pdf().set(opt).from(clone).save()
+  } catch (error) {
+    console.error('Erro ao gerar PDF customizado:', error)
+    throw new Error('Falha ao gerar PDF')
+  }
+}
+
+/**
+ * Gera um Blob do PDF para preview
+ */
+export async function generatePDFBlob(
+  element: HTMLElement,
+  options: PDFOptions
+): Promise<Blob> {
+  const { margin = 10, pagebreak } = options
+
+  const opt = {
+    margin: margin,
+    filename: 'preview.pdf', // Nome interno, não afeta o download final
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      letterRendering: true,
+      logging: false
+    },
+    jsPDF: {
+      unit: 'mm' as const,
+      format: 'a4' as const,
+      orientation: 'portrait' as const
+    },
+    pagebreak: pagebreak || {
+      mode: ['avoid-all', 'css', 'legacy'],
+      before: '.page-break-before',
+      after: '.page-break-after',
+      avoid: '.no-page-break'
+    }
+  }
+
+  try {
+    const clone = element.cloneNode(true) as HTMLElement
+    const noPrintElements = clone.querySelectorAll('.no-print')
+    noPrintElements.forEach(el => el.remove())
+
+    clone.style.backgroundColor = 'white'
+    clone.style.color = 'black'
+    clone.style.padding = '20px'
+
+    const pdf = await html2pdf().set(opt).from(clone).outputPdf('blob')
+    return pdf
+  } catch (error) {
+    console.error('Erro ao gerar Blob do PDF:', error)
+    throw new Error('Falha ao gerar preview do PDF')
+  }
 }
 
 /**
