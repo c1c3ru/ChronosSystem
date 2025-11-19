@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function SemesterReportPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="bg-background p-8 text-sm min-h-screen">
       <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6">
@@ -14,7 +17,7 @@ export default function SemesterReportPage() {
         Voltar
       </Link>
 
-      <Card className="max-w-3xl mx-auto border-t-4 border-primary-500">
+      <Card id="semester-report-form" ref={formRef} className="max-w-3xl mx-auto border-t-4 border-primary-500">
         <FormHeader 
           title="Relatório Semestral de Atividades"
           showImages={true}
@@ -72,9 +75,10 @@ export default function SemesterReportPage() {
             <Button variant="primary" size="md">
               Salvar Rascunho
             </Button>
-            <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-              Imprimir
-            </Button>
+            <FormPDFExport
+              formId="semester-report-form"
+              fileName="relatorio-semestral"
+            />
           </div>
         </form>
       </Card>
