@@ -103,17 +103,17 @@ export function FormExportButtons({
 
   const getFilename = () => {
     const date = new Date().toISOString().split('T')[0]
-    // Mapeia tipos de formulário para nomes amigáveis
+    // Mapeia tipos de formulário para nomes amigáveis (conforme links do dashboard)
     const names: Record<string, string> = {
       'final-report': 'relatorio-final',
       'monthly-report': 'relatorio-mensal',
-      'internship-registration': 'ficha-cadastro',
+      'semester-report': 'relatorio-semestral',
+      'internship-registration': 'solicitacao-cadastro',
       'commitment-term': 'termo-compromisso',
       'additive-term': 'termo-aditivo',
-      'equivalence-request': 'aproveitamento-estudos',
-      'extension-declaration': 'declaracao-prorrogacao',
-      'professional-declaration': 'declaracao-profissional',
-      'semester-report': 'relatorio-semestral'
+      'equivalence-request': 'solicitacao-equiparacao',
+      'extension-declaration': 'declaracao-extensao',
+      'professional-declaration': 'declaracao-profissional'
     }
 
     const friendlyName = names[formType] || formType
