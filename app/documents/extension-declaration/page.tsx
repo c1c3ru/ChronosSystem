@@ -1,90 +1,119 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
-import { FormPDFExport } from '@/components/FormPDFExport'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { FormExportButtons } from '@/components/FormExportButtons'
+import { getDraft, populateFormWithData } from '@/lib/form-drafts'
 
 export default function ExtensionDeclarationPage() {
   const formRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      const draft = await getDraft('extension-declaration')
+      if (draft) {
+        const form = formRef.current?.querySelector('form') as HTMLFormElement
+        if (form) {
+          populateFormWithData(form, draft)
+        }
+      }
+    }
+    loadDraft()
+  }, [])
+
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6 text-sm font-medium">
+    <div className="min-h-screen bg-background p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Link href="/employee" className="flex items-center text-secondary-400 hover:text-secondary-200 text-sm font-medium">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <Card id="extension-declaration-form" ref={formRef} className="border-t-4 border-primary-500">
+        <div ref={formRef} className="document-page text-sm border-t-4 border-primary-500">
+          <form className="space-y-6">
+            <FormHeader
+              title="DECLARAÇÃO DE PARTICIPAÇÃO EM PROJETO"
+              showImages={true}
+            />
 
-          <FormHeader 
-            title="Declaração de Participação em Projeto"
-            showImages={true}
-          />
+            <div className="document-section">
+              <div className="document-grid">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Nome do Declarante (Orientador/Coordenador)</label>
+                  <input type="text" name="declarant_name" className="document-input" />
+                </div>
+              </div>
 
-          <form className="space-y-6 text-sm text-gray-800">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Nome do Declarante (Orientador/Coordenador):</label>
-              <input type="text" className="w-full text-sm border-b border-black p-2 bg-gray-50 focus:outline-none" />
+              <p className="text-justify py-4 text-sm text-neutral-700">
+                Declaro, para fins de equiparação a estágio supervisionado, que o(a) discente abaixo participou das atividades descritas:
+              </p>
             </div>
 
-            <p className="text-justify py-4 text-sm text-gray-800">
-              Declaro, para fins de equiparação a estágio supervisionado, que o(a) discente abaixo participou das atividades descritas:
-            </p>
+            <div className="document-section">
+              <h3 className="document-heading">1. Dados do Discente</h3>
+              <div className="document-grid">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Discente</label>
+                  <input type="text" name="student_name" className="document-input" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Matrícula</label>
+                  <input type="text" name="student_id" className="document-input" />
+                </div>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2"><label className="font-bold text-sm block">Discente</label><input type="text" className="w-full border-b border-black bg-gray-50" /></div>
-          <div><label className="font-bold text-sm block">Matrícula</label><input type="text" className="w-full border-b border-black bg-gray-50" /></div>
-        </div>
+            <div className="document-section">
+              <h3 className="document-heading">2. Modalidade</h3>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input type="radio" name="modality" value="extension" />
+                  Extensão
+                </label>
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input type="radio" name="modality" value="research" />
+                  Iniciação Científica
+                </label>
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input type="radio" name="modality" value="monitoring" />
+                  Monitoria
+                </label>
+              </div>
+            </div>
 
-        <div className="border p-4 rounded">
-          <span className="font-bold mr-4">Modalidade:</span>
-          <label className="mr-4"><input type="radio" name="mod" /> Extensão</label>
-          <label className="mr-4"><input type="radio" name="mod" /> Iniciação Científica</label>
-          <label><input type="radio" name="mod" /> Monitoria</label>
-        </div>
+            <div className="document-section">
+              <h3 className="document-heading">3. Detalhes do Projeto</h3>
+              <div className="document-grid">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Título do Projeto/Programa</label>
+                  <input type="text" name="project_title" className="document-input" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Atividades Desenvolvidas</label>
+                  <textarea name="activities" className="document-textarea" rows={4}></textarea>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Data Início</label>
+                  <input type="date" name="start_date" className="document-input" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Carga Horária Semanal</label>
+                  <input type="number" name="weekly_hours" className="document-input" />
+                </div>
+              </div>
+            </div>
 
-        <div>
-          <label className="block font-bold text-sm">Título do Projeto/Programa:</label>
-          <input type="text" className="w-full border-b border-black p-1" />
-        </div>
+            <div className="document-section text-center space-y-4">
+              <div className="w-full sm:w-2/3 mx-auto border-t border-neutral-400 pt-3">
+                <p className="font-semibold text-neutral-700">Assinatura do Servidor Responsável</p>
+              </div>
+            </div>
 
-        <div>
-          <label className="block font-bold text-sm">Atividades Desenvolvidas:</label>
-          <textarea className="w-full border border-gray-300 p-2 h-24 rounded"></textarea>
+            <FormExportButtons formType="extension-declaration" formRef={formRef} />
+          </form>
         </div>
-
-        <div className="flex gap-8">
-          <div className="w-1/2">
-            <label className="block font-bold text-sm">Data Início:</label>
-            <input type="date" className="w-full border-b border-black" />
-          </div>
-          <div className="w-1/2">
-            <label className="block font-bold text-sm">Carga Horária Semanal:</label>
-            <input type="number" className="w-full border-b border-black" />
-          </div>
-        </div>
-
-        <div className="text-center pt-12">
-          <div className="w-1/2 mx-auto border-t border-black pt-2">
-            Assinatura do Servidor Responsável
-          </div>
-        </div>
-
-        <div className="flex gap-4 pt-6">
-          <Button variant="primary" size="md" className="flex-1">
-            Salvar Rascunho
-          </Button>
-          <FormPDFExport
-            formId="extension-declaration-form"
-            fileName="declaracao-extensao"
-          />
-        </div>
-      </form>
-        </Card>
       </div>
     </div>
   )
