@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function ExtensionDeclarationPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
@@ -15,7 +18,7 @@ export default function ExtensionDeclarationPage() {
           Voltar
         </Link>
 
-        <Card className="border-t-4 border-primary-500">
+        <Card id="extension-declaration-form" ref={formRef} className="border-t-4 border-primary-500">
 
           <FormHeader 
             title="Declaração de Participação em Projeto"
@@ -75,9 +78,10 @@ export default function ExtensionDeclarationPage() {
           <Button variant="primary" size="md" className="flex-1">
             Salvar Rascunho
           </Button>
-          <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-            Imprimir
-          </Button>
+          <FormPDFExport
+            formId="extension-declaration-form"
+            fileName="declaracao-extensao"
+          />
         </div>
       </form>
         </Card>
