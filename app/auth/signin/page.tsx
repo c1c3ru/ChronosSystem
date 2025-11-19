@@ -227,15 +227,15 @@ export default function SignInPage() {
             <Clock className="h-10 w-10 text-primary mr-2" />
             <h1 className="text-2xl font-bold text-white">Chronos System</h1>
           </div>
-          <p className="text-slate-400">Faça login para continuar</p>
+          <p className="text-muted-foreground">Faça login para continuar</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700 p-6">
+        <div className="bg-card/50 backdrop-blur-sm rounded-lg border border-border p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Email
               </label>
               <div className="relative">
@@ -254,7 +254,7 @@ export default function SignInPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Senha
               </label>
               <div className="relative">
@@ -285,7 +285,7 @@ export default function SignInPage() {
               type="button"
               onClick={handleForgotPassword}
               disabled={isResetLoading}
-              className="text-xs text-slate-400 text-right mt-1 hover:text-slate-200 disabled:opacity-50 w-full"
+              className="text-xs text-muted-foreground text-right mt-1 hover:text-foreground disabled:opacity-50 w-full"
             >
               {isResetLoading ? 'Enviando link de redefinição...' : 'Esqueci minha senha'}
             </button>
@@ -307,9 +307,9 @@ export default function SignInPage() {
 
           {/* Divider */}
           <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-slate-600"></div>
-            <span className="px-4 text-sm text-slate-400">ou</span>
-            <div className="flex-1 border-t border-slate-600"></div>
+            <div className="flex-1 border-t border-border"></div>
+            <span className="px-4 text-sm text-muted-foreground">ou</span>
+            <div className="flex-1 border-t border-border"></div>
           </div>
 
           {/* Google Sign In */}
@@ -382,7 +382,7 @@ export default function SignInPage() {
         <div className="text-center mt-6">
           <Link 
             href="/"
-            className="text-slate-400 hover:text-slate-300 text-sm transition-colors"
+            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
           >
             ← Voltar para o início
           </Link>
