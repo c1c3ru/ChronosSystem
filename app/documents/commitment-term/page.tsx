@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function CommitmentTermPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
@@ -15,7 +18,7 @@ export default function CommitmentTermPage() {
           Voltar
         </Link>
 
-        <div className="bg-card p-8 shadow-lg border-t-4 border-primary-500 rounded-lg text-sm text-foreground">
+        <div id="commitment-term-form" ref={formRef} className="bg-card p-8 shadow-lg border-t-4 border-primary-500 rounded-lg text-sm text-foreground">
 
       <FormHeader 
         title="TERMO DE COMPROMISSO DE ESTÁGIO"
@@ -83,9 +86,10 @@ export default function CommitmentTermPage() {
         <Button variant="primary" size="md">
           Salvar Rascunho
         </Button>
-        <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-          Imprimir
-        </Button>
+        <FormPDFExport
+          formId="commitment-term-form"
+          fileName="termo-compromisso-estagio"
+        />
       </div>
         </div>
       </div>
