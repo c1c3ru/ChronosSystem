@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function AdditiveTermPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
@@ -15,7 +18,7 @@ export default function AdditiveTermPage() {
           Voltar
         </Link>
 
-        <div className="bg-card p-8 shadow-lg border-t-4 border-blue-800 rounded-lg">
+        <div id="additive-term-form" ref={formRef} className="bg-card p-8 shadow-lg border-t-4 border-blue-800 rounded-lg">
         <FormHeader 
           title="Termo Aditivo a Compromisso de Estágio"
           showImages={true}
@@ -88,9 +91,10 @@ export default function AdditiveTermPage() {
           <Button variant="primary" size="md">
             Salvar Rascunho
           </Button>
-          <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-            Imprimir
-          </Button>
+          <FormPDFExport
+            formId="additive-term-form"
+            fileName="termo-aditivo-estagio"
+          />
         </div>
         </div>
       </div>
