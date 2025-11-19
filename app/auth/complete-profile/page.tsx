@@ -38,6 +38,8 @@ interface ProfileData {
   hasSiape?: boolean
   contractType?: string
   shift?: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'
+  shiftStartTime?: string
+  shiftEndTime?: string
   workingDaysPerWeek?: number
   allowFlexibleHours?: boolean
 }
