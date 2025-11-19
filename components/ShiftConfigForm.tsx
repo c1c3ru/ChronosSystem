@@ -80,7 +80,7 @@ export function ShiftConfigForm({
           className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
         />
         {errors.shiftStartTime && (
-          <p className="mt-1 text-xs text-red-400 flex items-center space-x-1">
+          <p className="mt-1 text-xs text-error-400 flex items-center space-x-1">
             <AlertCircle className="h-3 w-3" />
             <span>{errors.shiftStartTime}</span>
           </p>
@@ -99,7 +99,7 @@ export function ShiftConfigForm({
           className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
         />
         {errors.shiftEndTime && (
-          <p className="mt-1 text-xs text-red-400 flex items-center space-x-1">
+          <p className="mt-1 text-xs text-error-400 flex items-center space-x-1">
             <AlertCircle className="h-3 w-3" />
             <span>{errors.shiftEndTime}</span>
           </p>
@@ -136,7 +136,7 @@ export function ShiftConfigForm({
           Calculado como: {weeklyHours}h/semana ÷ {workingDaysPerWeek} dias = {expectedDailyHours.toFixed(2)}h/dia
         </p>
         {!contractType && (
-          <p className="text-xs text-yellow-400 mt-2">
+          <p className="text-xs text-warning-400 mt-2">
             ⚠️ Selecione um tipo de contrato para calcular as horas diárias
           </p>
         )}
@@ -160,9 +160,9 @@ export function ShiftConfigForm({
       </p>
 
       {/* Informações de Validação */}
-      <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-        <p className="text-xs text-blue-300 font-medium mb-2">ℹ️ Validações Aplicadas:</p>
-        <ul className="text-xs text-blue-300 space-y-1">
+      <div className="p-4 bg-info-500/10 border border-info-500/30 rounded-lg">
+        <p className="text-xs text-info-300 font-medium mb-2">ℹ️ Validações Aplicadas:</p>
+        <ul className="text-xs text-info-300 space-y-1">
           <li>✓ Entrada dentro de ±30min a ±1h do horário (conforme turno)</li>
           <li>✓ Saída dentro de ±15min a ±1h do horário (conforme turno)</li>
           <li>✓ Horário de funcionamento: 08:00 - 22:00</li>

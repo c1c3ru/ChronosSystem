@@ -480,12 +480,12 @@ export default function EmployeePage() {
           
           {/* Notificação de Último Registro */}
           {lastRegistration && (
-            <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4 animate-in slide-in-from-top-2 duration-300">
+            <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4 animate-in slide-in-from-top-2 duration-300">
               <div className="flex items-center space-x-3">
-                <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success-400 flex-shrink-0" />
                 <div>
-                  <p className="text-green-400 font-medium">Ponto Registrado!</p>
-                  <p className="text-green-300 text-sm">{lastRegistration}</p>
+                  <p className="text-success-400 font-medium">Ponto Registrado!</p>
+                  <p className="text-success-300 text-sm">{lastRegistration}</p>
                 </div>
               </div>
             </div>
@@ -560,38 +560,38 @@ export default function EmployeePage() {
                       
                       {/* Status Messages - Mobile Optimized */}
                       {processingQr && (
-                        <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4">
+                        <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-4">
                           <div className="flex items-center justify-center space-x-3">
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
-                            <p className="text-blue-400 text-base font-medium">Registrando ponto...</p>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-info-400"></div>
+                            <p className="text-info-400 text-base font-medium">Registrando ponto...</p>
                           </div>
                         </div>
                       )}
                       
                       {qrResult && (
-                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+                        <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4">
                           <div className="flex items-start space-x-3">
-                            <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-green-400 text-base break-words">{qrResult}</p>
+                            <CheckCircle className="h-5 w-5 text-success-400 mt-0.5 flex-shrink-0" />
+                            <p className="text-success-400 text-base break-words">{qrResult}</p>
                           </div>
                         </div>
                       )}
                       
                       {cameraError && (
-                        <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
+                        <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-4">
                           <div className="flex items-start space-x-3">
-                            <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-red-400 text-base break-words">{cameraError}</p>
+                            <AlertTriangle className="h-5 w-5 text-error-400 mt-0.5 flex-shrink-0" />
+                            <p className="text-error-400 text-base break-words">{cameraError}</p>
                           </div>
                         </div>
                       )}
                       
                       {!cameraError && !qrResult && !processingQr && (
-                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
-                          <p className="text-green-400 text-center text-sm font-medium mb-2">
+                        <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4">
+                          <p className="text-success-400 text-center text-sm font-medium mb-2">
                             📱 Aponte a câmera para o código QR da máquina
                           </p>
-                          <p className="text-green-300 text-center text-xs">
+                          <p className="text-success-300 text-center text-xs">
                             • Mantenha o QR dentro do quadrado verde<br/>
                             • Certifique-se de que há boa iluminação<br/>
                             • Mantenha a câmera estável
@@ -639,21 +639,21 @@ export default function EmployeePage() {
                   <div className="flex-1 mb-6">
                     {/* Status de verificação */}
                     {isCheckingCamera && (
-                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mb-4">
+                      <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-3 mb-4">
                         <div className="text-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
-                          <p className="text-blue-400 text-sm">Preparando câmera...</p>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-info-400 mx-auto mb-2"></div>
+                          <p className="text-info-400 text-sm">Preparando câmera...</p>
                         </div>
                       </div>
                     )}
                     
                     {/* Status da Câmera */}
                     {!isCheckingCamera && cameraPermission === 'denied' && (
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
+                      <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-3 mb-4">
                         <div className="text-center">
-                          <AlertTriangle className="h-6 w-6 text-red-400 mx-auto mb-2" />
-                          <p className="text-red-400 text-sm font-medium mb-2">Câmera Bloqueada</p>
-                          <p className="text-red-400 text-xs mb-3">
+                          <AlertTriangle className="h-6 w-6 text-error-400 mx-auto mb-2" />
+                          <p className="text-error-400 text-sm font-medium mb-2">Câmera Bloqueada</p>
+                          <p className="text-error-400 text-xs mb-3">
                             Para registrar seu ponto, permita o acesso à câmera quando solicitado
                           </p>
                           <div className="space-y-2">
@@ -689,7 +689,7 @@ export default function EmployeePage() {
                               }} 
                               size="sm" 
                               variant="ghost"
-                              className="text-red-400 border-red-400/50 hover:bg-red-500/10"
+                              className="text-error-400 border-error-400/50 hover:bg-error-500/10"
                             >
                               Permitir Câmera
                             </Button>
@@ -778,8 +778,8 @@ export default function EmployeePage() {
               {/* Documents */}
               <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
                 <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
-                  <div className="bg-blue-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-blue-500/30 transition-colors">
-                    <FileText className="h-10 w-10 text-blue-400" />
+                  <div className="bg-info-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-info-500/30 transition-colors">
+                    <FileText className="h-10 w-10 text-info-400" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 text-center">
                     Documentos de Estágio
@@ -790,39 +790,39 @@ export default function EmployeePage() {
                   <div className="flex-1"></div>
                   
                   <div className="space-y-2">
-                    <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Solicitação de Cadastro</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Termo de Compromisso</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Relatório Final</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Relatório Mensal</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Relatório Semestral</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Termo Aditivo</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Solicitação de Equiparação</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Declaração Profissional</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>
-                    <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-sm text-neutral-300 hover:text-blue-400">
+                    <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                       <span>Declaração de Extensão</span>
                       <ChevronRight className="h-4 w-4" />
                     </a>

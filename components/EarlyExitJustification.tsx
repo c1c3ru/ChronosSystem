@@ -44,18 +44,18 @@ export function EarlyExitJustification({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-neutral-800 rounded-lg shadow-xl max-w-md w-full border border-neutral-700">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
         {/* Header */}
-        <div className="p-6 border-b border-neutral-700">
+        <div className="p-6 border-b border-border">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <AlertCircle className="h-6 w-6 text-warning" />
+              <AlertCircle className="h-6 w-6 text-warning-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-foreground">
                 Saída Antecipada
               </h3>
-              <p className="text-sm text-neutral-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Você está saindo {minutesEarly} minutos antes do horário esperado ({expectedEndTime})
               </p>
             </div>
@@ -65,7 +65,7 @@ export function EarlyExitJustification({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Justificativa Obrigatória *
             </label>
             <textarea
@@ -75,17 +75,17 @@ export function EarlyExitJustification({
                 setError('')
               }}
               placeholder="Explique o motivo da saída antecipada..."
-              className="w-full px-4 py-3 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px] resize-none"
+              className="w-full px-4 py-3 bg-muted border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px] resize-none"
               disabled={isLoading}
             />
-            <p className="text-xs text-neutral-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Mínimo 10 caracteres
             </p>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg">
-              <p className="text-sm text-red-400 flex items-center space-x-2">
+            <div className="p-3 bg-error-900/30 border border-error-500/50 rounded-lg">
+              <p className="text-sm text-error-400 flex items-center space-x-2">
                 <AlertCircle className="h-4 w-4" />
                 <span>{error}</span>
               </p>
@@ -93,8 +93,8 @@ export function EarlyExitJustification({
           )}
 
           {/* Info Box */}
-          <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-            <p className="text-xs text-blue-300">
+          <div className="p-3 bg-info-900/20 border border-info-500/30 rounded-lg">
+            <p className="text-xs text-info-300">
               ℹ️ Esta justificativa será registrada e revisada pelo administrador.
             </p>
           </div>
