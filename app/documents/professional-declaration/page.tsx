@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function ProfessionalDeclarationPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="bg-card p-12 max-w-[210mm] mx-auto min-h-screen">
       <Link href="/employee" className="flex items-center text-secondary-500 hover:text-secondary-600 mb-6">
@@ -61,9 +64,10 @@ export default function ProfessionalDeclarationPage() {
         <Button variant="primary" size="md">
           Salvar Rascunho
         </Button>
-        <Button variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-          Imprimir
-        </Button>
+        <FormPDFExport
+          formId="professional-declaration-form"
+          fileName="declaracao-profissional"
+        />
       </div>
     </div>
   )
