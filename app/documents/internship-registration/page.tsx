@@ -1,12 +1,15 @@
 'use client'
 
+import { useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormHeader } from '@/components/FormHeader'
+import { FormPDFExport } from '@/components/FormPDFExport'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function InternshipRegistrationPage() {
+  const formRef = useRef<HTMLDivElement>(null)
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -133,9 +136,10 @@ export default function InternshipRegistrationPage() {
               <Button type="submit" variant="primary" size="md" className="flex-1">
                 Salvar Rascunho
               </Button>
-              <Button type="button" variant="secondary" size="md" onClick={() => window.print()} className="flex-1">
-                Imprimir
-              </Button>
+              <FormPDFExport
+                formId="internship-registration-form"
+                fileName="solicitacao-cadastro-estagio"
+              />
             </div>
           </form>
         </div>
