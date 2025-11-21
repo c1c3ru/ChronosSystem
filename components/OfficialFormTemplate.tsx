@@ -133,11 +133,12 @@ export function FormTable({ children, className = '' }: { children: ReactNode, c
  * Célula de cabeçalho (Label apenas)
  * Usada para títulos de seção dentro da tabela
  */
-export function FormHeaderCell({ children, colSpan, className = '' }: { children: ReactNode, colSpan?: number, className?: string }) {
+export function FormHeaderCell({ children, colSpan, rowSpan, className = '' }: { children?: ReactNode, colSpan?: number, rowSpan?: number, className?: string }) {
     return (
         <td
             className={`border border-black px-1 py-0.5 font-bold bg-gray-200 text-[8px] uppercase ${className}`}
             colSpan={colSpan}
+            rowSpan={rowSpan}
         >
             {children}
         </td>
@@ -147,9 +148,9 @@ export function FormHeaderCell({ children, colSpan, className = '' }: { children
 /**
  * Célula de dados simples
  */
-export function FormDataCell({ children, colSpan, className = '' }: { children: ReactNode, colSpan?: number, className?: string }) {
+export function FormDataCell({ children, colSpan, rowSpan, className = '' }: { children: ReactNode, colSpan?: number, rowSpan?: number, className?: string }) {
     return (
-        <td className={`border border-black px-1 py-0.5 align-top ${className}`} colSpan={colSpan}>
+        <td className={`border border-black px-1 py-0.5 align-top ${className}`} colSpan={colSpan} rowSpan={rowSpan}>
             {children}
         </td>
     )
