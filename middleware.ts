@@ -54,10 +54,22 @@ export default withAuth(
 
       // Controle de acesso baseado em roles
       const adminOnlyRoutes = ['/admin']
-      const supervisorRoutes = ['/admin', '/employee']
+      const employeeRoutes = ['/employee']
+      const supervisorRoutes = ['/admin']
 
+      // Admin route check (already present)
       if (adminOnlyRoutes.some(route => pathname.startsWith(route)) && role !== 'ADMIN') {
         logger.security('Unauthorized access attempt', {
+          userId: token.sub,
+          role,
+          pathname
+        })
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      // Employee route check – allow only EMPLOYEE role
+      if (employeeRoutes.some(route => pathname.startsWith(route)) && role !== 'EMPLOYEE') {
+        logger.security('Unauthorized access attempt (employee)', {
           userId: token.sub,
           role,
           pathname
