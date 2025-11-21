@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/docs/lib/auth'
-import { prisma } from '@/docs/lib/prisma'
-import { apiLogger } from '@/docs/lib/logger'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { apiLogger } from '@/lib/logger'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'

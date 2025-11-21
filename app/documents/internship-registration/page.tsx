@@ -5,7 +5,7 @@ import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft, populateFormWithData } from '@/docs/lib/form-drafts'
+import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 
 export default function InternshipRegistrationPage() {
