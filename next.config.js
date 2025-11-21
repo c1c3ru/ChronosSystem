@@ -30,7 +30,7 @@ const nextConfig = {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
     // NEXTAUTH_SECRET deve ser definido via variável de ambiente - SEM FALLBACK por segurança
   },
-  // Headers de segurança para permitir câmera
+  // Headers de segurança
   async headers() {
     return [
       {
@@ -43,6 +43,22 @@ const nextConfig = {
           {
             key: 'Feature-Policy',
             value: 'camera *; microphone *; geolocation *'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' blob: data:; object-src 'self' blob:;"
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
           }
         ],
       },

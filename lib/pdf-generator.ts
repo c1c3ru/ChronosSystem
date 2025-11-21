@@ -23,30 +23,37 @@ export interface PDFOptions {
 
 /**
  * Gera e baixa um PDF do elemento HTML
- * Usa html2pdf.js para criar um PDF real
+ * Usa html2pdf.js para criar um PDF real em formato A4
  */
 export async function printElementAsPDF(
   element: HTMLElement,
   options: PDFOptions
 ): Promise<void> {
-  const { filename, margin = 10, pagebreak } = options
+  const { filename, margin = 0, pagebreak } = options
   const html2pdf = await loadHtml2Pdf()
 
-  // Configurações do html2pdf
+  // Configurações otimizadas para formato A4 profissional
   const opt = {
     margin: margin,
     filename: `${filename}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
+    image: {
+      type: 'jpeg' as const,
+      quality: 0.98
+    },
     html2canvas: {
-      scale: 2,
+      scale: 2, // Alta resolução
       useCORS: true,
       letterRendering: true,
-      logging: false
+      logging: false,
+      width: 794, // 210mm em pixels (96 DPI)
+      windowWidth: 794,
+      backgroundColor: '#ffffff'
     },
     jsPDF: {
       unit: 'mm' as const,
       format: 'a4' as const,
-      orientation: 'portrait' as const
+      orientation: 'portrait' as const,
+      compress: true
     },
     pagebreak: pagebreak || {
       mode: ['avoid-all', 'css', 'legacy'],
@@ -64,10 +71,12 @@ export async function printElementAsPDF(
     const noPrintElements = clone.querySelectorAll('.no-print')
     noPrintElements.forEach(el => el.remove())
 
-    // Aplica estilos para impressão
-    clone.style.backgroundColor = 'white'
-    clone.style.color = 'black'
-    clone.style.padding = '20px'
+    // Aplica estilos para impressão profissional
+    clone.style.backgroundColor = '#ffffff'
+    clone.style.color = '#000000'
+    clone.style.width = '210mm'
+    clone.style.minHeight = '297mm'
+    clone.style.boxSizing = 'border-box'
 
     // Gera o PDF
     await html2pdf().set(opt).from(clone).save()
@@ -136,28 +145,37 @@ export async function generateCustomPDF(
 
 /**
  * Gera um Blob do PDF para preview
+ * Usa as mesmas configurações profissionais do printElementAsPDF
  */
 export async function generatePDFBlob(
   element: HTMLElement,
   options: PDFOptions
 ): Promise<Blob> {
-  const { margin = 10, pagebreak } = options
+  const { margin = 0, pagebreak } = options
   const html2pdf = await loadHtml2Pdf()
 
+  // Configurações otimizadas para formato A4 profissional
   const opt = {
     margin: margin,
-    filename: 'preview.pdf', // Nome interno, não afeta o download final
-    image: { type: 'jpeg' as const, quality: 0.98 },
+    filename: 'preview.pdf',
+    image: {
+      type: 'jpeg' as const,
+      quality: 0.98
+    },
     html2canvas: {
       scale: 2,
       useCORS: true,
       letterRendering: true,
-      logging: false
+      logging: false,
+      width: 794, // 210mm em pixels (96 DPI)
+      windowWidth: 794,
+      backgroundColor: '#ffffff'
     },
     jsPDF: {
       unit: 'mm' as const,
       format: 'a4' as const,
-      orientation: 'portrait' as const
+      orientation: 'portrait' as const,
+      compress: true
     },
     pagebreak: pagebreak || {
       mode: ['avoid-all', 'css', 'legacy'],
@@ -172,9 +190,11 @@ export async function generatePDFBlob(
     const noPrintElements = clone.querySelectorAll('.no-print')
     noPrintElements.forEach(el => el.remove())
 
-    clone.style.backgroundColor = 'white'
-    clone.style.color = 'black'
-    clone.style.padding = '20px'
+    clone.style.backgroundColor = '#ffffff'
+    clone.style.color = '#000000'
+    clone.style.width = '210mm'
+    clone.style.minHeight = '297mm'
+    clone.style.boxSizing = 'border-box'
 
     const pdf = await html2pdf().set(opt).from(clone).outputPdf('blob')
     return pdf
