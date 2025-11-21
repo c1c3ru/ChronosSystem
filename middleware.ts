@@ -11,10 +11,14 @@ export default withAuth(
     // Rotas que requerem autenticação
     const protectedRoutes = ['/admin', '/employee', '/api/users', '/api/machines', '/api/attendance', '/api/dashboard']
 
+    // Rotas públicas (não requerem autenticação)
+    const publicRoutes = ['/test-form']
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+
     // Verificar se a rota atual é protegida
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
-    if (isProtectedRoute && !token) {
+    if (isProtectedRoute && !token && !isPublicRoute) {
       // Redirecionar para login se não autenticado
       const signInUrl = new URL('/auth/signin', req.url)
       signInUrl.searchParams.set('callbackUrl', pathname)
@@ -150,6 +154,6 @@ export const config = {
      * - icon files (PWA icons)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-.*\\.png|.*\\.svg|public).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-.*\\.png|.*\\.svg|public|test-form).*)',
   ],
 }

@@ -1,41 +1,30 @@
 {
   "components/FormPDFExport.tsx -> @/lib/pdf-generator": {
-    "id": 30948,
+    "id": "components/FormPDFExport.tsx -> @/lib/pdf-generator",
     "files": [
-      "static/chunks/948.ab8f40897cadb2b0.js"
-    ]
-  },
-  "components/QRScanner.tsx -> jsqr": {
-    "id": 69801,
-    "files": [
-      "static/chunks/d0f5a89a.fdbc06535b88ff01.js"
+      "static/chunks/_app-pages-browser_lib_pdf-generator_ts.js"
     ]
   },
   "lib/pdf-generator.ts -> html2pdf.js": {
-    "id": 41690,
+    "id": "lib/pdf-generator.ts -> html2pdf.js",
     "files": [
-      "static/chunks/2f0b94e8.452a2d27023d71da.js",
-      "static/chunks/164f4fb6.a6643a21deab9305.js",
-      "static/chunks/b645e135.d28014b508ad396d.js",
-      "static/chunks/ad2866b8.1fd5edbd6b1bba26.js",
-      "static/chunks/8758.6d2e237b08163e73.js"
+      "static/chunks/_app-pages-browser_node_modules_html2pdf_js_dist_html2pdf_js.js"
     ]
   },
   "node_modules/jspdf/dist/jspdf.es.min.js -> canvg": {
-    "id": 12396,
+    "id": "node_modules/jspdf/dist/jspdf.es.min.js -> canvg",
     "files": [
-      "static/chunks/bc98253f.5b0f4fe717c5b99c.js",
-      "static/chunks/3969.6ad70f34fdb81ef8.js"
+      "static/chunks/_app-pages-browser_node_modules_canvg_lib_index_es_js.js"
     ]
   },
   "node_modules/jspdf/dist/jspdf.es.min.js -> dompurify": {
-    "id": 18848,
+    "id": "node_modules/jspdf/dist/jspdf.es.min.js -> dompurify",
     "files": [
-      "static/chunks/8848.604d673e614d3feb.js"
+      "static/chunks/_app-pages-browser_node_modules_dompurify_dist_purify_es_mjs.js"
     ]
   },
   "node_modules/jspdf/dist/jspdf.es.min.js -> html2canvas": {
-    "id": 24457,
+    "id": "node_modules/jspdf/dist/jspdf.es.min.js -> html2canvas",
     "files": []
   }
 }

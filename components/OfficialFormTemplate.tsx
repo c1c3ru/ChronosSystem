@@ -21,7 +21,7 @@ interface OfficialFormTemplateProps {
 
 /**
  * Template reutilizável para formulários oficiais do IFCE
- * Padrão visual baseado no modelo oficial (imagem de referência)
+ * Padrão visual baseado no modelo oficial (estilo formulário impresso)
  */
 export function OfficialFormTemplate({
     title,
@@ -39,64 +39,60 @@ export function OfficialFormTemplate({
             style={{
                 width: '210mm',
                 minHeight: '297mm',
-                padding: '10mm', // Reduzido para aproveitar mais espaço
-                fontSize: '9pt', // Fonte base ligeiramente menor
-                lineHeight: '1.2',
+                padding: '15mm',
+                fontSize: '11pt',
+                lineHeight: '1.4',
                 fontFamily: 'Arial, Helvetica, sans-serif',
                 boxSizing: 'border-box',
                 color: '#000'
             }}
         >
-            {/* Cabeçalho Oficial IFCE - Estilo Imagem */}
-            <div className="mb-4 relative">
-                {/* Marcas de corte simuladas (opcional, mas dá um toque oficial) */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-black opacity-50"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-black opacity-50"></div>
-
-                <div className="flex items-start justify-between gap-2 px-4 pt-2">
+            {/* Cabeçalho Oficial IFCE */}
+            <div className="mb-6 border-b-2 border-black pb-3">
+                <div className="flex items-start justify-between gap-4">
                     {/* Logo IFCE */}
                     {showLogos && (
-                        <div className="w-24 flex-shrink-0 flex flex-col items-center justify-center">
-                            {/* Placeholder para Logo IFCE - Idealmente seria uma imagem */}
-                            <div className="w-16 h-16 border border-gray-300 flex items-center justify-center text-[8px] text-center font-bold bg-gray-50">
+                        <div className="w-20 flex-shrink-0">
+                            <div className="w-16 h-16 border-2 border-gray-400 flex items-center justify-center text-[8px] text-center font-bold bg-gray-100">
                                 LOGO<br />IFCE
                             </div>
                         </div>
                     )}
 
                     {/* Título Central */}
-                    <div className="flex-1 text-center pt-2">
-                        <div className="text-[10px] font-bold uppercase tracking-wide">
+                    <div className="flex-1 text-center">
+                        <div className="text-[11px] font-bold uppercase">
                             PRÓ-REITORIA DE EXTENSÃO
                         </div>
-                        <div className="text-[10px] uppercase tracking-wide mb-1">
+                        <div className="text-[10px] uppercase">
                             COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
                         </div>
-
-                        <div className="text-[11px] font-bold text-red-700 uppercase mb-0">
-                            IFCE <span className="text-black font-normal">Campus {campus}</span>
+                        <div className="text-[12px] font-bold mt-1">
+                            IFCE campus {campus}
                         </div>
-                        <div className="text-[10px] uppercase mb-4">
+                        <div className="text-[10px]">
                             {sector}
                         </div>
-
-                        <div className="text-[14px] font-bold uppercase tracking-wider">
-                            {title}
-                        </div>
-                        {subtitle && (
-                            <div className="text-[10px] font-bold uppercase mt-0.5">
-                                {subtitle}
-                            </div>
-                        )}
                     </div>
 
                     {/* Brasão */}
                     {showLogos && (
-                        <div className="w-24 flex-shrink-0 flex flex-col items-center justify-center">
-                            {/* Placeholder para Brasão - Idealmente seria uma imagem */}
-                            <div className="w-16 h-16 border border-gray-300 flex items-center justify-center text-[8px] text-center font-bold bg-gray-50">
+                        <div className="w-20 flex-shrink-0">
+                            <div className="w-16 h-16 border-2 border-gray-400 flex items-center justify-center text-[8px] text-center font-bold bg-gray-100">
                                 BRASÃO<br />REPÚBLICA
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Título do Formulário */}
+                <div className="mt-4 text-center">
+                    <div className="text-[16px] font-bold uppercase border-y-2 border-black py-2">
+                        {title}
+                    </div>
+                    {subtitle && (
+                        <div className="text-[12px] font-bold uppercase mt-1">
+                            {subtitle}
                         </div>
                     )}
                 </div>
@@ -108,7 +104,7 @@ export function OfficialFormTemplate({
             </div>
 
             {/* Rodapé com Observação Padrão */}
-            <div className="mt-4 pt-2 border-t-0 border-black text-[9px]">
+            <div className="mt-6 pt-3 border-t border-gray-400 text-[9pt] italic">
                 <p>
                     <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser <strong>iniciadas após o cadastro</strong> do Termo de Compromisso de Estágio no sistema competente.
                 </p>
@@ -119,11 +115,11 @@ export function OfficialFormTemplate({
 
 /**
  * Tabela principal do formulário
- * Estilo: Bordas pretas finas, colapso de bordas
+ * Estilo: Bordas visíveis, sem colapso
  */
 export function FormTable({ children, className = '' }: { children: ReactNode, className?: string }) {
     return (
-        <table className={`w-full border-collapse border border-black text-[9pt] mb-0 ${className}`}>
+        <table className={`w-full border border-gray-400 text-[10pt] mb-4 ${className}`} style={{ borderCollapse: 'collapse' }}>
             {children}
         </table>
     )
@@ -136,7 +132,7 @@ export function FormTable({ children, className = '' }: { children: ReactNode, c
 export function FormHeaderCell({ children, colSpan, rowSpan, className = '' }: { children?: ReactNode, colSpan?: number, rowSpan?: number, className?: string }) {
     return (
         <td
-            className={`border border-black px-1 py-0.5 font-bold bg-gray-200 text-[8px] uppercase ${className}`}
+            className={`border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 text-[9pt] uppercase ${className}`}
             colSpan={colSpan}
             rowSpan={rowSpan}
         >
@@ -150,15 +146,14 @@ export function FormHeaderCell({ children, colSpan, rowSpan, className = '' }: {
  */
 export function FormDataCell({ children, colSpan, rowSpan, className = '' }: { children: ReactNode, colSpan?: number, rowSpan?: number, className?: string }) {
     return (
-        <td className={`border border-black px-1 py-0.5 align-top ${className}`} colSpan={colSpan} rowSpan={rowSpan}>
+        <td className={`border border-gray-400 px-2 py-1.5 align-top ${className}`} colSpan={colSpan} rowSpan={rowSpan}>
             {children}
         </td>
     )
 }
 
 /**
- * NOVO: Célula de Campo (Label + Input)
- * Estilo denso conforme imagem de referência
+ * Célula de Campo (Label + Input) - Estilo Documento Oficial
  */
 interface FormFieldProps {
     label: string
@@ -169,11 +164,11 @@ interface FormFieldProps {
 
 export function FormField({ label, children, colSpan, className = '' }: FormFieldProps) {
     return (
-        <td className={`border border-black px-1 py-0.5 align-top ${className}`} colSpan={colSpan}>
-            <div className="text-[7px] font-bold uppercase text-gray-700 leading-tight mb-0.5">
+        <td className={`border border-gray-400 px-2 py-1.5 align-top ${className}`} colSpan={colSpan}>
+            <div className="text-[8pt] font-semibold text-gray-700 mb-1">
                 {label}
             </div>
-            <div className="min-h-[18px] flex items-center">
+            <div className="min-h-[24px]">
                 {children}
             </div>
         </td>
@@ -181,37 +176,37 @@ export function FormField({ label, children, colSpan, className = '' }: FormFiel
 }
 
 /**
- * Input padronizado sem bordas (para usar dentro de FormField ou FormDataCell)
+ * Input padronizado COM BORDAS (estilo formulário oficial)
  */
 export function FormInput({ fullWidth = true, className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement> & { fullWidth?: boolean }) {
     return (
         <input
             {...props}
-            className={`${fullWidth ? 'w-full' : ''} border-0 p-0 m-0 outline-none bg-transparent text-[9pt] leading-tight placeholder-gray-300 focus:ring-0 ${className}`}
+            className={`${fullWidth ? 'w-full' : ''} border border-gray-300 rounded px-2 py-1 text-[10pt] focus:outline-none focus:border-gray-500 bg-white ${className}`}
         />
     )
 }
 
 /**
- * Textarea padronizado
+ * Textarea padronizado COM BORDAS
  */
 export function FormTextarea({ fullWidth = true, className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { fullWidth?: boolean }) {
     return (
         <textarea
             {...props}
-            className={`${fullWidth ? 'w-full' : ''} border-0 p-0 m-0 outline-none bg-transparent text-[9pt] leading-tight resize-none focus:ring-0 ${className}`}
+            className={`${fullWidth ? 'w-full' : ''} border border-gray-300 rounded px-2 py-1 text-[10pt] resize-none focus:outline-none focus:border-gray-500 bg-white ${className}`}
         />
     )
 }
 
 /**
- * Select padronizado
+ * Select padronizado COM BORDAS
  */
 export function FormSelect({ fullWidth = true, className = '', children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { fullWidth?: boolean }) {
     return (
         <select
             {...props}
-            className={`${fullWidth ? 'w-full' : ''} border-0 p-0 m-0 outline-none bg-transparent text-[9pt] appearance-none focus:ring-0 ${className}`}
+            className={`${fullWidth ? 'w-full' : ''} border border-gray-300 rounded px-2 py-1 text-[10pt] focus:outline-none focus:border-gray-500 bg-white ${className}`}
         >
             {children}
         </select>
@@ -223,16 +218,16 @@ export function FormSelect({ fullWidth = true, className = '', children, ...prop
  */
 export function SignatureSection({ label, date = false, className = '' }: { label: string, date?: boolean, className?: string }) {
     return (
-        <div className={`mt-4 ${className}`}>
+        <div className={`mt-6 ${className}`}>
             {date && (
-                <div className="flex justify-end mb-4 text-[9pt]">
+                <div className="flex justify-end mb-4 text-[10pt]">
                     <div>
                         DATA: _____ / _____ / ________
                     </div>
                 </div>
             )}
-            <div className="border-t border-black pt-1 mt-6">
-                <div className="text-center font-bold text-[8px] uppercase">
+            <div className="border-t-2 border-black pt-2 mt-12">
+                <div className="text-center font-bold text-[9pt] uppercase">
                     {label}
                 </div>
             </div>
