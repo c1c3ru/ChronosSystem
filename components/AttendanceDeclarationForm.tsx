@@ -1,8 +1,17 @@
 'use client'
 
 import React, { useState } from 'react'
-import { FormHeader } from '@/components/FormHeader'
 import { FormPDFExport } from '@/components/FormPDFExport'
+import {
+  OfficialFormTemplate,
+  FormTable,
+  FormHeaderCell,
+  FormDataCell,
+  FormInput,
+  FormTextarea,
+  FormSelect,
+  SignatureSection
+} from '@/components/OfficialFormTemplate'
 
 interface AttendanceDeclarationFormProps {
   userId?: string
@@ -12,18 +21,21 @@ interface AttendanceDeclarationFormProps {
 
 export function AttendanceDeclarationForm({
   userId,
-  userName = 'Nome do Declarante',
-  userEmail = 'email@ifce.edu.br'
+  userName = '',
+  userEmail = ''
 }: AttendanceDeclarationFormProps) {
   const [formData, setFormData] = useState({
+    declarantName: '',
     documentType: 'CPF',
     documentNumber: '',
+    studentName: userName,
     course: '',
     registration: '',
     institution: 'INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA – IFCE',
     campus: 'MORADA NOVA',
     experienceType: 'EXTENSÃO',
     projectProgram: '',
+    projectInstitution: '',
     activities: '',
     startDate: '',
     weeklyHours: ''
@@ -35,7 +47,7 @@ export function AttendanceDeclarationForm({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 bg-white">
+    <div className="w-full max-w-[210mm] mx-auto p-4 bg-neutral-50">
       {/* Botão de Exportar PDF */}
       <div className="mb-6 flex justify-end no-print">
         <FormPDFExport
@@ -44,319 +56,270 @@ export function AttendanceDeclarationForm({
         />
       </div>
 
-      {/* Formulário */}
-      <div id="attendance-declaration-form" className="bg-white">
-        {/* Cabeçalho */}
-        <FormHeader
-          title="DECLARAÇÃO DE PARTICIPAÇÃO EM EXPERIÊNCIA"
-          subtitle="DE EXTENSÃO, INICIAÇÃO CIENTÍFICA OU MONITORIA"
-          showImages={true}
-        />
-
-        {/* Conteúdo do Formulário */}
-        <div className="space-y-6">
-          {/* Seção 1: Informações do Declarante */}
-          <div>
-            <table className="w-full border-collapse border border-neutral-900">
-              <tbody>
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">
-                    NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/SUPERVISOR) DA BOLSA OU COORDENADOR(A) DO PROJETO/PROGRAMA
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="declaranteName"
-                      placeholder="Digite o nome completo"
-                      className="w-full border-0 outline-none text-sm"
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <table className="w-full border-collapse border border-neutral-900 mt-4">
-              <tbody>
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100 w-1/2">
-                    DOCUMENTO TIPO
-                  </td>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100 w-1/2">
-                    NÚMERO
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <select
-                      name="documentType"
-                      value={formData.documentType}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                    >
-                      <option value="CPF">CPF</option>
-                      <option value="RG">RG</option>
-                      <option value="CNPJ">CNPJ</option>
-                    </select>
-                  </td>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="documentNumber"
-                      placeholder="Número do documento"
-                      value={formData.documentNumber}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Seção 2: Informações Acadêmicas */}
-          <div>
-            <p className="text-sm mb-4">
-              Para fins de <span className="font-bold">EQUIPARAÇÃO</span> a atividades de estágio supervisionado obrigatório,
-              declaro os fatos a seguir descritos, para que surjam efeitos legais.
-            </p>
-
-            <table className="w-full border-collapse border border-neutral-900">
-              <tbody>
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">DISCENTE</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      placeholder="Nome do aluno"
-                      defaultValue={userName}
-                      className="w-full border-0 outline-none text-sm"
-                      readOnly
-                    />
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">CURSO</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="course"
-                      placeholder="Nome do curso"
-                      value={formData.course}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                    />
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">MATRÍCULA</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="registration"
-                      placeholder="Número de matrícula"
-                      value={formData.registration}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                    />
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">INSTITUIÇÃO DE ENSINO</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="institution"
-                      value={formData.institution}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                      readOnly
-                    />
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">CAMPUS</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="campus"
-                      value={formData.campus}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                      readOnly
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Seção 3: Tipo de Experiência */}
-          <div>
-            <table className="w-full border-collapse border border-neutral-900">
-              <tbody>
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">EXPERIÊNCIA</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <div className="flex gap-8">
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name="experienceType"
-                          value="EXTENSÃO"
-                          checked={formData.experienceType === 'EXTENSÃO'}
-                          onChange={handleChange}
-                        />
-                        EXTENSÃO
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name="experienceType"
-                          value="INICIAÇÃO CIENTÍFICA"
-                          checked={formData.experienceType === 'INICIAÇÃO CIENTÍFICA'}
-                          onChange={handleChange}
-                        />
-                        INICIAÇÃO CIENTÍFICA
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name="experienceType"
-                          value="MONITORIA"
-                          checked={formData.experienceType === 'MONITORIA'}
-                          onChange={handleChange}
-                        />
-                        MONITORIA
-                      </label>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Seção 4: Projeto/Programa */}
-          <div>
-            <table className="w-full border-collapse border border-neutral-900">
-              <tbody>
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">PROJETO/PROGRAMA</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      name="projectProgram"
-                      placeholder="Nome do projeto ou programa"
-                      value={formData.projectProgram}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm"
-                    />
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">INSTITUIÇÃO</td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <input
-                      type="text"
-                      placeholder="Instituição responsável"
-                      className="w-full border-0 outline-none text-sm"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Seção 5: Atividades */}
-          <div>
-            <table className="w-full border-collapse border border-neutral-900">
-              <tbody>
-                <tr>
-                  <td className="border border-neutral-900 p-3 font-bold text-sm bg-neutral-100">
-                    ATIVIDADES DESENVOLVIDAS PELO(A) DISCENTE
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-neutral-900 p-3 min-h-[100px]">
-                    <textarea
-                      name="activities"
-                      placeholder="Descreva as atividades desenvolvidas"
-                      value={formData.activities}
-                      onChange={handleChange}
-                      className="w-full border-0 outline-none text-sm resize-none"
-                      rows={4}
-                    />
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border border-neutral-900 p-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="font-bold text-sm">INÍCIO:</label>
-                        <input
-                          type="date"
-                          name="startDate"
-                          value={formData.startDate}
-                          onChange={handleChange}
-                          className="w-full border-0 outline-none text-sm mt-1"
-                        />
-                      </div>
-                      <div>
-                        <label className="font-bold text-sm">CARGA HORÁRIA SEMANAL: ___ horas</label>
-                        <input
-                          type="number"
-                          name="weeklyHours"
-                          placeholder="Horas"
-                          value={formData.weeklyHours}
-                          onChange={handleChange}
-                          className="w-full border-0 outline-none text-sm mt-1"
-                        />
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Seção 6: Assinatura */}
-          <div className="mt-8 space-y-4">
-            <p className="text-sm">
-              Fortaleza-CE, ____ de _____________ de 20___
-            </p>
-
-            <div className="border-t border-neutral-900 pt-4">
-              <p className="text-sm font-bold text-center">
-                ASSINATURA DO (A) DECLARANTE
-              </p>
-            </div>
-          </div>
+      {/* Formulário usando Template Oficial */}
+      <OfficialFormTemplate
+        formId="attendance-declaration-form"
+        title="DECLARAÇÃO DE PARTICIPAÇÃO EM EXPERIÊNCIA"
+        subtitle="DE EXTENSÃO, INICIAÇÃO CIENTÍFICA OU MONITORIA"
+        campus="Morada Nova"
+        sector="Coordenação de Extensão"
+      >
+        {/* Texto Introdutório */}
+        <div className="mb-4 text-xs">
+          <p>
+            Para fins de <strong>EQUIPARAÇÃO</strong> a atividades de estágio supervisionado obrigatório,
+            declaro os fatos a seguir descritos, para que surjam efeitos legais.
+          </p>
         </div>
-      </div>
+
+        {/* Dados do Declarante */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell colSpan={2}>
+                NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/SUPERVISOR) DA BOLSA OU COORDENADOR(A) DO PROJETO/PROGRAMA
+              </FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell colSpan={2}>
+                <FormInput
+                  type="text"
+                  name="declarantName"
+                  value={formData.declarantName}
+                  onChange={handleChange}
+                  placeholder="Digite o nome completo"
+                />
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Documento do Declarante */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell>DOCUMENTO TIPO</FormHeaderCell>
+              <FormHeaderCell>NÚMERO</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormSelect
+                  name="documentType"
+                  value={formData.documentType}
+                  onChange={handleChange}
+                >
+                  <option value="CPF">CPF</option>
+                  <option value="RG">RG</option>
+                  <option value="CNPJ">CNPJ</option>
+                </FormSelect>
+              </FormDataCell>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="documentNumber"
+                  value={formData.documentNumber}
+                  onChange={handleChange}
+                  placeholder="Número do documento"
+                />
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Dados do Discente */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell>DISCENTE</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="studentName"
+                  value={formData.studentName}
+                  onChange={handleChange}
+                  placeholder="Nome do aluno"
+                />
+              </FormDataCell>
+            </tr>
+            <tr>
+              <FormHeaderCell>CURSO</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                  placeholder="Nome do curso"
+                />
+              </FormDataCell>
+            </tr>
+            <tr>
+              <FormHeaderCell>MATRÍCULA</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="registration"
+                  value={formData.registration}
+                  onChange={handleChange}
+                  placeholder="Número de matrícula"
+                />
+              </FormDataCell>
+            </tr>
+            <tr>
+              <FormHeaderCell>INSTITUIÇÃO DE ENSINO</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="institution"
+                  value={formData.institution}
+                  onChange={handleChange}
+                  readOnly
+                />
+              </FormDataCell>
+            </tr>
+            <tr>
+              <FormHeaderCell>CAMPUS</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="campus"
+                  value={formData.campus}
+                  onChange={handleChange}
+                  readOnly
+                />
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Tipo de Experiência */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell>EXPERIÊNCIA</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <div className="flex gap-8">
+                  {['EXTENSÃO', 'INICIAÇÃO CIENTÍFICA', 'MONITORIA'].map((type) => (
+                    <label key={type} className="flex items-center gap-2 text-xs">
+                      <input
+                        type="radio"
+                        name="experienceType"
+                        value={type}
+                        checked={formData.experienceType === type}
+                        onChange={handleChange}
+                      />
+                      {type}
+                    </label>
+                  ))}
+                </div>
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Projeto/Programa */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell>PROJETO/PROGRAMA</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="projectProgram"
+                  value={formData.projectProgram}
+                  onChange={handleChange}
+                  placeholder="Nome do projeto ou programa"
+                />
+              </FormDataCell>
+            </tr>
+            <tr>
+              <FormHeaderCell>INSTITUIÇÃO</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="text"
+                  name="projectInstitution"
+                  value={formData.projectInstitution}
+                  onChange={handleChange}
+                  placeholder="Instituição responsável"
+                />
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Atividades Desenvolvidas */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell>
+                ATIVIDADES DESENVOLVIDAS PELO(A) DISCENTE
+              </FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormTextarea
+                  name="activities"
+                  value={formData.activities}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Descreva as atividades desenvolvidas"
+                />
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Período e Carga Horária */}
+        <FormTable>
+          <tbody>
+            <tr>
+              <FormHeaderCell>INÍCIO</FormHeaderCell>
+              <FormHeaderCell>CARGA HORÁRIA SEMANAL</FormHeaderCell>
+            </tr>
+            <tr>
+              <FormDataCell>
+                <FormInput
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                />
+              </FormDataCell>
+              <FormDataCell>
+                <FormInput
+                  type="number"
+                  name="weeklyHours"
+                  value={formData.weeklyHours}
+                  onChange={handleChange}
+                  placeholder="Horas"
+                />
+              </FormDataCell>
+            </tr>
+          </tbody>
+        </FormTable>
+
+        {/* Assinatura */}
+        <SignatureSection
+          label="ASSINATURA DO (A) DECLARANTE"
+          date={true}
+        />
+      </OfficialFormTemplate>
     </div>
   )
 }
