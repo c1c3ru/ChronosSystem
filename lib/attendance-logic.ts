@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import { isNationalHoliday } from '@/lib/holidays'
 
 interface WorkingHours {
   start: string // "08:00"
@@ -24,13 +25,14 @@ interface AttendanceContext {
   workingHours: WorkingHours
   isWeekend?: boolean
   isHoliday?: boolean
+  hasAuthorization?: boolean // Autorização para trabalhar em feriados/fins de semana
 }
 
 // Horários padrão IFCE (configurável por usuário/departamento)
 export const DEFAULT_WORKING_HOURS: WorkingHours = {
   start: "08:00",
   end: "17:00",
-  lunchStart: "12:00", 
+  lunchStart: "12:00",
   lunchEnd: "13:00"
 }
 
@@ -44,7 +46,7 @@ export function determineRecordType(context: AttendanceContext): {
   suggestions?: string[]
 } {
   const { currentTime, lastRecord, workingHours, isWeekend, isHoliday } = context
-  
+
   // Converter horários para minutos para facilitar comparações
   const currentMinutes = timeToMinutes(currentTime)
   const workStart = parseTimeToMinutes(workingHours.start)
@@ -73,7 +75,7 @@ export function determineRecordType(context: AttendanceContext): {
 
   // REGRA 3: Verificar intervalo desde último registro
   const minutesSinceLastRecord = getMinutesDifference(lastRecord.timestamp, currentTime)
-  
+
   // Se passou muito tempo (>4 horas), provavelmente é nova entrada
   if (minutesSinceLastRecord > 240) {
     return {
@@ -85,7 +87,7 @@ export function determineRecordType(context: AttendanceContext): {
 
   // REGRA 4: Análise por contexto de horário
   const timeContext = getTimeContext(currentMinutes, workStart, workEnd, lunchStart, lunchEnd)
-  
+
   switch (timeContext) {
     case 'before_work':
       // Antes do horário de trabalho
@@ -217,31 +219,31 @@ function getTimeContext(
   lunchStart: number,
   lunchEnd: number
 ): 'before_work' | 'work_morning' | 'lunch_time' | 'work_afternoon' | 'after_work' | 'night' {
-  
+
   if (currentMinutes < workStart - 60) { // Mais de 1h antes do trabalho
     return 'night'
   }
-  
+
   if (currentMinutes < workStart) {
     return 'before_work'
   }
-  
+
   if (currentMinutes < lunchStart) {
     return 'work_morning'
   }
-  
+
   if (currentMinutes < lunchEnd) {
     return 'lunch_time'
   }
-  
+
   if (currentMinutes < workEnd) {
     return 'work_afternoon'
   }
-  
+
   if (currentMinutes < workEnd + 120) { // Até 2h após o trabalho
     return 'after_work'
   }
-  
+
   return 'night'
 }
 
@@ -321,9 +323,21 @@ export function validateRecord(context: AttendanceContext, suggestedType: 'ENTRY
 } {
   const warnings: string[] = []
   const errors: string[] = []
-  
-  const { currentTime, lastRecord, workingHours } = context
-  
+
+  const { currentTime, lastRecord, workingHours, hasAuthorization } = context
+
+  // VALIDAÇÃO CRÍTICA: Verificar se é feriado nacional
+  const holidayCheck = isNationalHoliday(currentTime)
+  if (holidayCheck.isHoliday && !hasAuthorization) {
+    errors.push(`Registro bloqueado: Hoje é feriado nacional (${holidayCheck.holidayName}). Não é permitido registrar ponto em feriados sem autorização prévia.`)
+  }
+
+  // VALIDAÇÃO CRÍTICA: Verificar se é fim de semana
+  if (isWeekend(currentTime) && !hasAuthorization) {
+    const dayName = currentTime.getDay() === 0 ? 'domingo' : 'sábado'
+    errors.push(`Registro bloqueado: Hoje é ${dayName}. Não é permitido registrar ponto em finais de semana sem autorização prévia.`)
+  }
+
   // Verificar registros muito próximos
   if (lastRecord) {
     const minutesSince = getMinutesDifference(lastRecord.timestamp, currentTime)
@@ -331,18 +345,13 @@ export function validateRecord(context: AttendanceContext, suggestedType: 'ENTRY
       errors.push(`Registro muito próximo do anterior (${Math.floor(minutesSince)} minutos)`)
     }
   }
-  
-  // Verificar horários suspeitos
+
+  // Verificar horários suspeitos (apenas warning, não bloqueia)
   const currentHour = currentTime.getHours()
   if (currentHour < 6 || currentHour > 22) {
-    warnings.push('Registro em horário não convencional')
+    warnings.push('Registro em horário não convencional (antes das 6h ou depois das 22h)')
   }
-  
-  // Verificar fim de semana
-  if (isWeekend(currentTime)) {
-    warnings.push('Registro em fim de semana')
-  }
-  
+
   return {
     isValid: errors.length === 0,
     warnings,

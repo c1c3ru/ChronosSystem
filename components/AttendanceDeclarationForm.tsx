@@ -5,8 +5,7 @@ import { FormPDFExport } from '@/components/FormPDFExport'
 import {
   OfficialFormTemplate,
   FormTable,
-  FormHeaderCell,
-  FormDataCell,
+  FormField,
   FormInput,
   FormTextarea,
   FormSelect,
@@ -48,7 +47,6 @@ export function AttendanceDeclarationForm({
 
   return (
     <div className="w-full max-w-[210mm] mx-auto p-4 bg-neutral-50">
-      {/* Botão de Exportar PDF */}
       <div className="mb-6 flex justify-end no-print">
         <FormPDFExport
           formId="attendance-declaration-form"
@@ -56,7 +54,6 @@ export function AttendanceDeclarationForm({
         />
       </div>
 
-      {/* Formulário usando Template Oficial */}
       <OfficialFormTemplate
         formId="attendance-declaration-form"
         title="DECLARAÇÃO DE PARTICIPAÇÃO EM EXPERIÊNCIA"
@@ -64,24 +61,17 @@ export function AttendanceDeclarationForm({
         campus="Morada Nova"
         sector="Coordenação de Extensão"
       >
-        {/* Texto Introdutório */}
-        <div className="mb-4 text-xs">
+        <div className="mb-4 text-[9pt] text-justify px-1">
           <p>
             Para fins de <strong>EQUIPARAÇÃO</strong> a atividades de estágio supervisionado obrigatório,
             declaro os fatos a seguir descritos, para que surjam efeitos legais.
           </p>
         </div>
 
-        {/* Dados do Declarante */}
         <FormTable>
           <tbody>
             <tr>
-              <FormHeaderCell colSpan={2}>
-                NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/SUPERVISOR) DA BOLSA OU COORDENADOR(A) DO PROJETO/PROGRAMA
-              </FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell colSpan={2}>
+              <FormField label="NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/SUPERVISOR)" colSpan={3}>
                 <FormInput
                   type="text"
                   name="declarantName"
@@ -89,20 +79,10 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Digite o nome completo"
                 />
-              </FormDataCell>
-            </tr>
-          </tbody>
-        </FormTable>
-
-        {/* Documento do Declarante */}
-        <FormTable>
-          <tbody>
-            <tr>
-              <FormHeaderCell>DOCUMENTO TIPO</FormHeaderCell>
-              <FormHeaderCell>NÚMERO</FormHeaderCell>
+              </FormField>
             </tr>
             <tr>
-              <FormDataCell>
+              <FormField label="TIPO DE DOCUMENTO">
                 <FormSelect
                   name="documentType"
                   value={formData.documentType}
@@ -112,8 +92,8 @@ export function AttendanceDeclarationForm({
                   <option value="RG">RG</option>
                   <option value="CNPJ">CNPJ</option>
                 </FormSelect>
-              </FormDataCell>
-              <FormDataCell>
+              </FormField>
+              <FormField label="NÚMERO DO DOCUMENTO" colSpan={2}>
                 <FormInput
                   type="text"
                   name="documentNumber"
@@ -121,19 +101,10 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Número do documento"
                 />
-              </FormDataCell>
-            </tr>
-          </tbody>
-        </FormTable>
-
-        {/* Dados do Discente */}
-        <FormTable>
-          <tbody>
-            <tr>
-              <FormHeaderCell>DISCENTE</FormHeaderCell>
+              </FormField>
             </tr>
             <tr>
-              <FormDataCell>
+              <FormField label="NOME DO DISCENTE" colSpan={3}>
                 <FormInput
                   type="text"
                   name="studentName"
@@ -141,13 +112,10 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Nome do aluno"
                 />
-              </FormDataCell>
+              </FormField>
             </tr>
             <tr>
-              <FormHeaderCell>CURSO</FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell>
+              <FormField label="CURSO" colSpan={2}>
                 <FormInput
                   type="text"
                   name="course"
@@ -155,13 +123,8 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Nome do curso"
                 />
-              </FormDataCell>
-            </tr>
-            <tr>
-              <FormHeaderCell>MATRÍCULA</FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell>
+              </FormField>
+              <FormField label="MATRÍCULA">
                 <FormInput
                   type="text"
                   name="registration"
@@ -169,13 +132,10 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Número de matrícula"
                 />
-              </FormDataCell>
+              </FormField>
             </tr>
             <tr>
-              <FormHeaderCell>INSTITUIÇÃO DE ENSINO</FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell>
+              <FormField label="INSTITUIÇÃO DE ENSINO" colSpan={2}>
                 <FormInput
                   type="text"
                   name="institution"
@@ -183,13 +143,8 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   readOnly
                 />
-              </FormDataCell>
-            </tr>
-            <tr>
-              <FormHeaderCell>CAMPUS</FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell>
+              </FormField>
+              <FormField label="CAMPUS">
                 <FormInput
                   type="text"
                   name="campus"
@@ -197,46 +152,40 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   readOnly
                 />
-              </FormDataCell>
+              </FormField>
             </tr>
           </tbody>
         </FormTable>
 
-        {/* Tipo de Experiência */}
+        <div className="mt-4 mb-1 px-1">
+          <div className="text-[9px] font-bold uppercase">
+            DETALHES DA EXPERIÊNCIA
+          </div>
+        </div>
+
         <FormTable>
           <tbody>
             <tr>
-              <FormHeaderCell>EXPERIÊNCIA</FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell>
-                <div className="flex gap-8">
+              <FormField label="TIPO DE EXPERIÊNCIA" colSpan={3}>
+                <div className="flex gap-8 pt-1">
                   {['EXTENSÃO', 'INICIAÇÃO CIENTÍFICA', 'MONITORIA'].map((type) => (
-                    <label key={type} className="flex items-center gap-2 text-xs">
+                    <label key={type} className="flex items-center gap-1 text-[8px] uppercase cursor-pointer">
                       <input
                         type="radio"
                         name="experienceType"
                         value={type}
                         checked={formData.experienceType === type}
                         onChange={handleChange}
+                        className="h-3 w-3"
                       />
                       {type}
                     </label>
                   ))}
                 </div>
-              </FormDataCell>
-            </tr>
-          </tbody>
-        </FormTable>
-
-        {/* Projeto/Programa */}
-        <FormTable>
-          <tbody>
-            <tr>
-              <FormHeaderCell>PROJETO/PROGRAMA</FormHeaderCell>
+              </FormField>
             </tr>
             <tr>
-              <FormDataCell>
+              <FormField label="NOME DO PROJETO / PROGRAMA" colSpan={3}>
                 <FormInput
                   type="text"
                   name="projectProgram"
@@ -244,13 +193,10 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Nome do projeto ou programa"
                 />
-              </FormDataCell>
+              </FormField>
             </tr>
             <tr>
-              <FormHeaderCell>INSTITUIÇÃO</FormHeaderCell>
-            </tr>
-            <tr>
-              <FormDataCell>
+              <FormField label="INSTITUIÇÃO RESPONSÁVEL" colSpan={3}>
                 <FormInput
                   type="text"
                   name="projectInstitution"
@@ -258,67 +204,51 @@ export function AttendanceDeclarationForm({
                   onChange={handleChange}
                   placeholder="Instituição responsável"
                 />
-              </FormDataCell>
-            </tr>
-          </tbody>
-        </FormTable>
-
-        {/* Atividades Desenvolvidas */}
-        <FormTable>
-          <tbody>
-            <tr>
-              <FormHeaderCell>
-                ATIVIDADES DESENVOLVIDAS PELO(A) DISCENTE
-              </FormHeaderCell>
+              </FormField>
             </tr>
             <tr>
-              <FormDataCell>
+              <FormField label="ATIVIDADES DESENVOLVIDAS PELO(A) DISCENTE" colSpan={3}>
                 <FormTextarea
                   name="activities"
                   value={formData.activities}
                   onChange={handleChange}
-                  rows={4}
+                  rows={6}
                   placeholder="Descreva as atividades desenvolvidas"
                 />
-              </FormDataCell>
-            </tr>
-          </tbody>
-        </FormTable>
-
-        {/* Período e Carga Horária */}
-        <FormTable>
-          <tbody>
-            <tr>
-              <FormHeaderCell>INÍCIO</FormHeaderCell>
-              <FormHeaderCell>CARGA HORÁRIA SEMANAL</FormHeaderCell>
+              </FormField>
             </tr>
             <tr>
-              <FormDataCell>
+              <FormField label="DATA DE INÍCIO">
                 <FormInput
                   type="date"
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
                 />
-              </FormDataCell>
-              <FormDataCell>
-                <FormInput
-                  type="number"
-                  name="weeklyHours"
-                  value={formData.weeklyHours}
-                  onChange={handleChange}
-                  placeholder="Horas"
-                />
-              </FormDataCell>
+              </FormField>
+              <FormField label="CARGA HORÁRIA SEMANAL" colSpan={2}>
+                <div className="flex items-center gap-1">
+                  <FormInput
+                    type="number"
+                    name="weeklyHours"
+                    value={formData.weeklyHours}
+                    onChange={handleChange}
+                    placeholder="0"
+                    className="w-20"
+                  />
+                  <span className="text-[8px]">HORAS</span>
+                </div>
+              </FormField>
             </tr>
           </tbody>
         </FormTable>
 
-        {/* Assinatura */}
-        <SignatureSection
-          label="ASSINATURA DO (A) DECLARANTE"
-          date={true}
-        />
+        <div className="mt-8 border border-black p-4">
+          <SignatureSection
+            label="ASSINATURA DO (A) DECLARANTE"
+            date={true}
+          />
+        </div>
       </OfficialFormTemplate>
     </div>
   )

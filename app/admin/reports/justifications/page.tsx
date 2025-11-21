@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  AlertTriangle, 
+import {
+  AlertTriangle,
   ArrowLeft,
   Search,
   Filter,
@@ -51,7 +51,7 @@ export default function JustificationsPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -75,7 +75,7 @@ export default function JustificationsPage() {
     try {
       setLoading(true)
       const response = await fetch('/api/admin/justifications')
-      
+
       if (response.ok) {
         const data = await response.json()
         setJustifications(data)
@@ -90,7 +90,7 @@ export default function JustificationsPage() {
   const handleJustificationAction = async (justificationId: string, action: 'APPROVED' | 'REJECTED') => {
     try {
       setActionLoading(true)
-      
+
       const response = await fetch(`/api/admin/justifications/${justificationId}`, {
         method: 'PATCH',
         headers: {
@@ -116,9 +116,9 @@ export default function JustificationsPage() {
 
   const filteredJustifications = justifications.filter(justification => {
     const matchesSearch = justification.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         justification.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         justification.reason.toLowerCase().includes(searchTerm.toLowerCase())
-    
+      justification.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      justification.reason.toLowerCase().includes(searchTerm.toLowerCase())
+
     const matchesStatus = statusFilter === 'ALL' || justification.status === statusFilter
     const matchesType = typeFilter === 'ALL' || justification.type === typeFilter
 
@@ -149,6 +149,18 @@ export default function JustificationsPage() {
 
   const getTypeColor = (type: string) => {
     return type === 'LATE' ? 'text-warning bg-warning/20' : 'text-error bg-error/20'
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        return 'Data inválida'
+      }
+      return date.toLocaleDateString('pt-BR')
+    } catch {
+      return 'Data inválida'
+    }
   }
 
   if (status === 'loading' || loading) {
@@ -321,11 +333,11 @@ export default function JustificationsPage() {
                     <div className="flex items-center space-x-4 mb-3 text-sm text-neutral-400">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
-                        <span>Data: {new Date(justification.date).toLocaleDateString('pt-BR')}</span>
+                        <span>Data: {formatDate(justification.date)}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4" />
-                        <span>Enviado: {new Date(justification.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span>Enviado: {formatDate(justification.createdAt)}</span>
                       </div>
                     </div>
 
@@ -344,8 +356,8 @@ export default function JustificationsPage() {
 
                   {justification.status === 'PENDING' && (
                     <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => setSelectedJustification(justification)}
                         variant="ghost"
                       >
@@ -393,7 +405,7 @@ export default function JustificationsPage() {
                   </span>
                 </div>
                 <p className="text-sm text-neutral-400 mb-2">
-                  Data: {new Date(selectedJustification.date).toLocaleDateString('pt-BR')}
+                  Data: {formatDate(selectedJustification.date)}
                 </p>
                 <p className="text-white">{selectedJustification.reason}</p>
               </div>
@@ -411,8 +423,8 @@ export default function JustificationsPage() {
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     setSelectedJustification(null)
                     setAdminResponse('')
@@ -420,7 +432,7 @@ export default function JustificationsPage() {
                 >
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   variant="destructive"
                   onClick={() => handleJustificationAction(selectedJustification.id, 'REJECTED')}
                   disabled={actionLoading}
@@ -428,7 +440,7 @@ export default function JustificationsPage() {
                   <X className="h-4 w-4 mr-2" />
                   Rejeitar
                 </Button>
-                <Button 
+                <Button
                   onClick={() => handleJustificationAction(selectedJustification.id, 'APPROVED')}
                   disabled={actionLoading}
                 >

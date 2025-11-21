@@ -43,16 +43,16 @@ export default function SignInPage() {
 
       // Get session to check user role and profile completion
       const session = await getSession()
-      
+
       if (session?.user) {
         toast.success('Login realizado com sucesso!')
-        
+
         // Check if profile is complete
         if (session.user.profileComplete === false) {
           router.push('/auth/complete-profile')
           return
         }
-        
+
         // Redirect based on role
         if (session.user.role === 'ADMIN' || session.user.role === 'SUPERVISOR') {
           router.push('/admin')
@@ -121,17 +121,17 @@ export default function SignInPage() {
       setIsGoogleLoading(true)
       setGoogleError(null)
       toast.loading('Verificando usuário...', { id: 'google-login' })
-      
-      const result = await signIn('google', { 
+
+      const result = await signIn('google', {
         callbackUrl: '/',
         redirect: false // Não redirecionar automaticamente para capturar erros
       })
-      
+
       if (result?.error) {
         console.error('Google login error:', result.error)
-        
+
         let errorMessage = 'Erro ao fazer login com Google'
-        
+
         // Tratar diferentes tipos de erro
         switch (result.error) {
           case 'AccessDenied':
@@ -178,7 +178,7 @@ export default function SignInPage() {
             errorMessage = `❌ Erro desconhecido: ${result.error}`
             setGoogleError('Ocorreu um erro inesperado. Tente novamente ou entre em contato com o suporte.')
         }
-        
+
         toast.error(errorMessage, { id: 'google-login' })
       } else if (result?.ok) {
         toast.success('Login realizado com sucesso!', { id: 'google-login' })
@@ -273,8 +273,8 @@ export default function SignInPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-gray-200 hover:bg-gray-300 rounded-full shadow-lg border-2 border-gray-400"
                 >
-                  {showPassword ? 
-                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} /> : 
+                  {showPassword ?
+                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} /> :
                     <Eye className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
                   }
                 </button>
@@ -316,7 +316,7 @@ export default function SignInPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading}
-            className="w-full bg-white hover:bg-gray-100 text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white hover:bg-gray-50 text-black font-semibold py-3 px-4 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
@@ -338,11 +338,11 @@ export default function SignInPage() {
             </svg>
             {isGoogleLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                Verificando...
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
+                <span className="text-black font-semibold">Verificando...</span>
               </>
             ) : (
-              'Entrar com Google'
+              <span className="text-black font-semibold">Entrar com Google</span>
             )}
           </button>
 
@@ -380,7 +380,7 @@ export default function SignInPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link 
+          <Link
             href="/"
             className="text-muted-foreground hover:text-foreground text-sm transition-colors"
           >

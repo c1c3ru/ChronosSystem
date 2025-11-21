@@ -8,6 +8,7 @@ import { getDraft } from '@/lib/form-drafts'
 import {
   OfficialFormTemplate,
   FormTable,
+  FormField,
   FormHeaderCell,
   FormDataCell,
   FormInput,
@@ -19,6 +20,8 @@ export default function SemesterReportPage() {
   const formRef = useRef<HTMLDivElement>(null)
   const [formData, setFormData] = useState({
     student_name: '',
+    student_registration: '',
+    student_course: '',
     supervisor_name: '',
     advisor_name: '',
     period_start: '',
@@ -63,95 +66,97 @@ export default function SemesterReportPage() {
             campus="Maracanaú"
             sector="Coordenação de Estágios"
           >
-            <div className="mb-4">
-              <h2 className="text-sm font-bold mb-3">1. Identificação</h2>
-            </div>
-
+            {/* Identificação - Layout Denso */}
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Estagiário(a)</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="NOME DO ESTAGIÁRIO(A)" colSpan={2}>
                     <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
+                  <FormField label="MATRÍCULA">
+                    <FormInput type="text" name="student_registration" value={formData.student_registration} onChange={handleChange} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell>Supervisor</FormHeaderCell>
-                  <FormHeaderCell>Orientador</FormHeaderCell>
+                  <FormField label="CURSO" colSpan={3}>
+                    <FormInput type="text" name="student_course" value={formData.student_course} onChange={handleChange} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormDataCell>
+                  <FormField label="SUPERVISOR (EMPRESA)" colSpan={2}>
                     <FormInput type="text" name="supervisor_name" value={formData.supervisor_name} onChange={handleChange} />
-                  </FormDataCell>
-                  <FormDataCell>
+                  </FormField>
+                  <FormField label="ORIENTADOR (IFCE)">
                     <FormInput type="text" name="advisor_name" value={formData.advisor_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell>Período</FormHeaderCell>
-                  <FormHeaderCell>Carga Horária Total</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <div className="flex gap-2 items-center">
-                      <FormInput type="date" name="period_start" value={formData.period_start} onChange={handleChange} />
-                      <span className="text-xs">até</span>
-                      <FormInput type="date" name="period_end" value={formData.period_end} onChange={handleChange} />
+                  <FormField label="PERÍODO DE REALIZAÇÃO" colSpan={2}>
+                    <div className="flex gap-2 items-center w-full">
+                      <FormInput type="date" name="period_start" value={formData.period_start} onChange={handleChange} className="w-32" />
+                      <span className="text-[8px]">ATÉ</span>
+                      <FormInput type="date" name="period_end" value={formData.period_end} onChange={handleChange} className="w-32" />
                     </div>
-                  </FormDataCell>
-                  <FormDataCell>
-                    <FormInput type="number" name="total_hours" value={formData.total_hours} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
+                  <FormField label="CARGA HORÁRIA TOTAL">
+                    <div className="flex items-center gap-1">
+                      <FormInput type="number" name="total_hours" value={formData.total_hours} onChange={handleChange} className="text-right w-20" />
+                      <span className="text-[8px]">HORAS</span>
+                    </div>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">2. Atividades</h2>
+            {/* Atividades */}
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                2. ATIVIDADES DESENVOLVIDAS
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell>Principais Atividades no Período</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={5} />
-                  </FormDataCell>
+                  <FormField label="DESCRIÇÃO DAS PRINCIPAIS ATIVIDADES NO PERÍODO">
+                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={8} />
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">3. Avaliação do Discente</h2>
-              <p className="text-xs text-center mb-3 italic text-neutral-600">Conceitos: 1-Insatisfatório, 2-Pouco Satisfatório, 3-Satisfatório, 4-Muito Satisfatório</p>
+            {/* Avaliação */}
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                3. AVALIAÇÃO DO DISCENTE (PREENCHIDO PELO SUPERVISOR)
+              </div>
             </div>
+
+            <p className="text-[8px] mb-1 italic">Conceitos: 1-Insatisfatório, 2-Pouco Satisfatório, 3-Satisfatório, 4-Muito Satisfatório</p>
 
             <FormTable>
               <thead>
-                <tr className="bg-neutral-100 text-xs">
-                  <FormHeaderCell className="text-left">Critério</FormHeaderCell>
-                  <FormHeaderCell className="text-center">1</FormHeaderCell>
-                  <FormHeaderCell className="text-center">2</FormHeaderCell>
-                  <FormHeaderCell className="text-center">3</FormHeaderCell>
-                  <FormHeaderCell className="text-center">4</FormHeaderCell>
+                <tr className="bg-gray-100">
+                  <FormHeaderCell className="text-left w-1/2">CRITÉRIO DE AVALIAÇÃO</FormHeaderCell>
+                  <FormHeaderCell className="text-center w-12">1</FormHeaderCell>
+                  <FormHeaderCell className="text-center w-12">2</FormHeaderCell>
+                  <FormHeaderCell className="text-center w-12">3</FormHeaderCell>
+                  <FormHeaderCell className="text-center w-12">4</FormHeaderCell>
                 </tr>
               </thead>
               <tbody>
-                {['Assiduidade', 'Disciplina', 'Proatividade', 'Relacionamento Interpessoal', 'Qualidade no Trabalho'].map((criterion, index) => (
+                {['Assiduidade e Pontualidade', 'Disciplina e Interesse', 'Proatividade e Iniciativa', 'Relacionamento Interpessoal', 'Qualidade no Trabalho'].map((criterion, index) => (
                   <tr key={criterion}>
-                    <FormDataCell className="text-left font-medium">{criterion}</FormDataCell>
+                    <FormDataCell className="text-left font-medium text-[9px] uppercase align-middle">{criterion}</FormDataCell>
                     {[1, 2, 3, 4].map((value) => (
-                      <FormDataCell key={value} className="text-center">
+                      <FormDataCell key={value} className="text-center align-middle">
                         <input
                           type="radio"
                           name={`evaluation_${index + 1}`}
                           value={value}
                           checked={formData[`evaluation_${index + 1}` as keyof typeof formData] === String(value)}
                           onChange={handleChange}
+                          className="h-3 w-3"
                         />
                       </FormDataCell>
                     ))}
@@ -160,27 +165,41 @@ export default function SemesterReportPage() {
               </tbody>
             </FormTable>
 
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">4. Observações</h2>
+            {/* Observações */}
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                4. OBSERVAÇÕES GERAIS
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell>Observações / Comentários</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
+                  <FormField label="OBSERVAÇÕES / COMENTÁRIOS DO SUPERVISOR">
                     <FormTextarea name="comments" value={formData.comments} onChange={handleChange} rows={4} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SignatureSection label="Supervisor do Estágio" />
-              <SignatureSection label="Discente Estagiário" />
+            {/* Assinaturas - Layout Lado a Lado com Borda */}
+            <div className="mt-6 border border-black">
+              <div className="grid grid-cols-2 divide-x divide-black">
+                <div className="p-4 pb-2">
+                  <SignatureSection label="SUPERVISOR DO ESTÁGIO" className="mt-8" />
+                </div>
+                <div className="p-4 pb-2">
+                  <SignatureSection label="DISCENTE ESTAGIÁRIO" className="mt-8" />
+                </div>
+              </div>
             </div>
+
+            <div className="flex justify-center mt-2">
+              <div className="text-[9px]">
+                DATA: _____ / _____ / ________
+              </div>
+            </div>
+
           </OfficialFormTemplate>
         </div>
 

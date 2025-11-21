@@ -21,25 +21,7 @@ interface OfficialFormTemplateProps {
 
 /**
  * Template reutilizável para formulários oficiais do IFCE
- * 
- * Garante:
- * - Formato A4 (210mm x 297mm)
- * - Cabeçalho oficial padronizado
- * - Tipografia profissional
- * - Layout consistente para impressão
- * 
- * @example
- * ```tsx
- * <OfficialFormTemplate
- *   formId="meu-formulario"
- *   title="DECLARAÇÃO DE PARTICIPAÇÃO"
- *   subtitle="EM ATIVIDADES DE EXTENSÃO"
- *   campus="Maracanaú"
- *   sector="Setor de Acompanhamento de Estágio"
- * >
- *   <div>Conteúdo do formulário aqui</div>
- * </OfficialFormTemplate>
- * ```
+ * Padrão visual baseado no modelo oficial (imagem de referência)
  */
 export function OfficialFormTemplate({
     title,
@@ -53,47 +35,56 @@ export function OfficialFormTemplate({
     return (
         <div
             id={formId}
-            className="bg-white shadow-lg"
+            className="bg-white shadow-lg mx-auto"
             style={{
                 width: '210mm',
                 minHeight: '297mm',
-                padding: '15mm',
-                margin: '0 auto',
-                fontSize: '10pt',
-                lineHeight: '1.3',
-                fontFamily: 'Arial, sans-serif',
-                boxSizing: 'border-box'
+                padding: '10mm', // Reduzido para aproveitar mais espaço
+                fontSize: '9pt', // Fonte base ligeiramente menor
+                lineHeight: '1.2',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                boxSizing: 'border-box',
+                color: '#000'
             }}
         >
-            {/* Cabeçalho Oficial IFCE */}
-            <div className="border-2 border-black p-3 mb-4">
-                <div className="flex items-start justify-between gap-4">
+            {/* Cabeçalho Oficial IFCE - Estilo Imagem */}
+            <div className="mb-4 relative">
+                {/* Marcas de corte simuladas (opcional, mas dá um toque oficial) */}
+                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-black opacity-50"></div>
+                <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-black opacity-50"></div>
+
+                <div className="flex items-start justify-between gap-2 px-4 pt-2">
                     {/* Logo IFCE */}
                     {showLogos && (
-                        <div className="w-16 h-16 flex-shrink-0 bg-neutral-200 flex items-center justify-center text-xs text-center font-bold">
-                            IFCE
+                        <div className="w-24 flex-shrink-0 flex flex-col items-center justify-center">
+                            {/* Placeholder para Logo IFCE - Idealmente seria uma imagem */}
+                            <div className="w-16 h-16 border border-gray-300 flex items-center justify-center text-[8px] text-center font-bold bg-gray-50">
+                                LOGO<br />IFCE
+                            </div>
                         </div>
                     )}
 
                     {/* Título Central */}
-                    <div className="flex-1 text-center">
-                        <div className="text-xs font-bold mb-1">
+                    <div className="flex-1 text-center pt-2">
+                        <div className="text-[10px] font-bold uppercase tracking-wide">
                             PRÓ-REITORIA DE EXTENSÃO
                         </div>
-                        <div className="text-xs mb-1">
+                        <div className="text-[10px] uppercase tracking-wide mb-1">
                             COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
                         </div>
-                        <div className="text-xs font-bold mb-1">
-                            IFCE Campus {campus}
+
+                        <div className="text-[11px] font-bold text-red-700 uppercase mb-0">
+                            IFCE <span className="text-black font-normal">Campus {campus}</span>
                         </div>
-                        <div className="text-xs mb-2">
+                        <div className="text-[10px] uppercase mb-4">
                             {sector}
                         </div>
-                        <div className="text-sm font-bold border-t border-black pt-2">
+
+                        <div className="text-[14px] font-bold uppercase tracking-wider">
                             {title}
                         </div>
                         {subtitle && (
-                            <div className="text-xs mt-1">
+                            <div className="text-[10px] font-bold uppercase mt-0.5">
                                 {subtitle}
                             </div>
                         )}
@@ -101,50 +92,51 @@ export function OfficialFormTemplate({
 
                     {/* Brasão */}
                     {showLogos && (
-                        <div className="w-16 h-16 flex-shrink-0 bg-neutral-200 flex items-center justify-center text-xs text-center font-bold">
-                            BRASIL
+                        <div className="w-24 flex-shrink-0 flex flex-col items-center justify-center">
+                            {/* Placeholder para Brasão - Idealmente seria uma imagem */}
+                            <div className="w-16 h-16 border border-gray-300 flex items-center justify-center text-[8px] text-center font-bold bg-gray-50">
+                                BRASÃO<br />REPÚBLICA
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Conteúdo do Formulário */}
-            <div className="text-xs">
+            <div className="w-full">
                 {children}
+            </div>
+
+            {/* Rodapé com Observação Padrão */}
+            <div className="mt-4 pt-2 border-t-0 border-black text-[9px]">
+                <p>
+                    <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser <strong>iniciadas após o cadastro</strong> do Termo de Compromisso de Estágio no sistema competente.
+                </p>
             </div>
         </div>
     )
 }
 
 /**
- * Componente de tabela padronizada para formulários oficiais
+ * Tabela principal do formulário
+ * Estilo: Bordas pretas finas, colapso de bordas
  */
-interface FormTableProps {
-    children: ReactNode
-    className?: string
-}
-
-export function FormTable({ children, className = '' }: FormTableProps) {
+export function FormTable({ children, className = '' }: { children: ReactNode, className?: string }) {
     return (
-        <table className={`w-full border-collapse border border-black text-xs mb-3 ${className}`}>
+        <table className={`w-full border-collapse border border-black text-[9pt] mb-0 ${className}`}>
             {children}
         </table>
     )
 }
 
 /**
- * Componente de célula de cabeçalho (label)
+ * Célula de cabeçalho (Label apenas)
+ * Usada para títulos de seção dentro da tabela
  */
-interface FormHeaderCellProps {
-    children: ReactNode
-    colSpan?: number
-    className?: string
-}
-
-export function FormHeaderCell({ children, colSpan, className = '' }: FormHeaderCellProps) {
+export function FormHeaderCell({ children, colSpan, className = '' }: { children: ReactNode, colSpan?: number, className?: string }) {
     return (
         <td
-            className={`border border-black p-1.5 font-bold bg-neutral-100 ${className}`}
+            className={`border border-black px-1 py-0.5 font-bold bg-gray-200 text-[8px] uppercase ${className}`}
             colSpan={colSpan}
         >
             {children}
@@ -153,66 +145,72 @@ export function FormHeaderCell({ children, colSpan, className = '' }: FormHeader
 }
 
 /**
- * Componente de célula de dados (input)
+ * Célula de dados simples
  */
-interface FormDataCellProps {
-    children: ReactNode
-    colSpan?: number
-    className?: string
-}
-
-export function FormDataCell({ children, colSpan, className = '' }: FormDataCellProps) {
+export function FormDataCell({ children, colSpan, className = '' }: { children: ReactNode, colSpan?: number, className?: string }) {
     return (
-        <td className={`border border-black p-1.5 ${className}`} colSpan={colSpan}>
+        <td className={`border border-black px-1 py-0.5 align-top ${className}`} colSpan={colSpan}>
             {children}
         </td>
     )
 }
 
 /**
- * Componente de input padronizado
+ * NOVO: Célula de Campo (Label + Input)
+ * Estilo denso conforme imagem de referência
  */
-interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    fullWidth?: boolean
+interface FormFieldProps {
+    label: string
+    children?: ReactNode
+    colSpan?: number
+    className?: string
 }
 
-export function FormInput({ fullWidth = true, className = '', ...props }: FormInputProps) {
+export function FormField({ label, children, colSpan, className = '' }: FormFieldProps) {
+    return (
+        <td className={`border border-black px-1 py-0.5 align-top ${className}`} colSpan={colSpan}>
+            <div className="text-[7px] font-bold uppercase text-gray-700 leading-tight mb-0.5">
+                {label}
+            </div>
+            <div className="min-h-[18px] flex items-center">
+                {children}
+            </div>
+        </td>
+    )
+}
+
+/**
+ * Input padronizado sem bordas (para usar dentro de FormField ou FormDataCell)
+ */
+export function FormInput({ fullWidth = true, className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement> & { fullWidth?: boolean }) {
     return (
         <input
             {...props}
-            className={`${fullWidth ? 'w-full' : ''} border-0 outline-none bg-transparent text-xs ${className}`}
+            className={`${fullWidth ? 'w-full' : ''} border-0 p-0 m-0 outline-none bg-transparent text-[9pt] leading-tight placeholder-gray-300 focus:ring-0 ${className}`}
         />
     )
 }
 
 /**
- * Componente de textarea padronizado
+ * Textarea padronizado
  */
-interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-    fullWidth?: boolean
-}
-
-export function FormTextarea({ fullWidth = true, className = '', ...props }: FormTextareaProps) {
+export function FormTextarea({ fullWidth = true, className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { fullWidth?: boolean }) {
     return (
         <textarea
             {...props}
-            className={`${fullWidth ? 'w-full' : ''} border-0 outline-none bg-transparent text-xs resize-none ${className}`}
+            className={`${fullWidth ? 'w-full' : ''} border-0 p-0 m-0 outline-none bg-transparent text-[9pt] leading-tight resize-none focus:ring-0 ${className}`}
         />
     )
 }
 
 /**
- * Componente de select padronizado
+ * Select padronizado
  */
-interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-    fullWidth?: boolean
-}
-
-export function FormSelect({ fullWidth = true, className = '', children, ...props }: FormSelectProps) {
+export function FormSelect({ fullWidth = true, className = '', children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { fullWidth?: boolean }) {
     return (
         <select
             {...props}
-            className={`${fullWidth ? 'w-full' : ''} border-0 outline-none bg-transparent text-xs ${className}`}
+            className={`${fullWidth ? 'w-full' : ''} border-0 p-0 m-0 outline-none bg-transparent text-[9pt] appearance-none focus:ring-0 ${className}`}
         >
             {children}
         </select>
@@ -220,24 +218,20 @@ export function FormSelect({ fullWidth = true, className = '', children, ...prop
 }
 
 /**
- * Componente de seção de assinatura
+ * Seção de Assinatura
  */
-interface SignatureSectionProps {
-    label: string
-    date?: boolean
-    className?: string
-}
-
-export function SignatureSection({ label, date = false, className = '' }: SignatureSectionProps) {
+export function SignatureSection({ label, date = false, className = '' }: { label: string, date?: boolean, className?: string }) {
     return (
-        <div className={`mt-6 ${className}`}>
+        <div className={`mt-4 ${className}`}>
             {date && (
-                <div className="text-xs mb-4">
-                    Fortaleza-CE, _____ de _________________ de 20_____
+                <div className="flex justify-end mb-4 text-[9pt]">
+                    <div>
+                        DATA: _____ / _____ / ________
+                    </div>
                 </div>
             )}
-            <div className="border-t-2 border-black pt-8">
-                <div className="text-center font-bold text-xs">
+            <div className="border-t border-black pt-1 mt-6">
+                <div className="text-center font-bold text-[8px] uppercase">
                     {label}
                 </div>
             </div>

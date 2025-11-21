@@ -8,8 +8,7 @@ import { getDraft } from '@/lib/form-drafts'
 import {
   OfficialFormTemplate,
   FormTable,
-  FormHeaderCell,
-  FormDataCell,
+  FormField,
   FormInput,
   FormTextarea,
   SignatureSection
@@ -60,170 +59,102 @@ export default function MonthlyReportPage() {
             campus="Maracanaú"
             sector="Coordenação de Estágios"
           >
-            {/* Identificação */}
-            <div className="mb-4">
-              <h2 className="text-sm font-bold mb-3">1. Identificação</h2>
-            </div>
-
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Estagiário(a)</FormHeaderCell>
+                  <FormField label="NOME DO ESTAGIÁRIO(A)" colSpan={2}>
+                    <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormDataCell colSpan={2}>
-                    <FormInput
-                      type="text"
-                      name="student_name"
-                      value={formData.student_name}
-                      onChange={handleChange}
-                      placeholder="Nome completo"
-                    />
-                  </FormDataCell>
-                </tr>
-                <tr>
-                  <FormHeaderCell>Supervisor</FormHeaderCell>
-                  <FormHeaderCell>Orientador</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormInput
-                      type="text"
-                      name="supervisor_name"
-                      value={formData.supervisor_name}
-                      onChange={handleChange}
-                      placeholder="Nome do supervisor"
-                    />
-                  </FormDataCell>
-                  <FormDataCell>
-                    <FormInput
-                      type="text"
-                      name="advisor_name"
-                      value={formData.advisor_name}
-                      onChange={handleChange}
-                      placeholder="Nome do orientador"
-                    />
-                  </FormDataCell>
+                  <FormField label="SUPERVISOR (EMPRESA)">
+                    <FormInput type="text" name="supervisor_name" value={formData.supervisor_name} onChange={handleChange} />
+                  </FormField>
+                  <FormField label="ORIENTADOR (IFCE)">
+                    <FormInput type="text" name="advisor_name" value={formData.advisor_name} onChange={handleChange} />
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            {/* Período e Carga Horária */}
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">2. Período e Carga Horária</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                2. PERÍODO E CARGA HORÁRIA
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell>Período</FormHeaderCell>
-                  <FormHeaderCell>Carga Horária</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
+                  <FormField label="PERÍODO DE REFERÊNCIA">
                     <div className="flex gap-2 items-center">
-                      <FormInput
-                        type="date"
-                        name="period_start"
-                        value={formData.period_start}
-                        onChange={handleChange}
-                      />
-                      <span className="text-xs">até</span>
-                      <FormInput
-                        type="date"
-                        name="period_end"
-                        value={formData.period_end}
-                        onChange={handleChange}
-                      />
+                      <FormInput type="date" name="period_start" value={formData.period_start} onChange={handleChange} className="w-32" />
+                      <span className="text-[8px]">ATÉ</span>
+                      <FormInput type="date" name="period_end" value={formData.period_end} onChange={handleChange} className="w-32" />
                     </div>
-                  </FormDataCell>
-                  <FormDataCell>
-                    <div className="grid grid-cols-2 gap-2">
-                      <FormInput
-                        type="number"
-                        name="hours_month"
-                        value={formData.hours_month}
-                        onChange={handleChange}
-                        placeholder="No mês"
-                      />
-                      <FormInput
-                        type="number"
-                        name="hours_total"
-                        value={formData.hours_total}
-                        onChange={handleChange}
-                        placeholder="Acumulado"
-                      />
+                  </FormField>
+                  <FormField label="CARGA HORÁRIA (HORAS)">
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[8px]">NO MÊS:</span>
+                        <FormInput type="number" name="hours_month" value={formData.hours_month} onChange={handleChange} className="w-16 border-b border-black" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[8px]">ACUMULADA:</span>
+                        <FormInput type="number" name="hours_total" value={formData.hours_total} onChange={handleChange} className="w-16 border-b border-black" />
+                      </div>
                     </div>
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            {/* Atividades */}
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">3. Atividades</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                3. ATIVIDADES DESENVOLVIDAS
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell>Principais atividades desenvolvidas</FormHeaderCell>
+                  <FormField label="PRINCIPAIS ATIVIDADES DESENVOLVIDAS">
+                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={6} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormDataCell>
-                    <FormTextarea
-                      name="activities"
-                      value={formData.activities}
-                      onChange={handleChange}
-                      rows={5}
-                    />
-                  </FormDataCell>
+                  <FormField label="DIFICULDADES ENCONTRADAS">
+                    <FormTextarea name="difficulties" value={formData.difficulties} onChange={handleChange} rows={4} />
+                  </FormField>
+                </tr>
+                <tr>
+                  <FormField label="SOLUÇÕES ADOTADAS">
+                    <FormTextarea name="solutions" value={formData.solutions} onChange={handleChange} rows={4} />
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormHeaderCell>Dificuldades encontradas</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormTextarea
-                      name="difficulties"
-                      value={formData.difficulties}
-                      onChange={handleChange}
-                      rows={4}
-                    />
-                  </FormDataCell>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormHeaderCell>Soluções adotadas</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormTextarea
-                      name="solutions"
-                      value={formData.solutions}
-                      onChange={handleChange}
-                      rows={4}
-                    />
-                  </FormDataCell>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            {/* Assinaturas */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <SignatureSection label="Estagiário(a)" />
-              <SignatureSection label="Supervisor" />
-              <SignatureSection label="Orientador" />
+            <div className="mt-6 border border-black">
+              <div className="grid grid-cols-3 divide-x divide-black">
+                <div className="p-4 pb-2">
+                  <SignatureSection label="ESTAGIÁRIO(A)" className="mt-8" />
+                </div>
+                <div className="p-4 pb-2">
+                  <SignatureSection label="SUPERVISOR" className="mt-8" />
+                </div>
+                <div className="p-4 pb-2">
+                  <SignatureSection label="ORIENTADOR" className="mt-8" />
+                </div>
+              </div>
             </div>
+
+            <div className="flex justify-center mt-2">
+              <div className="text-[9px]">
+                DATA: _____ / _____ / ________
+              </div>
+            </div>
+
           </OfficialFormTemplate>
         </div>
 

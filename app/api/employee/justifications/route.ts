@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
       justifications: justifications.map((j: any) => ({
         id: j.id,
         type: j.type,
-        date: j.date.toLocaleDateString('pt-BR'),
+        date: j.date.toISOString(),
         reason: j.reason,
         status: j.status,
         adminResponse: j.adminResponse,
-        reviewedAt: j.reviewedAt?.toLocaleDateString('pt-BR'),
+        reviewedAt: j.reviewedAt?.toISOString(),
         reviewedBy: j.reviewer?.name,
-        createdAt: j.createdAt.toLocaleDateString('pt-BR')
+        createdAt: j.createdAt.toISOString()
       }))
     })
   } catch (error) {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -118,12 +118,12 @@ export async function POST(request: NextRequest) {
       justification: {
         id: justification.id,
         type: justification.type,
-        date: justification.date.toLocaleDateString('pt-BR'),
+        date: justification.date.toISOString(),
         reason: justification.reason,
         status: justification.status,
         isFirstJustification: pendingCount === 0
       },
-      message: pendingCount === 0 
+      message: pendingCount === 0
         ? 'Primeira justificativa criada. Aguardando revisão do administrador.'
         : 'Justificativa criada. Como você já possui outras justificativas, esta também aguardará aprovação do administrador.'
     })

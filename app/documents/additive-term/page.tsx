@@ -8,8 +8,7 @@ import { getDraft } from '@/lib/form-drafts'
 import {
   OfficialFormTemplate,
   FormTable,
-  FormHeaderCell,
-  FormDataCell,
+  FormField,
   FormInput,
   FormTextarea,
   SignatureSection
@@ -60,143 +59,139 @@ export default function AdditiveTermPage() {
             campus="Maracanaú"
             sector="Coordenação de Estágios"
           >
-            <div className="mb-4">
-              <h2 className="text-sm font-bold mb-3">1. Partes</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                1. PARTES
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Instituição Concedente (Empresa)</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="INSTITUIÇÃO CONCEDENTE (EMPRESA)" colSpan={2}>
                     <FormInput type="text" name="company_name" value={formData.company_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Nome do Estagiário</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="NOME DO ESTAGIÁRIO" colSpan={2}>
                     <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Termo de Compromisso Original (Data)</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="DATA DO TERMO DE COMPROMISSO ORIGINAL" colSpan={2}>
                     <FormInput type="date" name="original_term_date" value={formData.original_term_date} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">2. Das Alterações</h2>
-              <p className="text-xs italic text-neutral-600 mb-4">Selecione e preencha apenas o que será alterado:</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="border border-neutral-300 p-4 rounded-lg bg-white">
-                <label className="flex items-start gap-3">
-                  <input type="checkbox" name="change_extension" className="mt-1" />
-                  <div className="flex-1">
-                    <span className="font-bold text-neutral-800 block mb-2 text-xs">Prorrogação de Vigência</span>
-                    <FormTable>
-                      <tbody>
-                        <tr>
-                          <FormHeaderCell>Nova data de término</FormHeaderCell>
-                        </tr>
-                        <tr>
-                          <FormDataCell>
-                            <FormInput type="date" name="new_end_date" value={formData.new_end_date} onChange={handleChange} />
-                          </FormDataCell>
-                        </tr>
-                      </tbody>
-                    </FormTable>
-                  </div>
-                </label>
-              </div>
-
-              <div className="border border-neutral-300 p-4 rounded-lg bg-white">
-                <label className="flex items-start gap-3">
-                  <input type="checkbox" name="change_scholarship" className="mt-1" />
-                  <div className="flex-1">
-                    <span className="font-bold text-neutral-800 block mb-2 text-xs">Alteração de Bolsa</span>
-                    <FormTable>
-                      <tbody>
-                        <tr>
-                          <FormHeaderCell>Novo valor (R$)</FormHeaderCell>
-                        </tr>
-                        <tr>
-                          <FormDataCell>
-                            <FormInput type="text" name="new_scholarship_value" value={formData.new_scholarship_value} onChange={handleChange} placeholder="0,00" />
-                          </FormDataCell>
-                        </tr>
-                      </tbody>
-                    </FormTable>
-                  </div>
-                </label>
-              </div>
-
-              <div className="border border-neutral-300 p-4 rounded-lg bg-white">
-                <label className="flex items-start gap-3">
-                  <input type="checkbox" name="change_supervisor" className="mt-1" />
-                  <div className="flex-1">
-                    <span className="font-bold text-neutral-800 block mb-2 text-xs">Novo Supervisor</span>
-                    <FormTable>
-                      <tbody>
-                        <tr>
-                          <FormHeaderCell colSpan={2}>Nome</FormHeaderCell>
-                        </tr>
-                        <tr>
-                          <FormDataCell colSpan={2}>
-                            <FormInput type="text" name="new_supervisor_name" value={formData.new_supervisor_name} onChange={handleChange} />
-                          </FormDataCell>
-                        </tr>
-                        <tr>
-                          <FormHeaderCell>Cargo/Formação</FormHeaderCell>
-                          <FormHeaderCell>CPF</FormHeaderCell>
-                        </tr>
-                        <tr>
-                          <FormDataCell>
-                            <FormInput type="text" name="new_supervisor_role" value={formData.new_supervisor_role} onChange={handleChange} />
-                          </FormDataCell>
-                          <FormDataCell>
-                            <FormInput type="text" name="new_supervisor_cpf" value={formData.new_supervisor_cpf} onChange={handleChange} />
-                          </FormDataCell>
-                        </tr>
-                        <tr>
-                          <FormHeaderCell colSpan={2}>E-mail</FormHeaderCell>
-                        </tr>
-                        <tr>
-                          <FormDataCell colSpan={2}>
-                            <FormInput type="email" name="new_supervisor_email" value={formData.new_supervisor_email} onChange={handleChange} />
-                          </FormDataCell>
-                        </tr>
-                      </tbody>
-                    </FormTable>
-                  </div>
-                </label>
-              </div>
-
-              <div className="border border-neutral-300 p-4 rounded-lg bg-white">
-                <label className="flex items-start gap-3">
-                  <input type="checkbox" name="change_activities" className="mt-1" />
-                  <div className="flex-1">
-                    <span className="font-bold text-neutral-800 block mb-2 text-xs">Alteração no Plano de Atividades</span>
-                    <FormTextarea name="new_activities" value={formData.new_activities} onChange={handleChange} rows={4} placeholder="Descreva as novas atividades..." />
-                  </div>
-                </label>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                2. ALTERAÇÕES (PREENCHER APENAS O QUE MUDA)
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <SignatureSection label="Representante IFCE" />
-              <SignatureSection label="Concedente" />
-              <SignatureSection label="Estagiário" />
+            <div className="space-y-2">
+              {/* Prorrogação */}
+              <div className="border border-black p-2">
+                <label className="flex items-center gap-2 text-[9px] font-bold uppercase mb-2">
+                  <input type="checkbox" name="change_extension" className="h-3 w-3" />
+                  PRORROGAÇÃO DE VIGÊNCIA
+                </label>
+                <FormTable className="mb-0">
+                  <tbody>
+                    <tr>
+                      <FormField label="NOVA DATA DE TÉRMINO">
+                        <FormInput type="date" name="new_end_date" value={formData.new_end_date} onChange={handleChange} />
+                      </FormField>
+                    </tr>
+                  </tbody>
+                </FormTable>
+              </div>
+
+              {/* Bolsa */}
+              <div className="border border-black p-2">
+                <label className="flex items-center gap-2 text-[9px] font-bold uppercase mb-2">
+                  <input type="checkbox" name="change_scholarship" className="h-3 w-3" />
+                  ALTERAÇÃO DE BOLSA
+                </label>
+                <FormTable className="mb-0">
+                  <tbody>
+                    <tr>
+                      <FormField label="NOVO VALOR (R$)">
+                        <FormInput type="text" name="new_scholarship_value" value={formData.new_scholarship_value} onChange={handleChange} placeholder="0,00" />
+                      </FormField>
+                    </tr>
+                  </tbody>
+                </FormTable>
+              </div>
+
+              {/* Supervisor */}
+              <div className="border border-black p-2">
+                <label className="flex items-center gap-2 text-[9px] font-bold uppercase mb-2">
+                  <input type="checkbox" name="change_supervisor" className="h-3 w-3" />
+                  NOVO SUPERVISOR
+                </label>
+                <FormTable className="mb-0">
+                  <tbody>
+                    <tr>
+                      <FormField label="NOME COMPLETO" colSpan={2}>
+                        <FormInput type="text" name="new_supervisor_name" value={formData.new_supervisor_name} onChange={handleChange} />
+                      </FormField>
+                    </tr>
+                    <tr>
+                      <FormField label="CARGO/FORMAÇÃO">
+                        <FormInput type="text" name="new_supervisor_role" value={formData.new_supervisor_role} onChange={handleChange} />
+                      </FormField>
+                      <FormField label="CPF">
+                        <FormInput type="text" name="new_supervisor_cpf" value={formData.new_supervisor_cpf} onChange={handleChange} />
+                      </FormField>
+                    </tr>
+                    <tr>
+                      <FormField label="E-MAIL" colSpan={2}>
+                        <FormInput type="email" name="new_supervisor_email" value={formData.new_supervisor_email} onChange={handleChange} />
+                      </FormField>
+                    </tr>
+                  </tbody>
+                </FormTable>
+              </div>
+
+              {/* Atividades */}
+              <div className="border border-black p-2">
+                <label className="flex items-center gap-2 text-[9px] font-bold uppercase mb-2">
+                  <input type="checkbox" name="change_activities" className="h-3 w-3" />
+                  ALTERAÇÃO NO PLANO DE ATIVIDADES
+                </label>
+                <FormTable className="mb-0">
+                  <tbody>
+                    <tr>
+                      <FormField label="NOVAS ATIVIDADES">
+                        <FormTextarea name="new_activities" value={formData.new_activities} onChange={handleChange} rows={4} />
+                      </FormField>
+                    </tr>
+                  </tbody>
+                </FormTable>
+              </div>
+            </div>
+
+            <div className="mt-6 border border-black">
+              <div className="grid grid-cols-3 divide-x divide-black">
+                <div className="p-4 pb-2">
+                  <SignatureSection label="REPRESENTANTE IFCE" className="mt-8" />
+                </div>
+                <div className="p-4 pb-2">
+                  <SignatureSection label="CONCEDENTE" className="mt-8" />
+                </div>
+                <div className="p-4 pb-2">
+                  <SignatureSection label="ESTAGIÁRIO" className="mt-8" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center mt-2">
+              <div className="text-[9px]">
+                DATA: _____ / _____ / ________
+              </div>
             </div>
           </OfficialFormTemplate>
         </div>

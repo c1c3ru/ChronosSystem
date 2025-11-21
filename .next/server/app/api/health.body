@@ -1,0 +1,1 @@
+{"status":"healthy","timestamp":"2025-11-21T09:14:53.019Z","version":"2.0.0","environment":"production","database":{"status":"connected","users":0,"machines":0},"redis":{"status":"disconnected","message":"Redis client not initialized"},"uptime":7.022157083,"memory":{"used":24,"total":36}}

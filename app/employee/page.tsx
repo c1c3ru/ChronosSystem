@@ -39,6 +39,7 @@ import { Loading } from '@/components/ui/Loading'
 import { handleCompleteLogout } from '@/lib/logout'
 import QRScanner from '@/components/QRScanner'
 import InternshipTimeline from '@/components/InternshipTimeline'
+import { HolidayNotification } from '@/components/HolidayNotification'
 
 interface WorkStatus {
   isWorking: boolean
@@ -478,6 +479,9 @@ export default function EmployeePage() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         <div className="space-y-4 sm:space-y-6 lg:space-y-8">
 
+
+
+
           {/* Notificação de Último Registro */}
           {lastRegistration && (
             <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4 animate-in slide-in-from-top-2 duration-300">
@@ -490,6 +494,9 @@ export default function EmployeePage() {
               </div>
             </div>
           )}
+
+          {/* Notificação de Feriados Próximos */}
+          <HolidayNotification />
 
           {/* Status Card */}
           <Card variant="glass" className="overflow-hidden">
@@ -905,12 +912,12 @@ export default function EmployeePage() {
                                 <p className="text-neutral-400 text-xs">Total: {record.hours}</p>
                               </div>
                               <span className={`text-xs px-3 py-1 rounded-full font-medium ${record.status === 'Completo'
-                                  ? 'bg-success/20 text-success border border-success/30'
-                                  : record.status === 'Incompleto'
-                                    ? 'bg-warning/20 text-warning border border-warning/30'
-                                    : record.status === 'Ausente'
-                                      ? 'bg-error/20 text-error border border-error/30'
-                                      : 'bg-info/20 text-info border border-info/30'
+                                ? 'bg-success/20 text-success border border-success/30'
+                                : record.status === 'Incompleto'
+                                  ? 'bg-warning/20 text-warning border border-warning/30'
+                                  : record.status === 'Ausente'
+                                    ? 'bg-error/20 text-error border border-error/30'
+                                    : 'bg-info/20 text-info border border-info/30'
                                 }`}>
                                 {record.status}
                               </span>

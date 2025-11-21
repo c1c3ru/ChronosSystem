@@ -254,6 +254,30 @@ export async function POST(request: NextRequest) {
     const workingHours = await getUserWorkingHours(session.user.id)
     const currentTime = new Date()
 
+    // Verificar se há autorização especial para hoje (trabalho em feriado/fim de semana)
+    const todayStart = new Date(currentTime)
+    todayStart.setHours(0, 0, 0, 0)
+    const todayEnd = new Date(currentTime)
+    todayEnd.setHours(23, 59, 59, 999)
+
+    const specialAuthorization = await prisma.justification.findFirst({
+      where: {
+        userId: session.user.id,
+        date: {
+          gte: todayStart,
+          lte: todayEnd
+        },
+        type: 'EXTRA_WORK',
+        status: 'APPROVED'
+      }
+    })
+
+    const hasAuthorization = !!specialAuthorization
+
+    if (hasAuthorization) {
+      apiLogger.info('Special authorization found for user', { userId: session.user.id, date: currentTime.toISOString() })
+    }
+
     // Usar lógica inteligente para determinar tipo de registro
     const attendanceAnalysis = determineRecordType({
       userId: session.user.id,
@@ -263,7 +287,8 @@ export async function POST(request: NextRequest) {
         timestamp: lastRecord.timestamp
       } : null,
       workingHours,
-      isWeekend: isWeekend(currentTime)
+      isWeekend: isWeekend(currentTime),
+      hasAuthorization
     })
 
     const recordType = attendanceAnalysis.type
@@ -277,7 +302,8 @@ export async function POST(request: NextRequest) {
         timestamp: lastRecord.timestamp
       } : null,
       workingHours,
-      isWeekend: isWeekend(currentTime)
+      isWeekend: isWeekend(currentTime),
+      hasAuthorization
     }, recordType)
 
     apiLogger.debug('Intelligent analysis', {

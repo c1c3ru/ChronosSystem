@@ -4,12 +4,11 @@ import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { FormExportButtons } from '@/components/FormExportButtons'
-import { getDraft, populateFormWithData } from '@/lib/form-drafts'
+import { getDraft } from '@/lib/form-drafts'
 import {
   OfficialFormTemplate,
   FormTable,
-  FormHeaderCell,
-  FormDataCell,
+  FormField,
   FormInput,
   FormTextarea,
   SignatureSection
@@ -26,26 +25,17 @@ export default function FinalReportPage() {
     period_end: '',
     activities_description: '',
     theory_practice_comparison: '',
-    // Autoavaliação
-    aa1: '',
-    aa2: '',
-    aa3: '',
-    aa4: '',
-    // Avaliação supervisão
-    as1: '',
-    as2: '',
-    as3: ''
+    aa1: '', aa2: '', aa3: '', aa4: '',
+    as1: '', as2: '', as3: ''
   })
 
   useEffect(() => {
-    // Carrega rascunho salvo
     const loadDraft = async () => {
       const draft = await getDraft('final-report')
       if (draft) {
         setFormData(draft as typeof formData)
       }
     }
-
     loadDraft()
   }, [])
 
@@ -69,211 +59,136 @@ export default function FinalReportPage() {
             campus="Maracanaú"
             sector="Coordenação de Estágios"
           >
-            {/* Seção 1: Identificação */}
-            <div className="mb-4">
-              <h2 className="text-sm font-bold mb-3">1. Identificação</h2>
-            </div>
-
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Estagiário(a)</FormHeaderCell>
+                  <FormField label="NOME DO ESTAGIÁRIO(A)" colSpan={2}>
+                    <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
+                  </FormField>
+                  <FormField label="MATRÍCULA">
+                    <FormInput type="text" name="student_id" value={formData.student_id} onChange={handleChange} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormDataCell colSpan={2}>
-                    <FormInput
-                      type="text"
-                      name="student_name"
-                      value={formData.student_name}
-                      onChange={handleChange}
-                    />
-                  </FormDataCell>
+                  <FormField label="EMPRESA CONCEDENTE" colSpan={2}>
+                    <FormInput type="text" name="company" value={formData.company} onChange={handleChange} />
+                  </FormField>
+                  <FormField label="SUPERVISOR(A)">
+                    <FormInput type="text" name="supervisor" value={formData.supervisor} onChange={handleChange} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell>Matrícula</FormHeaderCell>
-                  <FormHeaderCell>Empresa concedente</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormInput
-                      type="text"
-                      name="student_id"
-                      value={formData.student_id}
-                      onChange={handleChange}
-                    />
-                  </FormDataCell>
-                  <FormDataCell>
-                    <FormInput
-                      type="text"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                    />
-                  </FormDataCell>
-                </tr>
-                <tr>
-                  <FormHeaderCell>Supervisor(a)</FormHeaderCell>
-                  <FormHeaderCell>Período</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormInput
-                      type="text"
-                      name="supervisor"
-                      value={formData.supervisor}
-                      onChange={handleChange}
-                    />
-                  </FormDataCell>
-                  <FormDataCell>
+                  <FormField label="PERÍODO DE REALIZAÇÃO" colSpan={3}>
                     <div className="flex gap-2 items-center">
-                      <FormInput
-                        type="date"
-                        name="period_start"
-                        value={formData.period_start}
-                        onChange={handleChange}
-                      />
-                      <span className="text-xs">até</span>
-                      <FormInput
-                        type="date"
-                        name="period_end"
-                        value={formData.period_end}
-                        onChange={handleChange}
-                      />
+                      <FormInput type="date" name="period_start" value={formData.period_start} onChange={handleChange} className="w-32" />
+                      <span className="text-[8px]">ATÉ</span>
+                      <FormInput type="date" name="period_end" value={formData.period_end} onChange={handleChange} className="w-32" />
                     </div>
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            {/* Seção 2: Atividades */}
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">2. Atividades Realizadas</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                2. ATIVIDADES REALIZADAS
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell>
-                    Descrição das atividades realizadas
-                  </FormHeaderCell>
+                  <FormField label="DESCRIÇÃO DAS ATIVIDADES REALIZADAS">
+                    <FormTextarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={8} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormDataCell>
-                    <FormTextarea
-                      name="activities_description"
-                      value={formData.activities_description}
-                      onChange={handleChange}
-                      rows={6}
-                    />
-                  </FormDataCell>
+                  <FormField label="COMPARAÇÃO TEORIA X PRÁTICA">
+                    <FormTextarea name="theory_practice_comparison" value={formData.theory_practice_comparison} onChange={handleChange} rows={6} />
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormHeaderCell>
-                    Comparação teoria x prática
-                  </FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
-                    <FormTextarea
-                      name="theory_practice_comparison"
-                      value={formData.theory_practice_comparison}
-                      onChange={handleChange}
-                      rows={5}
-                    />
-                  </FormDataCell>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            {/* Seção 3: Avaliações */}
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">3. Avaliações</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                3. AVALIAÇÕES
+              </div>
             </div>
 
-            {/* Autoavaliação */}
-            <div className="mb-4">
-              <h3 className="text-xs font-bold mb-2">Autoavaliação do discente</h3>
-            </div>
-
+            <div className="text-[8px] font-bold uppercase mb-1 mt-2">AUTOAVALIAÇÃO DO DISCENTE</div>
             <FormTable>
               <thead>
-                <tr className="bg-neutral-100 text-xs">
-                  <FormHeaderCell className="text-left">Critério</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Ótimo</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Bom</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Regular</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Insuf.</FormHeaderCell>
+                <tr className="bg-gray-100">
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] w-1/2">CRITÉRIO</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">ÓTIMO</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">BOM</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">REGULAR</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">INSUF.</td>
                 </tr>
               </thead>
               <tbody>
                 {['Assiduidade', 'Comunicação', 'Proatividade', 'Responsabilidade'].map((label, index) => (
                   <tr key={label}>
-                    <FormDataCell className="text-left font-medium">{label}</FormDataCell>
+                    <td className="border border-black px-1 py-0.5 text-[9px] font-medium">{label}</td>
                     {['otimo', 'bom', 'regular', 'insuficiente'].map((option) => (
-                      <FormDataCell key={`${label}-${option}`} className="text-center">
+                      <td key={`${label}-${option}`} className="border border-black px-1 py-0.5 text-center align-middle">
                         <input
                           type="radio"
                           name={`aa${index + 1}`}
                           value={option}
                           checked={formData[`aa${index + 1}` as keyof typeof formData] === option}
                           onChange={handleChange}
+                          className="h-3 w-3"
                         />
-                      </FormDataCell>
+                      </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </FormTable>
 
-            {/* Avaliação da Supervisão */}
-            <div className="mb-4 mt-4">
-              <h3 className="text-xs font-bold mb-2">Avaliação da supervisão (percepção do aluno)</h3>
-            </div>
-
+            <div className="text-[8px] font-bold uppercase mb-1 mt-2">AVALIAÇÃO DA SUPERVISÃO (PERCEPÇÃO DO ALUNO)</div>
             <FormTable>
               <thead>
-                <tr className="bg-neutral-100 text-xs">
-                  <FormHeaderCell className="text-left">Critério</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Ótimo</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Bom</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Regular</FormHeaderCell>
-                  <FormHeaderCell className="text-center">Insuf.</FormHeaderCell>
+                <tr className="bg-gray-100">
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] w-1/2">CRITÉRIO</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">ÓTIMO</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">BOM</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">REGULAR</td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[8px] text-center">INSUF.</td>
                 </tr>
               </thead>
               <tbody>
                 {['Acompanhamento/Supervisão', 'Comunicação com estagiário', 'Infraestrutura'].map((label, index) => (
                   <tr key={label}>
-                    <FormDataCell className="text-left font-medium">{label}</FormDataCell>
+                    <td className="border border-black px-1 py-0.5 text-[9px] font-medium">{label}</td>
                     {['otimo', 'bom', 'regular', 'insuficiente'].map((option) => (
-                      <FormDataCell key={`${label}-${option}`} className="text-center">
+                      <td key={`${label}-${option}`} className="border border-black px-1 py-0.5 text-center align-middle">
                         <input
                           type="radio"
                           name={`as${index + 1}`}
                           value={option}
                           checked={formData[`as${index + 1}` as keyof typeof formData] === option}
                           onChange={handleChange}
+                          className="h-3 w-3"
                         />
-                      </FormDataCell>
+                      </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </FormTable>
 
-            {/* Assinatura */}
-            <SignatureSection
-              label="Assinatura do Discente"
-              date={true}
-            />
+            <div className="mt-8 border border-black p-4">
+              <SignatureSection
+                label="ASSINATURA DO DISCENTE"
+                date={true}
+              />
+            </div>
           </OfficialFormTemplate>
         </div>
 
-        {/* Botões de Exportação */}
         <div className="no-print">
           <FormExportButtons formType="final-report" formRef={formRef} />
         </div>

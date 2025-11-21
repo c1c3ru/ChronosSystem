@@ -8,8 +8,7 @@ import { getDraft } from '@/lib/form-drafts'
 import {
   OfficialFormTemplate,
   FormTable,
-  FormHeaderCell,
-  FormDataCell,
+  FormField,
   FormInput,
   FormTextarea,
   SignatureSection
@@ -60,108 +59,84 @@ export default function ProfessionalDeclarationPage() {
             campus="Maracanaú"
             sector="Coordenação de Estágios"
           >
-            <div className="mb-4 text-xs text-neutral-700">
+            <div className="mb-4 text-[9pt] text-justify px-1">
               <p>
                 Para fins de <strong>aproveitamento</strong> de atividades profissionais como estágio supervisionado obrigatório,
                 a instituição abaixo declara os seguintes fatos:
               </p>
             </div>
 
-            <div className="mb-4">
-              <h2 className="text-sm font-bold mb-3">1. Dados da Instituição/Empresa</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                1. DADOS DA INSTITUIÇÃO/EMPRESA
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Razão Social</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="RAZÃO SOCIAL" colSpan={2}>
                     <FormInput type="text" name="company_name" value={formData.company_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell>CNPJ</FormHeaderCell>
-                  <FormHeaderCell>Telefone</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
+                  <FormField label="CNPJ">
                     <FormInput type="text" name="company_cnpj" value={formData.company_cnpj} onChange={handleChange} />
-                  </FormDataCell>
-                  <FormDataCell>
+                  </FormField>
+                  <FormField label="TELEFONE">
                     <FormInput type="text" name="company_phone" value={formData.company_phone} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Endereço Completo</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="ENDEREÇO COMPLETO" colSpan={2}>
                     <FormInput type="text" name="company_address" value={formData.company_address} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Responsável pela assinatura</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="RESPONSÁVEL PELA ASSINATURA" colSpan={2}>
                     <FormInput type="text" name="company_representative" value={formData.company_representative} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">2. Dados do Empregado (Aluno)</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                2. DADOS DO EMPREGADO (ALUNO)
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Nome completo</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="NOME COMPLETO" colSpan={2}>
                     <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell>CPF</FormHeaderCell>
-                  <FormHeaderCell>Início do vínculo</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
+                  <FormField label="CPF">
                     <FormInput type="text" name="student_cpf" value={formData.student_cpf} onChange={handleChange} />
-                  </FormDataCell>
-                  <FormDataCell>
+                  </FormField>
+                  <FormField label="INÍCIO DO VÍNCULO">
                     <FormInput type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Área ou setor de trabalho</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="ÁREA OU SETOR DE TRABALHO" colSpan={2}>
                     <FormInput type="text" name="work_area" value={formData.work_area} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Descrição das atividades</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
-                    <FormTextarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={4} />
-                  </FormDataCell>
+                  <FormField label="DESCRIÇÃO DAS ATIVIDADES" colSpan={2}>
+                    <FormTextarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={6} />
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mt-6 text-center text-xs">
-              <p>Local e Data: ______________________, _____ de _______________ de _______.</p>
+            <div className="mt-8 border border-black p-4">
+              <SignatureSection label="ASSINATURA E CARIMBO DO RESPONSÁVEL PELA EMPRESA" date={true} />
             </div>
-
-            <SignatureSection label="Assinatura e carimbo do responsável pela empresa" />
           </OfficialFormTemplate>
         </div>
 

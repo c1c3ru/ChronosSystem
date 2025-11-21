@@ -8,8 +8,7 @@ import { getDraft } from '@/lib/form-drafts'
 import {
   OfficialFormTemplate,
   FormTable,
-  FormHeaderCell,
-  FormDataCell,
+  FormField,
   FormInput,
   FormTextarea,
   SignatureSection
@@ -61,104 +60,80 @@ export default function ExtensionDeclarationPage() {
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Nome do Declarante (Orientador/Coordenador)</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="NOME DO DECLARANTE (ORIENTADOR/COORDENADOR)" colSpan={2}>
                     <FormInput type="text" name="declarant_name" value={formData.declarant_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="py-4 text-xs text-justify text-neutral-700">
+            <div className="py-2 text-[9pt] text-justify px-1">
               <p>Declaro, para fins de equiparação a estágio supervisionado, que o(a) discente abaixo participou das atividades descritas:</p>
             </div>
 
-            <div className="mb-4">
-              <h2 className="text-sm font-bold mb-3">1. Dados do Discente</h2>
+            <div className="mt-2 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                1. DADOS DO DISCENTE
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Discente</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="NOME DO DISCENTE" colSpan={2}>
                     <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell>Matrícula</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
+                  <FormField label="MATRÍCULA">
                     <FormInput type="text" name="student_id" value={formData.student_id} onChange={handleChange} />
-                  </FormDataCell>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">2. Modalidade</h2>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormDataCell>
-                    <div className="space-y-2">
+                  </FormField>
+                  <FormField label="MODALIDADE">
+                    <div className="flex gap-4 pt-1">
                       {['Extensão', 'Iniciação Científica', 'Monitoria'].map((type) => (
-                        <label key={type} className="flex items-center gap-2 text-xs">
-                          <input type="radio" name="modality" value={type.toLowerCase()} checked={formData.modality === type.toLowerCase()} onChange={handleChange} />
+                        <label key={type} className="flex items-center gap-1 text-[8px] uppercase">
+                          <input type="radio" name="modality" value={type.toLowerCase()} checked={formData.modality === type.toLowerCase()} onChange={handleChange} className="h-3 w-3" />
                           {type}
                         </label>
                       ))}
                     </div>
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <div className="mb-4 mt-6">
-              <h2 className="text-sm font-bold mb-3">3. Detalhes do Projeto</h2>
+            <div className="mt-4 mb-1">
+              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
+                2. DETALHES DO PROJETO
+              </div>
             </div>
 
             <FormTable>
               <tbody>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Título do Projeto/Programa</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell colSpan={2}>
+                  <FormField label="TÍTULO DO PROJETO/PROGRAMA" colSpan={2}>
                     <FormInput type="text" name="project_title" value={formData.project_title} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormHeaderCell colSpan={2}>Atividades Desenvolvidas</FormHeaderCell>
+                  <FormField label="ATIVIDADES DESENVOLVIDAS" colSpan={2}>
+                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={6} />
+                  </FormField>
                 </tr>
                 <tr>
-                  <FormDataCell colSpan={2}>
-                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={4} />
-                  </FormDataCell>
-                </tr>
-                <tr>
-                  <FormHeaderCell>Data Início</FormHeaderCell>
-                  <FormHeaderCell>Carga Horária Semanal</FormHeaderCell>
-                </tr>
-                <tr>
-                  <FormDataCell>
+                  <FormField label="DATA INÍCIO">
                     <FormInput type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
-                  </FormDataCell>
-                  <FormDataCell>
+                  </FormField>
+                  <FormField label="CARGA HORÁRIA SEMANAL">
                     <FormInput type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} />
-                  </FormDataCell>
+                  </FormField>
                 </tr>
               </tbody>
             </FormTable>
 
-            <SignatureSection label="Assinatura do Servidor Responsável" date={true} />
+            <div className="mt-8 border border-black p-4">
+              <SignatureSection label="ASSINATURA DO SERVIDOR RESPONSÁVEL" date={true} />
+            </div>
           </OfficialFormTemplate>
         </div>
 

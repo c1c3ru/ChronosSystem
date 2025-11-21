@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  AlertTriangle, 
-  Clock, 
-  Calendar, 
+import {
+  AlertTriangle,
+  Clock,
+  Calendar,
   ArrowLeft,
   Plus,
   FileText,
@@ -50,7 +50,7 @@ export default function JustificationsPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -67,7 +67,7 @@ export default function JustificationsPage() {
   const loadJustifications = async () => {
     try {
       const response = await fetch('/api/employee/justifications')
-      
+
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
@@ -83,7 +83,7 @@ export default function JustificationsPage() {
     try {
       setLoading(true)
       const response = await fetch('/api/justifications/pending')
-      
+
       if (response.ok) {
         const data = await response.json()
         setPendingIssues(data)
@@ -120,7 +120,7 @@ export default function JustificationsPage() {
         setJustificationText('')
         loadJustifications()
         loadPendingIssues()
-        
+
         // Mostrar mensagem de feedback
         alert(data.message)
       } else {
@@ -157,6 +157,18 @@ export default function JustificationsPage() {
       case 'LATE': return 'Atraso'
       case 'ABSENCE': return 'Falta'
       default: return type
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        return 'Data inválida'
+      }
+      return date.toLocaleDateString('pt-BR')
+    } catch {
+      return 'Data inválida'
     }
   }
 
@@ -206,9 +218,8 @@ export default function JustificationsPage() {
                 {pendingIssues.map((issue) => (
                   <div key={issue.id} className="flex items-center justify-between p-4 bg-warning/10 rounded-lg border border-warning/20">
                     <div className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-full ${
-                        issue.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
-                      }`}>
+                      <div className={`p-2 rounded-full ${issue.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
+                        }`}>
                         {issue.type === 'LATE' ? (
                           <Clock className="h-4 w-4 text-warning" />
                         ) : (
@@ -219,12 +230,12 @@ export default function JustificationsPage() {
                         <h3 className="font-medium text-white">{getTypeText(issue.type)}</h3>
                         <p className="text-sm text-neutral-400">{issue.description}</p>
                         <p className="text-xs text-neutral-500">
-                          {new Date(issue.date).toLocaleDateString('pt-BR')}
+                          {formatDate(issue.date)}
                         </p>
                       </div>
                     </div>
                     {issue.canJustify && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => {
                           setSelectedIssue(issue)
@@ -256,12 +267,12 @@ export default function JustificationsPage() {
                   </label>
                   <input
                     type="text"
-                    value={new Date(selectedIssue.date).toLocaleDateString('pt-BR')}
+                    value={formatDate(selectedIssue.date)}
                     disabled
                     className="input bg-neutral-700"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-2">
                     Descrição
@@ -273,7 +284,7 @@ export default function JustificationsPage() {
                     className="input bg-neutral-700"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-2">
                     Justificativa *
@@ -289,14 +300,14 @@ export default function JustificationsPage() {
                     {justificationText.length}/500 caracteres
                   </p>
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   <Button onClick={submitJustification} disabled={!justificationText.trim()}>
                     <Send className="h-4 w-4 mr-2" />
                     Enviar Justificativa
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       setShowNewForm(false)
                       setSelectedIssue(null)
@@ -323,9 +334,8 @@ export default function JustificationsPage() {
                   <div key={justification.id} className="p-4 border border-neutral-700 rounded-lg">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-full ${
-                          justification.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
-                        }`}>
+                        <div className={`p-2 rounded-full ${justification.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
+                          }`}>
                           {justification.type === 'LATE' ? (
                             <Clock className="h-4 w-4 text-warning" />
                           ) : (
@@ -335,7 +345,7 @@ export default function JustificationsPage() {
                         <div>
                           <h3 className="font-medium text-white">{getTypeText(justification.type)}</h3>
                           <p className="text-sm text-neutral-400">
-                            {new Date(justification.date).toLocaleDateString('pt-BR')}
+                            {formatDate(justification.date)}
                           </p>
                         </div>
                       </div>
@@ -343,21 +353,21 @@ export default function JustificationsPage() {
                         {getStatusText(justification.status)}
                       </span>
                     </div>
-                    
+
                     <div className="mb-3">
                       <p className="text-sm font-medium text-neutral-300 mb-1">Justificativa:</p>
                       <p className="text-sm text-neutral-400">{justification.reason}</p>
                     </div>
-                    
+
                     {justification.adminResponse && (
                       <div className="border-t border-neutral-700 pt-3">
                         <p className="text-sm font-medium text-neutral-300 mb-1">Resposta do Admin:</p>
                         <p className="text-sm text-neutral-400">{justification.adminResponse}</p>
                       </div>
                     )}
-                    
+
                     <p className="text-xs text-neutral-500 mt-2">
-                      Enviado em {new Date(justification.createdAt).toLocaleDateString('pt-BR')}
+                      Enviado em {formatDate(justification.createdAt)}
                     </p>
                   </div>
                 ))}
