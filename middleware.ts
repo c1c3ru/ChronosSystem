@@ -83,17 +83,8 @@ export default withAuth(
         })
       }
 
-      // Se usuário autenticado está na página inicial, redirecionar para dashboard apropriado
-      if (pathname === '/') {
-        logger.debug('Redirecting from home page', { role })
+      // Permitir acesso à página inicial para usuários autenticados (sem redirecionamento)
 
-        // Redirecionamento baseado no role REAL do usuário
-        if (role === 'ADMIN' || role === 'SUPERVISOR') {
-          return NextResponse.redirect(new URL('/admin', req.url))
-        } else if (role === 'EMPLOYEE') {
-          return NextResponse.redirect(new URL('/employee', req.url))
-        }
-      }
 
       // Se o perfil está completo e está na página de completar perfil, redirecionar
       if (profileComplete === true && pathname === '/auth/complete-profile') {
