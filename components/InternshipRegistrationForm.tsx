@@ -2,7 +2,15 @@
 
 import React, { useState } from 'react'
 import { FormPDFExport } from '@/components/FormPDFExport'
-import Image from 'next/image'
+import {
+    OfficialFormTemplate,
+    FormTable,
+    FormHeaderCell,
+    FormDataCell,
+    FormInput,
+    FormTextarea,
+    SignatureSection
+} from '@/components/OfficialFormTemplate'
 
 interface InternshipRegistrationFormProps {
     userId?: string
@@ -47,7 +55,7 @@ export function InternshipRegistrationForm({
 
     return (
         <div className="w-full max-w-[210mm] mx-auto p-4 bg-neutral-50">
-            {/* Botão de Exportar PDF - Não aparece no PDF */}
+            {/* Botão de Exportar PDF */}
             <div className="mb-6 flex justify-end no-print">
                 <FormPDFExport
                     formId="internship-registration-form"
@@ -55,274 +63,172 @@ export function InternshipRegistrationForm({
                 />
             </div>
 
-            {/* Formulário - Formato A4 */}
-            <div
-                id="internship-registration-form"
-                className="bg-white shadow-lg"
-                style={{
-                    width: '210mm',
-                    minHeight: '297mm',
-                    padding: '15mm',
-                    margin: '0 auto',
-                    fontSize: '10pt',
-                    lineHeight: '1.3',
-                    fontFamily: 'Arial, sans-serif'
-                }}
+            {/* Formulário usando Template */}
+            <OfficialFormTemplate
+                formId="internship-registration-form"
+                title="SOLICITAÇÃO DE CADASTRO NO ESTÁGIO"
+                campus="Maracanaú"
+                sector="Setor de Acompanhamento de Estágio"
             >
-                {/* Cabeçalho Oficial */}
-                <div className="border-2 border-black p-3 mb-4">
-                    <div className="flex items-start justify-between gap-4">
-                        {/* Logo IFCE */}
-                        <div className="w-16 h-16 flex-shrink-0 bg-neutral-200 flex items-center justify-center text-xs text-center">
-                            IFCE
-                        </div>
-
-                        {/* Título Central */}
-                        <div className="flex-1 text-center">
-                            <div className="text-xs font-bold mb-1">
-                                PRÓ-REITORIA DE EXTENSÃO
-                            </div>
-                            <div className="text-xs mb-1">
-                                COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
-                            </div>
-                            <div className="text-xs font-bold mb-1">
-                                IFCE Campus Maracanaú
-                            </div>
-                            <div className="text-xs">
-                                Setor de Acompanhamento de Estágio
-                            </div>
-                            <div className="text-sm font-bold mt-2 border-t border-black pt-2">
-                                SOLICITAÇÃO DE CADASTRO NO ESTÁGIO
-                            </div>
-                        </div>
-
-                        {/* Brasão */}
-                        <div className="w-16 h-16 flex-shrink-0 bg-neutral-200 flex items-center justify-center text-xs text-center">
-                            BRASIL
-                        </div>
-                    </div>
-                </div>
-
                 {/* Dados do Aluno */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100" colSpan={2}>
-                                NOME
-                            </td>
+                            <FormHeaderCell colSpan={2}>NOME</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5" colSpan={2}>
-                                <input
+                            <FormDataCell colSpan={2}>
+                                <FormInput
                                     type="text"
                                     name="studentName"
                                     value={formData.studentName}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                     placeholder="Nome completo do aluno"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100 w-1/2">CURSO</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100 w-1/2">MATRÍCULA</td>
+                            <FormHeaderCell>CURSO</FormHeaderCell>
+                            <FormHeaderCell>MATRÍCULA</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <input
+                            <FormDataCell>
+                                <FormInput
                                     type="text"
                                     name="course"
                                     value={formData.course}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5">
-                                <input
+                            </FormDataCell>
+                            <FormDataCell>
+                                <FormInput
                                     type="text"
                                     name="registration"
                                     value={formData.registration}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Endereço e Contato */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100" colSpan={2}>
+                            <FormHeaderCell colSpan={2}>
                                 ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)
-                            </td>
+                            </FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5" colSpan={2}>
-                                <input
+                            <FormDataCell colSpan={2}>
+                                <FormInput
                                     type="text"
                                     name="address"
                                     value={formData.address}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">TELEFONE</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">E-MAIL</td>
+                            <FormHeaderCell>TELEFONE</FormHeaderCell>
+                            <FormHeaderCell>E-MAIL</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <input
+                            <FormDataCell>
+                                <FormInput
                                     type="tel"
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5">
-                                <input
+                            </FormDataCell>
+                            <FormDataCell>
+                                <FormInput
                                     type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Documentos */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100 w-1/3">DATA NASCIMENTO</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100 w-1/3">RG</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100 w-1/3">CPF</td>
+                            <FormHeaderCell>DATA NASCIMENTO</FormHeaderCell>
+                            <FormHeaderCell>RG</FormHeaderCell>
+                            <FormHeaderCell>CPF</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <input
+                            <FormDataCell>
+                                <FormInput
                                     type="date"
                                     name="birthDate"
                                     value={formData.birthDate}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5">
-                                <input
+                            </FormDataCell>
+                            <FormDataCell>
+                                <FormInput
                                     type="text"
                                     name="rg"
                                     value={formData.rg}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5">
-                                <input
+                            </FormDataCell>
+                            <FormDataCell>
+                                <FormInput
                                     type="text"
                                     name="cpf"
                                     value={formData.cpf}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Deficiência */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">
-                                POSSUI ALGUMA DEFICIÊNCIA?
-                            </td>
+                            <FormHeaderCell>POSSUI ALGUMA DEFICIÊNCIA?</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
+                            <FormDataCell>
                                 <div className="flex gap-4 flex-wrap">
-                                    <label className="flex items-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="deficiency"
-                                            value="none"
-                                            checked={formData.deficiency === 'none'}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="text-xs">Não</span>
-                                    </label>
-                                    <label className="flex items-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="deficiency"
-                                            value="fisica"
-                                            checked={formData.deficiency === 'fisica'}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="text-xs">Física</span>
-                                    </label>
-                                    <label className="flex items-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="deficiency"
-                                            value="auditiva"
-                                            checked={formData.deficiency === 'auditiva'}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="text-xs">Auditiva</span>
-                                    </label>
-                                    <label className="flex items-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="deficiency"
-                                            value="visual"
-                                            checked={formData.deficiency === 'visual'}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="text-xs">Visual</span>
-                                    </label>
-                                    <label className="flex items-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="deficiency"
-                                            value="intelectual"
-                                            checked={formData.deficiency === 'intelectual'}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="text-xs">Intelectual</span>
-                                    </label>
-                                    <label className="flex items-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="deficiency"
-                                            value="multipla"
-                                            checked={formData.deficiency === 'multipla'}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="text-xs">Múltipla</span>
-                                    </label>
+                                    {['none', 'fisica', 'auditiva', 'visual', 'intelectual', 'multipla'].map((type) => (
+                                        <label key={type} className="flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="deficiency"
+                                                value={type}
+                                                checked={formData.deficiency === type}
+                                                onChange={handleChange}
+                                            />
+                                            <span className="text-xs capitalize">
+                                                {type === 'none' ? 'Não' : type.charAt(0).toUpperCase() + type.slice(1)}
+                                            </span>
+                                        </label>
+                                    ))}
                                 </div>
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Tipo de Estágio */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">
-                                TIPO DE ESTÁGIO
-                            </td>
+                            <FormHeaderCell>TIPO DE ESTÁGIO</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
+                            <FormDataCell>
                                 <div className="flex gap-4">
                                     <label className="flex items-center gap-1">
                                         <input
@@ -345,176 +251,164 @@ export function InternshipRegistrationForm({
                                         <span className="text-xs">NÃO OBRIGATÓRIO</span>
                                     </label>
                                 </div>
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Dados da Empresa */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100" colSpan={2}>
+                            <FormHeaderCell colSpan={2}>
                                 CONCEDENTE (EMPRESA/INSTITUIÇÃO)
-                            </td>
+                            </FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5" colSpan={2}>
-                                <input
+                            <FormDataCell colSpan={2}>
+                                <FormInput
                                     type="text"
                                     name="companyName"
                                     value={formData.companyName}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                     placeholder="Nome da empresa"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">CNPJ</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">TELEFONE</td>
+                            <FormHeaderCell>CNPJ</FormHeaderCell>
+                            <FormHeaderCell>TELEFONE</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <input
+                            <FormDataCell>
+                                <FormInput
                                     type="text"
                                     name="companyCNPJ"
                                     value={formData.companyCNPJ}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5">
-                                <input
+                            </FormDataCell>
+                            <FormDataCell>
+                                <FormInput
                                     type="tel"
                                     name="companyPhone"
                                     value={formData.companyPhone}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100" colSpan={2}>
-                                ENDEREÇO
-                            </td>
+                            <FormHeaderCell colSpan={2}>ENDEREÇO</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5" colSpan={2}>
-                                <input
+                            <FormDataCell colSpan={2}>
+                                <FormInput
                                     type="text"
                                     name="companyAddress"
                                     value={formData.companyAddress}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Supervisor */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100" colSpan={3}>
+                            <FormHeaderCell colSpan={3}>
                                 SUPERVISOR DE ESTÁGIO NA EMPRESA
-                            </td>
+                            </FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5" colSpan={3}>
-                                <input
+                            <FormDataCell colSpan={3}>
+                                <FormInput
                                     type="text"
                                     name="supervisorName"
                                     value={formData.supervisorName}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                     placeholder="Nome do supervisor"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">TELEFONE</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100" colSpan={2}>E-MAIL</td>
+                            <FormHeaderCell>TELEFONE</FormHeaderCell>
+                            <FormHeaderCell colSpan={2}>E-MAIL</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <input
+                            <FormDataCell>
+                                <FormInput
                                     type="tel"
                                     name="supervisorPhone"
                                     value={formData.supervisorPhone}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5" colSpan={2}>
-                                <input
+                            </FormDataCell>
+                            <FormDataCell colSpan={2}>
+                                <FormInput
                                     type="email"
                                     name="supervisorEmail"
                                     value={formData.supervisorEmail}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Período e Carga Horária */}
-                <table className="w-full border-collapse border border-black text-xs mb-3">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">DATA INÍCIO</td>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">CARGA HORÁRIA SEMANAL</td>
+                            <FormHeaderCell>DATA INÍCIO</FormHeaderCell>
+                            <FormHeaderCell>CARGA HORÁRIA SEMANAL</FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <input
+                            <FormDataCell>
+                                <FormInput
                                     type="date"
                                     name="startDate"
                                     value={formData.startDate}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                 />
-                            </td>
-                            <td className="border border-black p-1.5">
-                                <input
+                            </FormDataCell>
+                            <FormDataCell>
+                                <FormInput
                                     type="number"
                                     name="weeklyHours"
                                     value={formData.weeklyHours}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs"
                                     placeholder="Horas"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
                 {/* Atividades */}
-                <table className="w-full border-collapse border border-black text-xs mb-4">
+                <FormTable>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-1.5 font-bold bg-neutral-100">
+                            <FormHeaderCell>
                                 ATIVIDADES A SEREM DESENVOLVIDAS
-                            </td>
+                            </FormHeaderCell>
                         </tr>
                         <tr>
-                            <td className="border border-black p-1.5">
-                                <textarea
+                            <FormDataCell>
+                                <FormTextarea
                                     name="activities"
                                     value={formData.activities}
                                     onChange={handleChange}
-                                    className="w-full border-0 outline-none bg-transparent text-xs resize-none"
                                     rows={4}
                                     placeholder="Descreva as atividades que serão desenvolvidas no estágio"
                                 />
-                            </td>
+                            </FormDataCell>
                         </tr>
                     </tbody>
-                </table>
+                </FormTable>
 
-                {/* Assinatura */}
+                {/* Assinaturas */}
                 <div className="mt-6 space-y-4 text-xs">
                     <div className="flex justify-between items-end">
                         <div className="text-center">
@@ -525,17 +419,8 @@ export function InternshipRegistrationForm({
                         </div>
                     </div>
 
-                    <div className="border-t-2 border-black pt-8 mt-8">
-                        <div className="text-center font-bold">
-                            ASSINATURA DO DISCENTE
-                        </div>
-                    </div>
-
-                    <div className="border-t-2 border-black pt-8 mt-8">
-                        <div className="text-center font-bold">
-                            ASSINATURA DO DOCENTE ORIENTADOR
-                        </div>
-                    </div>
+                    <SignatureSection label="ASSINATURA DO DISCENTE" />
+                    <SignatureSection label="ASSINATURA DO DOCENTE ORIENTADOR" />
 
                     <div className="mt-6 text-xs italic">
                         <p>
@@ -544,7 +429,7 @@ export function InternshipRegistrationForm({
                         </p>
                     </div>
                 </div>
-            </div>
+            </OfficialFormTemplate>
         </div>
     )
 }
