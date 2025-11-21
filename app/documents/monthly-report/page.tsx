@@ -1,122 +1,234 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { FormHeader } from '@/components/FormHeader'
 import { FormExportButtons } from '@/components/FormExportButtons'
-import { getDraft, populateFormWithData } from '@/lib/form-drafts'
+import { getDraft } from '@/lib/form-drafts'
+import {
+  OfficialFormTemplate,
+  FormTable,
+  FormHeaderCell,
+  FormDataCell,
+  FormInput,
+  FormTextarea,
+  SignatureSection
+} from '@/components/OfficialFormTemplate'
 
 export default function MonthlyReportPage() {
   const formRef = useRef<HTMLDivElement>(null)
+  const [formData, setFormData] = useState({
+    student_name: '',
+    supervisor_name: '',
+    advisor_name: '',
+    period_start: '',
+    period_end: '',
+    hours_month: '',
+    hours_total: '',
+    activities: '',
+    difficulties: '',
+    solutions: ''
+  })
 
   useEffect(() => {
-    // Carrega rascunho salvo
     const loadDraft = async () => {
       const draft = await getDraft('monthly-report')
       if (draft) {
-        const form = formRef.current?.querySelector('form') as HTMLFormElement
-        if (form) {
-          populateFormWithData(form, draft)
-        }
+        setFormData(draft as typeof formData)
       }
     }
-
     loadDraft()
   }, [])
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Link
-          href="/employee"
-          className="flex items-center text-secondary-400 hover:text-secondary-200 text-sm font-medium"
-        >
+      <div className="max-w-[210mm] mx-auto space-y-6">
+        <Link href="/employee" className="flex items-center text-secondary-400 hover:text-secondary-200 text-sm font-medium no-print">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Link>
 
-        <div ref={formRef} className="document-page text-sm border-t-4 border-primary-500">
-          <form className="space-y-6">
-            <FormHeader title="RELATÓRIO MENSAL DE ATIVIDADES" showImages={true} />
-
-            <div className="document-section">
-              <h3 className="document-heading">1. Identificação</h3>
-              <div className="document-grid">
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Estagiário(a)</label>
-                  <input type="text" name="student_name" className="document-input" placeholder="Nome completo" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Supervisor</label>
-                  <input type="text" name="supervisor_name" className="document-input" placeholder="Nome do supervisor" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Orientador</label>
-                  <input type="text" name="advisor_name" className="document-input" placeholder="Nome do orientador" />
-                </div>
-              </div>
+        <div ref={formRef}>
+          <OfficialFormTemplate
+            formId="monthly-report-form"
+            title="RELATÓRIO MENSAL DE ATIVIDADES"
+            campus="Maracanaú"
+            sector="Coordenação de Estágios"
+          >
+            {/* Identificação */}
+            <div className="mb-4">
+              <h2 className="text-sm font-bold mb-3">1. Identificação</h2>
             </div>
 
-            <div className="document-section">
-              <h3 className="document-heading">2. Período e Carga Horária</h3>
-              <div className="document-grid">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Período</label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input type="date" name="period_start" className="document-input" />
-                    <span className="self-center text-neutral-400">até</span>
-                    <input type="date" name="period_end" className="document-input" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-500 mb-1">Carga Horária (horas)</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="number" name="hours_month" className="document-input" placeholder="No mês" />
-                    <input type="number" name="hours_total" className="document-input" placeholder="Acumulado" />
-                  </div>
-                </div>
-              </div>
+            <FormTable>
+              <tbody>
+                <tr>
+                  <FormHeaderCell colSpan={2}>Estagiário(a)</FormHeaderCell>
+                </tr>
+                <tr>
+                  <FormDataCell colSpan={2}>
+                    <FormInput
+                      type="text"
+                      name="student_name"
+                      value={formData.student_name}
+                      onChange={handleChange}
+                      placeholder="Nome completo"
+                    />
+                  </FormDataCell>
+                </tr>
+                <tr>
+                  <FormHeaderCell>Supervisor</FormHeaderCell>
+                  <FormHeaderCell>Orientador</FormHeaderCell>
+                </tr>
+                <tr>
+                  <FormDataCell>
+                    <FormInput
+                      type="text"
+                      name="supervisor_name"
+                      value={formData.supervisor_name}
+                      onChange={handleChange}
+                      placeholder="Nome do supervisor"
+                    />
+                  </FormDataCell>
+                  <FormDataCell>
+                    <FormInput
+                      type="text"
+                      name="advisor_name"
+                      value={formData.advisor_name}
+                      onChange={handleChange}
+                      placeholder="Nome do orientador"
+                    />
+                  </FormDataCell>
+                </tr>
+              </tbody>
+            </FormTable>
+
+            {/* Período e Carga Horária */}
+            <div className="mb-4 mt-6">
+              <h2 className="text-sm font-bold mb-3">2. Período e Carga Horária</h2>
             </div>
 
-            <div className="document-section space-y-4">
-              <h3 className="document-heading">3. Atividades</h3>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-500 mb-1">
-                  Principais atividades desenvolvidas
-                </label>
-                <textarea name="activities" className="document-textarea" rows={5} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-500 mb-1">Dificuldades encontradas</label>
-                <textarea name="difficulties" className="document-textarea" rows={4} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-500 mb-1">Soluções adotadas</label>
-                <textarea name="solutions" className="document-textarea" rows={4} />
-              </div>
+            <FormTable>
+              <tbody>
+                <tr>
+                  <FormHeaderCell>Período</FormHeaderCell>
+                  <FormHeaderCell>Carga Horária</FormHeaderCell>
+                </tr>
+                <tr>
+                  <FormDataCell>
+                    <div className="flex gap-2 items-center">
+                      <FormInput
+                        type="date"
+                        name="period_start"
+                        value={formData.period_start}
+                        onChange={handleChange}
+                      />
+                      <span className="text-xs">até</span>
+                      <FormInput
+                        type="date"
+                        name="period_end"
+                        value={formData.period_end}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </FormDataCell>
+                  <FormDataCell>
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormInput
+                        type="number"
+                        name="hours_month"
+                        value={formData.hours_month}
+                        onChange={handleChange}
+                        placeholder="No mês"
+                      />
+                      <FormInput
+                        type="number"
+                        name="hours_total"
+                        value={formData.hours_total}
+                        onChange={handleChange}
+                        placeholder="Acumulado"
+                      />
+                    </div>
+                  </FormDataCell>
+                </tr>
+              </tbody>
+            </FormTable>
+
+            {/* Atividades */}
+            <div className="mb-4 mt-6">
+              <h2 className="text-sm font-bold mb-3">3. Atividades</h2>
             </div>
 
-            <div className="document-section">
-              <h3 className="document-heading">4. Assinaturas</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center text-xs font-semibold text-neutral-600 pt-4">
-                <div>
-                  <div className="border-t border-neutral-400 pt-2">Estagiário(a)</div>
-                  <input type="date" name="date_student" className="document-input mt-2 text-center" />
-                </div>
-                <div>
-                  <div className="border-t border-neutral-400 pt-2">Supervisor</div>
-                  <input type="date" name="date_supervisor" className="document-input mt-2 text-center" />
-                </div>
-                <div>
-                  <div className="border-t border-neutral-400 pt-2">Orientador</div>
-                  <input type="date" name="date_advisor" className="document-input mt-2 text-center" />
-                </div>
-              </div>
-            </div>
+            <FormTable>
+              <tbody>
+                <tr>
+                  <FormHeaderCell>Principais atividades desenvolvidas</FormHeaderCell>
+                </tr>
+                <tr>
+                  <FormDataCell>
+                    <FormTextarea
+                      name="activities"
+                      value={formData.activities}
+                      onChange={handleChange}
+                      rows={5}
+                    />
+                  </FormDataCell>
+                </tr>
+              </tbody>
+            </FormTable>
 
-            <FormExportButtons formType="monthly-report" formRef={formRef} />
-          </form>
+            <FormTable>
+              <tbody>
+                <tr>
+                  <FormHeaderCell>Dificuldades encontradas</FormHeaderCell>
+                </tr>
+                <tr>
+                  <FormDataCell>
+                    <FormTextarea
+                      name="difficulties"
+                      value={formData.difficulties}
+                      onChange={handleChange}
+                      rows={4}
+                    />
+                  </FormDataCell>
+                </tr>
+              </tbody>
+            </FormTable>
+
+            <FormTable>
+              <tbody>
+                <tr>
+                  <FormHeaderCell>Soluções adotadas</FormHeaderCell>
+                </tr>
+                <tr>
+                  <FormDataCell>
+                    <FormTextarea
+                      name="solutions"
+                      value={formData.solutions}
+                      onChange={handleChange}
+                      rows={4}
+                    />
+                  </FormDataCell>
+                </tr>
+              </tbody>
+            </FormTable>
+
+            {/* Assinaturas */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <SignatureSection label="Estagiário(a)" />
+              <SignatureSection label="Supervisor" />
+              <SignatureSection label="Orientador" />
+            </div>
+          </OfficialFormTemplate>
+        </div>
+
+        <div className="no-print">
+          <FormExportButtons formType="monthly-report" formRef={formRef} />
         </div>
       </div>
     </div>
