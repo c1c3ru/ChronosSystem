@@ -53,9 +53,11 @@ export function OfficialFormTemplate({
                     {/* Logo IFCE */}
                     {showLogos && (
                         <div className="w-20 flex-shrink-0">
-                            <div className="w-16 h-16 border-2 border-gray-400 flex items-center justify-center text-[8px] text-center font-bold bg-gray-100">
-                                LOGO<br />IFCE
-                            </div>
+                            <img
+                                src="/assets/logoifce.png"
+                                alt="Logo IFCE"
+                                className="w-16 h-16 object-contain"
+                            />
                         </div>
                     )}
 
@@ -78,9 +80,11 @@ export function OfficialFormTemplate({
                     {/* Brasão */}
                     {showLogos && (
                         <div className="w-20 flex-shrink-0">
-                            <div className="w-16 h-16 border-2 border-gray-400 flex items-center justify-center text-[8px] text-center font-bold bg-gray-100">
-                                BRASÃO<br />REPÚBLICA
-                            </div>
+                            <img
+                                src="/assets/brasao.png"
+                                alt="Brasão da República"
+                                className="w-16 h-16 object-contain"
+                            />
                         </div>
                     )}
                 </div>

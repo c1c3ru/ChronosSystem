@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Clock, Users, Shield, Smartphone, ArrowRight, Zap, CheckCircle, LogOut } from 'lucide-react'
+import { Clock, Users, Shield, Smartphone, ArrowRight, Zap, CheckCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PWAInstaller } from '@/components/pwa-installer'
@@ -10,7 +10,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
       {/* Session Button */}
       <SessionButton />
-      
+
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="text-center mb-20 animate-fade-in">
@@ -26,7 +26,7 @@ export default function HomePage() {
               <div className="h-1 w-32 bg-gradient-primary rounded-full mt-2" />
             </div>
           </div>
-          
+
           <p className="text-xl lg:text-2xl text-neutral-300 max-w-3xl mx-auto text-balance leading-relaxed">
             Sistema moderno de registro de ponto eletrônico para estagiários
             <span className="block mt-2 text-lg text-primary font-medium">
@@ -85,7 +85,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Por que escolher o Chronos System?
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {[
               'Setup em 2 minutos - sem configurações complexas',
@@ -179,7 +179,7 @@ export default function HomePage() {
           </p>
         </div>
       </div>
-      
+
       {/* PWA Installer */}
       <PWAInstaller />
     </div>

@@ -10,6 +10,7 @@ coverage/
 # Production
 build/
 dist/
+.next/
 *.tsbuildinfo
 
 # Environment
@@ -58,3 +59,6 @@ prisma/migrations/
 *.seed
 *.pid.lock
 .vercel
+# Next.js build output
+.next/
+out/

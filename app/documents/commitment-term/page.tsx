@@ -1,39 +1,27 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Download, FileSignature } from 'lucide-react'
 import Link from 'next/link'
-import { FormExportButtons } from '@/components/FormExportButtons'
-import { getDraft } from '@/lib/form-drafts'
-import {
-  OfficialFormTemplate,
-  FormTable,
-  FormField,
-  FormInput,
-  FormTextarea,
-  FormSelect,
-  SignatureSection
-} from '@/components/OfficialFormTemplate'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { toast } from 'sonner'
 
 export default function CommitmentTermPage() {
-  const formRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
-    company_name: '',
-    company_address: '',
-    company_representative: '',
     student_name: '',
-    student_cpf: '',
-    student_course: '',
-    modality: '',
+    student_id: '',
+    company_name: '',
+    company_cnpj: '',
+    supervisor_name: '',
     start_date: '',
     end_date: '',
-    insurance_number: '',
-    insurance_company: '',
-    remuneration_type: '',
-    bolsa_value: '',
-    transport_allowance: '',
-    activities: '',
-    expected_results: ''
+    weekly_hours: '',
+    activities_description: '',
+    insurance_policy: ''
   })
 
   useEffect(() => {
@@ -41,194 +29,153 @@ export default function CommitmentTermPage() {
       const draft = await getDraft('commitment-term')
       if (draft) {
         setFormData(draft as typeof formData)
+        toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const handleSaveDraft = async () => {
+    setIsSaving(true)
+    await saveDraft('commitment-term', formData)
+    toast.success('Rascunho salvo com sucesso!')
+    setIsSaving(false)
+  }
+
+  const handleGeneratePDF = () => {
+    toast.info('Funcionalidade em desenvolvimento')
+  }
+
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
-      <div className="max-w-[210mm] mx-auto space-y-6">
-        <Link href="/employee" className="flex items-center text-secondary-400 hover:text-secondary-200 text-sm font-medium no-print">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Link>
-
-        <div ref={formRef}>
-          <OfficialFormTemplate
-            formId="commitment-term-form"
-            title="TERMO DE COMPROMISSO DE ESTÁGIO"
-            campus="Maracanaú"
-            sector="Coordenação de Estágios"
-          >
-            <div className="mb-2 text-[8px]">
-              <p>Nos termos da Lei nº 11.788, de 25/09/2008, celebram entre si este Termo:</p>
-            </div>
-
-            <div className="mb-2 bg-gray-50 p-2 border border-black text-[8px]">
-              <p><strong>INSTITUIÇÃO DE ENSINO:</strong> IFCE Campus Maracanaú &nbsp;&nbsp;|&nbsp;&nbsp; <strong>CNPJ:</strong> 10.744.098/0009-00</p>
-            </div>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                1. CONCEDENTE (EMPRESA)
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="RAZÃO SOCIAL" colSpan={2}>
-                    <FormInput type="text" name="company_name" value={formData.company_name} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="ENDEREÇO COMPLETO" colSpan={2}>
-                    <FormInput type="text" name="company_address" value={formData.company_address} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="REPRESENTANTE LEGAL" colSpan={2}>
-                    <FormInput type="text" name="company_representative" value={formData.company_representative} onChange={handleChange} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                2. ESTAGIÁRIO(A)
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="NOME COMPLETO" colSpan={2}>
-                    <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="CPF">
-                    <FormInput type="text" name="student_cpf" value={formData.student_cpf} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="CURSO">
-                    <FormInput type="text" name="student_course" value={formData.student_course} onChange={handleChange} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                3. CONDIÇÕES DO ESTÁGIO
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="MODALIDADE">
-                    <FormSelect name="modality" value={formData.modality} onChange={handleChange}>
-                      <option value="">Selecione...</option>
-                      <option value="presencial">Presencial</option>
-                      <option value="remoto">Remoto</option>
-                      <option value="hibrido">Híbrido</option>
-                    </FormSelect>
-                  </FormField>
-                  <FormField label="DATA INÍCIO">
-                    <FormInput type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="DATA TÉRMINO">
-                    <FormInput type="date" name="end_date" value={formData.end_date} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="Nº DA APÓLICE DE SEGURO">
-                    <FormInput type="text" name="insurance_number" value={formData.insurance_number} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="SEGURADORA" colSpan={2}>
-                    <FormInput type="text" name="insurance_company" value={formData.insurance_company} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="REMUNERAÇÃO (BOLSA)" colSpan={2}>
-                    <div className="flex gap-4 pt-1">
-                      <label className="flex items-center gap-1 text-[8px]">
-                        <input type="radio" name="remuneration_type" value="bolsa" checked={formData.remuneration_type === 'bolsa'} onChange={handleChange} />
-                        Bolsa-Auxílio: R$
-                        <FormInput type="text" name="bolsa_value" value={formData.bolsa_value} onChange={handleChange} placeholder="0,00" className="w-20 border-b border-black ml-1" />
-                      </label>
-                      <label className="flex items-center gap-1 text-[8px]">
-                        <input type="radio" name="remuneration_type" value="nao_remunerado" checked={formData.remuneration_type === 'nao_remunerado'} onChange={handleChange} />
-                        Não remunerado
-                      </label>
-                    </div>
-                  </FormField>
-                  <FormField label="AUXÍLIO-TRANSPORTE (R$)">
-                    <FormInput type="text" name="transport_allowance" value={formData.transport_allowance} onChange={handleChange} placeholder="0,00" />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                4. PLANO DE ATIVIDADES
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="ATIVIDADES A SEREM DESENVOLVIDAS">
-                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={6} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="RESULTADOS ESPERADOS">
-                    <FormTextarea name="expected_results" value={formData.expected_results} onChange={handleChange} rows={4} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-6 border border-black">
-              <div className="grid grid-cols-2 divide-x divide-black border-b border-black">
-                <div className="p-4 pb-2">
-                  <SignatureSection label="REPRESENTANTE DO IFCE" className="mt-8" />
-                </div>
-                <div className="p-4 pb-2">
-                  <SignatureSection label="REPRESENTANTE DA CONCEDENTE" className="mt-8" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 divide-x divide-black">
-                <div className="p-4 pb-2">
-                  <SignatureSection label="DISCENTE ESTAGIÁRIO" className="mt-8" />
-                </div>
-                <div className="p-4 pb-2">
-                  <SignatureSection label="SUPERVISOR DO ESTÁGIO" className="mt-8" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-center mt-2">
-              <div className="text-[9px]">
-                DATA: _____ / _____ / ________
-              </div>
-            </div>
-
-          </OfficialFormTemplate>
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Voltar
+          </Link>
+          <div className="flex gap-3">
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+            </Button>
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Gerar PDF
+            </Button>
+          </div>
         </div>
 
-        <div className="no-print">
-          <FormExportButtons formType="commitment-term" formRef={formRef} />
-        </div>
+        <Card variant="glass" className="border-t-4 border-primary">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/20 rounded-xl">
+                <FileSignature className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">Termo de Compromisso de Estágio</CardTitle>
+                <p className="text-neutral-400 text-sm mt-1">Formalização do acordo entre estagiário, instituição de ensino e empresa</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <form ref={formRef} className="space-y-6">
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
+                Dados do Estagiário
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nome Completo</label>
+                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} className="input w-full" placeholder="Digite seu nome completo" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Matrícula</label>
+                  <input type="text" name="student_id" value={formData.student_id} onChange={handleChange} className="input w-full" placeholder="000000" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
+                Dados da Empresa Concedente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Razão Social</label>
+                  <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="input w-full" placeholder="Nome da empresa" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">CNPJ</label>
+                  <input type="text" name="company_cnpj" value={formData.company_cnpj} onChange={handleChange} className="input w-full" placeholder="00.000.000/0000-00" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Supervisor Responsável</label>
+                <input type="text" name="supervisor_name" value={formData.supervisor_name} onChange={handleChange} className="input w-full" placeholder="Nome do supervisor" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
+                Condições do Estágio
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Início</label>
+                  <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="input w-full" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Término</label>
+                  <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="input w-full" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Carga Horária Semanal</label>
+                  <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} className="input w-full" placeholder="Ex: 20" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Descrição das Atividades</label>
+                <textarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Descreva as atividades que serão desenvolvidas no estágio..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Apólice de Seguro</label>
+                <input type="text" name="insurance_policy" value={formData.insurance_policy} onChange={handleChange} className="input w-full" placeholder="Número da apólice de seguro" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-4 pb-8">
+            <Button type="button" variant="secondary" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+            </Button>
+            <Button type="button" variant="primary" onClick={handleGeneratePDF} className="gap-2">
+              <Download className="h-4 w-4" />
+              Gerar PDF Oficial
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )

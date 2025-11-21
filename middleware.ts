@@ -12,7 +12,7 @@ export default withAuth(
     const protectedRoutes = ['/admin', '/employee', '/api/users', '/api/machines', '/api/attendance', '/api/dashboard']
 
     // Rotas públicas (não requerem autenticação)
-    const publicRoutes = ['/test-form']
+    const publicRoutes = ['/test-form', '/demo-form']
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Verificar se a rota atual é protegida
@@ -52,6 +52,28 @@ export default withAuth(
         return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
       }
 
+      // Controle de acesso baseado em roles
+      const adminOnlyRoutes = ['/admin']
+      const supervisorRoutes = ['/admin', '/employee']
+
+      if (adminOnlyRoutes.some(route => pathname.startsWith(route)) && role !== 'ADMIN') {
+        logger.security('Unauthorized access attempt', {
+          userId: token.sub,
+          role,
+          pathname
+        })
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (supervisorRoutes.some(route => pathname.startsWith(route)) && !['ADMIN', 'SUPERVISOR'].includes(role)) {
+        logger.security('Unauthorized access attempt', {
+          userId: token.sub,
+          role,
+          pathname
+        })
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
       // Debug: Log quando perfil está completo
       if (profileComplete === true) {
         logger.debug('Profile complete, allowing access', {
@@ -88,14 +110,6 @@ export default withAuth(
       }
     }
 
-    // Rotas específicas para roles
-    if (pathname.startsWith('/admin')) {
-      if (!token || !['ADMIN', 'SUPERVISOR'].includes(token.role as string)) {
-        // Redirecionar para página do employee se não for admin/supervisor
-        return NextResponse.redirect(new URL('/employee', req.url))
-      }
-
-    }
 
     // APIs administrativas
     if (pathname.startsWith('/api/users') ||
@@ -154,6 +168,6 @@ export const config = {
      * - icon files (PWA icons)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-.*\\.png|.*\\.svg|public|test-form).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-.*\\.png|.*\\.svg|public|test-form|demo-form).*)',
   ],
 }

@@ -1,30 +1,24 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Download, Clock } from 'lucide-react'
 import Link from 'next/link'
-import { FormExportButtons } from '@/components/FormExportButtons'
-import { getDraft } from '@/lib/form-drafts'
-import {
-  OfficialFormTemplate,
-  FormTable,
-  FormField,
-  FormInput,
-  FormTextarea,
-  SignatureSection
-} from '@/components/OfficialFormTemplate'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { toast } from 'sonner'
 
 export default function ExtensionDeclarationPage() {
-  const formRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
-    declarant_name: '',
     student_name: '',
     student_id: '',
-    modality: '',
-    project_title: '',
-    activities: '',
-    start_date: '',
-    weekly_hours: ''
+    company_name: '',
+    current_end_date: '',
+    new_end_date: '',
+    extension_reason: '',
+    activities_to_complete: ''
   })
 
   useEffect(() => {
@@ -32,6 +26,7 @@ export default function ExtensionDeclarationPage() {
       const draft = await getDraft('extension-declaration')
       if (draft) {
         setFormData(draft as typeof formData)
+        toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
@@ -42,104 +37,128 @@ export default function ExtensionDeclarationPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const handleSaveDraft = async () => {
+    setIsSaving(true)
+    await saveDraft('extension-declaration', formData)
+    toast.success('Rascunho salvo com sucesso!')
+    setIsSaving(false)
+  }
+
+  const handleGeneratePDF = () => {
+    toast.info('Funcionalidade em desenvolvimento')
+  }
+
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
-      <div className="max-w-[210mm] mx-auto space-y-6">
-        <Link href="/employee" className="flex items-center text-secondary-400 hover:text-secondary-200 text-sm font-medium no-print">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Link>
-
-        <div ref={formRef}>
-          <OfficialFormTemplate
-            formId="extension-declaration-form"
-            title="DECLARAÇÃO DE PARTICIPAÇÃO EM PROJETO"
-            campus="Maracanaú"
-            sector="Coordenação de Extensão"
-          >
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="NOME DO DECLARANTE (ORIENTADOR/COORDENADOR)" colSpan={2}>
-                    <FormInput type="text" name="declarant_name" value={formData.declarant_name} onChange={handleChange} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="py-2 text-[9pt] text-justify px-1">
-              <p>Declaro, para fins de equiparação a estágio supervisionado, que o(a) discente abaixo participou das atividades descritas:</p>
-            </div>
-
-            <div className="mt-2 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                1. DADOS DO DISCENTE
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="NOME DO DISCENTE" colSpan={2}>
-                    <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="MATRÍCULA">
-                    <FormInput type="text" name="student_id" value={formData.student_id} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="MODALIDADE">
-                    <div className="flex gap-4 pt-1">
-                      {['Extensão', 'Iniciação Científica', 'Monitoria'].map((type) => (
-                        <label key={type} className="flex items-center gap-1 text-[8px] uppercase">
-                          <input type="radio" name="modality" value={type.toLowerCase()} checked={formData.modality === type.toLowerCase()} onChange={handleChange} className="h-3 w-3" />
-                          {type}
-                        </label>
-                      ))}
-                    </div>
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                2. DETALHES DO PROJETO
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="TÍTULO DO PROJETO/PROGRAMA" colSpan={2}>
-                    <FormInput type="text" name="project_title" value={formData.project_title} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="ATIVIDADES DESENVOLVIDAS" colSpan={2}>
-                    <FormTextarea name="activities" value={formData.activities} onChange={handleChange} rows={6} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="DATA INÍCIO">
-                    <FormInput type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="CARGA HORÁRIA SEMANAL">
-                    <FormInput type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-8 border border-black p-4">
-              <SignatureSection label="ASSINATURA DO SERVIDOR RESPONSÁVEL" date={true} />
-            </div>
-          </OfficialFormTemplate>
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Voltar
+          </Link>
+          <div className="flex gap-3">
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+            </Button>
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Gerar PDF
+            </Button>
+          </div>
         </div>
 
-        <div className="no-print">
-          <FormExportButtons formType="extension-declaration" formRef={formRef} />
-        </div>
+        <Card variant="glass" className="border-t-4 border-primary">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/20 rounded-xl">
+                <Clock className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">Declaração de Prorrogação de Estágio</CardTitle>
+                <p className="text-neutral-400 text-sm mt-1">Solicitação de extensão do período de estágio</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <form ref={formRef} className="space-y-6">
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
+                Identificação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nome do Estagiário(a)</label>
+                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} className="input w-full" placeholder="Digite seu nome completo" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Matrícula</label>
+                  <input type="text" name="student_id" value={formData.student_id} onChange={handleChange} className="input w-full" placeholder="000000" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Empresa Concedente</label>
+                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="input w-full" placeholder="Nome da empresa" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
+                Período de Prorrogação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Término Atual</label>
+                  <input type="date" name="current_end_date" value={formData.current_end_date} onChange={handleChange} className="input w-full" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nova Data de Término</label>
+                  <input type="date" name="new_end_date" value={formData.new_end_date} onChange={handleChange} className="input w-full" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
+                Justificativa
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Motivo da Prorrogação</label>
+                <textarea name="extension_reason" value={formData.extension_reason} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Explique os motivos que justificam a prorrogação do estágio..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Atividades a Serem Concluídas</label>
+                <textarea name="activities_to_complete" value={formData.activities_to_complete} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Descreva as atividades que serão desenvolvidas no período de prorrogação..." />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-4 pb-8">
+            <Button type="button" variant="secondary" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+            </Button>
+            <Button type="button" variant="primary" onClick={handleGeneratePDF} className="gap-2">
+              <Download className="h-4 w-4" />
+              Gerar PDF Oficial
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )

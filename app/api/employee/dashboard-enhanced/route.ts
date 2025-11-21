@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { authOptions } from '@/docs/lib/auth'
+import { prisma } from '@/docs/lib/prisma'
+import { apiLogger } from '@/docs/lib/logger'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -16,7 +17,7 @@ interface WorkingHours {
 // Horários padrão IFCE (pode ser configurável por usuário no futuro)
 const DEFAULT_WORKING_HOURS: WorkingHours = {
   start: "08:00",
-  end: "17:00", 
+  end: "17:00",
   lunchStart: "12:00",
   lunchEnd: "13:00"
 }
@@ -24,9 +25,9 @@ const DEFAULT_WORKING_HOURS: WorkingHours = {
 // GET /api/employee/dashboard-enhanced - Dashboard com análise de atrasos e alertas
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 [API] Enhanced dashboard - Verificando sessão...')
+    apiLogger.debug('Enhanced dashboard - Verificando sessão')
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -106,6 +107,43 @@ export async function GET(request: NextRequest) {
       .map((dayRecords: any) => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
       .filter((day: any) => day !== null) // Remover dias inválidos
 
+    // Verificar justificativas para cada dia analisado
+    const daysWithJustifications = await Promise.all(
+      analyzedDays.map(async (day: any) => {
+        if (!day || !day.fullDate) return day
+
+        try {
+          const dayStart = new Date(day.fullDate)
+          dayStart.setHours(0, 0, 0, 0)
+          const dayEnd = new Date(dayStart)
+          dayEnd.setDate(dayEnd.getDate() + 1)
+
+          // Verificar se há justificativa aprovada para este dia
+          const justification = await prisma.justification.findFirst({
+            where: {
+              userId,
+              date: {
+                gte: dayStart,
+                lt: dayEnd
+              },
+              status: {
+                in: ['APPROVED', 'PENDING']
+              }
+            }
+          })
+
+          return {
+            ...day,
+            hasJustification: !!justification,
+            justificationStatus: justification?.status
+          }
+        } catch (error) {
+          apiLogger.warn('Erro ao verificar justificativa', { error })
+          return day
+        }
+      })
+    )
+
     // Contar justificativas pendentes
     const pendingJustifications = await prisma.justification.count({
       where: {
@@ -115,7 +153,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Verificar quantas faltas/atrasos sem justificativa
-    const unjustifiedIssues = analyzedDays.filter((day: any) => 
+    const unjustifiedIssues = daysWithJustifications.filter((day: any) =>
       day && day.alerts && day.alerts.length > 0 && !day.hasJustification
     ).length
 
@@ -136,7 +174,7 @@ export async function GET(request: NextRequest) {
         todayStatus: todayAnalysis.status,
         todayAlerts: todayAnalysis.alerts
       },
-      analyzedDays: analyzedDays.slice(0, 5), // Últimos 5 dias
+      analyzedDays: daysWithJustifications.slice(0, 5), // Últimos 5 dias
       alerts: {
         pendingJustifications,
         unjustifiedIssues,
@@ -145,15 +183,14 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('❌ [API] Enhanced dashboard - Erro ao buscar dados:', error)
-    console.error('❌ [API] Stack trace:', error?.stack)
-    console.error('❌ [API] Error details:', {
+    apiLogger.error('Enhanced dashboard - Erro ao buscar dados', {
       message: error?.message,
       name: error?.name,
+      stack: error?.stack,
       cause: error?.cause
     })
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       error: 'Erro interno do servidor',
       message: process.env.NODE_ENV === 'development' ? error?.message : undefined,
       code: 'INTERNAL_ERROR'
@@ -178,68 +215,68 @@ function analyzeTodayRecords(records: any[], workingHours: WorkingHours) {
   const exits = records.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
   const alerts: any[] = []
 
-    // Verificar primeiro registro (entrada)
-    if (entries.length > 0) {
-      const firstEntry = entries[0]
-      if (firstEntry && firstEntry.timestamp) {
-        const entryTime = firstEntry.timestamp instanceof Date 
-          ? firstEntry.timestamp 
-          : new Date(firstEntry.timestamp)
-        
-        if (!isNaN(entryTime.getTime())) {
-          const expectedStart = parseTime(workingHours.start)
-          
-          if (entryTime.getHours() * 60 + entryTime.getMinutes() > expectedStart + 30) {
-            const delayMinutes = (entryTime.getHours() * 60 + entryTime.getMinutes()) - expectedStart
-            alerts.push({
-              type: 'late_arrival',
-              message: `Atraso de ${delayMinutes} minutos na entrada`,
-              severity: delayMinutes > 60 ? 'high' : 'medium',
-              time: entryTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-              expectedTime: workingHours.start
-            })
-          }
+  // Verificar primeiro registro (entrada)
+  if (entries.length > 0) {
+    const firstEntry = entries[0]
+    if (firstEntry && firstEntry.timestamp) {
+      const entryTime = firstEntry.timestamp instanceof Date
+        ? firstEntry.timestamp
+        : new Date(firstEntry.timestamp)
+
+      if (!isNaN(entryTime.getTime())) {
+        const expectedStart = parseTime(workingHours.start)
+
+        if (entryTime.getHours() * 60 + entryTime.getMinutes() > expectedStart + 30) {
+          const delayMinutes = (entryTime.getHours() * 60 + entryTime.getMinutes()) - expectedStart
+          alerts.push({
+            type: 'late_arrival',
+            message: `Atraso de ${delayMinutes} minutos na entrada`,
+            severity: delayMinutes > 60 ? 'high' : 'medium',
+            time: entryTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            expectedTime: workingHours.start
+          })
         }
       }
     }
+  }
 
-    // Calcular horas trabalhadas
-    let totalMinutes = 0
-    for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
+  // Calcular horas trabalhadas
+  let totalMinutes = 0
+  for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
+    try {
+      const entryTime = entries[i].timestamp instanceof Date
+        ? entries[i].timestamp
+        : new Date(entries[i].timestamp)
+      const exitTime = exits[i].timestamp instanceof Date
+        ? exits[i].timestamp
+        : new Date(exits[i].timestamp)
+
+      if (!isNaN(entryTime.getTime()) && !isNaN(exitTime.getTime())) {
+        totalMinutes += (exitTime.getTime() - entryTime.getTime()) / (1000 * 60)
+      }
+    } catch (error) {
+      apiLogger.warn('Erro ao calcular horas para par entrada/saída', { error: String(error) })
+    }
+  }
+
+  // Se ainda está trabalhando, calcular até agora
+  if (entries.length > exits.length) {
+    const lastEntry = entries[entries.length - 1]
+    if (lastEntry && lastEntry.timestamp) {
       try {
-        const entryTime = entries[i].timestamp instanceof Date 
-          ? entries[i].timestamp 
-          : new Date(entries[i].timestamp)
-        const exitTime = exits[i].timestamp instanceof Date 
-          ? exits[i].timestamp 
-          : new Date(exits[i].timestamp)
-        
-        if (!isNaN(entryTime.getTime()) && !isNaN(exitTime.getTime())) {
-          totalMinutes += (exitTime.getTime() - entryTime.getTime()) / (1000 * 60)
+        const lastEntryTime = lastEntry.timestamp instanceof Date
+          ? lastEntry.timestamp
+          : new Date(lastEntry.timestamp)
+
+        if (!isNaN(lastEntryTime.getTime())) {
+          const now = new Date()
+          totalMinutes += (now.getTime() - lastEntryTime.getTime()) / (1000 * 60)
         }
       } catch (error) {
-        console.warn('⚠️ [API] Erro ao calcular horas para par entrada/saída:', error)
+        apiLogger.warn('Erro ao calcular horas em andamento', { error })
       }
     }
-
-    // Se ainda está trabalhando, calcular até agora
-    if (entries.length > exits.length) {
-      const lastEntry = entries[entries.length - 1]
-      if (lastEntry && lastEntry.timestamp) {
-        try {
-          const lastEntryTime = lastEntry.timestamp instanceof Date 
-            ? lastEntry.timestamp 
-            : new Date(lastEntry.timestamp)
-          
-          if (!isNaN(lastEntryTime.getTime())) {
-            const now = new Date()
-            totalMinutes += (now.getTime() - lastEntryTime.getTime()) / (1000 * 60)
-          }
-        } catch (error) {
-          console.warn('⚠️ [API] Erro ao calcular horas em andamento:', error)
-        }
-      }
-    }
+  }
 
   const hours = Math.floor(totalMinutes / 60)
   const minutes = Math.floor(totalMinutes % 60)
@@ -262,24 +299,24 @@ function analyzeTodayRecords(records: any[], workingHours: WorkingHours) {
 
 function groupRecordsByDay(records: any[]) {
   const groups = new Map<string, any[]>()
-  
+
   records.forEach((record: any) => {
     if (!record || !record.timestamp) {
-      console.warn('⚠️ [API] Registro inválido encontrado:', record)
+      apiLogger.warn('Registro inválido encontrado', { record })
       return
     }
-    
+
     try {
       // Garantir que timestamp é um Date object
-      const timestamp = record.timestamp instanceof Date 
-        ? record.timestamp 
+      const timestamp = record.timestamp instanceof Date
+        ? record.timestamp
         : new Date(record.timestamp)
-      
+
       if (isNaN(timestamp.getTime())) {
-        console.warn('⚠️ [API] Timestamp inválido:', record.timestamp)
+        apiLogger.warn('Timestamp inválido', { timestamp: record.timestamp })
         return
       }
-      
+
       const date = timestamp.toDateString()
       if (!groups.has(date)) {
         groups.set(date, [])
@@ -290,10 +327,10 @@ function groupRecordsByDay(records: any[]) {
         timestamp
       })
     } catch (error) {
-      console.error('❌ [API] Erro ao processar registro:', error, record)
+      apiLogger.error('Erro ao processar registro', { error, record })
     }
   })
-  
+
   return Array.from(groups.values())
 }
 
@@ -304,17 +341,17 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
     // Garantir que o primeiro registro tem timestamp válido
     const firstRecord = dayRecords[0]
     if (!firstRecord || !firstRecord.timestamp) {
-      console.warn('⚠️ [API] Primeiro registro inválido:', firstRecord)
+      apiLogger.warn('Primeiro registro inválido', { firstRecord })
       return null
     }
 
     // Garantir que timestamp é um Date object
-    const date = firstRecord.timestamp instanceof Date 
-      ? firstRecord.timestamp 
+    const date = firstRecord.timestamp instanceof Date
+      ? firstRecord.timestamp
       : new Date(firstRecord.timestamp)
-    
+
     if (isNaN(date.getTime())) {
-      console.warn('⚠️ [API] Data inválida no primeiro registro:', firstRecord.timestamp)
+      apiLogger.warn('Data inválida no primeiro registro', { timestamp: firstRecord.timestamp })
       return null
     }
 
@@ -325,13 +362,13 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
     // Análise similar ao dia atual
     if (entries.length > 0) {
       const firstEntry = entries[0]
-      const entryTime = firstEntry.timestamp instanceof Date 
-        ? firstEntry.timestamp 
+      const entryTime = firstEntry.timestamp instanceof Date
+        ? firstEntry.timestamp
         : new Date(firstEntry.timestamp)
-      
+
       if (!isNaN(entryTime.getTime())) {
         const expectedStart = parseTime(workingHours.start)
-        
+
         if (entryTime.getHours() * 60 + entryTime.getMinutes() > expectedStart + 30) {
           const delayMinutes = (entryTime.getHours() * 60 + entryTime.getMinutes()) - expectedStart
           alerts.push({
@@ -347,18 +384,18 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
     let totalMinutes = 0
     for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
       try {
-        const entryTime = entries[i].timestamp instanceof Date 
-          ? entries[i].timestamp 
+        const entryTime = entries[i].timestamp instanceof Date
+          ? entries[i].timestamp
           : new Date(entries[i].timestamp)
-        const exitTime = exits[i].timestamp instanceof Date 
-          ? exits[i].timestamp 
+        const exitTime = exits[i].timestamp instanceof Date
+          ? exits[i].timestamp
           : new Date(exits[i].timestamp)
-        
+
         if (!isNaN(entryTime.getTime()) && !isNaN(exitTime.getTime())) {
           totalMinutes += (exitTime.getTime() - entryTime.getTime()) / (1000 * 60)
         }
       } catch (error) {
-        console.warn('⚠️ [API] Erro ao calcular horas para par entrada/saída:', error)
+        apiLogger.warn('Erro ao calcular horas para par entrada/saída', { error })
       }
     }
 
@@ -372,30 +409,30 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
       date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
       fullDate: date.toISOString(),
       entry: entries[0] ? (() => {
-        const entryTimestamp = entries[0].timestamp instanceof Date 
-          ? entries[0].timestamp 
+        const entryTimestamp = entries[0].timestamp instanceof Date
+          ? entries[0].timestamp
           : new Date(entries[0].timestamp)
-        return !isNaN(entryTimestamp.getTime()) 
+        return !isNaN(entryTimestamp.getTime())
           ? entryTimestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
           : undefined
       })() : undefined,
       exit: exits[0] ? (() => {
-        const exitTimestamp = exits[0].timestamp instanceof Date 
-          ? exits[0].timestamp 
+        const exitTimestamp = exits[0].timestamp instanceof Date
+          ? exits[0].timestamp
           : new Date(exits[0].timestamp)
         return !isNaN(exitTimestamp.getTime())
           ? exitTimestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
           : undefined
       })() : undefined,
       totalHours: `${hours}h ${minutes.toString().padStart(2, '0')}min`,
-      status: entries.length === 0 ? 'absent' : 
-              entries.length === exits.length ? 'completed' : 'incomplete',
+      status: entries.length === 0 ? 'absent' :
+        entries.length === exits.length ? 'completed' : 'incomplete',
       alerts,
       location,
-      hasJustification: false // TODO: verificar se há justificativa para este dia
+      hasJustification: false // Será verificado após retornar do banco
     }
   } catch (error) {
-    console.error('❌ [API] Erro ao analisar registros do dia:', error, dayRecords)
+    apiLogger.error('Erro ao analisar registros do dia', { error, dayRecords })
     return null
   }
 }

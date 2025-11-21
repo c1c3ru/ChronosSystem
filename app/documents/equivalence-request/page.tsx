@@ -1,28 +1,26 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Download, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { FormExportButtons } from '@/components/FormExportButtons'
-import { getDraft } from '@/lib/form-drafts'
-import {
-  OfficialFormTemplate,
-  FormTable,
-  FormField,
-  FormInput,
-  SignatureSection
-} from '@/components/OfficialFormTemplate'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { toast } from 'sonner'
 
 export default function EquivalenceRequestPage() {
-  const formRef = useRef<HTMLDivElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
     student_name: '',
     student_id: '',
     student_course: '',
-    experience_type: '',
-    start_date: '',
-    end_date: '',
-    weekly_hours: ''
+    company_name: '',
+    position: '',
+    admission_date: '',
+    weekly_hours: '',
+    activities_description: '',
+    justification: ''
   })
 
   useEffect(() => {
@@ -30,156 +28,147 @@ export default function EquivalenceRequestPage() {
       const draft = await getDraft('equivalence-request')
       if (draft) {
         setFormData(draft as typeof formData)
+        toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const handleSaveDraft = async () => {
+    setIsSaving(true)
+    await saveDraft('equivalence-request', formData)
+    toast.success('Rascunho salvo com sucesso!')
+    setIsSaving(false)
+  }
+
+  const handleGeneratePDF = () => {
+    toast.info('Funcionalidade em desenvolvimento')
+  }
+
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
-      <div className="max-w-[210mm] mx-auto space-y-6">
-        <Link href="/employee" className="flex items-center text-secondary-400 hover:text-secondary-200 text-sm font-medium no-print">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Link>
-
-        <div ref={formRef}>
-          <OfficialFormTemplate
-            formId="equivalence-request-form"
-            title="SOLICITAÇÃO DE APROVEITAMENTO DE EXPERIÊNCIA"
-            campus="Maracanaú"
-            sector="Coordenação de Estágios"
-          >
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                1. IDENTIFICAÇÃO DO DISCENTE
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="NOME COMPLETO" colSpan={2}>
-                    <FormInput type="text" name="student_name" value={formData.student_name} onChange={handleChange} />
-                  </FormField>
-                </tr>
-                <tr>
-                  <FormField label="MATRÍCULA">
-                    <FormInput type="text" name="student_id" value={formData.student_id} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="CURSO">
-                    <FormInput type="text" name="student_course" value={formData.student_course} onChange={handleChange} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                2. TIPO DE EXPERIÊNCIA
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="SELECIONE O TIPO">
-                    <div className="space-y-1 pt-1">
-                      {[
-                        { value: 'extension', label: 'Atividade de Extensão, Iniciação Científica ou Monitoria' },
-                        { value: 'clt', label: 'Empregado (CLT) em empresa privada/pública' },
-                        { value: 'public_servant', label: 'Servidor Público Estatutário' },
-                        { value: 'third_sector', label: 'Terceiro Setor' }
-                      ].map(({ value, label }) => (
-                        <label key={value} className="flex items-center gap-2 text-[8px] uppercase">
-                          <input type="radio" name="experience_type" value={value} checked={formData.experience_type === value} onChange={handleChange} className="h-3 w-3" />
-                          {label}
-                        </label>
-                      ))}
-                    </div>
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                3. DOCUMENTOS ANEXOS (OBRIGATÓRIO)
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="CHECKLIST">
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      {[
-                        'Declaração de atividades',
-                        'Cópia da Carteira de Trabalho (CTPS)',
-                        'Cartão CNPJ da empresa',
-                        'Ato de nomeação (Servidor Público)',
-                        'Contrato Social / Estatuto'
-                      ].map((doc) => (
-                        <label key={doc} className="flex items-center gap-2 text-[8px] uppercase">
-                          <input type="checkbox" name={`doc_${doc.toLowerCase().replace(/\s+/g, '_')}`} className="h-3 w-3" />
-                          {doc}
-                        </label>
-                      ))}
-                    </div>
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-4 mb-1">
-              <div className="text-[9px] font-bold uppercase bg-gray-200 border border-black px-1 py-0.5">
-                4. PERÍODO E CARGA HORÁRIA
-              </div>
-            </div>
-
-            <FormTable>
-              <tbody>
-                <tr>
-                  <FormField label="DATA INÍCIO">
-                    <FormInput type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="DATA FIM (PREVISTA)">
-                    <FormInput type="date" name="end_date" value={formData.end_date} onChange={handleChange} />
-                  </FormField>
-                  <FormField label="HORAS SEMANAIS">
-                    <FormInput type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} />
-                  </FormField>
-                </tr>
-              </tbody>
-            </FormTable>
-
-            <div className="mt-6 border border-black">
-              <div className="grid grid-cols-2 divide-x divide-black">
-                <div className="p-4 pb-2">
-                  <SignatureSection label="ASSINATURA DO DISCENTE" className="mt-8" />
-                </div>
-                <div className="p-4 pb-2">
-                  <SignatureSection label="ASSINATURA DO ORIENTADOR" className="mt-8" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-center mt-2">
-              <div className="text-[9px]">
-                DATA: _____ / _____ / ________
-              </div>
-            </div>
-          </OfficialFormTemplate>
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Voltar
+          </Link>
+          <div className="flex gap-3">
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+            </Button>
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Gerar PDF
+            </Button>
+          </div>
         </div>
 
-        <div className="no-print">
-          <FormExportButtons formType="equivalence-request" formRef={formRef} />
-        </div>
+        <Card variant="glass" className="border-t-4 border-primary">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/20 rounded-xl">
+                <RefreshCw className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">Solicitação de Equivalência de Estágio</CardTitle>
+                <p className="text-neutral-400 text-sm mt-1">Pedido de aproveitamento de atividade profissional como estágio</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <form ref={formRef} className="space-y-6">
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
+                Dados do Aluno
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nome Completo</label>
+                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} className="input w-full" placeholder="Digite seu nome completo" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Matrícula</label>
+                  <input type="text" name="student_id" value={formData.student_id} onChange={handleChange} className="input w-full" placeholder="000000" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Curso</label>
+                <input type="text" name="student_course" value={formData.student_course} onChange={handleChange} className="input w-full" placeholder="Ex: Análise e Desenvolvimento de Sistemas" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
+                Dados da Atividade Profissional
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Empresa/Instituição</label>
+                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="input w-full" placeholder="Nome da empresa onde trabalha" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Cargo/Função</label>
+                  <input type="text" name="position" value={formData.position} onChange={handleChange} className="input w-full" placeholder="Seu cargo na empresa" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Admissão</label>
+                  <input type="date" name="admission_date" value={formData.admission_date} onChange={handleChange} className="input w-full" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Carga Horária Semanal</label>
+                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} className="input w-full" placeholder="Ex: 40" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
+                Justificativa da Solicitação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Descrição das Atividades Desenvolvidas</label>
+                <textarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Descreva detalhadamente as atividades que você desenvolve na empresa..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Justificativa para Equivalência</label>
+                <textarea name="justification" value={formData.justification} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Explique como suas atividades profissionais se relacionam com o curso e justificam a equivalência ao estágio..." />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-4 pb-8">
+            <Button type="button" variant="secondary" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+            </Button>
+            <Button type="button" variant="primary" onClick={handleGeneratePDF} className="gap-2">
+              <Download className="h-4 w-4" />
+              Gerar PDF Oficial
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )

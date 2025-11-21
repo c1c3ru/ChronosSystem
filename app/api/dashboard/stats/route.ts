@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { authOptions } from '@/docs/lib/auth'
+import { prisma } from '@/docs/lib/prisma'
+import { apiLogger } from '@/docs/lib/logger'
 
 // GET /api/dashboard/stats - Estatísticas do dashboard
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       // Total de usuários
       prisma.user.count(),
-      
+
       // Registros de hoje
       prisma.attendanceRecord.count({
         where: {
@@ -40,23 +41,49 @@ export async function GET(request: NextRequest) {
           }
         }
       }),
-      
+
       // Máquinas ativas
       prisma.machine.count({
         where: { isActive: true }
       }),
-      
+
       // Total de máquinas
       prisma.machine.count(),
-      
-      // Alertas pendentes (simulado por enquanto)
-      Promise.resolve(3) // TODO: Implementar lógica real de alertas
+
+      // Alertas pendentes - lógica real implementada
+      (async () => {
+        const [pendingJustifications, recentAbsences] = await Promise.all([
+          // Justificativas pendentes
+          prisma.justification.count({
+            where: { status: 'PENDING' }
+          }),
+          // Usuários com ausências recentes sem justificativa (últimos 7 dias)
+          prisma.attendanceRecord.groupBy({
+            by: ['userId'],
+            where: {
+              timestamp: {
+                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+              }
+            },
+            _count: true,
+            having: {
+              userId: {
+                _count: {
+                  lt: 5 // Menos de 5 registros em 7 dias pode indicar problema
+                }
+              }
+            }
+          })
+        ])
+
+        return pendingJustifications + recentAbsences.length
+      })()
     ])
 
     // Calcular estatísticas adicionais
     const yesterdayStart = new Date(today)
     yesterdayStart.setDate(yesterdayStart.getDate() - 1)
-    
+
     const yesterdayRecords = await prisma.attendanceRecord.count({
       where: {
         timestamp: {
@@ -67,7 +94,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calcular percentuais de mudança
-    const recordsChange = yesterdayRecords > 0 
+    const recordsChange = yesterdayRecords > 0
       ? ((todayRecords - yesterdayRecords) / yesterdayRecords * 100).toFixed(1)
       : '0'
 
@@ -86,7 +113,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(stats)
   } catch (error) {
-    console.error('Erro ao buscar estatísticas do dashboard:', error)
+    apiLogger.error('Erro ao buscar estatísticas do dashboard', { error: String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
