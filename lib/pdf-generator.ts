@@ -1,219 +1,197 @@
 /**
- * Biblioteca para gerar PDFs dos formulários
- * Usa html2pdf.js para gerar PDFs reais que podem ser baixados
+ * Biblioteca para geração de PDFs dos formulários oficiais do IFCE
+ * Usa html2pdf.js para converter HTML em PDF mantendo a formatação oficial
  */
 
-// Dynamic import to avoid SSR issues
-const loadHtml2Pdf = async () => {
-  const html2pdf = await import('html2pdf.js')
-  return html2pdf.default || html2pdf
-}
-
-export interface PDFOptions {
-  filename: string
-  title?: string
+interface PDFOptions {
+  filename?: string
   margin?: number | [number, number, number, number]
-  pagebreak?: {
-    mode?: string | string[]
-    before?: string | string[]
-    after?: string | string[]
-    avoid?: string | string[]
-  }
+  pagebreak?: { mode: string[] }
 }
 
 /**
- * Gera e baixa um PDF do elemento HTML
- * Usa html2pdf.js para criar um PDF real em formato A4
+ * Gera PDF a partir de um elemento HTML
+ * Otimizado para formulários oficiais do IFCE
  */
 export async function printElementAsPDF(
   element: HTMLElement,
-  options: PDFOptions
+  options: PDFOptions = {}
 ): Promise<void> {
-  const { filename, margin = 0, pagebreak } = options
-  const html2pdf = await loadHtml2Pdf()
-
-  // Configurações otimizadas para formato A4 profissional
-  const opt = {
-    margin: margin,
-    filename: `${filename}.pdf`,
-    image: {
-      type: 'jpeg' as const,
-      quality: 0.98
-    },
-    html2canvas: {
-      scale: 2, // Alta resolução
-      useCORS: true,
-      letterRendering: true,
-      logging: false,
-      width: 794, // 210mm em pixels (96 DPI)
-      windowWidth: 794,
-      backgroundColor: '#ffffff'
-    },
-    jsPDF: {
-      unit: 'mm' as const,
-      format: 'a4' as const,
-      orientation: 'portrait' as const,
-      compress: true
-    },
-    pagebreak: pagebreak || {
-      mode: ['avoid-all', 'css', 'legacy'],
-      before: '.page-break-before',
-      after: '.page-break-after',
-      avoid: '.no-page-break'
-    }
+  // Verificar se estamos no cliente
+  if (typeof window === 'undefined') {
+    throw new Error('printElementAsPDF só pode ser executado no navegador')
   }
 
   try {
-    // Clona o elemento para não afetar a página
-    const clone = element.cloneNode(true) as HTMLElement
+    // Importar html2pdf dinamicamente (apenas no cliente)
+    const html2pdf = (await import('html2pdf.js')).default
 
-    // Remove elementos que não devem aparecer no PDF
-    const noPrintElements = clone.querySelectorAll('.no-print')
-    noPrintElements.forEach(el => el.remove())
-
-    // Aplica estilos para impressão profissional
-    clone.style.backgroundColor = '#ffffff'
-    clone.style.color = '#000000'
-    clone.style.width = '210mm'
-    clone.style.minHeight = '297mm'
-    clone.style.boxSizing = 'border-box'
-
-    // Gera o PDF
-    await html2pdf().set(opt).from(clone).save()
-  } catch (error) {
-    console.error('Erro ao gerar PDF:', error)
-    throw new Error('Falha ao gerar PDF')
-  }
-}
-
-/**
- * Exporta um elemento como PDF
- * Wrapper para printElementAsPDF com opções simplificadas
- */
-export async function exportElementAsPDF(
-  element: HTMLElement,
-  filename: string
-): Promise<void> {
-  await printElementAsPDF(element, { filename })
-}
-
-/**
- * Gera PDF com configurações customizadas
- */
-export async function generateCustomPDF(
-  element: HTMLElement,
-  options: {
-    filename: string
-    orientation?: 'portrait' | 'landscape'
-    format?: string
-    margin?: number | [number, number, number, number]
-  }
-): Promise<void> {
-  const { filename, orientation = 'portrait', format = 'a4', margin = 10 } = options
-  const html2pdf = await loadHtml2Pdf()
-
-  const opt = {
-    margin: margin,
-    filename: `${filename}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      letterRendering: true
-    },
-    jsPDF: {
-      unit: 'mm' as const,
-      format: format as any,
-      orientation: orientation
+    // Configurações otimizadas para documentos oficiais do IFCE
+    const pdfOptions = {
+      margin: options.margin || 15, // Margem de 15mm (padrão ABNT)
+      filename: options.filename || `documento_${new Date().toISOString().split('T')[0]}.pdf`,
+      image: {
+        type: 'jpeg' as const, // Tipo literal para compatibilidade
+        quality: 0.98 // Alta qualidade para documentos oficiais
+      },
+      html2canvas: {
+        scale: 2, // Resolução alta
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+        windowWidth: 1200,
+        scrollY: 0,
+        scrollX: 0
+      },
+      jsPDF: {
+        unit: 'mm' as const,
+        format: 'a4' as const,
+        orientation: 'portrait' as const,
+        compress: true
+      },
+      pagebreak: options.pagebreak || {
+        mode: ['avoid-all', 'css', 'legacy'],
+        before: '.page-break-before',
+        after: '.page-break-after',
+        avoid: '.no-page-break'
+      }
     }
-  }
 
-  try {
+    // Clonar o elemento para não afetar a visualização
     const clone = element.cloneNode(true) as HTMLElement
-    const noPrintElements = clone.querySelectorAll('.no-print')
-    noPrintElements.forEach(el => el.remove())
 
-    clone.style.backgroundColor = 'white'
-    clone.style.color = 'black'
+    // Preparar o clone para PDF
+    prepareElementForPDF(clone)
 
-    await html2pdf().set(opt).from(clone).save()
+    // Gerar PDF
+    await html2pdf()
+      .set(pdfOptions)
+      .from(clone)
+      .save()
+
+    console.log('✅ PDF gerado com sucesso:', options.filename)
+
   } catch (error) {
-    console.error('Erro ao gerar PDF customizado:', error)
-    throw new Error('Falha ao gerar PDF')
+    console.error('❌ Erro ao gerar PDF:', error)
+    throw new Error('Falha ao gerar PDF. Verifique se todos os campos estão preenchidos.')
   }
 }
 
 /**
- * Gera um Blob do PDF para preview
- * Usa as mesmas configurações profissionais do printElementAsPDF
+ * Prepara o elemento HTML para geração de PDF
+ * Remove elementos desnecessários e ajusta estilos
  */
-export async function generatePDFBlob(
-  element: HTMLElement,
-  options: PDFOptions
-): Promise<Blob> {
-  const { margin = 0, pagebreak } = options
-  const html2pdf = await loadHtml2Pdf()
+function prepareElementForPDF(element: HTMLElement): void {
+  // Remover botões e elementos de navegação (não devem aparecer no PDF)
+  const elementsToRemove = element.querySelectorAll(
+    'button, [data-no-pdf="true"], nav, .no-print, [role="navigation"]'
+  )
+  elementsToRemove.forEach(el => el.remove())
 
-  // Configurações otimizadas para formato A4 profissional
-  const opt = {
-    margin: margin,
-    filename: 'preview.pdf',
-    image: {
-      type: 'jpeg' as const,
-      quality: 0.98
-    },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      letterRendering: true,
-      logging: false,
-      width: 794, // 210mm em pixels (96 DPI)
-      windowWidth: 794,
-      backgroundColor: '#ffffff'
-    },
-    jsPDF: {
-      unit: 'mm' as const,
-      format: 'a4' as const,
-      orientation: 'portrait' as const,
-      compress: true
-    },
-    pagebreak: pagebreak || {
-      mode: ['avoid-all', 'css', 'legacy'],
-      before: '.page-break-before',
-      after: '.page-break-after',
-      avoid: '.no-page-break'
+  // Remover links de navegação (manter apenas texto)
+  const navLinks = element.querySelectorAll('a[href^="/"]')
+  navLinks.forEach(link => {
+    const span = document.createElement('span')
+    span.textContent = link.textContent
+    span.className = link.className
+    link.parentNode?.replaceChild(span, link)
+  })
+
+  // Ajustar inputs para modo de impressão
+  const inputs = element.querySelectorAll('input:not([type="hidden"]), textarea, select')
+  inputs.forEach((input: any) => {
+    // Adicionar borda inferior para campos vazios (linha para preenchimento manual)
+    if (!input.value || input.value.trim() === '') {
+      input.style.borderBottom = '1px solid #000'
+      input.style.minHeight = '24px'
     }
-  }
 
-  try {
-    const clone = element.cloneNode(true) as HTMLElement
-    const noPrintElements = clone.querySelectorAll('.no-print')
-    noPrintElements.forEach(el => el.remove())
+    // Garantir que o valor seja visível
+    input.style.color = '#000'
+    input.style.backgroundColor = 'transparent'
+    input.readOnly = true
+  })
 
-    clone.style.backgroundColor = '#ffffff'
-    clone.style.color = '#000000'
-    clone.style.width = '210mm'
-    clone.style.minHeight = '297mm'
-    clone.style.boxSizing = 'border-box'
+  // Ajustar checkboxes e radios
+  const checkboxes = element.querySelectorAll('input[type="checkbox"], input[type="radio"]')
+  checkboxes.forEach((checkbox: any) => {
+    checkbox.style.accentColor = '#000'
+    checkbox.style.border = '1px solid #000'
+  })
 
-    const pdf = await html2pdf().set(opt).from(clone).outputPdf('blob')
-    return pdf
-  } catch (error) {
-    console.error('Erro ao gerar Blob do PDF:', error)
-    throw new Error('Falha ao gerar preview do PDF')
-  }
+  // Aplicar estilos para impressão oficial
+  element.style.backgroundColor = '#fff'
+  element.style.color = '#000'
+  element.style.fontFamily = 'Arial, sans-serif'
+  element.style.fontSize = '12pt'
+  element.style.lineHeight = '1.5'
+  element.style.padding = '0'
+  element.style.maxWidth = '100%'
+
+  // Ajustar títulos e cabeçalhos
+  const headers = element.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  headers.forEach((header: any) => {
+    header.style.color = '#000'
+    header.style.pageBreakAfter = 'avoid'
+  })
+
+  // Garantir que tabelas não quebrem entre páginas
+  const tables = element.querySelectorAll('table')
+  tables.forEach((table: any) => {
+    table.style.pageBreakInside = 'avoid'
+    table.style.borderCollapse = 'collapse'
+  })
+
+  // Ajustar cards e seções
+  const cards = element.querySelectorAll('[class*="card"], [class*="section"]')
+  cards.forEach((card: any) => {
+    card.style.backgroundColor = '#fff'
+    card.style.border = '1px solid #ddd'
+    card.style.pageBreakInside = 'avoid'
+    card.style.marginBottom = '10px'
+  })
 }
 
 /**
- * Cria um link de download para um blob de PDF
+ * Valida se o formulário tem dados preenchidos
  */
-export function downloadPDFBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${filename}.pdf`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+export function validateFormData(formData: Record<string, any>): boolean {
+  const hasData = Object.values(formData).some(value =>
+    value !== null &&
+    value !== undefined &&
+    value !== '' &&
+    value !== 0
+  )
+
+  if (!hasData) {
+    throw new Error('Preencha pelo menos um campo antes de gerar o PDF')
+  }
+
+  return true
+}
+
+/**
+ * Gera PDF de um formulário específico
+ * Wrapper conveniente para uso nos componentes de formulário
+ */
+export async function generateFormPDF(
+  formRef: React.RefObject<HTMLFormElement>,
+  documentType: string,
+  formData?: Record<string, any>
+): Promise<void> {
+  if (!formRef.current) {
+    throw new Error('Referência do formulário não encontrada')
+  }
+
+  // Validar dados se fornecidos
+  if (formData) {
+    validateFormData(formData)
+  }
+
+  // Gerar nome do arquivo
+  const date = new Date().toISOString().split('T')[0]
+  const filename = `${documentType}_${date}.pdf`
+
+  // Gerar PDF
+  await printElementAsPDF(formRef.current, { filename })
 }

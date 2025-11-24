@@ -47,8 +47,30 @@ export default function MonthlyReportPage() {
     setIsSaving(false)
   }
 
-  const handleGeneratePDF = () => {
-    toast.info('Funcionalidade em desenvolvimento')
+  const handleGeneratePDF = async () => {
+    try {
+      // Validar se há dados preenchidos
+      const hasData = Object.values(formData).some(value => value !== '')
+      if (!hasData) {
+        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
+        return
+      }
+
+      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
+
+      // Importar dinamicamente para evitar problemas de SSR
+      const { generateFormPDF } = await import('@/lib/pdf-generator')
+
+      await generateFormPDF(formRef, 'relatorio-mensal', formData)
+
+      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
+        { id: 'pdf-generation' }
+      )
+    }
   }
 
   return (
