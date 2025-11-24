@@ -30,7 +30,7 @@ export async function printElementAsPDF(
 
     // Configurações otimizadas para documentos oficiais do IFCE
     const pdfOptions = {
-      margin: options.margin || [10, 10, 10, 10], // Margem de 10mm (mais espaço para conteúdo)
+      margin: options.margin || [30, 20, 20, 30], // [Superior, Direita, Inferior, Esquerda] - Padrão IFCE
       filename: options.filename || `documento_${new Date().toISOString().split('T')[0]}.pdf`,
       image: {
         type: 'jpeg' as const,

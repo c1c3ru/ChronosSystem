@@ -53,7 +53,14 @@ export const AdditiveTermDocument = forwardRef<HTMLDivElement, AdditiveTermDocum
     )
 
     return (
-        <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-sans leading-tight text-justify">
+        <div ref={ref} className="bg-white text-black w-full mx-auto text-justify" style={{
+            fontSize: '12pt',
+            fontFamily: 'Arial, "Times New Roman", sans-serif',
+            lineHeight: '1.5',
+            padding: '30mm 20mm 20mm 30mm',
+            maxWidth: '210mm',
+            minHeight: '297mm'
+        }}>
             <OfficialHeader
                 title="TERMO ADITIVO AO TERMO DE COMPROMISSO DE ESTÁGIO"
                 showLogos={true}

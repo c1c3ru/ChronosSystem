@@ -25,7 +25,14 @@ export const ExtensionDeclarationDocument = forwardRef<HTMLDivElement, Extension
     }
 
     return (
-        <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-sans leading-tight">
+        <div ref={ref} className="bg-white text-black w-full mx-auto" style={{
+            fontSize: '12pt',
+            fontFamily: 'Arial, "Times New Roman", sans-serif',
+            lineHeight: '1.5',
+            padding: '30mm 20mm 20mm 30mm',
+            maxWidth: '210mm',
+            minHeight: '297mm'
+        }}>
             <OfficialHeader
                 title="DECLARAÇÃO DE PRORROGAÇÃO DE ESTÁGIO"
                 showLogos={true}

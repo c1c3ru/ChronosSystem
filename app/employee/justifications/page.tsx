@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -46,6 +46,7 @@ export default function JustificationsPage() {
   const [selectedIssue, setSelectedIssue] = useState<PendingIssue | null>(null)
   const [justificationText, setJustificationText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const formRef = useRef<HTMLDivElement>(null)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -165,15 +166,15 @@ export default function JustificationsPage() {
   const formatDate = (dateString: string) => {
     try {
       // Parse a data corretamente para evitar problemas de timezone
-      // Se a string é ISO (YYYY-MM-DD), adicionar 'T12:00:00' para forçar meio-dia local
       let date: Date
 
       if (dateString.includes('T')) {
         // Já tem horário, usar diretamente
         date = new Date(dateString)
       } else {
-        // Apenas data (YYYY-MM-DD), adicionar horário do meio-dia para evitar timezone issues
-        date = new Date(dateString + 'T12:00:00')
+        // Apenas data (YYYY-MM-DD), criar data local sem conversão de timezone
+        const [year, month, day] = dateString.split('-').map(Number)
+        date = new Date(year, month - 1, day)
       }
 
       if (isNaN(date.getTime())) {
@@ -252,8 +253,21 @@ export default function JustificationsPage() {
                       <Button
                         size="sm"
                         onClick={() => {
+                          // Feedback tátil em dispositivos móveis
+                          if ('vibrate' in navigator) {
+                            navigator.vibrate(50) // Vibração curta de 50ms
+                          }
+
                           setSelectedIssue(issue)
                           setShowNewForm(true)
+
+                          // Scroll suave para o formulário após um pequeno delay para garantir que o formulário foi renderizado
+                          setTimeout(() => {
+                            formRef.current?.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'start'
+                            })
+                          }, 100)
                         }}
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -269,9 +283,18 @@ export default function JustificationsPage() {
 
         {/* New Justification Form */}
         {showNewForm && selectedIssue && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Nova Justificativa - {getTypeText(selectedIssue.type)}</CardTitle>
+          <Card
+            className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500 border-2 border-primary/50 shadow-lg shadow-primary/20"
+            ref={formRef}
+            style={{
+              animation: 'pulse-border 2s ease-in-out 3'
+            }}
+          >
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
+              <CardTitle className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                Nova Justificativa - {getTypeText(selectedIssue.type)}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -304,11 +327,12 @@ export default function JustificationsPage() {
                     Justificativa *
                   </label>
                   <textarea
-                    className="input min-h-[100px] resize-none"
+                    className="input min-h-[100px] resize-none focus:ring-2 focus:ring-primary/50 transition-all"
                     placeholder="Descreva o motivo do atraso ou falta..."
                     value={justificationText}
                     onChange={(e) => setJustificationText(e.target.value)}
                     maxLength={500}
+                    autoFocus
                   />
                   <p className="text-xs text-neutral-500 mt-1">
                     {justificationText.length}/500 caracteres

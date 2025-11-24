@@ -123,10 +123,10 @@ export function OfficialFormTemplate({
                 width: '100%',
                 maxWidth: '210mm',
                 minHeight: '297mm',
-                padding: '15mm',
-                fontSize: '11pt',
-                lineHeight: '1.4',
-                fontFamily: 'Arial, Helvetica, sans-serif',
+                padding: '30mm 20mm 20mm 30mm', // Superior, Direita, Inferior, Esquerda (padrão IFCE)
+                fontSize: '12pt', // Tamanho padrão corpo de texto
+                lineHeight: '1.5',
+                fontFamily: 'Arial, "Times New Roman", sans-serif',
                 boxSizing: 'border-box',
                 color: '#000'
             }}

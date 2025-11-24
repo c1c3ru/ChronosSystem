@@ -6,6 +6,7 @@ export type FormType =
   | 'final-report'
   | 'monthly-report'
   | 'internship-registration'
+  | 'internship-registration-request'
   | 'commitment-term'
   | 'additive-term'
   | 'equivalence-request'
