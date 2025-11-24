@@ -210,10 +210,7 @@ export default function AdminPage() {
                     <div>
                       <p className="text-neutral-400 text-xs sm:text-sm font-medium">Total de Usuários</p>
                       <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.totalUsers}</p>
-                      <p className="text-xs text-primary mt-1 flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        +2 este mês
-                      </p>
+
                     </div>
                     <div className="bg-secondary-500/20 rounded-2xl p-2 sm:p-3">
                       <Users className="h-6 w-6 sm:h-8 sm:w-8 text-secondary-500" />
@@ -228,10 +225,7 @@ export default function AdminPage() {
                     <div>
                       <p className="text-neutral-400 text-xs sm:text-sm font-medium">Registros Hoje</p>
                       <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.todayRecords}</p>
-                      <p className="text-xs text-success mt-1 flex items-center">
-                        <Activity className="h-3 w-3 mr-1" />
-                        +12% vs ontem
-                      </p>
+
                     </div>
                     <div className="bg-primary/20 rounded-2xl p-2 sm:p-3">
                       <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
@@ -246,10 +240,7 @@ export default function AdminPage() {
                     <div>
                       <p className="text-neutral-400 text-xs sm:text-sm font-medium">Máquinas Ativas</p>
                       <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.activeMachines}</p>
-                      <p className="text-xs text-warning mt-1 flex items-center">
-                        <Monitor className="h-3 w-3 mr-1" />
-                        2 offline
-                      </p>
+
                     </div>
                     <div className="bg-warning/20 rounded-2xl p-2 sm:p-3">
                       <Monitor className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />

@@ -39,6 +39,7 @@ export async function printElementAsPDF(
       html2canvas: {
         scale: 2, // Resolução alta
         useCORS: true,
+        allowTaint: true, // Permite processar imagens locais
         logging: false,
         letterRendering: true,
         windowWidth: 794, // Largura exata A4 em pixels (96 DPI) - evita reescalonamento estranho
@@ -248,6 +249,7 @@ export async function generatePDFBlob(
       html2canvas: {
         scale: 2,
         useCORS: true,
+        allowTaint: true, // Permite processar imagens locais
         logging: false,
         letterRendering: true,
         windowWidth: 794, // Largura exata A4 em pixels (96 DPI)

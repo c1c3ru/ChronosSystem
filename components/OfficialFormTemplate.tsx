@@ -1,7 +1,6 @@
 'use client'
 
 import React, { ReactNode } from 'react'
-import Image from 'next/image'
 
 interface OfficialFormTemplateProps {
     /** Título principal do formulário */
@@ -43,11 +42,11 @@ export function OfficialHeader({
                 {/* Logo IFCE */}
                 {showLogos && (
                     <div className="w-20 flex-shrink-0">
-                        <Image
+                        <img
                             src="/assets/logoifce.png"
                             alt="Logo IFCE"
-                            width={64}
-                            height={64}
+                            width="64"
+                            height="64"
                             className="object-contain"
                         />
                     </div>
@@ -72,11 +71,11 @@ export function OfficialHeader({
                 {/* Brasão */}
                 {showLogos && (
                     <div className="w-20 flex-shrink-0">
-                        <Image
+                        <img
                             src="/assets/brasao.png"
                             alt="Brasão da República"
-                            width={64}
-                            height={64}
+                            width="64"
+                            height="64"
                             className="object-contain"
                         />
                     </div>

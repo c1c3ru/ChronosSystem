@@ -7,10 +7,51 @@ import { prisma } from '@/lib/prisma'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
+
+// Função auxiliar para calcular dias úteis (segunda a sexta)
+function getBusinessDays(startDate: Date, endDate: Date): number {
+  let count = 0
+  const current = new Date(startDate)
+
+  while (current <= endDate) {
+    const dayOfWeek = current.getDay()
+    // 0 = domingo, 6 = sábado
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      count++
+    }
+    current.setDate(current.getDate() + 1)
+  }
+
+  return count
+}
+
+// Função auxiliar para calcular horas trabalhadas em um dia
+function calculateDailyHours(entries: Date[], exits: Date[]): number {
+  let totalMinutes = 0
+
+  for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
+    const diff = exits[i].getTime() - entries[i].getTime()
+    totalMinutes += diff / (1000 * 60)
+  }
+
+  return totalMinutes / 60
+}
+
+// Função auxiliar para verificar se houve atraso
+function isLate(entryTime: Date, expectedStartTime: string): boolean {
+  const [hours, minutes] = expectedStartTime.split(':').map(Number)
+  const expectedTime = new Date(entryTime)
+  expectedTime.setHours(hours, minutes, 0, 0)
+
+  // Tolerância de 15 minutos
+  const toleranceMs = 15 * 60 * 1000
+  return entryTime.getTime() > (expectedTime.getTime() + toleranceMs)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -18,135 +59,198 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const period = parseInt(searchParams.get('period') || '30')
 
-    // Simular dados de frequência
-    const simulatedFrequencyData = [
-      {
-        user: {
-          id: 'user-1',
-          name: 'João Silva',
-          email: 'joao@empresa.com',
-          role: 'EMPLOYEE'
-        },
-        totalDays: Math.min(period, 22), // Dias úteis no período
-        presentDays: Math.min(period, 20),
-        absentDays: 2,
-        lateCount: 3,
-        frequencyPercentage: 90.9,
-        averageHours: 8.2,
-        lastRecord: {
-          date: new Date().toISOString(),
-          type: 'ENTRY'
-        }
-      },
-      {
-        user: {
-          id: 'user-2',
-          name: 'Maria Santos',
-          email: 'maria@empresa.com',
-          role: 'SUPERVISOR'
-        },
-        totalDays: Math.min(period, 22),
-        presentDays: Math.min(period, 22),
-        absentDays: 0,
-        lateCount: 1,
-        frequencyPercentage: 100.0,
-        averageHours: 8.5,
-        lastRecord: {
-          date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          type: 'EXIT'
-        }
-      },
-      {
-        user: {
-          id: 'user-3',
-          name: 'Pedro Costa',
-          email: 'pedro@empresa.com',
-          role: 'EMPLOYEE'
-        },
-        totalDays: Math.min(period, 22),
-        presentDays: Math.min(period, 15),
-        absentDays: 7,
-        lateCount: 8,
-        frequencyPercentage: 68.2,
-        averageHours: 7.1,
-        lastRecord: {
-          date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          type: 'ENTRY'
-        }
-      },
-      {
-        user: {
-          id: 'user-4',
-          name: 'Ana Oliveira',
-          email: 'ana@empresa.com',
-          role: 'EMPLOYEE'
-        },
-        totalDays: Math.min(period, 22),
-        presentDays: Math.min(period, 21),
-        absentDays: 1,
-        lateCount: 2,
-        frequencyPercentage: 95.5,
-        averageHours: 8.0,
-        lastRecord: {
-          date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          type: 'EXIT'
-        }
-      },
-      {
-        user: {
-          id: 'user-5',
-          name: 'Carlos Ferreira',
-          email: 'carlos@empresa.com',
-          role: 'ADMIN'
-        },
-        totalDays: Math.min(period, 22),
-        presentDays: Math.min(period, 19),
-        absentDays: 3,
-        lateCount: 0,
-        frequencyPercentage: 86.4,
-        averageHours: 9.2,
-        lastRecord: {
-          date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          type: 'ENTRY'
-        }
-      }
-    ]
+    // Calcular data de início do período
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - period)
 
-    // Simular estatísticas mensais
-    const simulatedMonthlyStats = [
-      {
-        month: 'Outubro 2025',
-        totalUsers: 5,
-        averageFrequency: 88.2,
-        totalRecords: 180,
-        lateRecords: 14
-      },
-      {
-        month: 'Setembro 2025',
-        totalUsers: 5,
-        averageFrequency: 92.1,
-        totalRecords: 220,
-        lateRecords: 8
-      },
-      {
-        month: 'Agosto 2025',
-        totalUsers: 4,
-        averageFrequency: 89.5,
-        totalRecords: 176,
-        lateRecords: 12
-      },
-      {
-        month: 'Julho 2025',
-        totalUsers: 4,
-        averageFrequency: 91.3,
-        totalRecords: 184,
-        lateRecords: 9
+    // Buscar todos os usuários
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        shiftStartTime: true,
+        contractStartDate: true,
+        attendanceRecords: {
+          where: {
+            timestamp: {
+              gte: startDate,
+              lte: endDate
+            }
+          },
+          orderBy: {
+            timestamp: 'asc'
+          }
+        }
       }
-    ]
+    })
+
+    // Calcular estatísticas para cada usuário
+    const frequencyData = users.map(user => {
+      const records = user.attendanceRecords
+
+      // Agrupar registros por dia
+      const recordsByDay = new Map<string, { entries: Date[], exits: Date[] }>()
+
+      records.forEach(record => {
+        const dateKey = record.timestamp.toISOString().split('T')[0]
+        if (!recordsByDay.has(dateKey)) {
+          recordsByDay.set(dateKey, { entries: [], exits: [] })
+        }
+
+        const dayRecords = recordsByDay.get(dateKey)!
+        if (record.type === 'ENTRY') {
+          dayRecords.entries.push(record.timestamp)
+        } else if (record.type === 'EXIT') {
+          dayRecords.exits.push(record.timestamp)
+        }
+      })
+
+      // Calcular dias úteis no período (considerando data de início do contrato)
+      const userStartDate = user.contractStartDate && user.contractStartDate > startDate
+        ? user.contractStartDate
+        : startDate
+      const totalDays = getBusinessDays(userStartDate, endDate)
+
+      // Calcular dias presentes, faltas e atrasos
+      const presentDays = recordsByDay.size
+      const absentDays = Math.max(0, totalDays - presentDays)
+
+      let lateCount = 0
+      let totalHours = 0
+      let daysWithHours = 0
+
+      recordsByDay.forEach((dayRecords) => {
+        // Verificar atraso
+        if (dayRecords.entries.length > 0) {
+          const firstEntry = dayRecords.entries[0]
+          if (isLate(firstEntry, user.shiftStartTime)) {
+            lateCount++
+          }
+        }
+
+        // Calcular horas trabalhadas
+        if (dayRecords.entries.length > 0 && dayRecords.exits.length > 0) {
+          const hours = calculateDailyHours(dayRecords.entries, dayRecords.exits)
+          totalHours += hours
+          daysWithHours++
+        }
+      })
+
+      const averageHours = daysWithHours > 0 ? totalHours / daysWithHours : 0
+      const frequencyPercentage = totalDays > 0 ? (presentDays / totalDays) * 100 : 0
+
+      // Buscar último registro
+      const lastRecord = records.length > 0 ? records[records.length - 1] : null
+
+      return {
+        user: {
+          id: user.id,
+          name: user.name || 'Sem nome',
+          email: user.email,
+          role: user.role
+        },
+        totalDays,
+        presentDays,
+        absentDays,
+        lateCount,
+        frequencyPercentage,
+        averageHours,
+        lastRecord: lastRecord ? {
+          date: lastRecord.timestamp.toISOString(),
+          type: lastRecord.type
+        } : undefined
+      }
+    })
+
+    // Calcular estatísticas mensais (últimos 4 meses)
+    const monthlyStats = []
+    const now = new Date()
+
+    for (let i = 0; i < 4; i++) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+
+      const monthRecords = await prisma.attendanceRecord.findMany({
+        where: {
+          timestamp: {
+            gte: monthStart,
+            lte: monthEnd
+          }
+        },
+        include: {
+          user: {
+            select: {
+              shiftStartTime: true
+            }
+          }
+        }
+      })
+
+      // Agrupar por usuário
+      const userRecords = new Map<string, typeof monthRecords>()
+      monthRecords.forEach(record => {
+        if (!userRecords.has(record.userId)) {
+          userRecords.set(record.userId, [])
+        }
+        userRecords.get(record.userId)!.push(record)
+      })
+
+      // Calcular estatísticas do mês
+      const totalUsers = userRecords.size
+      let totalFrequency = 0
+      let lateRecords = 0
+
+      userRecords.forEach((records, userId) => {
+        const recordsByDay = new Map<string, { entries: Date[], exits: Date[] }>()
+
+        records.forEach(record => {
+          const dateKey = record.timestamp.toISOString().split('T')[0]
+          if (!recordsByDay.has(dateKey)) {
+            recordsByDay.set(dateKey, { entries: [], exits: [] })
+          }
+
+          const dayRecords = recordsByDay.get(dateKey)!
+          if (record.type === 'ENTRY') {
+            dayRecords.entries.push(record.timestamp)
+          } else if (record.type === 'EXIT') {
+            dayRecords.exits.push(record.timestamp)
+          }
+        })
+
+        const businessDays = getBusinessDays(monthStart, monthEnd)
+        const presentDays = recordsByDay.size
+        const frequency = businessDays > 0 ? (presentDays / businessDays) * 100 : 0
+        totalFrequency += frequency
+
+        // Contar atrasos
+        recordsByDay.forEach((dayRecords) => {
+          if (dayRecords.entries.length > 0) {
+            const firstEntry = dayRecords.entries[0]
+            const shiftStartTime = records[0].user.shiftStartTime
+            if (isLate(firstEntry, shiftStartTime)) {
+              lateRecords++
+            }
+          }
+        })
+      })
+
+      const averageFrequency = totalUsers > 0 ? totalFrequency / totalUsers : 0
+
+      monthlyStats.push({
+        month: monthStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        totalUsers,
+        averageFrequency,
+        totalRecords: monthRecords.length,
+        lateRecords
+      })
+    }
 
     return NextResponse.json({
-      frequencyData: simulatedFrequencyData,
-      monthlyStats: simulatedMonthlyStats
+      frequencyData,
+      monthlyStats
     })
   } catch (error) {
     console.error('Erro ao buscar dados de frequência:', error)
