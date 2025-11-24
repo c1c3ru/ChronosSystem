@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  Users, 
-  Clock, 
-  Monitor, 
-  BarChart3, 
+import {
+  Users,
+  Clock,
+  Monitor,
+  BarChart3,
   Settings,
   UserPlus,
   Calendar,
@@ -60,7 +60,7 @@ export default function AdminPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -83,7 +83,7 @@ export default function AdminPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      
+
       // Carregar dados reais das APIs
       const [statsResponse, activityResponse] = await Promise.all([
         fetch('/api/dashboard/stats'),
@@ -109,21 +109,13 @@ export default function AdminPage() {
       console.error('Erro ao carregar dados do dashboard:', error)
       // Fallback para dados mockados em caso de erro
       setStats({
-        totalUsers: 24,
-        todayRecords: 48,
-        activeMachines: 8,
-        alerts: 3
+        totalUsers: 0,
+        todayRecords: 0,
+        activeMachines: 0,
+        alerts: 0
       })
 
-      setRecentActivity([
-        {
-          id: '1',
-          user: 'Maria Santos',
-          action: 'registrou entrada',
-          timestamp: 'há 2 minutos',
-          type: 'ENTRY'
-        }
-      ])
+      setRecentActivity([])
     } finally {
       setLoading(false)
     }
@@ -155,7 +147,7 @@ export default function AdminPage() {
     }
   }
 
-  const filteredActivity = recentActivity.filter(activity => 
+  const filteredActivity = recentActivity.filter(activity =>
     filterType === 'ALL' || activity.type === filterType
   )
 
@@ -188,7 +180,7 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-white font-medium">{session.user.name}</p>
@@ -266,23 +258,25 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
 
-              <Card variant="glass" className="hover:scale-105 transition-transform duration-200">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Alertas</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.alerts}</p>
-                      <p className="text-xs text-error mt-1 flex items-center">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        Requer atenção
-                      </p>
+              <Link href="/admin/reports/justifications">
+                <Card variant="glass" className="hover:scale-105 transition-transform duration-200 cursor-pointer h-full">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-neutral-400 text-xs sm:text-sm font-medium">Alertas</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.alerts}</p>
+                        <p className="text-xs text-error mt-1 flex items-center">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Justificativas pendentes
+                        </p>
+                      </div>
+                      <div className="bg-error/20 rounded-2xl p-2 sm:p-3">
+                        <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-error" />
+                      </div>
                     </div>
-                    <div className="bg-error/20 rounded-2xl p-2 sm:p-3">
-                      <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-error" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
 
             {/* Quick Actions */}
@@ -361,11 +355,10 @@ export default function AdminPage() {
                     filteredActivity.map((activity) => (
                       <div key={activity.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group">
                         <div className="flex items-center space-x-4 flex-1">
-                          <div className={`p-2 rounded-lg flex-shrink-0 ${
-                            activity.type === 'ENTRY' 
-                              ? 'bg-primary/20 text-primary' 
-                              : 'bg-warning/20 text-warning'
-                          }`}>
+                          <div className={`p-2 rounded-lg flex-shrink-0 ${activity.type === 'ENTRY'
+                            ? 'bg-primary/20 text-primary'
+                            : 'bg-warning/20 text-warning'
+                            }`}>
                             {activity.type === 'ENTRY' ? (
                               <LogIn className="h-4 w-4" />
                             ) : (
@@ -398,7 +391,7 @@ export default function AdminPage() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="mt-6 text-center">
                   <Button variant="ghost" className="text-primary hover:text-primary/80">
                     Ver todas as atividades

@@ -544,6 +544,35 @@ export default function EmployeePage() {
           {/* Status Card */}
           <Card variant="glass" className="overflow-hidden">
             <CardContent className="p-6">
+              {/* 🎯 Banner de Próximo Registro */}
+              <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${workStatus?.isWorking
+                  ? 'bg-warning/20 border-l-4 border-warning'
+                  : 'bg-success-500/20 border-l-4 border-success-500'
+                }`}>
+                <div className="flex items-center space-x-3">
+                  {workStatus?.isWorking ? (
+                    <LogOut className="h-5 w-5 text-warning flex-shrink-0" />
+                  ) : (
+                    <LogIn className="h-5 w-5 text-success-400 flex-shrink-0" />
+                  )}
+                  <div>
+                    <p className={`font-bold text-sm ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                      }`}>
+                      Próximo registro: {workStatus?.isWorking ? 'SAÍDA' : 'ENTRADA'}
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      {workStatus?.isWorking
+                        ? 'Finalize seu expediente ao sair'
+                        : 'Inicie seu expediente ao chegar'}
+                    </p>
+                  </div>
+                </div>
+                <div className={`text-2xl ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                  }`}>
+                  {workStatus?.isWorking ? '🔴' : '🟢'}
+                </div>
+              </div>
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className={`w-4 h-4 rounded-full ${workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
@@ -668,19 +697,41 @@ export default function EmployeePage() {
           {/* Main Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* QR Code Scanner */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+            <Card variant="glass" className={`group hover:scale-105 transition-all duration-200 h-full ${workStatus?.isWorking
+              ? 'border-2 border-warning/50 shadow-lg shadow-warning/20'
+              : 'border-2 border-success-500/50 shadow-lg shadow-success-500/20'
+              }`}>
               <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
-                <div className="bg-primary/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-primary/30 transition-colors">
+                {/* 🎯 INDICADOR VISUAL GRANDE E CLARO */}
+                <div className={`rounded-2xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 transition-all ${workStatus?.isWorking
+                  ? 'bg-warning/30 ring-4 ring-warning/40'
+                  : 'bg-success-500/30 ring-4 ring-success-500/40'
+                  }`}>
                   {workStatus?.isWorking ? (
-                    <Square className="h-10 w-10 text-primary" />
+                    <LogOut className="h-12 w-12 sm:h-14 sm:w-14 text-warning animate-pulse" />
                   ) : (
-                    <Play className="h-10 w-10 text-primary" />
+                    <LogIn className="h-12 w-12 sm:h-14 sm:w-14 text-success-400 animate-pulse" />
                   )}
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                  {workStatus?.isWorking ? 'Registrar Saída' : 'Registrar Entrada'}
-                </h3>
-                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
+
+                {/* 🎯 TÍTULO GRANDE E COLORIDO */}
+                <div className={`mb-3 p-3 rounded-lg ${workStatus?.isWorking
+                  ? 'bg-warning/20 border-2 border-warning/40'
+                  : 'bg-success-500/20 border-2 border-success-500/40'
+                  }`}>
+                  <h3 className={`text-xl sm:text-2xl font-bold mb-1 ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                    }`}>
+                    {workStatus?.isWorking ? '🔴 REGISTRAR SAÍDA' : '🟢 REGISTRAR ENTRADA'}
+                  </h3>
+                  <p className={`text-sm font-medium ${workStatus?.isWorking ? 'text-warning/80' : 'text-success-300'
+                    }`}>
+                    {workStatus?.isWorking
+                      ? 'Você está trabalhando agora'
+                      : 'Você está fora do expediente'}
+                  </p>
+                </div>
+
+                <p className="text-neutral-400 text-xs sm:text-sm mb-4">
                   Use a câmera para registrar seu ponto na máquina
                 </p>
 
@@ -786,14 +837,17 @@ export default function EmployeePage() {
                     console.log('🔘 [BUTTON] Estados:', { scanning, isCheckingCamera, cameraPermission })
                     startScanning()
                   }}
-                  className="w-full mt-auto"
+                  className={`w-full mt-auto text-base sm:text-lg font-bold py-6 ${workStatus?.isWorking
+                    ? 'bg-warning hover:bg-warning/90 text-neutral-900'
+                    : 'bg-success-500 hover:bg-success-600 text-white'
+                    }`}
                   disabled={scanning || isCheckingCamera || cooldownSeconds > 0}
                 >
                   <Camera className="h-5 w-5 mr-2" />
                   {scanning ? 'Abrindo Scanner...' :
                     isCheckingCamera ? 'Verificando...' :
                       cooldownSeconds > 0 ? `Aguarde ${cooldownSeconds}s` :
-                        'Abrir Scanner QR'}
+                        workStatus?.isWorking ? '📤 REGISTRAR SAÍDA' : '📥 REGISTRAR ENTRADA'}
                 </Button>
               </CardContent>
             </Card>
