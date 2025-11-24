@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { emailService } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tipo, data e motivo são obrigatórios' }, { status: 400 })
     }
 
-    if (!['LATE', 'ABSENCE'].includes(type)) {
+    if (!['LATE', 'ABSENCE', 'EARLY_DEPARTURE'].includes(type)) {
       return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 })
     }
 
@@ -112,6 +113,51 @@ export async function POST(request: NextRequest) {
         details: `Justificativa criada: ${type} para ${date} - ${pendingCount + 1}ª justificativa`
       }
     })
+
+    // 🎯 NOVO: Enviar notificação ao supervisor
+    try {
+      // Buscar todos os supervisores e admins
+      const supervisors = await prisma.user.findMany({
+        where: {
+          role: {
+            in: ['ADMIN', 'SUPERVISOR']
+          }
+        },
+        select: {
+          email: true,
+          name: true
+        }
+      })
+
+      // Buscar dados do usuário
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          name: true,
+          email: true
+        }
+      })
+
+      // Enviar email para cada supervisor
+      for (const supervisor of supervisors) {
+        await emailService.sendJustificationSubmittedEmail(
+          supervisor.email,
+          supervisor.name || 'Supervisor',
+          user?.name || 'Funcionário',
+          user?.email || '',
+          {
+            type,
+            date: justification.date.toISOString(),
+            reason
+          }
+        )
+      }
+
+      console.log(`📧 [NOTIFICATION] Emails enviados para ${supervisors.length} supervisor(es)`)
+    } catch (emailError) {
+      // Não falhar a criação da justificativa se o email falhar
+      console.error('❌ [NOTIFICATION] Erro ao enviar notificação:', emailError)
+    }
 
     return NextResponse.json({
       success: true,

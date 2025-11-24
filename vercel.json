@@ -3,12 +3,20 @@
   "devCommand": "npm run dev",
   "installCommand": "npm ci",
   "framework": "nextjs",
-  "regions": ["gru1"],
+  "regions": [
+    "gru1"
+  ],
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/daily-justification-check",
+      "schedule": "0 9 * * *"
+    }
+  ],
   "env": {
     "NEXTAUTH_URL": "https://chronos-system.vercel.app",
     "NODE_ENV": "production",

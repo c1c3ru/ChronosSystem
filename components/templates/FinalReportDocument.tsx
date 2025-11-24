@@ -39,12 +39,12 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
     }
 
     const EvaluationRow = ({ label, value }: { label: string, value: string }) => (
-        <tr>
-            <td className="border border-gray-400 px-2 py-1 text-[9pt]">{label}</td>
-            <td className="border border-gray-400 px-2 py-1 text-center text-[9pt]">{value === '1' ? 'X' : ''}</td>
-            <td className="border border-gray-400 px-2 py-1 text-center text-[9pt]">{value === '2' ? 'X' : ''}</td>
-            <td className="border border-gray-400 px-2 py-1 text-center text-[9pt]">{value === '3' ? 'X' : ''}</td>
-            <td className="border border-gray-400 px-2 py-1 text-center text-[9pt]">{value === '4' ? 'X' : ''}</td>
+        <tr style={{ pageBreakInside: 'avoid' }}>
+            <td className="border border-gray-400 px-1.5 py-0.5 text-[8pt]">{label}</td>
+            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '1' ? 'X' : ''}</td>
+            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '2' ? 'X' : ''}</td>
+            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '3' ? 'X' : ''}</td>
+            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '4' ? 'X' : ''}</td>
         </tr>
     )
 
@@ -119,7 +119,7 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="border border-gray-400 p-2 align-top h-[150px] whitespace-pre-wrap">
+                        <td className="border border-gray-400 p-2 align-top h-[80px] whitespace-pre-wrap">
                             {data.activities}
                         </td>
                     </tr>
@@ -127,14 +127,14 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
             </FormTable>
 
             {/* Avaliação */}
-            <div className="mb-4 border border-gray-400">
-                <div className="bg-gray-100 p-2 font-bold text-center border-b border-gray-400 text-[9pt]">
+            <div className="mt-4 border border-gray-400" style={{ pageBreakInside: 'avoid' }}>
+                <div className="bg-gray-100 p-1.5 font-bold text-center border-b border-gray-400 text-[9pt]">
                     AVALIAÇÃO AO DISCENTE ESTAGIÁRIO
                 </div>
                 <div className="flex">
-                    <div className="w-1/3 p-2 border-r border-gray-400 text-[8pt]">
-                        <div className="font-bold mb-2 text-center">ATRIBUIR VALORES ÀS CARACTERÍSTICAS DO ESTAGIÁRIO, DE ACORDO COM OS CONCEITOS</div>
-                        <div className="mt-4 space-y-1">
+                    <div className="w-1/3 p-1.5 border-r border-gray-400 text-[7pt]">
+                        <div className="font-bold mb-1 text-center">ATRIBUIR VALORES ÀS CARACTERÍSTICAS DO ESTAGIÁRIO, DE ACORDO COM OS CONCEITOS</div>
+                        <div className="mt-2 space-y-0.5">
                             <div>( 1 ) INSATISFATÓRIO</div>
                             <div>( 2 ) POUCO SATISFATÓRIO</div>
                             <div>( 3 ) SATISFATÓRIO</div>
@@ -142,14 +142,14 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
                         </div>
                     </div>
                     <div className="w-2/3">
-                        <table className="w-full text-[9pt]">
+                        <table className="w-full text-[8pt]" style={{ pageBreakInside: 'avoid' }}>
                             <thead>
                                 <tr>
-                                    <th className="border-b border-r border-gray-400 px-2 py-1 text-left w-full">CONCEITOS</th>
-                                    <th className="border-b border-r border-gray-400 px-2 py-1 w-8 text-center">(1)</th>
-                                    <th className="border-b border-r border-gray-400 px-2 py-1 w-8 text-center">(2)</th>
-                                    <th className="border-b border-r border-gray-400 px-2 py-1 w-8 text-center">(3)</th>
-                                    <th className="border-b border-gray-400 px-2 py-1 w-8 text-center">(4)</th>
+                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 text-left w-full">CONCEITOS</th>
+                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 w-8 text-center">(1)</th>
+                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 w-8 text-center">(2)</th>
+                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 w-8 text-center">(3)</th>
+                                    <th className="border-b border-gray-400 px-1.5 py-0.5 w-8 text-center">(4)</th>
                                 </tr>
                             </thead>
                             <tbody>

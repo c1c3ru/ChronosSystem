@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Verificar se não há registro duplicado no mesmo minuto
+    // Verificar se não há registro duplicado no mesmo minuto (qualquer tipo)
     const now = Date.now()
     const oneMinuteAgo = new Date(now - 60 * 1000)
     const recentRecord = await prisma.attendanceRecord.findFirst({
@@ -332,15 +332,20 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         timestamp: {
           gte: oneMinuteAgo
-        },
-        type: recordType
+        }
+        // Removido filtro 'type' para bloquear QUALQUER registro recente
       }
     })
 
     if (recentRecord) {
+      const recordTypeLabel = recentRecord.type === 'ENTRY' ? 'entrada' : 'saída'
       return NextResponse.json({
-        error: `Registro de ${recordType === 'ENTRY' ? 'entrada' : 'saída'} já feito recentemente. Aguarde 1 minuto.`,
-        code: 'DUPLICATE_RECORD'
+        error: `Você já registrou ${recordTypeLabel} recentemente. Aguarde 1 minuto entre registros.`,
+        code: 'DUPLICATE_RECORD',
+        lastRecord: {
+          type: recentRecord.type,
+          time: recentRecord.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        }
       }, { status: 400 })
     }
 

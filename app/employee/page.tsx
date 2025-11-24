@@ -89,6 +89,11 @@ export default function EmployeePage() {
     completedHours?: number
   } | null>(null)
 
+  // 🎯 Novos estados para melhorias de UX
+  const [cooldownSeconds, setCooldownSeconds] = useState(0)
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
+  const [lastRecordType, setLastRecordType] = useState<'ENTRY' | 'EXIT' | null>(null)
+
   // Verificar permissões da câmera ao carregar
   useEffect(() => {
     checkCameraPermission()
@@ -232,6 +237,16 @@ export default function EmployeePage() {
     }
   }, [session])
 
+  // 🎯 Cooldown timer - conta regressiva após registro
+  useEffect(() => {
+    if (cooldownSeconds > 0) {
+      const timer = setTimeout(() => {
+        setCooldownSeconds(cooldownSeconds - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [cooldownSeconds])
+
   const loadEmployeeData = async () => {
     try {
       setLoading(true)
@@ -324,12 +339,27 @@ export default function EmployeePage() {
       if (response.ok && result.success) {
         console.log('✅ [QR] Ponto registrado com sucesso!')
 
+        // 🎯 VIBRAÇÃO - Feedback tátil
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200, 100, 200]) // Padrão de vibração: 200ms, pausa 100ms, 200ms
+        }
+
         // Mostrar feedback de sucesso imediatamente
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
         const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit'
         })
+
+        // 🎯 Salvar tipo do último registro para cores
+        setLastRecordType(result.record.type)
+
+        // 🎯 Ativar animação de sucesso
+        setShowSuccessAnimation(true)
+        setTimeout(() => setShowSuccessAnimation(false), 3000)
+
+        // 🎯 Iniciar cooldown de 60 segundos
+        setCooldownSeconds(60)
 
         // Mostrar informação inteligente se disponível
         const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' :
@@ -482,14 +512,27 @@ export default function EmployeePage() {
 
 
 
-          {/* Notificação de Último Registro */}
+          {/* 🎯 Notificação de Último Registro com Cores Dinâmicas */}
           {lastRegistration && (
-            <div className="bg-success-500/20 border border-success-500/30 rounded-lg p-4 animate-in slide-in-from-top-2 duration-300">
+            <div className={`
+              ${lastRecordType === 'ENTRY' ? 'bg-success-500/20 border-success-500/30' : 'bg-warning/20 border-warning/30'}
+              border rounded-lg p-4 
+              ${showSuccessAnimation ? 'animate-in slide-in-from-top-2 scale-in-95' : 'animate-in fade-in'}
+              duration-300
+            `}>
               <div className="flex items-center space-x-3">
-                <CheckCircle className="h-5 w-5 text-success-400 flex-shrink-0" />
+                {lastRecordType === 'ENTRY' ? (
+                  <LogIn className={`h-6 w-6 flex-shrink-0 ${showSuccessAnimation ? 'animate-bounce' : ''} text-success-400`} />
+                ) : (
+                  <LogOut className={`h-6 w-6 flex-shrink-0 ${showSuccessAnimation ? 'animate-bounce' : ''} text-warning`} />
+                )}
                 <div>
-                  <p className="text-success-400 font-medium">Ponto Registrado!</p>
-                  <p className="text-success-300 text-sm">{lastRegistration}</p>
+                  <p className={`font-bold text-lg ${lastRecordType === 'ENTRY' ? 'text-success-400' : 'text-warning'}`}>
+                    ✅ {lastRecordType === 'ENTRY' ? 'ENTRADA' : 'SAÍDA'} Registrada!
+                  </p>
+                  <p className={`text-sm ${lastRecordType === 'ENTRY' ? 'text-success-300' : 'text-warning/80'}`}>
+                    {lastRegistration}
+                  </p>
                 </div>
               </div>
             </div>
@@ -720,6 +763,21 @@ export default function EmployeePage() {
                       </Button>
                     </div>
                   )}
+
+                  {/* 🎯 Cooldown Timer */}
+                  {cooldownSeconds > 0 && (
+                    <div className="bg-warning/20 border border-warning/30 rounded-lg p-3 mb-4">
+                      <div className="text-center">
+                        <Clock className="h-6 w-6 text-warning mx-auto mb-2" />
+                        <p className="text-warning text-sm font-medium">
+                          Aguarde {cooldownSeconds}s
+                        </p>
+                        <p className="text-warning/70 text-xs mt-1">
+                          Próximo registro disponível em breve
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <Button
@@ -729,12 +787,13 @@ export default function EmployeePage() {
                     startScanning()
                   }}
                   className="w-full mt-auto"
-                  disabled={scanning || isCheckingCamera}
+                  disabled={scanning || isCheckingCamera || cooldownSeconds > 0}
                 >
                   <Camera className="h-5 w-5 mr-2" />
                   {scanning ? 'Abrindo Scanner...' :
                     isCheckingCamera ? 'Verificando...' :
-                      'Abrir Scanner QR'}
+                      cooldownSeconds > 0 ? `Aguarde ${cooldownSeconds}s` :
+                        'Abrir Scanner QR'}
                 </Button>
               </CardContent>
             </Card>

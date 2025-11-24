@@ -20,11 +20,11 @@ interface PasswordResetEmailData {
 export class EmailService {
   private static instance: EmailService
   private transporter: Transporter | null = null
-  
+
   private constructor() {
     this.initializeTransporter()
   }
-  
+
   static getInstance(): EmailService {
     if (!EmailService.instance) {
       EmailService.instance = new EmailService()
@@ -51,14 +51,14 @@ export class EmailService {
       // Verificar se as credenciais estão configuradas
       if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.warn('⚠️ [EMAIL] Credenciais SMTP não configuradas. Usando modo de desenvolvimento.')
-        
+
         // Usar Ethereal Email para desenvolvimento/teste
         this.createTestAccount()
         return
       }
 
       this.transporter = nodemailer.createTransport(emailConfig)
-      
+
       // Verificar conexão
       this.transporter?.verify((error, success) => {
         if (error) {
@@ -77,7 +77,7 @@ export class EmailService {
     try {
       // Criar conta de teste com Ethereal Email
       const testAccount = await nodemailer.createTestAccount()
-      
+
       this.transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
@@ -120,15 +120,15 @@ export class EmailService {
       })
 
       const info = await this.transporter.sendMail(mailOptions)
-      
+
       console.log('✅ [EMAIL] Email enviado com sucesso!')
       console.log(`   Message ID: ${info.messageId}`)
-      
+
       // Se usando Ethereal, mostrar URL de preview
       if (info.previewURL) {
         console.log(`   📧 Preview: ${info.previewURL}`)
       }
-      
+
       return true
     } catch (error) {
       console.error('❌ [EMAIL] Erro ao enviar email:', error)
@@ -138,7 +138,7 @@ export class EmailService {
 
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<boolean> {
     const subject = 'Reset de Senha - Chronos System'
-    
+
     const html = this.generatePasswordResetHTML(data)
     const text = this.generatePasswordResetText(data)
 
@@ -151,12 +151,12 @@ export class EmailService {
   }
 
   async sendMassPasswordResetNotification(
-    adminEmail: string, 
-    resetCount: number, 
+    adminEmail: string,
+    resetCount: number,
     reason: string
   ): Promise<boolean> {
     const subject = `Reset de Senha em Massa - ${resetCount} usuários`
-    
+
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1f2937;">Reset de Senha em Massa</h2>
@@ -199,7 +199,7 @@ export class EmailService {
 
   private generatePasswordResetHTML(data: PasswordResetEmailData): string {
     const expiresIn = Math.ceil((data.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60))
-    
+
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #e5e7eb;">
@@ -256,7 +256,7 @@ export class EmailService {
 
   private generatePasswordResetText(data: PasswordResetEmailData): string {
     const expiresIn = Math.ceil((data.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60))
-    
+
     return `
       Chronos System - Reset de Senha
       
@@ -277,6 +277,271 @@ export class EmailService {
       ---
       Este é um email automático do sistema Chronos. Não responda a este email.
     `
+  }
+
+  /**
+   * 🎯 Envia email notificando usuário sobre justificativa obrigatória
+   */
+  async sendJustificationRequiredEmail(
+    userEmail: string,
+    userName: string,
+    pendingIssues: Array<{
+      date: string
+      type: string
+      description: string
+    }>
+  ): Promise<boolean> {
+    const subject = `⚠️ Justificativa Obrigatória - Chronos System`
+
+    const issuesList = pendingIssues.map(issue => {
+      const typeText = issue.type === 'LATE' ? 'Atraso' :
+        issue.type === 'ABSENCE' ? 'Falta' :
+          'Saída Antecipada'
+      const date = new Date(issue.date).toLocaleDateString('pt-BR')
+      return `
+        <li style="margin-bottom: 12px;">
+          <strong>${typeText}</strong> - ${date}<br>
+          <span style="color: #6b7280; font-size: 14px;">${issue.description}</span>
+        </li>
+      `
+    }).join('')
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #e5e7eb;">
+          <h1 style="color: #1f2937; margin: 0;">🕐 Chronos System</h1>
+        </div>
+        
+        <div style="padding: 32px 20px;">
+          <h2 style="color: #1f2937;">Justificativa Obrigatória</h2>
+          
+          <p>Olá <strong>${userName}</strong>,</p>
+          
+          <p>Detectamos ${pendingIssues.length} situação(ões) que requer(em) justificativa obrigatória:</p>
+          
+          <div style="background-color: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #f59e0b;">
+            <ul style="margin: 0; padding-left: 20px;">
+              ${issuesList}
+            </ul>
+          </div>
+          
+          <p><strong>⏰ Ação Necessária:</strong></p>
+          <p>Por favor, acesse o sistema e envie suas justificativas o mais breve possível.</p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${process.env.NEXTAUTH_URL}/employee/justifications" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+              Enviar Justificativas
+            </a>
+          </div>
+          
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 24px 0; border-left: 4px solid #ef4444;">
+            <p style="margin: 0; color: #991b1b; font-size: 14px;">
+              <strong>⚠️ Importante:</strong> Justificativas não enviadas podem afetar seu registro de frequência.
+            </p>
+          </div>
+        </div>
+        
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="color: #6b7280; font-size: 12px; margin: 0;">
+            Este é um email automático do sistema Chronos. Não responda a este email.
+          </p>
+        </div>
+      </div>
+    `
+
+    const text = `
+      Chronos System - Justificativa Obrigatória
+      
+      Olá ${userName},
+      
+      Detectamos ${pendingIssues.length} situação(ões) que requer(em) justificativa obrigatória:
+      
+      ${pendingIssues.map(issue => {
+      const typeText = issue.type === 'LATE' ? 'Atraso' :
+        issue.type === 'ABSENCE' ? 'Falta' :
+          'Saída Antecipada'
+      const date = new Date(issue.date).toLocaleDateString('pt-BR')
+      return `- ${typeText} - ${date}: ${issue.description}`
+    }).join('\n      ')}
+      
+      ⏰ Ação Necessária:
+      Por favor, acesse o sistema e envie suas justificativas o mais breve possível.
+      
+      Link: ${process.env.NEXTAUTH_URL}/employee/justifications
+      
+      ⚠️ Importante: Justificativas não enviadas podem afetar seu registro de frequência.
+      
+      ---
+      Este é um email automático do sistema Chronos. Não responda a este email.
+    `
+
+    return await this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      text
+    })
+  }
+
+  /**
+   * 🎯 Envia email ao supervisor quando justificativa é enviada
+   */
+  async sendJustificationSubmittedEmail(
+    supervisorEmail: string,
+    supervisorName: string,
+    employeeName: string,
+    employeeEmail: string,
+    justification: {
+      type: string
+      date: string
+      reason: string
+    }
+  ): Promise<boolean> {
+    const subject = `📋 Nova Justificativa para Aprovação - ${employeeName}`
+
+    const typeText = justification.type === 'LATE' ? 'Atraso' :
+      justification.type === 'ABSENCE' ? 'Falta' :
+        'Saída Antecipada'
+    const date = new Date(justification.date).toLocaleDateString('pt-BR')
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #e5e7eb;">
+          <h1 style="color: #1f2937; margin: 0;">🕐 Chronos System</h1>
+        </div>
+        
+        <div style="padding: 32px 20px;">
+          <h2 style="color: #1f2937;">Nova Justificativa para Aprovação</h2>
+          
+          <p>Olá <strong>${supervisorName}</strong>,</p>
+          
+          <p>Uma nova justificativa foi enviada e aguarda sua aprovação:</p>
+          
+          <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p><strong>Funcionário:</strong> ${employeeName} (${employeeEmail})</p>
+            <p><strong>Tipo:</strong> ${typeText}</p>
+            <p><strong>Data:</strong> ${date}</p>
+            <p><strong>Motivo:</strong></p>
+            <p style="background-color: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
+              ${justification.reason}
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${process.env.NEXTAUTH_URL}/admin/reports/justifications" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+              Revisar Justificativa
+            </a>
+          </div>
+        </div>
+        
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="color: #6b7280; font-size: 12px; margin: 0;">
+            Este é um email automático do sistema Chronos. Não responda a este email.
+          </p>
+        </div>
+      </div>
+    `
+
+    const text = `
+      Chronos System - Nova Justificativa para Aprovação
+      
+      Olá ${supervisorName},
+      
+      Uma nova justificativa foi enviada e aguarda sua aprovação:
+      
+      Funcionário: ${employeeName} (${employeeEmail})
+      Tipo: ${typeText}
+      Data: ${date}
+      Motivo: ${justification.reason}
+      
+      Acesse o sistema para revisar:
+      ${process.env.NEXTAUTH_URL}/admin/reports/justifications
+      
+      ---
+      Este é um email automático do sistema Chronos. Não responda a este email.
+    `
+
+    return await this.sendEmail({
+      to: supervisorEmail,
+      subject,
+      html,
+      text
+    })
+  }
+
+  /**
+   * 🎯 Envia lembrete diário de justificativas pendentes
+   */
+  async sendDailyPendingReminder(
+    userEmail: string,
+    userName: string,
+    pendingCount: number,
+    oldestPendingDate: string
+  ): Promise<boolean> {
+    const subject = `🔔 Lembrete: ${pendingCount} Justificativa(s) Pendente(s)`
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #e5e7eb;">
+          <h1 style="color: #1f2937; margin: 0;">🕐 Chronos System</h1>
+        </div>
+        
+        <div style="padding: 32px 20px;">
+          <h2 style="color: #1f2937;">Lembrete de Justificativas Pendentes</h2>
+          
+          <p>Olá <strong>${userName}</strong>,</p>
+          
+          <p>Você possui <strong>${pendingCount} justificativa(s) pendente(s)</strong> que precisa(m) ser enviada(s).</p>
+          
+          <div style="background-color: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e;">
+              <strong>⏰ Pendente desde:</strong> ${new Date(oldestPendingDate).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+          
+          <p>Não se esqueça de enviar suas justificativas para manter seu registro de frequência em dia.</p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${process.env.NEXTAUTH_URL}/employee/justifications" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+              Ver Pendências
+            </a>
+          </div>
+        </div>
+        
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="color: #6b7280; font-size: 12px; margin: 0;">
+            Este é um email automático do sistema Chronos. Não responda a este email.
+          </p>
+        </div>
+      </div>
+    `
+
+    const text = `
+      Chronos System - Lembrete de Justificativas Pendentes
+      
+      Olá ${userName},
+      
+      Você possui ${pendingCount} justificativa(s) pendente(s) que precisa(m) ser enviada(s).
+      
+      ⏰ Pendente desde: ${new Date(oldestPendingDate).toLocaleDateString('pt-BR')}
+      
+      Não se esqueça de enviar suas justificativas para manter seu registro de frequência em dia.
+      
+      Link: ${process.env.NEXTAUTH_URL}/employee/justifications
+      
+      ---
+      Este é um email automático do sistema Chronos. Não responda a este email.
+    `
+
+    return await this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      text
+    })
   }
 }
 

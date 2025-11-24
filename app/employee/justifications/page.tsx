@@ -21,7 +21,7 @@ import { Loading } from '@/components/ui/Loading'
 interface Justification {
   id: string
   date: string
-  type: 'LATE' | 'ABSENCE'
+  type: 'LATE' | 'ABSENCE' | 'EARLY_DEPARTURE'
   reason: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   createdAt: string
@@ -31,7 +31,7 @@ interface Justification {
 interface PendingIssue {
   id: string
   date: string
-  type: 'LATE' | 'ABSENCE'
+  type: 'LATE' | 'ABSENCE' | 'EARLY_DEPARTURE'
   description: string
   canJustify: boolean
 }
@@ -156,6 +156,7 @@ export default function JustificationsPage() {
     switch (type) {
       case 'LATE': return 'Atraso'
       case 'ABSENCE': return 'Falta'
+      case 'EARLY_DEPARTURE': return 'Saída Antecipada'
       default: return type
     }
   }

@@ -314,6 +314,165 @@ export async function getUserWorkingHours(userId: string): Promise<WorkingHours>
 }
 
 /**
+ * 🎯 Detecta se há atraso na entrada (> 30 minutos)
+ */
+export function detectLateArrival(entryTime: Date, workingHours: WorkingHours): {
+  isLate: boolean
+  minutesLate: number
+  requiresJustification: boolean
+} {
+  const entryMinutes = timeToMinutes(entryTime)
+  const expectedStartMinutes = parseTimeToMinutes(workingHours.start)
+  const minutesLate = entryMinutes - expectedStartMinutes
+
+  return {
+    isLate: minutesLate > 0,
+    minutesLate: Math.max(0, minutesLate),
+    requiresJustification: minutesLate > 30 // Atraso > 30 min requer justificativa
+  }
+}
+
+/**
+ * 🎯 Detecta se há saída antecipada (faltando > 10 min para completar carga horária)
+ */
+export function detectEarlyDeparture(
+  entryTime: Date,
+  exitTime: Date,
+  workingHours: WorkingHours,
+  expectedDailyHours: number = 8 // Padrão: 8 horas/dia
+): {
+  isEarly: boolean
+  minutesShort: number
+  hoursWorked: number
+  requiresJustification: boolean
+} {
+  // Calcular horas trabalhadas (descontando almoço)
+  const totalMinutes = getMinutesDifference(entryTime, exitTime)
+  const lunchStart = parseTimeToMinutes(workingHours.lunchStart)
+  const lunchEnd = parseTimeToMinutes(workingHours.lunchEnd)
+  const lunchDuration = lunchEnd - lunchStart
+
+  // Verificar se o período de trabalho inclui o almoço
+  const entryMinutes = timeToMinutes(entryTime)
+  const exitMinutes = timeToMinutes(exitTime)
+  const includesLunch = entryMinutes < lunchStart && exitMinutes > lunchEnd
+
+  const workedMinutes = includesLunch ? totalMinutes - lunchDuration : totalMinutes
+  const hoursWorked = workedMinutes / 60
+  const expectedMinutes = expectedDailyHours * 60
+  const minutesShort = expectedMinutes - workedMinutes
+
+  return {
+    isEarly: minutesShort > 0,
+    minutesShort: Math.max(0, minutesShort),
+    hoursWorked,
+    requiresJustification: minutesShort > 10 // Faltando > 10 min requer justificativa
+  }
+}
+
+/**
+ * 🎯 Analisa um dia completo e retorna alertas de justificativa necessária
+ */
+export interface DayAnalysis {
+  date: string
+  hasEntry: boolean
+  hasExit: boolean
+  isComplete: boolean
+  lateArrival?: {
+    minutesLate: number
+    requiresJustification: boolean
+  }
+  earlyDeparture?: {
+    minutesShort: number
+    hoursWorked: number
+    requiresJustification: boolean
+  }
+  absence?: {
+    requiresJustification: boolean
+  }
+  requiresJustification: boolean
+  justificationReason?: string
+}
+
+export function analyzeDayForJustification(
+  date: Date,
+  entryRecord: { timestamp: Date } | null,
+  exitRecord: { timestamp: Date } | null,
+  workingHours: WorkingHours,
+  isWorkDay: boolean = true
+): DayAnalysis {
+  const dateStr = date.toISOString().split('T')[0]
+
+  const analysis: DayAnalysis = {
+    date: dateStr,
+    hasEntry: !!entryRecord,
+    hasExit: !!exitRecord,
+    isComplete: !!entryRecord && !!exitRecord,
+    requiresJustification: false
+  }
+
+  // Se não é dia de trabalho, não requer justificativa
+  if (!isWorkDay) {
+    return analysis
+  }
+
+  // CASO 1: Falta completa (sem entrada e sem saída)
+  if (!entryRecord && !exitRecord) {
+    analysis.absence = {
+      requiresJustification: true
+    }
+    analysis.requiresJustification = true
+    analysis.justificationReason = 'Falta não justificada'
+    return analysis
+  }
+
+  // CASO 2: Atraso na entrada
+  if (entryRecord) {
+    const lateCheck = detectLateArrival(entryRecord.timestamp, workingHours)
+    if (lateCheck.isLate) {
+      analysis.lateArrival = {
+        minutesLate: lateCheck.minutesLate,
+        requiresJustification: lateCheck.requiresJustification
+      }
+      if (lateCheck.requiresJustification) {
+        analysis.requiresJustification = true
+        analysis.justificationReason = `Atraso de ${lateCheck.minutesLate} minutos (> 30 min)`
+      }
+    }
+  }
+
+  // CASO 3: Saída antecipada
+  if (entryRecord && exitRecord) {
+    const earlyCheck = detectEarlyDeparture(entryRecord.timestamp, exitRecord.timestamp, workingHours)
+    if (earlyCheck.isEarly) {
+      analysis.earlyDeparture = {
+        minutesShort: earlyCheck.minutesShort,
+        hoursWorked: earlyCheck.hoursWorked,
+        requiresJustification: earlyCheck.requiresJustification
+      }
+      if (earlyCheck.requiresJustification) {
+        analysis.requiresJustification = true
+        analysis.justificationReason = `Saída antecipada: faltam ${earlyCheck.minutesShort} minutos (> 10 min)`
+      }
+    }
+  }
+
+  // CASO 4: Apenas entrada sem saída (dia incompleto)
+  if (entryRecord && !exitRecord) {
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
+
+    // Se não é hoje e não tem saída, requer justificativa
+    if (!isToday) {
+      analysis.requiresJustification = true
+      analysis.justificationReason = 'Registro de saída não encontrado'
+    }
+  }
+
+  return analysis
+}
+
+/**
  * Valida se o registro faz sentido
  */
 export function validateRecord(context: AttendanceContext, suggestedType: 'ENTRY' | 'EXIT'): {
