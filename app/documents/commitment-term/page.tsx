@@ -1,43 +1,107 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft, Save, FileText, Download, FileSignature } from 'lucide-react'
+import { ArrowLeft, Save, FileSignature, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { CommitmentTermDocument } from '@/components/templates/CommitmentTermDocument'
 
 export default function CommitmentTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
+  const documentRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
-    student_name: '',
-    student_id: '',
+    // Instituição Concedente
     company_name: '',
+    company_fantasy_name: '',
     company_cnpj: '',
-    supervisor_name: '',
+    company_address: '',
+    company_neighborhood: '',
+    company_city_state: '',
+    company_zip: '',
+    company_phone: '',
+    company_email: '',
+    company_representative: '',
+    company_representative_role: '',
+    company_representative_cpf: '',
+    company_representative_phone: '',
+
+    // Discente
+    student_name: '',
+    student_cpf: '',
+    student_social_name: '',
+    student_course: '',
+    student_id: '',
+    student_address: '',
+    student_neighborhood: '',
+    student_city_state: '',
+    student_zip: '',
+    student_phone: '',
+    student_email_institutional: '',
+    student_email_personal: '',
+
+    // Estágio
+    modality: 'presencial', // presencial, remota, hibrida
     start_date: '',
     end_date: '',
-    weekly_hours: '',
+
+    // Seguro e Bolsa
+    insurance_policy: '',
+    insurance_company: '',
+    grant_value: '',
+    transport_value: '',
+    has_grant: 'true',
+    has_transport: 'true',
+
+    // Docente Orientador
+    advisor_name: '',
+    advisor_siape: '',
+    advisor_phone: '',
+    advisor_email: '',
+
+    // Supervisor
+    supervisor_name: '',
+    supervisor_education: '',
+    supervisor_cpf: '',
+    supervisor_phone: '',
+    supervisor_email: '',
+
+    // Plano de Atividades
     activities_description: '',
-    insurance_policy: ''
+    expected_results: '',
+    weekly_hours: '',
+
+    // Horários (JSON string para simplificar)
+    schedule: JSON.stringify({
+      morning: { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '' },
+      afternoon: { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '' },
+      night: { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '' }
+    })
   })
 
   useEffect(() => {
     const loadDraft = async () => {
       const draft = await getDraft('commitment-term')
       if (draft) {
-        setFormData(draft as typeof formData)
+        setFormData(prev => ({ ...prev, ...draft }))
         toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleScheduleChange = (shift: string, day: string, value: string) => {
+    const currentSchedule = JSON.parse(formData.schedule)
+    currentSchedule[shift][day] = value
+    setFormData(prev => ({ ...prev, schedule: JSON.stringify(currentSchedule) }))
   }
 
   const handleSaveDraft = async () => {
@@ -49,30 +113,40 @@ export default function CommitmentTermPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      const hasData = Object.values(formData).some(value => value !== '')
-      if (!hasData) {
-        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
+      // Validar campos obrigatórios básicos
+      if (!formData.student_name || !formData.company_name) {
+        toast.error('Preencha pelo menos os dados do aluno e da empresa')
         return
       }
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateFormPDF } = await import('@/lib/pdf-generator')
-      await generateFormPDF(formRef, 'termo-compromisso', formData)
+      const { generatePDFBlob, downloadPDFBlob } = await import('@/lib/pdf-generator')
+
+      if (!documentRef.current) {
+        throw new Error('Template do documento não encontrado')
+      }
+
+      // Gerar PDF a partir do template oculto
+      const blob = await generatePDFBlob(documentRef.current, {
+        filename: 'termo-compromisso.pdf',
+        margin: [10, 10, 10, 10], // Margens menores para o documento oficial
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+
+      downloadPDFBlob(blob, `termo-compromisso_${formData.student_name.split(' ')[0]}.pdf`)
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
-        { id: 'pdf-generation' }
-      )
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
@@ -98,103 +172,189 @@ export default function CommitmentTermPage() {
               </div>
               <div>
                 <CardTitle className="text-2xl">Termo de Compromisso de Estágio</CardTitle>
-                <p className="text-neutral-400 text-sm mt-1">Formalização do acordo entre estagiário, instituição de ensino e empresa</p>
+                <p className="text-neutral-400 text-sm mt-1">IFCE Campus Maracanaú - Modelo Oficial</p>
               </div>
             </div>
           </CardHeader>
         </Card>
 
         <form ref={formRef} className="space-y-6">
+          {/* 1. Instituição Concedente */}
           <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
-                Dados do Estagiário
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">1. Instituição Concedente</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="company_name" value={formData.company_name} onChange={handleChange} placeholder="Razão Social" className="input w-full" />
+                <input name="company_fantasy_name" value={formData.company_fantasy_name} onChange={handleChange} placeholder="Nome Fantasia" className="input w-full" />
+                <input name="company_cnpj" value={formData.company_cnpj} onChange={handleChange} placeholder="CNPJ" className="input w-full" />
+                <input name="company_phone" value={formData.company_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
+                <input name="company_email" value={formData.company_email} onChange={handleChange} placeholder="E-mail" className="input w-full" />
+              </div>
+              <input name="company_address" value={formData.company_address} onChange={handleChange} placeholder="Endereço Completo" className="input w-full" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nome Completo</label>
-                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} className="input w-full" placeholder="Digite seu nome completo" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Matrícula</label>
-                  <input type="text" name="student_id" value={formData.student_id} onChange={handleChange} className="input w-full" placeholder="000000" />
-                </div>
+                <input name="company_neighborhood" value={formData.company_neighborhood} onChange={handleChange} placeholder="Bairro" className="input w-full" />
+                <input name="company_city_state" value={formData.company_city_state} onChange={handleChange} placeholder="Município-UF" className="input w-full" />
+                <input name="company_zip" value={formData.company_zip} onChange={handleChange} placeholder="CEP" className="input w-full" />
+              </div>
+              <h4 className="text-sm font-semibold text-neutral-300 mt-4">Representante Legal</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="company_representative" value={formData.company_representative} onChange={handleChange} placeholder="Nome do Representante" className="input w-full" />
+                <input name="company_representative_role" value={formData.company_representative_role} onChange={handleChange} placeholder="Cargo" className="input w-full" />
+                <input name="company_representative_cpf" value={formData.company_representative_cpf} onChange={handleChange} placeholder="CPF" className="input w-full" />
+                <input name="company_representative_phone" value={formData.company_representative_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
               </div>
             </CardContent>
           </Card>
 
+          {/* 2. Discente */}
           <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
-                Dados da Empresa Concedente
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">2. Discente Estagiário(a)</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Razão Social</label>
-                  <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="input w-full" placeholder="Nome da empresa" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">CNPJ</label>
-                  <input type="text" name="company_cnpj" value={formData.company_cnpj} onChange={handleChange} className="input w-full" placeholder="00.000.000/0000-00" />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="student_name" value={formData.student_name} onChange={handleChange} placeholder="Nome Completo" className="input w-full" />
+                <input name="student_cpf" value={formData.student_cpf} onChange={handleChange} placeholder="CPF" className="input w-full" />
+                <input name="student_social_name" value={formData.student_social_name} onChange={handleChange} placeholder="Nome Social (Opcional)" className="input w-full" />
+                <input name="student_id" value={formData.student_id} onChange={handleChange} placeholder="Matrícula" className="input w-full" />
+                <input name="student_course" value={formData.student_course} onChange={handleChange} placeholder="Curso" className="input w-full" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Supervisor Responsável</label>
-                <input type="text" name="supervisor_name" value={formData.supervisor_name} onChange={handleChange} className="input w-full" placeholder="Nome do supervisor" />
+              <input name="student_address" value={formData.student_address} onChange={handleChange} placeholder="Endereço Completo" className="input w-full" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input name="student_neighborhood" value={formData.student_neighborhood} onChange={handleChange} placeholder="Bairro" className="input w-full" />
+                <input name="student_city_state" value={formData.student_city_state} onChange={handleChange} placeholder="Município-UF" className="input w-full" />
+                <input name="student_zip" value={formData.student_zip} onChange={handleChange} placeholder="CEP" className="input w-full" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input name="student_phone" value={formData.student_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
+                <input name="student_email_institutional" value={formData.student_email_institutional} onChange={handleChange} placeholder="E-mail Institucional" className="input w-full" />
+                <input name="student_email_personal" value={formData.student_email_personal} onChange={handleChange} placeholder="E-mail Pessoal" className="input w-full" />
               </div>
             </CardContent>
           </Card>
 
+          {/* 3. Detalhes do Estágio */}
           <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
-                Condições do Estágio
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg">3. Detalhes do Estágio</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Início</label>
+                  <label className="block text-sm text-neutral-400 mb-1">Modalidade</label>
+                  <select name="modality" value={formData.modality} onChange={handleChange} className="input w-full">
+                    <option value="presencial">Presencial</option>
+                    <option value="remota">Remota</option>
+                    <option value="hibrida">Híbrida</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-neutral-400 mb-1">Data Início</label>
                   <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="input w-full" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Término</label>
+                  <label className="block text-sm text-neutral-400 mb-1">Data Fim</label>
                   <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="input w-full" />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="insurance_policy" value={formData.insurance_policy} onChange={handleChange} placeholder="Nº Apólice de Seguro" className="input w-full" />
+                <input name="insurance_company" value={formData.insurance_company} onChange={handleChange} placeholder="Nome da Seguradora" className="input w-full" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Carga Horária Semanal</label>
-                  <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} className="input w-full" placeholder="Ex: 20" />
+                  <label className="flex items-center gap-2 mb-2 text-sm text-neutral-300">
+                    <input type="checkbox" checked={formData.has_grant === 'true'} onChange={(e) => setFormData(prev => ({ ...prev, has_grant: e.target.checked ? 'true' : 'false' }))} />
+                    Possui Bolsa Auxílio?
+                  </label>
+                  {formData.has_grant === 'true' && (
+                    <input name="grant_value" value={formData.grant_value} onChange={handleChange} placeholder="Valor da Bolsa (R$)" className="input w-full" />
+                  )}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Descrição das Atividades</label>
-                <textarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Descreva as atividades que serão desenvolvidas no estágio..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Apólice de Seguro</label>
-                <input type="text" name="insurance_policy" value={formData.insurance_policy} onChange={handleChange} className="input w-full" placeholder="Número da apólice de seguro" />
+                <div>
+                  <label className="flex items-center gap-2 mb-2 text-sm text-neutral-300">
+                    <input type="checkbox" checked={formData.has_transport === 'true'} onChange={(e) => setFormData(prev => ({ ...prev, has_transport: e.target.checked ? 'true' : 'false' }))} />
+                    Possui Auxílio Transporte?
+                  </label>
+                  {formData.has_transport === 'true' && (
+                    <input name="transport_value" value={formData.transport_value} onChange={handleChange} placeholder="Valor do Transporte (R$)" className="input w-full" />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4 pb-8">
-            <Button type="button" variant="secondary" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-            </Button>
-            <Button type="button" variant="primary" onClick={handleGeneratePDF} className="gap-2">
-              <Download className="h-4 w-4" />
-              Gerar PDF Oficial
-            </Button>
-          </div>
+          {/* 4. Orientador e Supervisor */}
+          <Card variant="elevated">
+            <CardHeader><CardTitle className="text-lg">4. Orientação e Supervisão</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h4 className="text-sm font-semibold text-neutral-300 mb-2">Docente Orientador (IFCE)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input name="advisor_name" value={formData.advisor_name} onChange={handleChange} placeholder="Nome Completo" className="input w-full" />
+                  <input name="advisor_siape" value={formData.advisor_siape} onChange={handleChange} placeholder="SIAPE" className="input w-full" />
+                  <input name="advisor_phone" value={formData.advisor_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
+                  <input name="advisor_email" value={formData.advisor_email} onChange={handleChange} placeholder="E-mail" className="input w-full" />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-neutral-300 mb-2">Supervisor do Estágio (Empresa)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input name="supervisor_name" value={formData.supervisor_name} onChange={handleChange} placeholder="Nome Completo" className="input w-full" />
+                  <input name="supervisor_education" value={formData.supervisor_education} onChange={handleChange} placeholder="Formação/Experiência" className="input w-full" />
+                  <input name="supervisor_cpf" value={formData.supervisor_cpf} onChange={handleChange} placeholder="CPF" className="input w-full" />
+                  <input name="supervisor_phone" value={formData.supervisor_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
+                  <input name="supervisor_email" value={formData.supervisor_email} onChange={handleChange} placeholder="E-mail" className="input w-full" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 5. Plano de Atividades */}
+          <Card variant="elevated">
+            <CardHeader><CardTitle className="text-lg">5. Plano de Atividades</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <textarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={5} placeholder="Atividades a serem desenvolvidas (liste uma por linha)" className="input w-full" />
+              <textarea name="expected_results" value={formData.expected_results} onChange={handleChange} rows={5} placeholder="Resultados esperados (liste um por linha)" className="input w-full" />
+
+              <div>
+                <label className="block text-sm text-neutral-400 mb-2">Carga Horária Semanal (Horas)</label>
+                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} className="input w-full md:w-1/3" />
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left text-neutral-300">
+                  <thead className="text-xs text-neutral-400 uppercase bg-neutral-800">
+                    <tr>
+                      <th className="px-4 py-2">Turno</th>
+                      {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => <th key={d} className="px-4 py-2">{d}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {['morning', 'afternoon', 'night'].map((shift) => (
+                      <tr key={shift} className="border-b border-neutral-800">
+                        <td className="px-4 py-2 font-medium capitalize">{shift === 'morning' ? 'Manhã' : shift === 'afternoon' ? 'Tarde' : 'Noite'}</td>
+                        {['mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((day) => (
+                          <td key={day} className="px-2 py-1">
+                            <input
+                              className="bg-transparent border border-neutral-700 rounded px-1 py-0.5 w-20 text-center text-xs"
+                              placeholder="00:00-00:00"
+                              value={JSON.parse(formData.schedule)[shift][day]}
+                              onChange={(e) => handleScheduleChange(shift, day, e.target.value)}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </form>
+      </div>
+
+      {/* Template Oculto para Geração do PDF */}
+      <div className="absolute top-0 left-0 -z-50 opacity-0 pointer-events-none">
+        <CommitmentTermDocument ref={documentRef} data={formData} />
       </div>
     </div>
   )

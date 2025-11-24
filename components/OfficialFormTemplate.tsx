@@ -21,6 +21,88 @@ interface OfficialFormTemplateProps {
 }
 
 /**
+ * Cabeçalho Oficial do IFCE
+ * Reutilizável em todos os documentos
+ */
+export function OfficialHeader({
+    showLogos = true,
+    campus = 'Maracanaú',
+    sector = 'Setor de Acompanhamento de Estágio',
+    title,
+    subtitle
+}: {
+    showLogos?: boolean,
+    campus?: string,
+    sector?: string,
+    title?: string,
+    subtitle?: string
+}) {
+    return (
+        <div className="mb-6 border-b-2 border-black pb-3">
+            <div className="flex items-start justify-between gap-4">
+                {/* Logo IFCE */}
+                {showLogos && (
+                    <div className="w-20 flex-shrink-0">
+                        <Image
+                            src="/assets/logoifce.png"
+                            alt="Logo IFCE"
+                            width={64}
+                            height={64}
+                            className="object-contain"
+                        />
+                    </div>
+                )}
+
+                {/* Título Central */}
+                <div className="flex-1 text-center">
+                    <div className="text-[11px] font-bold uppercase">
+                        PRÓ-REITORIA DE EXTENSÃO
+                    </div>
+                    <div className="text-[10px] uppercase">
+                        COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
+                    </div>
+                    <div className="text-[12px] font-bold mt-1">
+                        IFCE campus {campus}
+                    </div>
+                    <div className="text-[10px]">
+                        {sector}
+                    </div>
+                </div>
+
+                {/* Brasão */}
+                {showLogos && (
+                    <div className="w-20 flex-shrink-0">
+                        <Image
+                            src="/assets/brasao.png"
+                            alt="Brasão da República"
+                            width={64}
+                            height={64}
+                            className="object-contain"
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Título do Formulário */}
+            {(title || subtitle) && (
+                <div className="mt-4 text-center">
+                    {title && (
+                        <div className="text-[16px] font-bold uppercase border-y-2 border-black py-2">
+                            {title}
+                        </div>
+                    )}
+                    {subtitle && (
+                        <div className="text-[12px] font-bold uppercase mt-1">
+                            {subtitle}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
+
+/**
  * Template reutilizável para formulários oficiais do IFCE
  * Padrão visual baseado no modelo oficial (estilo formulário impresso)
  */
@@ -48,64 +130,13 @@ export function OfficialFormTemplate({
                 color: '#000'
             }}
         >
-            {/* Cabeçalho Oficial IFCE */}
-            <div className="mb-6 border-b-2 border-black pb-3">
-                <div className="flex items-start justify-between gap-4">
-                    {/* Logo IFCE */}
-                    {showLogos && (
-                        <div className="w-20 flex-shrink-0">
-                            <Image
-                                src="/assets/logoifce.png"
-                                alt="Logo IFCE"
-                                width={64}
-                                height={64}
-                                className="object-contain"
-                            />
-                        </div>
-                    )}
-
-                    {/* Título Central */}
-                    <div className="flex-1 text-center">
-                        <div className="text-[11px] font-bold uppercase">
-                            PRÓ-REITORIA DE EXTENSÃO
-                        </div>
-                        <div className="text-[10px] uppercase">
-                            COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
-                        </div>
-                        <div className="text-[12px] font-bold mt-1">
-                            IFCE campus {campus}
-                        </div>
-                        <div className="text-[10px]">
-                            {sector}
-                        </div>
-                    </div>
-
-                    {/* Brasão */}
-                    {showLogos && (
-                        <div className="w-20 flex-shrink-0">
-                            <Image
-                                src="/assets/brasao.png"
-                                alt="Brasão da República"
-                                width={64}
-                                height={64}
-                                className="object-contain"
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {/* Título do Formulário */}
-                <div className="mt-4 text-center">
-                    <div className="text-[16px] font-bold uppercase border-y-2 border-black py-2">
-                        {title}
-                    </div>
-                    {subtitle && (
-                        <div className="text-[12px] font-bold uppercase mt-1">
-                            {subtitle}
-                        </div>
-                    )}
-                </div>
-            </div>
+            <OfficialHeader
+                title={title}
+                subtitle={subtitle}
+                showLogos={showLogos}
+                campus={campus}
+                sector={sector}
+            />
 
             {/* Conteúdo do Formulário */}
             <div className="w-full">
@@ -138,12 +169,13 @@ export function FormTable({ children, className = '' }: { children: ReactNode, c
  * Célula de cabeçalho (Label apenas)
  * Usada para títulos de seção dentro da tabela
  */
-export function FormHeaderCell({ children, colSpan, rowSpan, className = '' }: { children?: ReactNode, colSpan?: number, rowSpan?: number, className?: string }) {
+export function FormHeaderCell({ children, colSpan, rowSpan, className = '', style }: { children?: ReactNode, colSpan?: number, rowSpan?: number, className?: string, style?: React.CSSProperties }) {
     return (
         <td
             className={`border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 text-[9pt] uppercase ${className}`}
             colSpan={colSpan}
             rowSpan={rowSpan}
+            style={style}
         >
             {children}
         </td>

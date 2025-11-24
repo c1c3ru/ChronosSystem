@@ -1,75 +1,80 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft, Save, FileText, Download, Calendar, Clock } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { MonthlyReportDocument } from '@/components/templates/MonthlyReportDocument'
+import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
 
 export default function MonthlyReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
+  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    student_name: '',
-    supervisor_name: '',
-    advisor_name: '',
-    period_start: '',
-    period_end: '',
-    hours_month: '',
-    hours_total: '',
-    activities: '',
-    difficulties: '',
-    solutions: ''
-  })
+  const [formData, setFormData] = useState<any>({})
 
   useEffect(() => {
     const loadDraft = async () => {
       const draft = await getDraft('monthly-report')
       if (draft) {
-        setFormData(draft as typeof formData)
+        if (formRef.current) {
+          populateFormWithData(formRef.current, draft)
+        }
+        setFormData(draft)
         toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev: any) => ({ ...prev, [name]: value }))
   }
 
   const handleSaveDraft = async () => {
+    if (!formRef.current) return
+
     setIsSaving(true)
-    await saveDraft('monthly-report', formData)
+    const currentFormData = new FormData(formRef.current)
+    const data = Object.fromEntries(currentFormData.entries())
+
+    await saveDraft('monthly-report', data)
     toast.success('Rascunho salvo com sucesso!')
     setIsSaving(false)
   }
 
   const handleGeneratePDF = async () => {
     try {
-      // Validar se há dados preenchidos
-      const hasData = Object.values(formData).some(value => value !== '')
-      if (!hasData) {
-        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
-        return
-      }
+      if (!formRef.current || !templateRef.current) return
+
+      const currentFormData = new FormData(formRef.current)
+      const data = Object.fromEntries(currentFormData.entries())
+
+      // Atualizar estado para garantir que o template renderize com os dados mais recentes
+      setFormData(data)
+
+      // Pequeno delay para garantir renderização
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      // Importar dinamicamente para evitar problemas de SSR
-      const { generateFormPDF } = await import('@/lib/pdf-generator')
+      const blob = await generatePDFBlob(templateRef.current, {
+        filename: 'relatorio-mensal.pdf',
+        margin: [10, 10, 10, 10],
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
 
-      await generateFormPDF(formRef, 'relatorio-mensal', formData)
+      downloadPDFBlob(blob, 'relatorio-mensal.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
-        { id: 'pdf-generation' }
-      )
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 
@@ -87,29 +92,17 @@ export default function MonthlyReportPage() {
           </Link>
 
           <div className="flex gap-3">
-            <Button
-              onClick={handleSaveDraft}
-              variant="secondary"
-              size="sm"
-              disabled={isSaving}
-              className="gap-2"
-            >
-              <Save className="h-4 w-4" />
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving}>
+              <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button
-              onClick={handleGeneratePDF}
-              variant="primary"
-              size="sm"
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
+              <Download className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
           </div>
         </div>
 
-        {/* Title Card */}
         <Card variant="glass" className="border-t-4 border-primary">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -119,221 +112,92 @@ export default function MonthlyReportPage() {
               <div>
                 <CardTitle className="text-2xl">Relatório Mensal de Atividades</CardTitle>
                 <p className="text-neutral-400 text-sm mt-1">
-                  Descreva as atividades desenvolvidas durante o mês de estágio
+                  Relate as atividades desenvolvidas no mês
                 </p>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6">
-          {/* Seção 1: Identificação */}
+        <form ref={formRef} className="space-y-6" onChange={() => {
+          if (formRef.current) {
+            const data = new FormData(formRef.current)
+            setFormData(Object.fromEntries(data.entries()))
+          }
+        }}>
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  1
-                </span>
-                Identificação
-              </CardTitle>
+              <CardTitle className="text-lg">Identificação e Período</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Discente</label>
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
+                  <input type="text" name="supervisor_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Docente Orientador</label>
+                  <input type="text" name="advisor_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial Parcial</label>
+                  <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Parcial</label>
+                  <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária no Período</label>
+                  <input type="number" name="hours_month" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Acumulada</label>
+                  <input type="number" name="hours_total" className="input w-full" onChange={handleInputChange} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Atividades Desenvolvidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Nome do Estagiário(a)
-                </label>
-                <input
-                  type="text"
-                  name="student_name"
-                  value={formData.student_name}
-                  onChange={handleChange}
-                  className="input w-full"
-                  placeholder="Digite seu nome completo"
-                />
+                <label className="block text-sm font-medium text-neutral-300 mb-1">Principais Atividades</label>
+                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Supervisor (Empresa)
-                  </label>
-                  <input
-                    type="text"
-                    name="supervisor_name"
-                    value={formData.supervisor_name}
-                    onChange={handleChange}
-                    className="input w-full"
-                    placeholder="Nome do supervisor na empresa"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Dificuldades Encontradas</label>
+                  <textarea name="difficulties" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Orientador (IFCE)
-                  </label>
-                  <input
-                    type="text"
-                    name="advisor_name"
-                    value={formData.advisor_name}
-                    onChange={handleChange}
-                    className="input w-full"
-                    placeholder="Nome do orientador no IFCE"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Soluções Adotadas</label>
+                  <textarea name="solutions" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Seção 2: Período e Carga Horária */}
-          <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  2
-                </span>
-                Período e Carga Horária
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Período de Referência
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-neutral-400 mb-1">Data Inicial</label>
-                    <input
-                      type="date"
-                      name="period_start"
-                      value={formData.period_start}
-                      onChange={handleChange}
-                      className="input w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-neutral-400 mb-1">Data Final</label>
-                    <input
-                      type="date"
-                      name="period_end"
-                      value={formData.period_end}
-                      onChange={handleChange}
-                      className="input w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Carga Horária
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-neutral-400 mb-1">Horas no Mês</label>
-                    <input
-                      type="number"
-                      name="hours_month"
-                      value={formData.hours_month}
-                      onChange={handleChange}
-                      className="input w-full"
-                      placeholder="Ex: 80"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-neutral-400 mb-1">Horas Acumuladas</label>
-                    <input
-                      type="number"
-                      name="hours_total"
-                      value={formData.hours_total}
-                      onChange={handleChange}
-                      className="input w-full"
-                      placeholder="Ex: 240"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Seção 3: Atividades Desenvolvidas */}
-          <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  3
-                </span>
-                Atividades Desenvolvidas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Principais Atividades Desenvolvidas
-                </label>
-                <textarea
-                  name="activities"
-                  value={formData.activities}
-                  onChange={handleChange}
-                  rows={6}
-                  className="input w-full resize-y"
-                  placeholder="Descreva as principais atividades que você realizou durante este mês..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Dificuldades Encontradas
-                </label>
-                <textarea
-                  name="difficulties"
-                  value={formData.difficulties}
-                  onChange={handleChange}
-                  rows={4}
-                  className="input w-full resize-y"
-                  placeholder="Descreva as dificuldades que você enfrentou..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Soluções Adotadas
-                </label>
-                <textarea
-                  name="solutions"
-                  value={formData.solutions}
-                  onChange={handleChange}
-                  rows={4}
-                  className="input w-full resize-y"
-                  placeholder="Descreva as soluções que foram adotadas para superar as dificuldades..."
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Botões de Ação */}
-          <div className="flex justify-end gap-4 pb-8">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleSaveDraft}
-              disabled={isSaving}
-              className="gap-2"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleGeneratePDF}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Gerar PDF Oficial
-            </Button>
-          </div>
         </form>
+
+        {/* Template Oculto para PDF */}
+        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+          <MonthlyReportDocument ref={templateRef} data={formData} />
+        </div>
       </div>
     </div>
   )

@@ -7,6 +7,8 @@ interface PDFOptions {
   filename?: string
   margin?: number | [number, number, number, number]
   pagebreak?: { mode: string[] }
+  html2canvas?: any
+  jsPDF?: any
 }
 
 /**
@@ -41,13 +43,15 @@ export async function printElementAsPDF(
         letterRendering: true,
         windowWidth: 1200,
         scrollY: 0,
-        scrollX: 0
+        scrollX: 0,
+        ...options.html2canvas
       },
       jsPDF: {
         unit: 'mm' as const,
         format: 'a4' as const,
         orientation: 'portrait' as const,
-        compress: true
+        compress: true,
+        ...options.jsPDF
       },
       pagebreak: options.pagebreak || {
         mode: ['avoid-all', 'css', 'legacy'],
@@ -228,13 +232,15 @@ export async function generatePDFBlob(
         letterRendering: true,
         windowWidth: 1200,
         scrollY: 0,
-        scrollX: 0
+        scrollX: 0,
+        ...options.html2canvas
       },
       jsPDF: {
         unit: 'mm' as const,
         format: 'a4' as const,
         orientation: 'portrait' as const,
-        compress: true
+        compress: true,
+        ...options.jsPDF
       },
       pagebreak: options.pagebreak || {
         mode: ['avoid-all', 'css', 'legacy'],

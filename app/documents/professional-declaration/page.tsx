@@ -1,90 +1,109 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft, Save, FileText, Download, Award } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Download, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { ProfessionalDeclarationDocument } from '@/components/templates/ProfessionalDeclarationDocument'
+import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
 
 export default function ProfessionalDeclarationPage() {
   const formRef = useRef<HTMLFormElement>(null)
+  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    student_name: '',
-    student_id: '',
-    student_course: '',
-    company_name: '',
-    company_cnpj: '',
-    position: '',
-    start_date: '',
-    end_date: '',
-    total_hours: '',
-    activities_summary: ''
-  })
+  const [formData, setFormData] = useState<any>({})
 
   useEffect(() => {
     const loadDraft = async () => {
       const draft = await getDraft('professional-declaration')
       if (draft) {
-        setFormData(draft as typeof formData)
+        if (formRef.current) {
+          populateFormWithData(formRef.current, draft)
+        }
+        setFormData(draft)
         toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev: any) => ({ ...prev, [name]: value }))
   }
 
   const handleSaveDraft = async () => {
+    if (!formRef.current) return
+
     setIsSaving(true)
-    await saveDraft('professional-declaration', formData)
+    const currentFormData = new FormData(formRef.current)
+    const data = Object.fromEntries(currentFormData.entries())
+
+    await saveDraft('professional-declaration', data)
     toast.success('Rascunho salvo com sucesso!')
     setIsSaving(false)
   }
 
   const handleGeneratePDF = async () => {
     try {
-      const hasData = Object.values(formData).some(value => value !== '')
-      if (!hasData) {
-        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
-        return
-      }
+      if (!formRef.current || !templateRef.current) return
+
+      const currentFormData = new FormData(formRef.current)
+      const data = Object.fromEntries(currentFormData.entries())
+
+      // Adicionar data atual se não estiver presente
+      const now = new Date()
+      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
+      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
+      if (!data.date_year) data.date_year = String(now.getFullYear())
+
+      // Atualizar estado para garantir que o template renderize com os dados mais recentes
+      setFormData(data)
+
+      // Pequeno delay para garantir renderização
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateFormPDF } = await import('@/lib/pdf-generator')
-      await generateFormPDF(formRef, 'declaracao-profissional', formData)
+      const blob = await generatePDFBlob(templateRef.current, {
+        filename: 'declaracao-atividades-profissionais.pdf',
+        margin: [10, 10, 10, 10],
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+
+      downloadPDFBlob(blob, 'declaracao-atividades-profissionais.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
-        { id: 'pdf-generation' }
-      )
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+          <Link
+            href="/employee"
+            className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group"
+          >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Voltar
           </Link>
+
           <div className="flex gap-3">
-            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving} className="gap-2">
-              <Save className="h-4 w-4" />
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving}>
+              <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button onClick={handleGeneratePDF} variant="primary" size="sm" className="gap-2">
-              <Download className="h-4 w-4" />
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
+              <Download className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
           </div>
@@ -94,107 +113,112 @@ export default function ProfessionalDeclarationPage() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 bg-primary/20 rounded-xl">
-                <Award className="h-6 w-6 text-primary" />
+                <Briefcase className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Declaração de Atividade Profissional</CardTitle>
-                <p className="text-neutral-400 text-sm mt-1">Comprovação de experiência profissional relacionada ao curso</p>
+                <CardTitle className="text-2xl">Declaração de Atividades Profissionais</CardTitle>
+                <p className="text-neutral-400 text-sm mt-1">
+                  Documento para comprovação de experiência profissional
+                </p>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6">
+        <form ref={formRef} className="space-y-6" onChange={() => {
+          if (formRef.current) {
+            const data = new FormData(formRef.current)
+            setFormData(Object.fromEntries(data.entries()))
+          }
+        }}>
+          {/* Dados da Empresa */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
-                Dados do Aluno
-              </CardTitle>
+              <CardTitle className="text-lg">Dados da Empresa</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nome Completo</label>
-                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} className="input w-full" placeholder="Digite seu nome completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Matrícula</label>
-                  <input type="text" name="student_id" value={formData.student_id} onChange={handleChange} className="input w-full" placeholder="000000" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
+                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Curso</label>
-                <input type="text" name="student_course" value={formData.student_course} onChange={handleChange} className="input w-full" placeholder="Ex: Análise e Desenvolvimento de Sistemas" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
-                Dados da Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
+                  <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} />
+                </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Razão Social</label>
-                  <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="input w-full" placeholder="Nome da empresa" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço Completo</label>
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">CNPJ</label>
-                  <input type="text" name="company_cnpj" value={formData.company_cnpj} onChange={handleChange} className="input w-full" placeholder="00.000.000/0000-00" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Cargo/Função Exercida</label>
-                <input type="text" name="position" value={formData.position} onChange={handleChange} className="input w-full" placeholder="Seu cargo na empresa" />
               </div>
             </CardContent>
           </Card>
 
+          {/* Dados do Funcionário */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
-                Período e Atividades
-              </CardTitle>
+              <CardTitle className="text-lg">Dados do Funcionário</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
+                  <input type="text" name="employee_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
+                  <input type="text" name="employee_cpf" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-300 mb-1">CTPS Nº</label>
+                    <input type="text" name="employee_ctps" className="input w-full" onChange={handleInputChange} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-300 mb-1">Série</label>
+                    <input type="text" name="employee_ctps_series" className="input w-full" onChange={handleInputChange} />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Dados do Vínculo */}
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Dados do Vínculo</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Início</label>
-                  <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="input w-full" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Início</label>
+                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Término</label>
-                  <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="input w-full" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Função</label>
+                  <input type="text" name="role" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Carga Horária Total</label>
-                  <input type="number" name="total_hours" value={formData.total_hours} onChange={handleChange} className="input w-full" placeholder="Ex: 480" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal</label>
+                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Resumo das Atividades Desenvolvidas</label>
-                <textarea name="activities_summary" value={formData.activities_summary} onChange={handleChange} rows={8} className="input w-full resize-y" placeholder="Descreva as principais atividades profissionais desenvolvidas que se relacionam com o curso..." />
+                <label className="block text-sm font-medium text-neutral-300 mb-1">Descrição das Atividades</label>
+                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
               </div>
             </CardContent>
           </Card>
-
-          <div className="flex justify-end gap-4 pb-8">
-            <Button type="button" variant="secondary" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-            </Button>
-            <Button type="button" variant="primary" onClick={handleGeneratePDF} className="gap-2">
-              <Download className="h-4 w-4" />
-              Gerar PDF Oficial
-            </Button>
-          </div>
         </form>
+
+        {/* Template Oculto para PDF */}
+        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+          <ProfessionalDeclarationDocument ref={templateRef} data={formData} />
+        </div>
       </div>
     </div>
   )

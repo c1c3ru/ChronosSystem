@@ -5,85 +5,123 @@ import { ArrowLeft, Save, FileText, Download, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { EquivalenceRequestDocument } from '@/components/templates/EquivalenceRequestDocument'
+import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
 
 export default function EquivalenceRequestPage() {
   const formRef = useRef<HTMLFormElement>(null)
+  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    student_name: '',
-    student_id: '',
-    student_course: '',
-    company_name: '',
-    position: '',
-    admission_date: '',
-    weekly_hours: '',
-    activities_description: '',
-    justification: ''
+  const [formData, setFormData] = useState<any>({
+    doc_work_card: 'false',
+    doc_service_declaration: 'false',
+    doc_activities_declaration: 'false',
+    doc_other: 'false'
   })
 
   useEffect(() => {
     const loadDraft = async () => {
       const draft = await getDraft('equivalence-request')
       if (draft) {
-        setFormData(draft as typeof formData)
+        if (formRef.current) {
+          populateFormWithData(formRef.current, draft)
+        }
+        setFormData(draft)
         toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setFormData((prev: any) => ({ ...prev, [name]: checked ? 'true' : 'false' }))
+    } else {
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSaveDraft = async () => {
+    if (!formRef.current) return
+
     setIsSaving(true)
-    await saveDraft('equivalence-request', formData)
+    const currentFormData = new FormData(formRef.current)
+    const data = Object.fromEntries(currentFormData.entries())
+
+    // Checkboxes
+    const checkboxes = ['doc_work_card', 'doc_service_declaration', 'doc_activities_declaration', 'doc_other']
+    checkboxes.forEach(cb => {
+      if (!data[cb]) data[cb] = 'false'
+      else data[cb] = 'true'
+    })
+
+    await saveDraft('equivalence-request', data)
     toast.success('Rascunho salvo com sucesso!')
     setIsSaving(false)
   }
 
   const handleGeneratePDF = async () => {
     try {
-      const hasData = Object.values(formData).some(value => value !== '')
-      if (!hasData) {
-        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
-        return
-      }
+      if (!formRef.current || !templateRef.current) return
+
+      const currentFormData = new FormData(formRef.current)
+      const data = Object.fromEntries(currentFormData.entries())
+
+      // Checkboxes
+      const checkboxes = ['doc_work_card', 'doc_service_declaration', 'doc_activities_declaration', 'doc_other']
+      checkboxes.forEach(cb => {
+        if (!data[cb]) data[cb] = 'false'
+        else data[cb] = 'true'
+      })
+
+      // Atualizar estado para garantir que o template renderize com os dados mais recentes
+      setFormData(data)
+
+      // Pequeno delay para garantir renderização
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateFormPDF } = await import('@/lib/pdf-generator')
-      await generateFormPDF(formRef, 'solicitacao-equivalencia', formData)
+      const blob = await generatePDFBlob(templateRef.current, {
+        filename: 'solicitacao-equivalencia.pdf',
+        margin: [10, 10, 10, 10],
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+
+      downloadPDFBlob(blob, 'solicitacao-equivalencia.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
-        { id: 'pdf-generation' }
-      )
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+          <Link
+            href="/employee"
+            className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group"
+          >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Voltar
           </Link>
+
           <div className="flex gap-3">
-            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving} className="gap-2">
-              <Save className="h-4 w-4" />
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving}>
+              <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button onClick={handleGeneratePDF} variant="primary" size="sm" className="gap-2">
-              <Download className="h-4 w-4" />
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
+              <Download className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
           </div>
@@ -97,97 +135,176 @@ export default function EquivalenceRequestPage() {
               </div>
               <div>
                 <CardTitle className="text-2xl">Solicitação de Equivalência de Estágio</CardTitle>
-                <p className="text-neutral-400 text-sm mt-1">Pedido de aproveitamento de atividade profissional como estágio</p>
+                <p className="text-neutral-400 text-sm mt-1">
+                  Pedido de aproveitamento de atividade profissional como estágio
+                </p>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6">
+        <form ref={formRef} className="space-y-6" onChange={() => {
+          if (formRef.current) {
+            const data = new FormData(formRef.current)
+            // Checkboxes precisam ser tratados manualmente
+          }
+        }}>
+          {/* Dados do Discente */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">1</span>
-                Dados do Aluno
-              </CardTitle>
+              <CardTitle className="text-lg">Dados do Discente</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Nome Completo</label>
-                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} className="input w-full" placeholder="Digite seu nome completo" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Matrícula</label>
-                  <input type="text" name="student_id" value={formData.student_id} onChange={handleChange} className="input w-full" placeholder="000000" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Curso</label>
-                <input type="text" name="student_course" value={formData.student_course} onChange={handleChange} className="input w-full" placeholder="Ex: Análise e Desenvolvimento de Sistemas" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card variant="elevated">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">2</span>
-                Dados da Atividade Profissional
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Empresa/Instituição</label>
-                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="input w-full" placeholder="Nome da empresa onde trabalha" />
-              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Cargo/Função</label>
-                  <input type="text" name="position" value={formData.position} onChange={handleChange} className="input w-full" placeholder="Seu cargo na empresa" />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Data de Admissão</label>
-                  <input type="date" name="admission_date" value={formData.admission_date} onChange={handleChange} className="input w-full" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Carga Horária Semanal</label>
-                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} className="input w-full" placeholder="Ex: 40" />
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
+                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
+                  <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
+                  <input type="email" name="student_email" className="input w-full" onChange={handleInputChange} />
+                </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Dados da Empresa */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">3</span>
-                Justificativa da Solicitação
-              </CardTitle>
+              <CardTitle className="text-lg">Dados da Empresa</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome da Empresa</label>
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
+                  <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
+                  <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Chefe Imediato</label>
+                  <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Atividades e Período */}
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Atividades e Período</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Descrição das Atividades Desenvolvidas</label>
-                <textarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Descreva detalhadamente as atividades que você desenvolve na empresa..." />
+                <label className="block text-sm font-medium text-neutral-300 mb-1">Descrição das Atividades</label>
+                <textarea name="activities" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">Justificativa para Equivalência</label>
-                <textarea name="justification" value={formData.justification} onChange={handleChange} rows={6} className="input w-full resize-y" placeholder="Explique como suas atividades profissionais se relacionam com o curso e justificam a equivalência ao estágio..." />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
+                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final</label>
+                  <input type="date" name="end_date" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Total</label>
+                  <input type="number" name="total_hours" className="input w-full" onChange={handleInputChange} />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4 pb-8">
-            <Button type="button" variant="secondary" onClick={handleSaveDraft} disabled={isSaving} className="gap-2">
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-            </Button>
-            <Button type="button" variant="primary" onClick={handleGeneratePDF} className="gap-2">
-              <Download className="h-4 w-4" />
-              Gerar PDF Oficial
-            </Button>
-          </div>
+          {/* Documentos Anexos */}
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Documentos Anexos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="doc_work_card"
+                  className="checkbox"
+                  onChange={handleInputChange}
+                  checked={formData.doc_work_card === 'true'}
+                />
+                <span className="text-neutral-300">Carteira de Trabalho</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="doc_service_declaration"
+                  className="checkbox"
+                  onChange={handleInputChange}
+                  checked={formData.doc_service_declaration === 'true'}
+                />
+                <span className="text-neutral-300">Declaração de Tempo de Serviço</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="doc_activities_declaration"
+                  className="checkbox"
+                  onChange={handleInputChange}
+                  checked={formData.doc_activities_declaration === 'true'}
+                />
+                <span className="text-neutral-300">Declaração de Atividades Profissionais</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="doc_other"
+                    className="checkbox"
+                    onChange={handleInputChange}
+                    checked={formData.doc_other === 'true'}
+                  />
+                  <span className="text-neutral-300">Outros:</span>
+                </label>
+                <input
+                  type="text"
+                  name="doc_other_desc"
+                  className="input flex-1 h-8"
+                  disabled={formData.doc_other !== 'true'}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </form>
+
+        {/* Template Oculto para PDF */}
+        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+          <EquivalenceRequestDocument ref={templateRef} data={formData} />
+        </div>
       </div>
     </div>
   )

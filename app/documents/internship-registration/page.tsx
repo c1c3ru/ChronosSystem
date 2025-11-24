@@ -1,36 +1,73 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
+import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
+  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [formData, setFormData] = useState<any>({})
+  const [schedule, setSchedule] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    // Carrega rascunho salvo
     const loadDraft = async () => {
       const draft = await getDraft('internship-registration')
-      if (draft && formRef.current) {
-        populateFormWithData(formRef.current, draft)
+      if (draft) {
+        if (formRef.current) {
+          populateFormWithData(formRef.current, draft)
+        }
+        // Carregar schedule se existir
+        if (draft.schedule) {
+          try {
+            setSchedule(JSON.parse(draft.schedule))
+          } catch (e) {
+            console.error('Erro ao parsear schedule', e)
+          }
+        }
+        setFormData(draft)
         toast.success('Rascunho carregado!')
       }
     }
-
     loadDraft()
   }, [])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      // Lógica para checkboxes exclusivos (radio behavior) se necessário
+      // Por enquanto, apenas atualiza o valor
+      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
+    } else {
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleScheduleChange = (key: string, value: string) => {
+    setSchedule(prev => {
+      const newSchedule = { ...prev, [key]: value }
+      setFormData((prevData: any) => ({ ...prevData, schedule: JSON.stringify(newSchedule) }))
+      return newSchedule
+    })
+  }
 
   const handleSaveDraft = async () => {
     if (!formRef.current) return
 
     setIsSaving(true)
-    const formData = new FormData(formRef.current)
-    const data = Object.fromEntries(formData.entries())
+    const currentFormData = new FormData(formRef.current)
+    const data = Object.fromEntries(currentFormData.entries())
+
+    // Adicionar schedule
+    data.schedule = JSON.stringify(schedule)
 
     await saveDraft('internship-registration', data)
     toast.success('Rascunho salvo com sucesso!')
@@ -39,29 +76,35 @@ export default function InternshipRegistrationPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
+      if (!formRef.current || !templateRef.current) return
 
-      const formData = new FormData(formRef.current)
-      const data = Object.fromEntries(formData.entries())
+      const currentFormData = new FormData(formRef.current)
+      const data = Object.fromEntries(currentFormData.entries())
 
-      const hasData = Object.values(data).some(value => value !== '')
-      if (!hasData) {
-        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
-        return
-      }
+      // Adicionar schedule ao data
+      data.schedule = JSON.stringify(schedule)
+
+      // Atualizar estado para garantir que o template renderize com os dados mais recentes
+      setFormData(data)
+
+      // Pequeno delay para garantir renderização
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateFormPDF } = await import('@/lib/pdf-generator')
-      await generateFormPDF(formRef, 'cadastro-estagio', data)
+      const blob = await generatePDFBlob(templateRef.current, {
+        filename: 'solicitacao-cadastro-estagio.pdf',
+        margin: [10, 10, 10, 10],
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+
+      downloadPDFBlob(blob, 'solicitacao-cadastro-estagio.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
-        { id: 'pdf-generation' }
-      )
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 
@@ -79,29 +122,17 @@ export default function InternshipRegistrationPage() {
           </Link>
 
           <div className="flex gap-3">
-            <Button
-              onClick={handleSaveDraft}
-              variant="secondary"
-              size="sm"
-              disabled={isSaving}
-              className="gap-2"
-            >
-              <Save className="h-4 w-4" />
+            <Button onClick={handleSaveDraft} variant="secondary" size="sm" disabled={isSaving}>
+              <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button
-              onClick={handleGeneratePDF}
-              variant="primary"
-              size="sm"
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
+              <Download className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
           </div>
         </div>
 
-        {/* Title Card */}
         <Card variant="glass" className="border-t-4 border-primary">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -118,376 +149,270 @@ export default function InternshipRegistrationPage() {
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6">
-          {/* Seção 1: Dados do Discente */}
+        <form ref={formRef} className="space-y-6" onChange={() => {
+          if (formRef.current) {
+            const data = new FormData(formRef.current)
+            setFormData(Object.fromEntries(data.entries()))
+          }
+        }}>
+          {/* 1. Dados do Discente */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  1
-                </span>
-                Dados do Discente
-              </CardTitle>
+              <CardTitle className="text-lg">1. Dados do Discente</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-3">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Nome Completo
-                  </label>
-                  <input
-                    type="text"
-                    name="student_name"
-                    className="input w-full"
-                    placeholder="Digite seu nome completo"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    CPF
-                  </label>
-                  <input
-                    type="text"
-                    name="student_cpf"
-                    className="input w-full"
-                    placeholder="000.000.000-00"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Nome Social <span className="text-neutral-500 text-xs">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  name="student_social_name"
-                  className="input w-full"
-                  placeholder="Digite seu nome social, se houver"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-3">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Curso
-                  </label>
-                  <input
-                    type="text"
-                    name="student_course"
-                    className="input w-full"
-                    placeholder="Ex: Análise e Desenvolvimento de Sistemas"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Matrícula
-                  </label>
-                  <input
-                    type="text"
-                    name="student_id"
-                    className="input w-full"
-                    placeholder="000000"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Endereço Completo
-                </label>
-                <input
-                  type="text"
-                  name="student_address"
-                  className="input w-full"
-                  placeholder="Rua, número, complemento"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Bairro
-                  </label>
-                  <input
-                    type="text"
-                    name="student_neighborhood"
-                    className="input w-full"
-                    placeholder="Digite o bairro"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Município/UF
-                  </label>
-                  <input
-                    type="text"
-                    name="student_city_state"
-                    className="input w-full"
-                    placeholder="Ex: Fortaleza/CE"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    CEP
-                  </label>
-                  <input
-                    type="text"
-                    name="student_zip"
-                    className="input w-full"
-                    placeholder="00000-000"
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Telefone
-                  </label>
-                  <input
-                    type="text"
-                    name="student_phone"
-                    className="input w-full"
-                    placeholder="(00) 00000-0000"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Social</label>
+                  <input type="text" name="student_social_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    E-mail Institucional
-                  </label>
-                  <input
-                    type="email"
-                    name="student_email"
-                    className="input w-full"
-                    placeholder="seu.email@aluno.ifce.edu.br"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
+                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
+                  <input type="text" name="student_neighborhood" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Município/UF</label>
+                  <input type="text" name="student_city_uf" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
+                  <input type="text" name="student_zip" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
+                  <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email Institucional</label>
+                  <input type="email" name="student_email_institutional" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email Pessoal</label>
+                  <input type="email" name="student_email_personal" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Seção 2: Informações Adicionais */}
+          {/* 2. Informações Complementares */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  2
-                </span>
-                Informações Adicionais
-              </CardTitle>
+              <CardTitle className="text-lg">2. Informações Complementares</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-3">
-                    Cor/Raça
-                  </label>
-                  <div className="space-y-2">
-                    {['Amarelo(a)', 'Branco(a)', 'Indígena', 'Pardo(a)', 'Preto(a)'].map(option => (
-                      <label key={option} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-700/30 transition-colors cursor-pointer">
-                        <input
-                          type="radio"
-                          name="race"
-                          value={option}
-                          className="w-4 h-4 text-primary focus:ring-primary focus:ring-offset-neutral-800"
-                        />
-                        <span className="text-neutral-300">{option}</span>
-                      </label>
-                    ))}
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Cor/Raça</label>
+                <div className="flex flex-wrap gap-4">
+                  {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'nao_declarar'].map(opt => (
+                    <label key={opt} className="flex items-center gap-2">
+                      <input type="radio" name="student_race" value={opt} onChange={handleInputChange} className="checkbox" />
+                      <span className="capitalize">{opt.replace('_', ' ')}</span>
+                    </label>
+                  ))}
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-3">
-                    Pessoa com Deficiência
-                  </label>
-                  <div className="space-y-2">
-                    {['Auditiva', 'Visual', 'Motora', 'Intelectual'].map(option => (
-                      <label key={option} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-700/30 transition-colors cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name={`pcd_${option.toLowerCase()}`}
-                          className="w-4 h-4 text-primary rounded focus:ring-primary focus:ring-offset-neutral-800"
-                        />
-                        <span className="text-neutral-300">{option}</span>
-                      </label>
-                    ))}
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Etnia</label>
+                <div className="flex flex-wrap gap-4 mb-2">
+                  {['indigena', 'quilombola', 'outra', 'nao_declarar'].map(opt => (
+                    <label key={opt} className="flex items-center gap-2">
+                      <input type="radio" name="student_ethnicity" value={opt} onChange={handleInputChange} className="checkbox" />
+                      <span className="capitalize">{opt.replace('_', ' ')}</span>
+                    </label>
+                  ))}
+                </div>
+                <input type="text" name="student_ethnicity_community" placeholder="Comunidade (se aplicável)" className="input w-full" onChange={handleInputChange} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Pessoa com Deficiência</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { val: 'alta_habilidade', label: 'Alta habilidade/superdotação' },
+                    { val: 'auditiva', label: 'Deficiência auditiva' },
+                    { val: 'intelectual', label: 'Deficiência intelectual' },
+                    { val: 'motora', label: 'Deficiência motora' },
+                    { val: 'visual_baixa', label: 'Deficiência visual/baixa visão' },
+                    { val: 'visual', label: 'Deficiência visual' },
+                    { val: 'surdocegueira', label: 'Surdocegueira' }
+                  ].map(opt => (
+                    <label key={opt.val} className="flex items-center gap-2">
+                      <input type="radio" name="student_disability" value={opt.val} onChange={handleInputChange} className="checkbox" />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Seção 3: Dados da Concedente */}
+          {/* 3. Instituição Concedente */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  3
-                </span>
-                Dados da Empresa Concedente
-              </CardTitle>
+              <CardTitle className="text-lg">3. Instituição Concedente</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-3">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Razão Social
-                  </label>
-                  <input
-                    type="text"
-                    name="company_name"
-                    className="input w-full"
-                    placeholder="Nome da empresa"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Fantasia</label>
+                  <input type="text" name="company_fantasy_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    CNPJ
-                  </label>
-                  <input
-                    type="text"
-                    name="company_cnpj"
-                    className="input w-full"
-                    placeholder="00.000.000/0000-00"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
+                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Endereço Completo
-                </label>
-                <input
-                  type="text"
-                  name="company_address"
-                  className="input w-full"
-                  placeholder="Endereço da empresa"
-                />
-              </div>
-
-              <div className="border-t border-neutral-700 pt-4 mt-6">
-                <h4 className="text-sm font-semibold text-neutral-300 mb-4">
-                  Supervisor do Estágio
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Nome
-                    </label>
-                    <input
-                      type="text"
-                      name="supervisor_name"
-                      className="input w-full"
-                      placeholder="Nome do supervisor"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Cargo
-                    </label>
-                    <input
-                      type="text"
-                      name="supervisor_role"
-                      className="input w-full"
-                      placeholder="Cargo do supervisor"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Telefone
-                    </label>
-                    <input
-                      type="text"
-                      name="supervisor_phone"
-                      className="input w-full"
-                      placeholder="(00) 00000-0000"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
+                  <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
+                  <input type="text" name="company_neighborhood" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Município/UF</label>
+                  <input type="text" name="company_city_uf" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
+                  <input type="text" name="company_zip" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
+                  <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Responsável Legal</label>
+                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Responsável</label>
+                  <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
+                  <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Supervisor</label>
+                  <input type="text" name="company_supervisor_role" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Setor de Realização</label>
+                  <input type="text" name="company_sector" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Seção 4: Detalhes do Estágio */}
+          {/* 4. Dados do Estágio */}
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary text-sm font-bold">
-                  4
-                </span>
-                Detalhes do Estágio
-              </CardTitle>
+              <CardTitle className="text-lg">4. Dados do Estágio</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Data Inicial
-                  </label>
-                  <input
-                    type="date"
-                    name="start_date"
-                    className="input w-full"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Tipo de Estágio</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="internship_type" value="obrigatorio" onChange={handleInputChange} className="checkbox" />
+                      <span>Obrigatório</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="internship_type" value="nao_obrigatorio" onChange={handleInputChange} className="checkbox" />
+                      <span>Não Obrigatório</span>
+                    </label>
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Data Final
-                  </label>
-                  <input
-                    type="date"
-                    name="end_date"
-                    className="input w-full"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Forma de Estágio</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="internship_mode" value="presencial" onChange={handleInputChange} className="checkbox" />
+                      <span>Presencial</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="internship_mode" value="remoto" onChange={handleInputChange} className="checkbox" />
+                      <span>Remoto</span>
+                    </label>
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Carga Horária Semanal
-                  </label>
-                  <input
-                    type="number"
-                    name="weekly_hours"
-                    className="input w-full"
-                    placeholder="Ex: 20"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
+                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Prevista</label>
+                  <input type="date" name="end_date" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal</label>
+                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-3">
-                  Quadro de Horários
-                </label>
+              {/* Tabela de Horários */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Horário do Estágio</label>
                 <div className="overflow-x-auto">
-                  <table className="w-full border border-neutral-700 rounded-lg overflow-hidden">
-                    <thead className="bg-neutral-800">
+                  <table className="w-full text-sm text-left text-neutral-300">
+                    <thead className="text-xs text-neutral-400 uppercase bg-neutral-800">
                       <tr>
-                        <th className="p-3 text-left text-sm font-medium text-neutral-300 border-r border-neutral-700">
-                          Turno
-                        </th>
-                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                          <th key={day} className="p-3 text-center text-sm font-medium text-neutral-300 border-r border-neutral-700 last:border-r-0">
-                            {day}
-                          </th>
+                        <th className="px-2 py-2">Turno</th>
+                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map(d => (
+                          <th key={d} className="px-2 py-2 text-center" colSpan={2}>{d}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {['Manhã', 'Tarde'].map(shift => (
-                        <tr key={shift} className="border-t border-neutral-700">
-                          <td className="p-3 font-medium text-neutral-300 bg-neutral-800/50 border-r border-neutral-700">
-                            {shift}
-                          </td>
-                          {['mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map(day => (
-                            <td key={day} className="p-2 border-r border-neutral-700 last:border-r-0">
-                              <input
-                                type="text"
-                                name={`${shift.toLowerCase()}_${day}`}
-                                className="input w-full text-center text-sm"
-                                placeholder="00:00"
-                              />
-                            </td>
+                      {['1º', '2º', '3º'].map((turno, idx) => (
+                        <tr key={idx} className="border-b border-neutral-700">
+                          <td className="px-2 py-2 font-medium">{turno}</td>
+                          {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map(day => (
+                            <React.Fragment key={day}>
+                              <td className="px-1 py-1">
+                                <input
+                                  type="time"
+                                  className="bg-neutral-800 border-none rounded px-1 py-0.5 w-16 text-xs"
+                                  value={schedule[`${day}_start_${idx + 1}`] || ''}
+                                  onChange={(e) => handleScheduleChange(`${day}_start_${idx + 1}`, e.target.value)}
+                                />
+                              </td>
+                              <td className="px-1 py-1">
+                                <input
+                                  type="time"
+                                  className="bg-neutral-800 border-none rounded px-1 py-0.5 w-16 text-xs"
+                                  value={schedule[`${day}_end_${idx + 1}`] || ''}
+                                  onChange={(e) => handleScheduleChange(`${day}_end_${idx + 1}`, e.target.value)}
+                                />
+                              </td>
+                            </React.Fragment>
                           ))}
                         </tr>
                       ))}
@@ -497,30 +422,12 @@ export default function InternshipRegistrationPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Botões de Ação */}
-          <div className="flex justify-end gap-4 pb-8">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleSaveDraft}
-              disabled={isSaving}
-              className="gap-2"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleGeneratePDF}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Gerar PDF Oficial
-            </Button>
-          </div>
         </form>
+
+        {/* Template Oculto para PDF */}
+        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+          <InternshipRegistrationDocument ref={templateRef} data={formData} />
+        </div>
       </div>
     </div>
   )
