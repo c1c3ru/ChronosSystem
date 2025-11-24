@@ -26,7 +26,7 @@ export const MonthlyReportDocument = forwardRef<HTMLDivElement, MonthlyReportDoc
     }
 
     return (
-        <div ref={ref} className="bg-white text-black p-8 max-w-[210mm] mx-auto text-[10pt] font-sans leading-tight">
+        <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-sans leading-tight">
             <OfficialHeader
                 title="RELATÓRIO MENSAL DE ATIVIDADES"
                 showLogos={true}

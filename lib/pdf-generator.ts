@@ -30,18 +30,18 @@ export async function printElementAsPDF(
 
     // Configurações otimizadas para documentos oficiais do IFCE
     const pdfOptions = {
-      margin: options.margin || 15, // Margem de 15mm (padrão ABNT)
+      margin: options.margin || [10, 10, 10, 10], // Margem de 10mm (mais espaço para conteúdo)
       filename: options.filename || `documento_${new Date().toISOString().split('T')[0]}.pdf`,
       image: {
-        type: 'jpeg' as const, // Tipo literal para compatibilidade
-        quality: 0.98 // Alta qualidade para documentos oficiais
+        type: 'jpeg' as const,
+        quality: 0.98
       },
       html2canvas: {
         scale: 2, // Resolução alta
         useCORS: true,
         logging: false,
         letterRendering: true,
-        windowWidth: 1200,
+        windowWidth: 794, // Largura exata A4 em pixels (96 DPI) - evita reescalonamento estranho
         scrollY: 0,
         scrollX: 0,
         ...options.html2canvas
@@ -57,7 +57,7 @@ export async function printElementAsPDF(
         mode: ['avoid-all', 'css', 'legacy'],
         before: '.page-break-before',
         after: '.page-break-after',
-        avoid: '.no-page-break'
+        avoid: ['.no-page-break', 'tr', '.avoid-break'] // Evitar quebra em linhas de tabela
       }
     }
 
@@ -66,6 +66,12 @@ export async function printElementAsPDF(
 
     // Preparar o clone para PDF
     prepareElementForPDF(clone)
+
+    // Forçar largura A4 no clone para garantir layout correto antes da captura
+    clone.style.width = '794px' // Largura A4 aprox em pixels
+    clone.style.maxWidth = '794px'
+    clone.style.margin = '0 auto'
+    clone.style.boxSizing = 'border-box'
 
     // Gerar PDF
     await html2pdf()
@@ -127,32 +133,46 @@ function prepareElementForPDF(element: HTMLElement): void {
   element.style.backgroundColor = '#fff'
   element.style.color = '#000'
   element.style.fontFamily = 'Arial, sans-serif'
-  element.style.fontSize = '12pt'
-  element.style.lineHeight = '1.5'
-  element.style.padding = '0'
+  element.style.fontSize = '11pt' // Reduzir levemente para caber melhor
+  element.style.lineHeight = '1.4'
+  element.style.padding = '20px' // Padding interno seguro
+  element.style.width = '100%'
   element.style.maxWidth = '100%'
+  element.style.boxSizing = 'border-box'
 
   // Ajustar títulos e cabeçalhos
   const headers = element.querySelectorAll('h1, h2, h3, h4, h5, h6')
   headers.forEach((header: any) => {
     header.style.color = '#000'
     header.style.pageBreakAfter = 'avoid'
+    header.style.marginTop = '10px'
+    header.style.marginBottom = '5px'
   })
 
   // Garantir que tabelas não quebrem entre páginas
   const tables = element.querySelectorAll('table')
   tables.forEach((table: any) => {
-    table.style.pageBreakInside = 'avoid'
+    table.style.pageBreakInside = 'auto' // Permitir quebra se necessário, mas controlar linhas
+    table.style.width = '100%'
     table.style.borderCollapse = 'collapse'
+    table.style.marginBottom = '10px'
+
+    // Evitar quebra dentro de linhas da tabela
+    const rows = table.querySelectorAll('tr')
+    rows.forEach((row: any) => {
+      row.style.pageBreakInside = 'avoid'
+      row.style.pageBreakAfter = 'auto'
+    })
   })
 
   // Ajustar cards e seções
-  const cards = element.querySelectorAll('[class*="card"], [class*="section"]')
+  const cards = element.querySelectorAll('[class*="card"], [class*="section"], .avoid-break')
   cards.forEach((card: any) => {
     card.style.backgroundColor = '#fff'
-    card.style.border = '1px solid #ddd'
+    card.style.border = 'none' // Remover bordas de cards para parecer documento
     card.style.pageBreakInside = 'avoid'
-    card.style.marginBottom = '10px'
+    card.style.marginBottom = '15px'
+    card.style.width = '100%'
   })
 }
 
@@ -219,7 +239,7 @@ export async function generatePDFBlob(
 
     // Configurações otimizadas para documentos oficiais do IFCE
     const pdfOptions = {
-      margin: options.margin || 15,
+      margin: options.margin || [10, 10, 10, 10], // Margem de 10mm
       filename: options.filename || `documento_${new Date().toISOString().split('T')[0]}.pdf`,
       image: {
         type: 'jpeg' as const,
@@ -230,7 +250,7 @@ export async function generatePDFBlob(
         useCORS: true,
         logging: false,
         letterRendering: true,
-        windowWidth: 1200,
+        windowWidth: 794, // Largura exata A4 em pixels (96 DPI)
         scrollY: 0,
         scrollX: 0,
         ...options.html2canvas
@@ -246,7 +266,7 @@ export async function generatePDFBlob(
         mode: ['avoid-all', 'css', 'legacy'],
         before: '.page-break-before',
         after: '.page-break-after',
-        avoid: '.no-page-break'
+        avoid: ['.no-page-break', 'tr', '.avoid-break']
       }
     }
 
@@ -255,6 +275,12 @@ export async function generatePDFBlob(
 
     // Preparar o clone para PDF
     prepareElementForPDF(clone)
+
+    // Forçar largura A4 no clone para garantir layout correto antes da captura
+    clone.style.width = '794px' // Largura A4 aprox em pixels
+    clone.style.maxWidth = '794px'
+    clone.style.margin = '0 auto'
+    clone.style.boxSizing = 'border-box'
 
     // Gerar PDF como Blob
     const pdfBlob = await html2pdf()

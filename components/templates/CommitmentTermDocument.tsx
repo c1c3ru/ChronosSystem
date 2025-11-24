@@ -81,7 +81,7 @@ export const CommitmentTermDocument = forwardRef<HTMLDivElement, CommitmentTermD
     }
 
     return (
-        <div ref={ref} className="bg-white text-black p-8 max-w-[210mm] mx-auto text-[10pt] font-serif leading-tight">
+        <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-serif leading-tight">
             {/* Cabeçalho Reutilizável */}
             <OfficialHeader
                 title="TERMO DE COMPROMISSO DE ESTÁGIO"

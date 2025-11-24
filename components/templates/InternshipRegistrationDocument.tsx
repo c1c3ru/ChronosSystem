@@ -63,7 +63,7 @@ export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, Interns
     )
 
     return (
-        <div ref={ref} className="bg-white text-black p-8 max-w-[210mm] mx-auto text-[10pt] font-sans leading-tight">
+        <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-sans leading-tight">
             <OfficialHeader
                 title="SOLICITAÇÃO DE CADASTRO NO ESTÁGIO"
                 showLogos={true}

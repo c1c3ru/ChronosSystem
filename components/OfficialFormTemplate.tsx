@@ -120,7 +120,8 @@ export function OfficialFormTemplate({
             id={formId}
             className="bg-white shadow-lg mx-auto"
             style={{
-                width: '210mm',
+                width: '100%',
+                maxWidth: '210mm',
                 minHeight: '297mm',
                 padding: '15mm',
                 fontSize: '11pt',

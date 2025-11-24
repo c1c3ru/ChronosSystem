@@ -33,7 +33,7 @@ export const ProfessionalDeclarationDocument = forwardRef<HTMLDivElement, Profes
     }
 
     return (
-        <div ref={ref} className="bg-white text-black p-8 max-w-[210mm] mx-auto text-[10pt] font-sans leading-tight">
+        <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-sans leading-tight">
             <OfficialHeader
                 title="DECLARAÇÃO DE ATIVIDADES PROFISSIONAIS"
                 showLogos={true}
