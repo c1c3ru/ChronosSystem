@@ -333,7 +333,6 @@ export async function POST(request: NextRequest) {
         timestamp: {
           gte: oneMinuteAgo
         }
-        // Removido filtro 'type' para bloquear QUALQUER registro recente
       }
     })
 
