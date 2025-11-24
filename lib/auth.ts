@@ -16,7 +16,7 @@ declare module 'next-auth' {
       profileComplete: boolean
     }
   }
-  
+
   interface User {
     id: string
     email: string
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID!,
       clientSecret: GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
+      // Removido allowDangerousEmailAccountLinking por segurança
       authorization: {
         params: {
           prompt: "consent",
@@ -108,34 +108,44 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account, trigger }) {
-      // Se é um novo login ou trigger de update
-      if (user || trigger === 'update') {
-        if (user) {
-          token.role = user.role
-          token.sub = user.id
-          token.profileComplete = user.profileComplete
-        }
-        
-        // Sempre buscar dados atualizados do banco para garantir consistência
-        if (token.sub) {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.sub },
-            select: { 
-              role: true, 
-              profileComplete: true,
-              name: true,
-              email: true 
-            }
-          })
-          
-          if (dbUser) {
-            token.role = dbUser.role
-            token.profileComplete = dbUser.profileComplete
-            token.name = dbUser.name
-            token.email = dbUser.email
+      // Apenas na primeira vez (quando user existe) OU quando explicitamente atualizado
+      if (user) {
+        // Primeira vez - dados vêm do PrismaAdapter ou authorize
+        token.role = user.role
+        token.sub = user.id
+        token.profileComplete = user.profileComplete
+
+        console.log('JWT callback - primeira vez:', {
+          userId: user.id,
+          role: user.role,
+          profileComplete: user.profileComplete
+        })
+      } else if (trigger === 'update' && token.sub) {
+        // Atualização explícita via update() - buscar dados atualizados do banco
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: {
+            role: true,
+            profileComplete: true,
+            name: true,
+            email: true
           }
+        })
+
+        if (dbUser) {
+          token.role = dbUser.role
+          token.profileComplete = dbUser.profileComplete
+          token.name = dbUser.name
+          token.email = dbUser.email
+
+          console.log('JWT callback - atualização:', {
+            userId: token.sub,
+            role: dbUser.role,
+            profileComplete: dbUser.profileComplete
+          })
         }
       }
+      // Chamadas subsequentes: apenas retornar o token sem modificações
       return token
     },
     async session({ session, token }) {
@@ -147,14 +157,14 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async signIn({ user, account, profile }) {
-      console.log('🔵 [SIGNIN] Callback iniciado:', { 
-        provider: account?.provider, 
+      console.log('🔵 [SIGNIN] Callback iniciado:', {
+        provider: account?.provider,
         email: user.email,
         userId: user.id,
         accountType: account?.type,
         profileData: profile ? { name: profile.name, email: profile.email } : null
       })
-      
+
       if (account?.provider === 'google') {
         try {
           console.log('🔍 [SIGNIN] Processando login Google para:', user.email)
@@ -164,146 +174,49 @@ export const authOptions: NextAuthOptions = {
             picture: (profile as any)?.picture,
             email_verified: (profile as any)?.email_verified
           })
-          
+
           // Verificar se o email foi verificado pelo Google
           if (!(profile as any)?.email_verified) {
             console.log('❌ [SIGNIN] Email não verificado pelo Google')
+            console.error('Google login blocked - email not verified', { email: user.email }) // Replaced logger.security
             return false
           }
-          
-          // Buscar usuário existente no banco de dados
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              role: true,
-              profileComplete: true,
-              image: true
-            }
-          })
-          
-          console.log('👤 [SIGNIN] Usuário existente:', existingUser ? 'SIM' : 'NÃO')
 
-          if (existingUser) {
-            console.log('✅ [SIGNIN] Usuário autorizado encontrado:', {
-              id: existingUser.id,
-              email: existingUser.email,
-              role: existingUser.role,
-              profileComplete: existingUser.profileComplete
-            })
-            
-            // Atualizar dados do usuário no objeto user para o JWT
-            user.id = existingUser.id
-            user.role = existingUser.role
-            user.profileComplete = existingUser.profileComplete
-            user.name = existingUser.name || user.name
-            user.image = existingUser.image || user.image
-            
-            console.log('🔄 [SIGNIN] Dados do usuário atualizados para JWT:', {
-              id: user.id,
-              email: user.email,
-              role: user.role,
-              profileComplete: user.profileComplete
-            })
-            
-            return true
-          } else {
-            // NOVA ESTRATÉGIA: Criar usuário automaticamente para login Google
-            console.log('🆕 [SIGNIN] Criando novo usuário automaticamente:', user.email)
-            
-            try {
-              // Criar novo usuário com role temporário até informar SIAPE
-              const newUser = await prisma.user.create({
-                data: {
-                  email: user.email!,
-                  name: profile?.name || user.name || 'Usuário',
-                  image: (profile as any)?.picture || user.image,
-                  role: 'EMPLOYEE', // Temporário - será determinado pelo SIAPE no completar perfil
-                  profileComplete: false,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
-                }
-              })
-              
-              console.log('✅ [SIGNIN] Novo usuário criado:', {
-                id: newUser.id,
-                email: newUser.email,
-                name: newUser.name,
-                role: newUser.role,
-                profileComplete: newUser.profileComplete
-              })
-              
-              // Atualizar dados do usuário no objeto user para o JWT
-              user.id = newUser.id
-              user.role = newUser.role
-              user.profileComplete = newUser.profileComplete
-              user.name = newUser.name
-              user.image = newUser.image
-              
-              // Log de auditoria
-              await prisma.auditLog.create({
-                data: {
-                  userId: newUser.id,
-                  action: 'AUTO_USER_CREATED_GOOGLE',
-                  resource: 'AUTH',
-                  details: `Usuário criado automaticamente via Google: ${newUser.email}`
-                }
-              })
-              
-              console.log('📝 [SIGNIN] Log de auditoria criado para novo usuário')
-              
-              return true
-              
-            } catch (createError) {
-              console.error('❌ [SIGNIN] Erro ao criar usuário automaticamente:', createError)
-              
-              // Log de erro
-              try {
-                await prisma.auditLog.create({
-                  data: {
-                    userId: null,
-                    action: 'FAILED_AUTO_USER_CREATION',
-                    resource: 'AUTH',
-                    details: `Falha ao criar usuário automaticamente: ${user.email} - ${createError}`
-                  }
-                })
-              } catch (logError) {
-                console.error('❌ [SIGNIN] Erro ao registrar falha de criação:', logError)
-              }
-              
-              return false
-            }
-          }
+          // Opcional: Validar domínio permitido
+          // if (!user.email?.endsWith('@empresa.com')) {
+          //   console.log('❌ [SIGNIN] Domínio não autorizado')
+          //   console.error('Google login blocked - unauthorized domain', { email: user.email }) // Replaced logger.security
+          //   return false
+          // }
+
+          console.log('✅ [SIGNIN] Login Google autorizado para:', user.email)
+          console.log('Google login authorized', { email: user.email }) // Replaced logger.info
+
+          // PrismaAdapter irá criar/atualizar o usuário automaticamente
+          // Não é necessário criar manualmente
+          return true
+
         } catch (error) {
           console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
           console.error('❌ [SIGNIN] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
+          console.error('Google login error', { error, email: user.email }) // Replaced logger.error
           return false
         }
       }
-      
+
       console.log('✅ [SIGNIN] Login com outros providers permitido')
       return true
     },
     async redirect({ url, baseUrl }) {
       console.log('🔄 [REDIRECT] Callback chamado:', { url, baseUrl })
-      
-      // Se for callback do Google ou outros providers OAuth
-      if (url.includes('/api/auth/callback/')) {
-        console.log('📞 [REDIRECT] Callback OAuth detectado, redirecionando para /')
-        // Para callbacks OAuth, sempre redirecionar para a página inicial
-        // O middleware irá verificar o role e redirecionar adequadamente
-        return `${baseUrl}/`
-      }
-      
-      // Se for URL relativa, usar baseUrl
+
+      // Permitir URLs relativas
       if (url.startsWith('/')) {
         console.log('🔗 [REDIRECT] URL relativa:', url)
         return `${baseUrl}${url}`
       }
-      
-      // Se for mesma origem, permitir
+
+      // Permitir URLs da mesma origem
       try {
         if (new URL(url).origin === baseUrl) {
           console.log('✅ [REDIRECT] Mesma origem permitida:', url)
@@ -312,7 +225,9 @@ export const authOptions: NextAuthOptions = {
       } catch (error) {
         console.log('❌ [REDIRECT] Erro ao parsear URL:', error)
       }
-      
+
+      // Fallback para baseUrl (página inicial)
+      // O middleware irá redirecionar conforme role e profileComplete
       console.log('🏠 [REDIRECT] Fallback para baseUrl:', baseUrl)
       return baseUrl
     },

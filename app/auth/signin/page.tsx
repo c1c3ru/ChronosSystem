@@ -120,76 +120,21 @@ export default function SignInPage() {
     try {
       setIsGoogleLoading(true)
       setGoogleError(null)
-      toast.loading('Verificando usuário...', { id: 'google-login' })
+      toast.loading('Autenticando com Google...', { id: 'google-login' })
 
-      const result = await signIn('google', {
-        callbackUrl: '/',
-        redirect: false // Não redirecionar automaticamente para capturar erros
+      // Deixar NextAuth gerenciar o redirecionamento automaticamente
+      // O middleware irá redirecionar conforme role e profileComplete
+      await signIn('google', {
+        callbackUrl: '/' // Middleware redirecionará para dashboard apropriado
       })
 
-      if (result?.error) {
-        console.error('Google login error:', result.error)
+      // NextAuth redireciona automaticamente - não precisa de código aqui
+      // Se chegou aqui, houve algum erro (mas o NextAuth já tratou)
 
-        let errorMessage = 'Erro ao fazer login com Google'
-
-        // Tratar diferentes tipos de erro
-        switch (result.error) {
-          case 'AccessDenied':
-            errorMessage = '❌ Acesso negado. Usuário não autorizado no sistema.'
-            setGoogleError('Apenas usuários autorizados podem acessar o sistema. Entre em contato com o administrador.')
-            break
-          case 'OAuthSignin':
-            errorMessage = '❌ Erro na autenticação Google. Tente novamente.'
-            setGoogleError('Falha na comunicação com o Google. Verifique sua conexão.')
-            break
-          case 'OAuthCallback':
-            errorMessage = '❌ Erro no callback do Google. Tente novamente.'
-            setGoogleError('Erro no retorno da autenticação. Tente fazer login novamente.')
-            break
-          case 'OAuthCreateAccount':
-            errorMessage = '❌ Erro ao criar conta. Tente novamente.'
-            setGoogleError('Não foi possível criar sua conta. Verifique se o email está correto.')
-            break
-          case 'EmailCreateAccount':
-            errorMessage = '❌ Email já está em uso com outro provedor.'
-            setGoogleError('Este email já está associado a outro método de login.')
-            break
-          case 'Callback':
-            errorMessage = '❌ Erro de callback. Tente novamente.'
-            setGoogleError('Erro no processo de autenticação. Tente novamente.')
-            break
-          case 'OAuthAccountNotLinked':
-            errorMessage = '❌ Conta não vinculada. Use o mesmo método de login anterior.'
-            setGoogleError('Esta conta Google não está vinculada. Use o método de login original.')
-            break
-          case 'EmailSignin':
-            errorMessage = '❌ Erro no login por email.'
-            setGoogleError('Problema com a verificação do email.')
-            break
-          case 'CredentialsSignin':
-            errorMessage = '❌ Credenciais inválidas.'
-            setGoogleError('Credenciais de login inválidas.')
-            break
-          case 'SessionRequired':
-            errorMessage = '❌ Sessão necessária.'
-            setGoogleError('É necessário fazer login para acessar esta página.')
-            break
-          default:
-            errorMessage = `❌ Erro desconhecido: ${result.error}`
-            setGoogleError('Ocorreu um erro inesperado. Tente novamente ou entre em contato com o suporte.')
-        }
-
-        toast.error(errorMessage, { id: 'google-login' })
-      } else if (result?.ok) {
-        toast.success('Login realizado com sucesso!', { id: 'google-login' })
-        // Redirecionar manualmente após sucesso
-        window.location.href = '/'
-      }
     } catch (error) {
       console.error('Google login error:', error)
       toast.error('❌ Erro inesperado ao fazer login com Google', { id: 'google-login' })
       setGoogleError('Erro inesperado. Verifique sua conexão com a internet e tente novamente.')
-    } finally {
       setIsGoogleLoading(false)
     }
   }
