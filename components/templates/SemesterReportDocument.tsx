@@ -132,7 +132,7 @@ export const SemesterReportDocument = forwardRef<HTMLDivElement, SemesterReportD
             </FormTable>
 
             {/* Avaliação */}
-            <div className="mb-4 border border-gray-400">
+            <div className="mb-4 border border-gray-400" style={{ pageBreakInside: 'avoid' }}>
                 <div className="bg-gray-100 p-2 font-bold text-center border-b border-gray-400 text-[9pt]">
                     AVALIAÇÃO AO DISCENTE ESTAGIÁRIO
                 </div>
@@ -147,7 +147,7 @@ export const SemesterReportDocument = forwardRef<HTMLDivElement, SemesterReportD
                         </div>
                     </div>
                     <div className="w-2/3">
-                        <table className="w-full text-[9pt]">
+                        <table className="w-full text-[9pt]" style={{ pageBreakInside: 'avoid' }}>
                             <thead>
                                 <tr>
                                     <th className="border-b border-r border-gray-400 px-2 py-1 text-left w-full">CONCEITOS</th>
