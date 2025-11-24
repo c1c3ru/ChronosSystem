@@ -44,8 +44,27 @@ export default function ExtensionDeclarationPage() {
     setIsSaving(false)
   }
 
-  const handleGeneratePDF = () => {
-    toast.info('Funcionalidade em desenvolvimento')
+  const handleGeneratePDF = async () => {
+    try {
+      const hasData = Object.values(formData).some(value => value !== '')
+      if (!hasData) {
+        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
+        return
+      }
+
+      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
+
+      const { generateFormPDF } = await import('@/lib/pdf-generator')
+      await generateFormPDF(formRef, 'declaracao-prorrogacao', formData)
+
+      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
+        { id: 'pdf-generation' }
+      )
+    }
   }
 
   return (

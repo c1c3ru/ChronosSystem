@@ -37,9 +37,32 @@ export default function InternshipRegistrationPage() {
     setIsSaving(false)
   }
 
-  const handleGeneratePDF = () => {
-    // TODO: Implementar geração de PDF usando o OfficialFormTemplate
-    toast.info('Funcionalidade em desenvolvimento')
+  const handleGeneratePDF = async () => {
+    try {
+      if (!formRef.current) return
+
+      const formData = new FormData(formRef.current)
+      const data = Object.fromEntries(formData.entries())
+
+      const hasData = Object.values(data).some(value => value !== '')
+      if (!hasData) {
+        toast.error('Preencha pelo menos um campo antes de gerar o PDF')
+        return
+      }
+
+      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
+
+      const { generateFormPDF } = await import('@/lib/pdf-generator')
+      await generateFormPDF(formRef, 'cadastro-estagio', data)
+
+      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
+        { id: 'pdf-generation' }
+      )
+    }
   }
 
   return (
