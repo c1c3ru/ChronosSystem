@@ -195,3 +195,97 @@ export async function generateFormPDF(
   // Gerar PDF
   await printElementAsPDF(formRef.current, { filename })
 }
+
+/**
+ * Gera PDF como Blob (para visualização)
+ * Retorna o PDF como Blob ao invés de fazer download
+ */
+export async function generatePDFBlob(
+  element: HTMLElement,
+  options: PDFOptions = {}
+): Promise<Blob> {
+  // Verificar se estamos no cliente
+  if (typeof window === 'undefined') {
+    throw new Error('generatePDFBlob só pode ser executado no navegador')
+  }
+
+  try {
+    // Importar html2pdf dinamicamente (apenas no cliente)
+    const html2pdf = (await import('html2pdf.js')).default
+
+    // Configurações otimizadas para documentos oficiais do IFCE
+    const pdfOptions = {
+      margin: options.margin || 15,
+      filename: options.filename || `documento_${new Date().toISOString().split('T')[0]}.pdf`,
+      image: {
+        type: 'jpeg' as const,
+        quality: 0.98
+      },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+        windowWidth: 1200,
+        scrollY: 0,
+        scrollX: 0
+      },
+      jsPDF: {
+        unit: 'mm' as const,
+        format: 'a4' as const,
+        orientation: 'portrait' as const,
+        compress: true
+      },
+      pagebreak: options.pagebreak || {
+        mode: ['avoid-all', 'css', 'legacy'],
+        before: '.page-break-before',
+        after: '.page-break-after',
+        avoid: '.no-page-break'
+      }
+    }
+
+    // Clonar o elemento para não afetar a visualização
+    const clone = element.cloneNode(true) as HTMLElement
+
+    // Preparar o clone para PDF
+    prepareElementForPDF(clone)
+
+    // Gerar PDF como Blob
+    const pdfBlob = await html2pdf()
+      .set(pdfOptions)
+      .from(clone)
+      .outputPdf('blob')
+
+    console.log('✅ PDF Blob gerado com sucesso')
+
+    return pdfBlob as Blob
+
+  } catch (error) {
+    console.error('❌ Erro ao gerar PDF Blob:', error)
+    throw new Error('Falha ao gerar visualização do PDF.')
+  }
+}
+
+/**
+ * Faz download de um Blob de PDF
+ * Útil para baixar PDFs que foram gerados como Blob para visualização
+ */
+export function downloadPDFBlob(blob: Blob, filename: string): void {
+  // Criar URL temporária para o blob
+  const url = URL.createObjectURL(blob)
+
+  // Criar elemento <a> temporário para download
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
+
+  // Adicionar ao DOM, clicar e remover
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Liberar URL temporária
+  URL.revokeObjectURL(url)
+
+  console.log('✅ PDF baixado:', link.download)
+}
