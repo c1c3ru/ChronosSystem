@@ -161,9 +161,21 @@ export default function JustificationsPage() {
     }
   }
 
+
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString)
+      // Parse a data corretamente para evitar problemas de timezone
+      // Se a string é ISO (YYYY-MM-DD), adicionar 'T12:00:00' para forçar meio-dia local
+      let date: Date
+
+      if (dateString.includes('T')) {
+        // Já tem horário, usar diretamente
+        date = new Date(dateString)
+      } else {
+        // Apenas data (YYYY-MM-DD), adicionar horário do meio-dia para evitar timezone issues
+        date = new Date(dateString + 'T12:00:00')
+      }
+
       if (isNaN(date.getTime())) {
         return 'Data inválida'
       }
@@ -172,6 +184,7 @@ export default function JustificationsPage() {
       return 'Data inválida'
     }
   }
+
 
   if (status === 'loading' || loading) {
     return <Loading />
