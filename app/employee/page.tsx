@@ -855,8 +855,12 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
+                  <a href="/documents/internship-registration-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>✨ Solicitação de Cadastro (Novo)</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
                   <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Solicitação de Cadastro</span>
+                    <span>Cadastro de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
