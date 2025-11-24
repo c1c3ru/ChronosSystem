@@ -5,8 +5,9 @@ import { useSearchParams } from 'next/navigation'
 import { ShieldAlert, ArrowLeft, Home, UserX, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
+import { Suspense } from 'react'
 
-export default function UnauthorizedPage() {
+function UnauthorizedContent() {
     const searchParams = useSearchParams()
     const reason = searchParams.get('reason')
     const required = searchParams.get('required')
@@ -80,6 +81,18 @@ export default function UnauthorizedPage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function UnauthorizedPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+            </div>
+        }>
+            <UnauthorizedContent />
+        </Suspense>
     )
 }
 
