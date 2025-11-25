@@ -1,362 +1,280 @@
-import React, { forwardRef } from 'react'
-import { OfficialHeader, FormTable, FormHeaderCell, FormDataCell, FormField } from '@/components/OfficialFormTemplate'
+import React, { forwardRef } from 'react';
 
-interface InternshipRegistrationDocumentProps {
-    data: {
-        // Discente
-        student_name: string
-        student_cpf: string
-        student_social_name: string
-        student_course: string
-        student_enrollment: string
-        student_address: string
-        student_neighborhood: string
-        student_city_uf: string
-        student_zip: string
-        student_phone: string
-        student_email_institutional: string
-        student_email_personal: string
-
-        // Checkboxes (serão strings 'true'/'false' ou valores específicos)
-        student_race: string // Amarelo, Branco, Indígena, Pardo, Preto, Prefiro não declarar
-        student_ethnicity: string // Indígena, Quilombola, Outra, Prefiro não declarar, Informar comunidade
-        student_ethnicity_community: string
-        student_disability: string // Alta habilidade, Auditiva, Intelectual, Motora, Visual/Baixa visão, Visual, Surdocegueira
-
-        // Concedente
-        company_name: string
-        company_fantasy_name: string
-        company_cnpj: string
-        company_address: string
-        company_neighborhood: string
-        company_city_uf: string
-        company_zip: string
-        company_phone: string
-        company_email: string
-        company_representative: string
-        company_representative_role: string
-        company_representative_cpf: string
-        company_representative_phone: string
-        company_supervisor: string
-        company_supervisor_role: string
-        company_supervisor_cpf: string
-        company_supervisor_phone: string
-        company_sector: string
-
-        // Estágio
-        internship_type: string // Obrigatório, Não Obrigatório
-        internship_mode: string // Presencial, Remoto
-        start_date: string
-        weekly_hours: string
-        end_date: string
-
-        // Horário (JSON string)
-        schedule: string
-    }
+// Tipagem básica dos dados (ajuste conforme seu projeto)
+interface DocumentProps {
+    data: any;
 }
 
-export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, InternshipRegistrationDocumentProps>(({ data }, ref) => {
-    const schedule = JSON.parse(data.schedule || '{}')
+export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, DocumentProps>(({ data }, ref) => {
 
-    const Checkbox = ({ checked, label }: { checked: boolean, label: string }) => (
-        <div className="flex items-center mr-4 mb-1">
-            <div className={`w-4 h-4 border border-black mr-1 flex items-center justify-center text-[10px]`}>
-                {checked ? 'X' : ''}
-            </div>
-            <span className="text-[9pt]">{label}</span>
+    // Helper para renderizar checkboxes marcados ou vazios visualmente
+    const CheckBox = ({ checked, label }: { checked: boolean; label?: string }) => (
+        <div className="flex items-center mr-4">
+            <span className="font-mono text-sm mr-1">
+                {checked ? '( X )' : '(   )'}
+            </span>
+            {label && <span className="text-[10px] uppercase">{label}</span>}
         </div>
-    )
+    );
+
+    // Helper para renderizar campos com label e valor
+    const Field = ({ label, value, className = "" }: { label: string; value: string; className?: string }) => (
+        <div className={`border-r border-black last:border-r-0 px-2 py-1 h-full ${className}`}>
+            <div className="text-[9px] font-bold uppercase leading-none mb-1 text-gray-600">{label}</div>
+            <div className="text-[11px] font-medium uppercase min-h-[16px] break-words leading-tight">
+                {value || ''}
+            </div>
+        </div>
+    );
 
     return (
-        <div ref={ref} className="bg-white text-black w-full mx-auto" style={{
-            fontSize: '10pt',
-            fontFamily: 'Arial, "Times New Roman", sans-serif',
-            lineHeight: '1.3',
-            padding: '15mm 10mm 15mm 15mm',
-            maxWidth: '210mm',
-            minHeight: '297mm'
-        }}>
-            <OfficialHeader
-                title="SOLICITAÇÃO DE CADASTRO NO ESTÁGIO"
-                showLogos={true}
-            />
+        <div ref={ref} className="bg-white text-black font-sans box-border p-8 mx-auto" style={{ width: '210mm', minHeight: '297mm' }}>
 
-            {/* Dados do Discente */}
-            <FormTable>
-                <tbody>
-                    <tr>
-                        <FormField label="NOME" colSpan={4}>
-                            {data.student_name}
-                        </FormField>
-                        <FormField label="CPF" colSpan={2}>
-                            {data.student_cpf}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="NOME SOCIAL" colSpan={6}>
-                            {data.student_social_name}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="CURSO" colSpan={4}>
-                            {data.student_course}
-                        </FormField>
-                        <FormField label="MATRÍCULA" colSpan={2}>
-                            {data.student_enrollment}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)" colSpan={4}>
-                            {data.student_address}
-                        </FormField>
-                        <FormField label="BAIRRO/DISTRITO" colSpan={2}>
-                            {data.student_neighborhood}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="MUNICÍPIO-UF" colSpan={3}>
-                            {data.student_city_uf}
-                        </FormField>
-                        <FormField label="CEP" colSpan={1}>
-                            {data.student_zip}
-                        </FormField>
-                        <FormField label="DDD + TELEFONE" colSpan={2}>
-                            {data.student_phone}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="E-MAIL INSTITUCIONAL" colSpan={3}>
-                            {data.student_email_institutional}
-                        </FormField>
-                        <FormField label="E-MAIL PESSOAL" colSpan={3}>
-                            {data.student_email_personal}
-                        </FormField>
-                    </tr>
-                </tbody>
-            </FormTable>
+            {/* --- CABEÇALHO --- */}
+            <header className="flex justify-between items-start mb-4">
+                {/* Logo IFCE */}
+                <div className="w-24 h-24 flex items-center justify-center">
+                    <img src="/assets/logoifce.png" alt="Logo IFCE" className="max-w-full max-h-full object-contain" />
+                </div>
 
-            {/* Cor/Raça, Etnia, Deficiência */}
-            <FormTable>
-                <tbody>
-                    <tr>
-                        <FormHeaderCell className="text-center w-1/4">COR/RAÇA</FormHeaderCell>
-                        <FormHeaderCell className="text-center w-1/4">ETNIA</FormHeaderCell>
-                        <FormHeaderCell className="text-center w-1/2">APENAS PARA PESSOA COM DEFICIÊNCIA E/OU AH/SD</FormHeaderCell>
-                    </tr>
-                    <tr>
-                        <td className="border border-gray-400 p-2 align-top">
-                            <Checkbox checked={data.student_race === 'amarelo'} label="Amarelo(a)" />
-                            <Checkbox checked={data.student_race === 'branco'} label="Branco(a)" />
-                            <Checkbox checked={data.student_race === 'indigena'} label="Indígena" />
-                            <Checkbox checked={data.student_race === 'pardo'} label="Pardo(a)" />
-                            <Checkbox checked={data.student_race === 'preto'} label="Preto(a)" />
-                            <Checkbox checked={data.student_race === 'nao_declarar'} label="Prefiro não declarar" />
-                        </td>
-                        <td className="border border-gray-400 p-2 align-top">
-                            <Checkbox checked={data.student_ethnicity === 'indigena'} label="Indígena" />
-                            <Checkbox checked={data.student_ethnicity === 'quilombola'} label="Quilombola" />
-                            <Checkbox checked={data.student_ethnicity === 'outra'} label="Outra" />
-                            <Checkbox checked={data.student_ethnicity === 'nao_declarar'} label="Prefiro não declarar" />
-                            <div className="mt-2 text-[9pt]">
-                                Informar comunidade se marcar etnia:
-                                <div className="border-b border-black h-4 mt-1">{data.student_ethnicity_community}</div>
-                            </div>
-                        </td>
-                        <td className="border border-gray-400 p-2 align-top">
-                            <div className="grid grid-cols-1">
-                                <Checkbox checked={data.student_disability === 'alta_habilidade'} label="Alta habilidade/superdotação" />
-                                <Checkbox checked={data.student_disability === 'auditiva'} label="Deficiência auditiva" />
-                                <Checkbox checked={data.student_disability === 'intelectual'} label="Deficiência intelectual" />
-                                <Checkbox checked={data.student_disability === 'motora'} label="Deficiência motora" />
-                                <Checkbox checked={data.student_disability === 'visual_baixa'} label="Deficiência visual/baixa visão" />
-                                <Checkbox checked={data.student_disability === 'visual'} label="Deficiência visual" />
-                                <Checkbox checked={data.student_disability === 'surdocegueira'} label="Surdocegueira" />
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </FormTable>
+                <div className="flex-1 text-center px-4">
+                    <h1 className="text-sm font-bold uppercase">Pró-Reitoria de Extensão</h1>
+                    <h2 className="text-sm font-bold uppercase">Coordenação de Estágios e Acompanhamento de Egressos</h2>
+                    <div className="mt-2 text-sm uppercase">IFCE Campus Maracanaú</div>
+                    <div className="text-sm uppercase">Setor de Acompanhamento de Estágio</div>
+                    <h3 className="text-xl font-bold uppercase mt-4">Solicitação de Cadastro no Estágio</h3>
+                </div>
 
-            {/* Instituição Concedente */}
-            <FormTable>
-                <tbody>
-                    <tr>
-                        <FormField label="RAZÃO SOCIAL" colSpan={6}>
-                            {data.company_name}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="NOME DE FANTASIA OU DE PESSOA FÍSICA" colSpan={6}>
-                            {data.company_fantasy_name}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="CNPJ OU REGISTRO NO CONSELHO" colSpan={2}>
-                            {data.company_cnpj}
-                        </FormField>
-                        <FormField label="ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)" colSpan={4}>
-                            {data.company_address}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="BAIRRO" colSpan={2}>
-                            {data.company_neighborhood}
-                        </FormField>
-                        <FormField label="MUNICÍPIO-UF" colSpan={3}>
-                            {data.company_city_uf}
-                        </FormField>
-                        <FormField label="CEP" colSpan={1}>
-                            {data.company_zip}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="DDD + TELEFONE" colSpan={2}>
-                            {data.company_phone}
-                        </FormField>
-                        <FormField label="E-MAIL" colSpan={4}>
-                            {data.company_email}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM" colSpan={6}>
-                            {data.company_representative}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="CARGO/QUALIFICAÇÃO" colSpan={2}>
-                            {data.company_representative_role}
-                        </FormField>
-                        <FormField label="CPF" colSpan={2}>
-                            {data.company_representative_cpf}
-                        </FormField>
-                        <FormField label="DDD + TELEFONE" colSpan={2}>
-                            {data.company_representative_phone}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO" colSpan={6}>
-                            {data.company_supervisor}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="CARGO/QUALIFICAÇÃO" colSpan={2}>
-                            {data.company_supervisor_role}
-                        </FormField>
-                        <FormField label="CPF" colSpan={2}>
-                            {data.company_supervisor_cpf}
-                        </FormField>
-                        <FormField label="DDD + TELEFONE" colSpan={2}>
-                            {data.company_supervisor_phone}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="SETOR DE REALIZAÇÃO DO ESTÁGIO" colSpan={6}>
-                            {data.company_sector}
-                        </FormField>
-                    </tr>
-                </tbody>
-            </FormTable>
+                {/* Brasão da República */}
+                <div className="w-24 h-24 flex items-center justify-center">
+                    <img src="/assets/brasao.png" alt="Brasão" className="max-w-full max-h-full object-contain" />
+                </div>
+            </header>
 
-            {/* Dados do Estágio */}
-            <FormTable>
-                <tbody>
-                    <tr>
-                        <td className="border border-gray-400 p-2 align-top w-1/4">
-                            <div className="text-[8pt] font-semibold mb-1">TIPO DE ESTÁGIO</div>
-                            <Checkbox checked={data.internship_type === 'obrigatorio'} label="OBRIGATÓRIO" />
-                            <Checkbox checked={data.internship_type === 'nao_obrigatorio'} label="NÃO OBRIGATÓRIO" />
-                        </td>
-                        <td className="border border-gray-400 p-2 align-top w-1/4">
-                            <div className="text-[8pt] font-semibold mb-1">FORMA DE ESTÁGIO</div>
-                            <Checkbox checked={data.internship_mode === 'presencial'} label="PRESENCIAL" />
-                            <Checkbox checked={data.internship_mode === 'remoto'} label="REMOTO" />
-                        </td>
-                        <FormField label="DATA INICIAL" colSpan={1} className="w-1/6 text-center">
-                            {data.start_date}
-                        </FormField>
-                        <FormField label="CARGA HORÁRIA SEMANAL" colSpan={1} className="w-1/6 text-center">
-                            {data.weekly_hours} HORAS
-                        </FormField>
-                        <FormField label="DATA FINAL PREVISTA" colSpan={1} className="w-1/6 text-center">
-                            {data.end_date}
-                        </FormField>
-                    </tr>
-                </tbody>
-            </FormTable>
+            {/* --- CORPO DO FORMULÁRIO (Simulando Tabela com Bordas) --- */}
+            <div className="border border-black text-xs">
 
-            {/* Horário */}
-            <FormTable className="text-[7pt]">
-                <thead>
-                    <tr>
-                        <FormHeaderCell rowSpan={2} className="w-8 text-center text-[7pt]" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>TURNO</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">SEGUNDA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">TERÇA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">QUARTA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">QUINTA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">SEXTA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">SÁBADO</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">DOMINGO</FormHeaderCell>
-                    </tr>
-                    <tr>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
-                    </tr>
-                </thead>
-                <tbody>
-                    {['1º', '2º', '3º'].map((turno, index) => (
-                        <tr key={index}>
-                            <td className="border border-gray-400 text-center font-bold text-[7pt] p-0.5">{turno}</td>
-                            {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map(day => (
-                                <React.Fragment key={day}>
-                                    <td className="border border-gray-400 text-center text-[7pt] h-4 p-0.5">
-                                        {schedule[`${day}_start_${index + 1}`] || ''}
-                                    </td>
-                                    <td className="border border-gray-400 text-center text-[7pt] h-4 p-0.5">
-                                        {schedule[`${day}_end_${index + 1}`] || ''}
-                                    </td>
-                                </React.Fragment>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </FormTable>
+                {/* Linha 1 */}
+                <div className="flex border-b border-black">
+                    <div className="w-[70%]"><Field label="Nome" value={data.student_name} /></div>
+                    <div className="w-[30%]"><Field label="CPF" value={data.student_cpf} /></div>
+                </div>
 
-            {/* Assinaturas */}
-            <div className="border border-gray-400 mt-4">
-                <div className="flex">
-                    <div className="flex-1 border-r border-gray-400 p-2">
-                        <div className="mb-8">
-                            SOLICITAÇÃO EM _____/_____/_______
-                        </div>
-                        <div className="border-t border-black pt-1 text-center text-[8pt] uppercase mt-8">
-                            ASSINATURA DO DISCENTE
+                {/* Linha 2 */}
+                <div className="flex border-b border-black">
+                    <div className="w-full"><Field label="Nome Social" value={data.student_social_name} /></div>
+                </div>
+
+                {/* Linha 3 */}
+                <div className="flex border-b border-black">
+                    <div className="w-[70%]"><Field label="Curso" value={data.student_course} /></div>
+                    <div className="w-[30%]"><Field label="Matrícula" value={data.student_enrollment} /></div>
+                </div>
+
+                {/* Linha 4 */}
+                <div className="flex border-b border-black">
+                    <div className="w-[60%]"><Field label="Endereço (Logradouro, Número e Complemento)" value={data.student_address} /></div>
+                    <div className="w-[40%]"><Field label="Bairro/Distrito" value={data.student_neighborhood} /></div>
+                </div>
+
+                {/* Linha 5 */}
+                <div className="flex border-b border-black">
+                    <div className="w-[40%]"><Field label="Município-UF" value={data.student_city_uf} /></div>
+                    <div className="w-[20%]"><Field label="CEP" value={data.student_zip} /></div>
+                    <div className="w-[40%]"><Field label="DDD + Telefone" value={data.student_phone} /></div>
+                </div>
+
+                {/* Linha 6 - Emails */}
+                <div className="flex border-b border-black">
+                    <div className="w-[50%]"><Field label="E-mail Institucional" value={data.student_email_institutional} /></div>
+                    <div className="w-[50%]"><Field label="E-mail Pessoal" value={data.student_email_personal} /></div>
+                </div>
+
+                {/* Linha 7 - Checkboxes Complexos */}
+                <div className="flex border-b border-black min-h-[100px]">
+                    {/* Cor/Raça */}
+                    <div className="w-[25%] border-r border-black p-2">
+                        <div className="text-[9px] font-bold uppercase mb-2 text-center">Cor/Raça</div>
+                        <div className="flex flex-col gap-1">
+                            <CheckBox checked={data.student_race === 'amarelo'} label="Amarelo(a)" />
+                            <CheckBox checked={data.student_race === 'branco'} label="Branco(a)" />
+                            <CheckBox checked={data.student_race === 'indigena'} label="Indígena" />
+                            <CheckBox checked={data.student_race === 'pardo'} label="Pardo(a)" />
+                            <CheckBox checked={data.student_race === 'preto'} label="Preto(a)" />
+                            <CheckBox checked={data.student_race === 'nao_declarar'} label="Prefiro não declarar" />
                         </div>
                     </div>
-                    <div className="flex-1 p-2">
-                        <div className="mb-8">
-                            AUTORIZAÇÃO EM _____/_____/_______
+
+                    {/* Etnia */}
+                    <div className="w-[35%] border-r border-black p-2 flex flex-col justify-between">
+                        <div>
+                            <div className="text-[9px] font-bold uppercase mb-2 text-center">Etnia</div>
+                            <div className="flex flex-col gap-1">
+                                <CheckBox checked={data.student_ethnicity === 'indigena'} label="Indígena" />
+                                <CheckBox checked={data.student_ethnicity === 'quilombola'} label="Quilombola" />
+                                <CheckBox checked={data.student_ethnicity === 'outra'} label="Outra" />
+                                <CheckBox checked={data.student_ethnicity === 'nao_declarar'} label="Prefiro não declarar" />
+                            </div>
                         </div>
-                        <div className="border-t border-black pt-1 text-center text-[8pt] uppercase mt-8">
-                            ASSINATURA DO DOCENTE ORIENTADOR
+                        <div className="mt-2 pt-2 border-t border-gray-300">
+                            <span className="text-[9px]">Informar comunidade se marcar etnia:</span>
+                            <div className="border-b border-black mt-4 h-4 text-[11px]">{data.student_ethnicity_community}</div>
+                        </div>
+                    </div>
+
+                    {/* Deficiência */}
+                    <div className="w-[40%] p-2">
+                        <div className="text-[9px] font-bold uppercase mb-2 text-center">Apenas para pessoa com deficiência e/ou AH/SD</div>
+                        <div className="flex flex-col gap-1">
+                            <CheckBox checked={data.student_disability === 'alta_habilidade'} label="Alta habilidade/superdotação" />
+                            <CheckBox checked={data.student_disability === 'auditiva'} label="Deficiência auditiva" />
+                            <CheckBox checked={data.student_disability === 'intelectual'} label="Deficiência intelectual" />
+                            <CheckBox checked={data.student_disability === 'motora'} label="Deficiência motora" />
+                            <CheckBox checked={data.student_disability === 'visual_baixa'} label="Deficiência visual/baixa visão" />
+                            <CheckBox checked={data.student_disability === 'visual'} label="Deficiência visual" />
+                            <CheckBox checked={data.student_disability === 'surdocegueira'} label="Surdocegueira" />
                         </div>
                     </div>
                 </div>
+
+                {/* --- DADOS DA EMPRESA --- */}
+                <div className="flex border-b border-black bg-gray-100">
+                    <div className="w-full px-2 py-1 text-[9px] font-bold uppercase text-center border-b border-black">Dados da Concedente</div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-full"><Field label="Razão Social" value={data.company_name} /></div>
+                </div>
+                <div className="flex border-b border-black">
+                    <div className="w-full"><Field label="Nome de Fantasia ou de Pessoa Física" value={data.company_fantasy_name} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-[30%]"><Field label="CNPJ ou Registro no Conselho" value={data.company_cnpj} /></div>
+                    <div className="w-[70%]"><Field label="Endereço (Logradouro, Número e Complemento)" value={data.company_address} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-[30%]"><Field label="Bairro" value={data.company_neighborhood} /></div>
+                    <div className="w-[50%]"><Field label="Município-UF" value={data.company_city_uf} /></div>
+                    <div className="w-[20%]"><Field label="CEP" value={data.company_zip} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-[30%]"><Field label="DDD + Telefone" value={data.company_phone} /></div>
+                    <div className="w-[70%]"><Field label="E-mail" value={data.company_email} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-full"><Field label="Responsável Legal pela Instituição para este Fim" value={data.company_representative} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-[60%]"><Field label="Cargo/Qualificação" value={data.company_representative_role} /></div>
+                    <div className="w-[20%]"><Field label="CPF" value={data.company_representative_cpf} /></div>
+                    <div className="w-[20%]"><Field label="DDD + Telefone" value={data.company_representative_phone} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-full"><Field label="Supervisor do Estágio na Instituição Concedente" value={data.company_supervisor} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-[60%]"><Field label="Cargo/Qualificação" value={data.company_supervisor_role} /></div>
+                    <div className="w-[20%]"><Field label="CPF" value={data.company_supervisor_cpf} /></div>
+                    <div className="w-[20%]"><Field label="DDD + Telefone" value={data.company_supervisor_phone} /></div>
+                </div>
+
+                <div className="flex border-b border-black">
+                    <div className="w-full"><Field label="Setor de Realização do Estágio" value={data.company_sector} /></div>
+                </div>
+
+                {/* --- DADOS DO ESTÁGIO (Linha combinada) --- */}
+                <div className="flex border-b border-black">
+                    {/* Tipo */}
+                    <div className="w-[20%] border-r border-black p-2">
+                        <div className="text-[9px] font-bold uppercase mb-1">Tipo de Estágio</div>
+                        <CheckBox checked={data.internship_type === 'obrigatorio'} label="Obrigatório" />
+                        <CheckBox checked={data.internship_type === 'nao_obrigatorio'} label="Não Obrigatório" />
+                    </div>
+                    {/* Forma */}
+                    <div className="w-[20%] border-r border-black p-2">
+                        <div className="text-[9px] font-bold uppercase mb-1">Forma de Estágio</div>
+                        <CheckBox checked={data.internship_mode === 'presencial'} label="Presencial" />
+                        <CheckBox checked={data.internship_mode === 'remoto'} label="Remoto" />
+                    </div>
+                    {/* Datas */}
+                    <div className="w-[15%] border-r border-black"><Field label="Data Inicial" value={data.start_date} /></div>
+                    <div className="w-[25%] border-r border-black"><Field label="Carga Horária Semanal" value={data.weekly_hours ? `${data.weekly_hours} HORAS` : ''} /></div>
+                    <div className="w-[20%]"><Field label="Data Final Prevista" value={data.end_date} /></div>
+                </div>
+
+                {/* --- TABELA DE HORÁRIOS --- */}
+                <div className="border-b border-black">
+                    <div className="text-[9px] font-bold uppercase text-center bg-gray-100 border-b border-black py-1">
+                        Previsão de Distribuição da Carga Horária
+                    </div>
+
+                    {/* Cabeçalho da Tabela */}
+                    <div className="flex text-[8px] font-bold uppercase text-center border-b border-black">
+                        <div className="w-[10%] border-r border-black py-2 flex items-center justify-center rotate-180" style={{ writingMode: 'vertical-rl' }}>TURNO</div>
+                        {['SEGUNDA-FEIRA', 'TERÇA-FEIRA', 'QUARTA-FEIRA', 'QUINTA-FEIRA', 'SEXTA-FEIRA', 'SÁBADO', 'DOMINGO'].map((day, i) => (
+                            <div key={day} className={`flex-1 ${i < 6 ? 'border-r border-black' : ''}`}>
+                                <div className="border-b border-black py-1">{day}</div>
+                                <div className="flex">
+                                    <div className="w-1/2 border-r border-black py-1">INÍCIO</div>
+                                    <div className="w-1/2 py-1">FINAL</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Linhas da Tabela (1º, 2º, 3º) */}
+                    {['1º', '2º', '3º'].map((turno, idx) => {
+                        const scheduleData = data.schedule ? JSON.parse(data.schedule) : {};
+                        return (
+                            <div key={turno} className="flex text-[10px] text-center border-b border-black h-8">
+                                <div className="w-[10%] border-r border-black flex items-center justify-center font-bold bg-gray-50">{turno}</div>
+                                {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map((day, i) => (
+                                    <div key={day} className={`flex-1 flex ${i < 6 ? 'border-r border-black' : ''}`}>
+                                        <div className="w-1/2 border-r border-black flex items-center justify-center">
+                                            {scheduleData[`${day}_start_${idx + 1}`] || ''}
+                                        </div>
+                                        <div className="w-1/2 flex items-center justify-center">
+                                            {scheduleData[`${day}_end_${idx + 1}`] || ''}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* --- ASSINATURAS --- */}
+                <div className="flex h-32 border-b border-black">
+                    <div className="w-1/2 border-r border-black relative">
+                        <div className="absolute bottom-2 left-0 w-full px-8 text-center">
+                            <div className="border-t border-black pt-1 text-[10px] font-bold uppercase">Solicitação em ____/____/____</div>
+                            <div className="mt-6 border-t border-black pt-1 text-[10px] uppercase">Assinatura do Discente</div>
+                        </div>
+                    </div>
+                    <div className="w-1/2 relative">
+                        <div className="absolute bottom-2 left-0 w-full px-8 text-center">
+                            <div className="border-t border-black pt-1 text-[10px] font-bold uppercase">Autorização em ____/____/____</div>
+                            <div className="mt-6 border-t border-black pt-1 text-[10px] uppercase">Assinatura do Docente Orientador</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* --- RODAPÉ --- */}
+            <div className="mt-4 text-xs font-bold text-justify">
+                <span className="underline">Observação:</span> As atividades de estágio supervisionado só podem ser <span className="uppercase">iniciadas após o cadastro</span> do Termo de Compromisso de Estágio no sistema competente.
             </div>
 
         </div>
-    )
-})
+    );
+});
 
-InternshipRegistrationDocument.displayName = 'InternshipRegistrationDocument'
+InternshipRegistrationDocument.displayName = 'InternshipRegistrationDocument';

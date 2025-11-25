@@ -546,8 +546,8 @@ export default function EmployeePage() {
             <CardContent className="p-6">
               {/* 🎯 Banner de Próximo Registro */}
               <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${workStatus?.isWorking
-                  ? 'bg-warning/20 border-l-4 border-warning'
-                  : 'bg-success-500/20 border-l-4 border-success-500'
+                ? 'bg-warning/20 border-l-4 border-warning'
+                : 'bg-success-500/20 border-l-4 border-success-500'
                 }`}>
                 <div className="flex items-center space-x-3">
                   {workStatus?.isWorking ? (
@@ -909,10 +909,6 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
-                  <a href="/documents/internship-registration-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>✨ Solicitação de Cadastro (Novo)</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
                   <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                     <span>Cadastro de Estágio</span>
                     <ChevronRight className="h-4 w-4" />

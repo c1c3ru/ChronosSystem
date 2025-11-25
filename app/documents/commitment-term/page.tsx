@@ -121,21 +121,14 @@ export default function CommitmentTermPage() {
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generatePDFBlob, downloadPDFBlob } = await import('@/lib/pdf-generator')
+      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
 
       if (!documentRef.current) {
         throw new Error('Template do documento não encontrado')
       }
 
-      // Gerar PDF a partir do template oculto
-      const blob = await generatePDFBlob(documentRef.current, {
-        filename: 'termo-compromisso.pdf',
-        margin: [10, 10, 10, 10], // Margens menores para o documento oficial
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
-
-      downloadPDFBlob(blob, `termo-compromisso_${formData.student_name.split(' ')[0]}.pdf`)
+      // Gerar PDF com Puppeteer
+      await generatePDFWithPuppeteer(documentRef.current, `termo-compromisso_${formData.student_name.split(' ')[0]}.pdf`)
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {

@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react'
-import { OfficialHeader, FormTable, FormHeaderCell, FormDataCell, FormField } from '@/components/OfficialFormTemplate'
 
 interface FinalReportDocumentProps {
     data: {
@@ -38,110 +37,151 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
         return `${day}/${month}/${year}`
     }
 
+    // Componentes auxiliares
+    const Label = ({ children }: { children: React.ReactNode }) => (
+        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
+    )
+
+    const Value = ({ children }: { children: React.ReactNode }) => (
+        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
+    )
+
+    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
+        <tr className={className}>{children}</tr>
+    )
+
+    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
+        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
+            {children}
+        </td>
+    )
+
+    const SectionHeader = ({ title }: { title: string }) => (
+        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
+            {title}
+        </div>
+    )
+
     const EvaluationRow = ({ label, value }: { label: string, value: string }) => (
         <tr style={{ pageBreakInside: 'avoid' }}>
-            <td className="border border-gray-400 px-1.5 py-0.5 text-[8pt]">{label}</td>
-            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '1' ? 'X' : ''}</td>
-            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '2' ? 'X' : ''}</td>
-            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '3' ? 'X' : ''}</td>
-            <td className="border border-gray-400 px-1.5 py-0.5 text-center text-[8pt]">{value === '4' ? 'X' : ''}</td>
+            <td className="border border-black px-1.5 py-1 text-[8pt]">{label}</td>
+            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '1' ? 'X' : ''}</td>
+            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '2' ? 'X' : ''}</td>
+            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '3' ? 'X' : ''}</td>
+            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '4' ? 'X' : ''}</td>
         </tr>
     )
 
     return (
-        <div ref={ref} className="bg-white text-black w-full mx-auto" style={{
-            fontSize: '12pt',
-            fontFamily: 'Arial, "Times New Roman", sans-serif',
-            lineHeight: '1.5',
-            padding: '30mm 20mm 20mm 30mm',
-            maxWidth: '210mm',
-            minHeight: '297mm'
-        }}>
-            <OfficialHeader
-                title="RELATÓRIO FINAL DE ATIVIDADES"
-                showLogos={true}
-            />
+        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                    @media print {
+                        @page { margin: 10mm; size: A4; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
+                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
+                `
+            }} />
+
+            {/* --- PÁGINA 1 --- */}
+
+            {/* Cabeçalho */}
+            <div className="flex items-center justify-between mb-4">
+                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
+                <div className="text-center flex-1 px-4">
+                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
+                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
+                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
+                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
+                </div>
+                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
+            </div>
+
+            <h1 className="text-center font-bold text-[12pt] mb-8 uppercase">RELATÓRIO FINAL DE ATIVIDADES</h1>
 
             {/* Identificação */}
-            <FormTable>
+            <table className="official-table">
                 <tbody>
-                    <tr>
-                        <FormField label="DISCENTE ESTAGIÁRIO(A)" colSpan={4}>
-                            {data.student_name}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="CURSO" colSpan={3}>
-                            {data.student_course}
-                        </FormField>
-                        <FormField label="MATRÍCULA" colSpan={1}>
-                            {data.student_enrollment}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="SUPERVISOR DO ESTÁGIO" colSpan={4}>
-                            {data.supervisor_name}
-                        </FormField>
-                    </tr>
-                    <tr>
-                        <FormField label="DOCENTE ORIENTADOR" colSpan={4}>
-                            {data.advisor_name}
-                        </FormField>
-                    </tr>
+                    <TableRow>
+                        <TableCell colSpan={4}>
+                            <Label>DISCENTE ESTAGIÁRIO(A)</Label>
+                            <Value>{data.student_name}</Value>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={3}>
+                            <Label>CURSO</Label>
+                            <Value>{data.student_course}</Value>
+                        </TableCell>
+                        <TableCell>
+                            <Label>MATRÍCULA</Label>
+                            <Value>{data.student_enrollment}</Value>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={4}>
+                            <Label>SUPERVISOR DO ESTÁGIO</Label>
+                            <Value>{data.supervisor_name}</Value>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={4}>
+                            <Label>DOCENTE ORIENTADOR</Label>
+                            <Value>{data.advisor_name}</Value>
+                        </TableCell>
+                    </TableRow>
                 </tbody>
-            </FormTable>
+            </table>
 
             {/* Período e Carga Horária */}
-            <FormTable>
+            <table className="official-table text-center">
                 <thead>
                     <tr>
-                        <FormHeaderCell colSpan={2} className="text-center">PERÍODO</FormHeaderCell>
-                        <FormHeaderCell colSpan={1} className="text-center">CARGA HORÁRIA</FormHeaderCell>
+                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={2}>PERÍODO</th>
+                        <th className="border border-black bg-gray-200 p-1 text-[8pt]">CARGA HORÁRIA</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="border border-gray-400 p-2 align-top w-1/3">
-                            <div className="text-[8pt] font-semibold mb-1">DATA INICIAL</div>
-                            <div className="text-center">{formatDate(data.period_start)}</div>
+                        <td className="border border-black p-2 align-top w-1/3">
+                            <Label>DATA INICIAL</Label>
+                            <div className="text-[9pt] mt-1">{formatDate(data.period_start)}</div>
                         </td>
-                        <td className="border border-gray-400 p-2 align-top w-1/3">
-                            <div className="text-[8pt] font-semibold mb-1">DATA FINAL</div>
-                            <div className="text-center">{formatDate(data.period_end)}</div>
+                        <td className="border border-black p-2 align-top w-1/3">
+                            <Label>DATA FINAL</Label>
+                            <div className="text-[9pt] mt-1">{formatDate(data.period_end)}</div>
                         </td>
-                        <td className="border border-gray-400 p-2 align-top w-1/3">
-                            <div className="text-[8pt] font-semibold mb-1">CARGA HORÁRIA TOTAL</div>
-                            <div className="text-center">{data.hours_total} HORAS</div>
+                        <td className="border border-black p-2 align-top w-1/3">
+                            <Label>CARGA HORÁRIA TOTAL</Label>
+                            <div className="text-[9pt] mt-1">{data.hours_total} HORAS</div>
                         </td>
                     </tr>
                 </tbody>
-            </FormTable>
+            </table>
+
+            {/* --- PÁGINA 2 --- */}
+            <div style={{ pageBreakBefore: 'always' }}></div>
 
             {/* Atividades */}
-            <FormTable>
-                <thead>
-                    <tr>
-                        <FormHeaderCell className="text-center">PRINCIPAIS ATIVIDADES DESENVOLVIDAS NO ESTÁGIO DURANTE O PERÍODO</FormHeaderCell>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-gray-400 p-2 align-top h-[80px] whitespace-pre-wrap">
-                            {data.activities}
-                        </td>
-                    </tr>
-                </tbody>
-            </FormTable>
+            <SectionHeader title="PRINCIPAIS ATIVIDADES DESENVOLVIDAS NO ESTÁGIO DURANTE O PERÍODO" />
+            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[800px] text-justify">
+                {data.activities}
+            </div>
+
+            {/* --- PÁGINA 3 --- */}
+            <div style={{ pageBreakBefore: 'always' }}></div>
 
             {/* Avaliação */}
-            <div className="mt-4 border border-gray-400" style={{ pageBreakInside: 'avoid' }}>
-                <div className="bg-gray-100 p-1.5 font-bold text-center border-b border-gray-400 text-[9pt]">
+            <div className="border border-black mb-4">
+                <div className="bg-gray-200 p-2 font-bold text-center border-b border-black text-[9pt]">
                     AVALIAÇÃO AO DISCENTE ESTAGIÁRIO
                 </div>
                 <div className="flex">
-                    <div className="w-1/3 p-1.5 border-r border-gray-400 text-[7pt]">
-                        <div className="font-bold mb-1 text-center">ATRIBUIR VALORES ÀS CARACTERÍSTICAS DO ESTAGIÁRIO, DE ACORDO COM OS CONCEITOS</div>
-                        <div className="mt-2 space-y-0.5">
+                    <div className="w-1/3 p-2 border-r border-black text-[8pt]">
+                        <div className="font-bold mb-4 text-center">ATRIBUIR VALORES ÀS CARACTERÍSTICAS DO ESTAGIÁRIO, DE ACORDO COM OS CONCEITOS</div>
+                        <div className="space-y-2 pl-2">
                             <div>( 1 ) INSATISFATÓRIO</div>
                             <div>( 2 ) POUCO SATISFATÓRIO</div>
                             <div>( 3 ) SATISFATÓRIO</div>
@@ -149,14 +189,14 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
                         </div>
                     </div>
                     <div className="w-2/3">
-                        <table className="w-full text-[8pt]" style={{ pageBreakInside: 'avoid' }}>
+                        <table className="w-full text-[8pt] border-collapse">
                             <thead>
                                 <tr>
-                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 text-left w-full">CONCEITOS</th>
-                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 w-8 text-center">(1)</th>
-                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 w-8 text-center">(2)</th>
-                                    <th className="border-b border-r border-gray-400 px-1.5 py-0.5 w-8 text-center">(3)</th>
-                                    <th className="border-b border-gray-400 px-1.5 py-0.5 w-8 text-center">(4)</th>
+                                    <th className="border-b border-r border-black px-1.5 py-1 text-left w-full">CONCEITOS</th>
+                                    <th className="border-b border-r border-black px-1.5 py-1 w-8 text-center">(1)</th>
+                                    <th className="border-b border-r border-black px-1.5 py-1 w-8 text-center">(2)</th>
+                                    <th className="border-b border-r border-black px-1.5 py-1 w-8 text-center">(3)</th>
+                                    <th className="border-b border-black px-1.5 py-1 w-8 text-center">(4)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -179,51 +219,44 @@ export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumen
                 </div>
             </div>
 
+            {/* --- PÁGINA 4 --- */}
+            <div style={{ pageBreakBefore: 'always' }}></div>
+
             {/* Observações */}
-            <FormTable>
-                <thead>
-                    <tr>
-                        <FormHeaderCell className="text-center">OBSERVAÇÕES – COMENTÁRIOS – SUGESTÕES</FormHeaderCell>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-gray-400 p-2 align-top h-[100px] whitespace-pre-wrap">
-                            {data.comments}
-                        </td>
-                    </tr>
-                </tbody>
-            </FormTable>
+            <SectionHeader title="OBSERVAÇÕES – COMENTÁRIOS – SUGESTÕES" />
+            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[300px] mb-8 text-justify">
+                {data.comments}
+            </div>
 
             {/* Assinaturas */}
-            <FormTable>
+            <table className="official-table">
                 <thead>
                     <tr>
-                        <FormHeaderCell className="text-center w-3/4">ASSINATURAS</FormHeaderCell>
-                        <FormHeaderCell className="text-center w-1/4">DATA</FormHeaderCell>
+                        <th className="border border-black bg-gray-200 p-1 text-[8pt] w-3/4">ASSINATURAS</th>
+                        <th className="border border-black bg-gray-200 p-1 text-[8pt] w-1/4">DATA</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="border border-gray-400 p-2 align-bottom h-16 relative">
-                            <div className="absolute bottom-1 left-2 text-[8pt] font-semibold">SUPERVISOR DO ESTÁGIO</div>
+                        <td className="border border-black p-2 align-bottom h-24 relative">
+                            <div className="absolute bottom-2 left-2 text-[8pt] font-bold">SUPERVISOR DO ESTÁGIO</div>
                         </td>
-                        <td className="border border-gray-400 p-2 align-bottom text-center">
-                            <div className="text-[7pt] text-left mb-4">EMITIDO EM</div>
+                        <td className="border border-black p-2 align-bottom text-center">
+                            <div className="text-[7pt] text-left mb-8">EMITIDO EM</div>
                             ___/___/_____
                         </td>
                     </tr>
                     <tr>
-                        <td className="border border-gray-400 p-2 align-bottom h-16 relative">
-                            <div className="absolute bottom-1 left-2 text-[8pt] font-semibold">DISCENTE ESTAGIÁRIO</div>
+                        <td className="border border-black p-2 align-bottom h-24 relative">
+                            <div className="absolute bottom-2 left-2 text-[8pt] font-bold">DISCENTE ESTAGIÁRIO</div>
                         </td>
-                        <td className="border border-gray-400 p-2 align-bottom text-center">
-                            <div className="text-[7pt] text-left mb-4">CIENTE EM</div>
+                        <td className="border border-black p-2 align-bottom text-center">
+                            <div className="text-[7pt] text-left mb-8">CIENTE EM</div>
                             ___/___/_____
                         </td>
                     </tr>
                 </tbody>
-            </FormTable>
+            </table>
 
         </div>
     )

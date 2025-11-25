@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { EquivalenceRequestDocument } from '@/components/templates/EquivalenceRequestDocument'
-import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
 
 export default function EquivalenceRequestPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -86,14 +85,9 @@ export default function EquivalenceRequestPage() {
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const blob = await generatePDFBlob(templateRef.current, {
-        filename: 'solicitacao-equivalencia.pdf',
-        margin: [10, 10, 10, 10],
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
+      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
 
-      downloadPDFBlob(blob, 'solicitacao-equivalencia.pdf')
+      await generatePDFWithPuppeteer(templateRef.current, 'solicitacao-equivalencia.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {

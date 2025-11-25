@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
-import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
+import { generatePDFWithPuppeteer } from '@/lib/pdf-generator'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -92,14 +92,8 @@ export default function InternshipRegistrationPage() {
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const blob = await generatePDFBlob(templateRef.current, {
-        filename: 'solicitacao-cadastro-estagio.pdf',
-        margin: [5, 5, 5, 5], // Margens reduzidas para caber todo o conteúdo
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
-
-      downloadPDFBlob(blob, 'solicitacao-cadastro-estagio.pdf')
+      // Gerar PDF com Puppeteer
+      await generatePDFWithPuppeteer(templateRef.current, 'solicitacao-cadastro-estagio.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {

@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { FinalReportDocument } from '@/components/templates/FinalReportDocument'
-import { generatePDFBlob, downloadPDFBlob } from '@/lib/pdf-generator'
 
 export default function FinalReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -62,14 +61,9 @@ export default function FinalReportPage() {
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const blob = await generatePDFBlob(templateRef.current, {
-        filename: 'relatorio-final.pdf',
-        margin: [10, 10, 10, 10],
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
+      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
 
-      downloadPDFBlob(blob, 'relatorio-final.pdf')
+      await generatePDFWithPuppeteer(templateRef.current, 'relatorio-final.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {

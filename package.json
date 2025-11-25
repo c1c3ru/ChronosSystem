@@ -56,6 +56,7 @@
     "next": "^14.0.3",
     "next-auth": "^4.24.5",
     "nodemailer": "^6.10.1",
+    "puppeteer": "^24.31.0",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

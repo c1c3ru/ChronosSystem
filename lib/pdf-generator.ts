@@ -323,3 +323,79 @@ export function downloadPDFBlob(blob: Blob, filename: string): void {
 
   console.log('✅ PDF baixado:', link.download)
 }
+
+/**
+ * Gera PDF usando Puppeteer (server-side) via API
+ * Melhor qualidade e suporte a múltiplas páginas
+ */
+export async function generatePDFWithPuppeteer(
+  element: HTMLElement,
+  filename: string = 'document.pdf'
+): Promise<void> {
+  try {
+    // Obter HTML do elemento
+    const html = element.outerHTML
+
+    // Criar HTML completo com estilos
+    const fullHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              font-family: Arial, sans-serif;
+              background: white;
+              color: black;
+            }
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `
+
+    // Chamar API para gerar PDF
+    const response = await fetch('/api/pdf/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        html: fullHtml,
+        filename
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error('Falha ao gerar PDF')
+    }
+
+    // Obter blob do PDF
+    const blob = await response.blob()
+
+    // Fazer download
+    downloadPDFBlob(blob, filename)
+
+    console.log('✅ PDF gerado com Puppeteer:', filename)
+  } catch (error) {
+    console.error('❌ Erro ao gerar PDF com Puppeteer:', error)
+    throw new Error('Falha ao gerar PDF. Tente novamente.')
+  }
+}

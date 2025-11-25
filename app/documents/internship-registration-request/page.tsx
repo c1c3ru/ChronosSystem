@@ -149,19 +149,21 @@ export default function InternshipRegistrationRequestPage() {
                 return
             }
 
+            // Atualizar estado para garantir que o template renderize com os dados mais recentes
+            // (Já está sendo atualizado pelo handleChange, mas garantindo)
+
+            // Pequeno delay para garantir renderização
+            await new Promise(resolve => setTimeout(resolve, 100))
+
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generatePDFBlob, downloadPDFBlob } = await import('@/lib/pdf-generator')
+            const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
 
             if (!documentRef.current) {
                 throw new Error('Template do documento não encontrado')
             }
 
-            const blob = await generatePDFBlob(documentRef.current, {
-                filename: 'solicitacao-cadastro-estagio.pdf',
-            })
-
-            downloadPDFBlob(blob, `solicitacao-cadastro-estagio_${formData.nome.split(' ')[0]}.pdf`)
+            await generatePDFWithPuppeteer(documentRef.current, `solicitacao-cadastro-estagio_${formData.nome.split(' ')[0]}.pdf`)
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {

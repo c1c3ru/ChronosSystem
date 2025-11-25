@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react'
-import { OfficialHeader, FormTable, FormHeaderCell, FormDataCell, FormField } from '@/components/OfficialFormTemplate'
 
 interface ProfessionalDeclarationDocumentProps {
     data: {
@@ -33,43 +32,54 @@ export const ProfessionalDeclarationDocument = forwardRef<HTMLDivElement, Profes
     }
 
     return (
-        <div ref={ref} className="bg-white text-black w-full mx-auto" style={{
-            fontSize: '12pt',
-            fontFamily: 'Arial, "Times New Roman", sans-serif',
-            lineHeight: '1.5',
-            padding: '30mm 20mm 20mm 30mm',
-            maxWidth: '210mm',
-            minHeight: '297mm'
-        }}>
-            <OfficialHeader
-                title="DECLARAÇÃO DE ATIVIDADES PROFISSIONAIS"
-                showLogos={true}
-            />
+        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                    @media print {
+                        @page { margin: 10mm; size: A4; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                `
+            }} />
 
-            <div className="mb-8 text-justify indent-8 leading-relaxed">
-                Declaramos para os devidos fins que o(a) Sr(a) <b>{data.employee_name}</b>, portador(a) do CPF nº <b>{data.employee_cpf}</b> e da CTPS nº <b>{data.employee_ctps}</b>, Série <b>{data.employee_ctps_series}</b>, exerce atividades nesta empresa desde <b>{formatDate(data.start_date)}</b>, na função de <b>{data.role}</b>, cumprindo carga horária semanal de <b>{data.weekly_hours}</b> horas.
+            {/* Cabeçalho */}
+            <div className="flex items-center justify-between mb-4">
+                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
+                <div className="text-center flex-1 px-4">
+                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
+                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
+                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
+                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
+                </div>
+                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
             </div>
 
-            <div className="mb-4 font-bold">DESCRIÇÃO DAS ATIVIDADES DESENVOLVIDAS:</div>
+            <h1 className="text-center font-bold text-[12pt] mb-12 uppercase mt-8">DECLARAÇÃO DE ATIVIDADES PROFISSIONAIS</h1>
 
-            <div className="border border-gray-400 p-4 min-h-[300px] whitespace-pre-wrap mb-8 text-justify">
+            <div className="mb-8 text-justify indent-12 leading-loose text-[10pt]">
+                Declaramos para os devidos fins que o(a) Sr(a) <strong>{data.employee_name || '__________________________________________________'}</strong>, portador(a) do CPF nº <strong>{data.employee_cpf || '__________________'}</strong> e da CTPS nº <strong>{data.employee_ctps || '__________'}</strong>, Série <strong>{data.employee_ctps_series || '_____'}</strong>, exerce atividades nesta empresa desde <strong>{formatDate(data.start_date)}</strong>, na função de <strong>{data.role || '____________________'}</strong>, cumprindo carga horária semanal de <strong>{data.weekly_hours || '___'}</strong> horas.
+            </div>
+
+            <div className="mb-4 font-bold text-[10pt]">DESCRIÇÃO DAS ATIVIDADES DESENVOLVIDAS:</div>
+
+            <div className="border border-black p-4 min-h-[300px] whitespace-pre-wrap mb-12 text-justify text-[10pt]">
                 {data.activities}
             </div>
 
-            <div className="text-right mb-16">
-                {data.city || 'Fortaleza'} - CE, {data.date_day} de {data.date_month} de {data.date_year}.
+            <div className="text-right mb-24 text-[10pt]">
+                {data.city || 'Fortaleza'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
             </div>
 
             <div className="text-center">
-                <div className="border-t border-black pt-1 w-1/2 mx-auto">
-                    {data.company_name}<br />
-                    CNPJ: {data.company_cnpj}<br />
+                <div className="border-t border-black pt-1 w-2/3 mx-auto text-[10pt]">
+                    <strong>{data.company_name || 'RAZÃO SOCIAL DA EMPRESA'}</strong><br />
+                    CNPJ: {data.company_cnpj || '__________________'}<br />
                     (Assinatura e Carimbo)
                 </div>
             </div>
 
-            <div className="mt-16 text-center text-[8pt] text-gray-500">
-                {data.company_address}
+            <div className="mt-24 text-center text-[8pt] text-gray-600 border-t border-gray-300 pt-2 w-full">
+                {data.company_address || 'Endereço da Empresa'}
             </div>
 
         </div>
