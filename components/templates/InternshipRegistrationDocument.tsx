@@ -5,6 +5,7 @@ interface InternshipRegistrationDocumentProps {
     data: {
         // Discente
         student_name: string
+        student_cpf: string
         student_social_name: string
         student_course: string
         student_enrollment: string
@@ -34,8 +35,12 @@ interface InternshipRegistrationDocumentProps {
         company_email: string
         company_representative: string
         company_representative_role: string
+        company_representative_cpf: string
+        company_representative_phone: string
         company_supervisor: string
         company_supervisor_role: string
+        company_supervisor_cpf: string
+        company_supervisor_phone: string
         company_sector: string
 
         // Estágio
@@ -64,10 +69,10 @@ export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, Interns
 
     return (
         <div ref={ref} className="bg-white text-black w-full mx-auto" style={{
-            fontSize: '12pt',
+            fontSize: '10pt',
             fontFamily: 'Arial, "Times New Roman", sans-serif',
-            lineHeight: '1.5',
-            padding: '30mm 20mm 20mm 30mm',
+            lineHeight: '1.3',
+            padding: '15mm 10mm 15mm 15mm',
             maxWidth: '210mm',
             minHeight: '297mm'
         }}>
@@ -84,7 +89,7 @@ export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, Interns
                             {data.student_name}
                         </FormField>
                         <FormField label="CPF" colSpan={2}>
-                            {/* CPF não estava no form original mas aparece no modelo, vou deixar em branco ou adicionar depois */}
+                            {data.student_cpf}
                         </FormField>
                     </tr>
                     <tr>
@@ -218,14 +223,14 @@ export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, Interns
                         </FormField>
                     </tr>
                     <tr>
-                        <FormField label="CARGO/QUALIFICAÇÃO" colSpan={4}>
+                        <FormField label="CARGO/QUALIFICAÇÃO" colSpan={2}>
                             {data.company_representative_role}
                         </FormField>
-                        <FormField label="CPF" colSpan={1}>
-                            {/* Campo CPF do responsável não estava no form original */}
+                        <FormField label="CPF" colSpan={2}>
+                            {data.company_representative_cpf}
                         </FormField>
-                        <FormField label="DDD + TELEFONE" colSpan={1}>
-                            {/* Campo Telefone do responsável não estava no form original */}
+                        <FormField label="DDD + TELEFONE" colSpan={2}>
+                            {data.company_representative_phone}
                         </FormField>
                     </tr>
                     <tr>
@@ -234,14 +239,14 @@ export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, Interns
                         </FormField>
                     </tr>
                     <tr>
-                        <FormField label="CARGO/QUALIFICAÇÃO" colSpan={4}>
+                        <FormField label="CARGO/QUALIFICAÇÃO" colSpan={2}>
                             {data.company_supervisor_role}
                         </FormField>
-                        <FormField label="CPF" colSpan={1}>
-                            {/* Campo CPF do supervisor não estava no form original */}
+                        <FormField label="CPF" colSpan={2}>
+                            {data.company_supervisor_cpf}
                         </FormField>
-                        <FormField label="DDD + TELEFONE" colSpan={1}>
-                            {/* Campo Telefone do supervisor não estava no form original */}
+                        <FormField label="DDD + TELEFONE" colSpan={2}>
+                            {data.company_supervisor_phone}
                         </FormField>
                     </tr>
                     <tr>
@@ -280,45 +285,45 @@ export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, Interns
             </FormTable>
 
             {/* Horário */}
-            <FormTable>
+            <FormTable className="text-[7pt]">
                 <thead>
                     <tr>
-                        <FormHeaderCell rowSpan={2} className="w-8 rotate-180 text-center" style={{ writingMode: 'vertical-rl' }}>TURNO</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">SEGUNDA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">TERÇA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">QUARTA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">QUINTA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">SEXTA-FEIRA</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">SÁBADO</FormHeaderCell>
-                        <FormHeaderCell colSpan={2} className="text-center">DOMINGO</FormHeaderCell>
+                        <FormHeaderCell rowSpan={2} className="w-8 text-center text-[7pt]" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>TURNO</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">SEGUNDA-FEIRA</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">TERÇA-FEIRA</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">QUARTA-FEIRA</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">QUINTA-FEIRA</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">SEXTA-FEIRA</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">SÁBADO</FormHeaderCell>
+                        <FormHeaderCell colSpan={2} className="text-center text-[7pt] p-1">DOMINGO</FormHeaderCell>
                     </tr>
                     <tr>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">INÍCIO</FormHeaderCell>
-                        <FormHeaderCell className="text-[8pt] text-center">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">INÍCIO</FormHeaderCell>
+                        <FormHeaderCell className="text-[6pt] text-center p-0.5">FINAL</FormHeaderCell>
                     </tr>
                 </thead>
                 <tbody>
                     {['1º', '2º', '3º'].map((turno, index) => (
                         <tr key={index}>
-                            <td className="border border-gray-400 text-center font-bold text-[9pt]">{turno}</td>
+                            <td className="border border-gray-400 text-center font-bold text-[7pt] p-0.5">{turno}</td>
                             {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map(day => (
                                 <React.Fragment key={day}>
-                                    <td className="border border-gray-400 text-center text-[9pt] h-6">
+                                    <td className="border border-gray-400 text-center text-[7pt] h-4 p-0.5">
                                         {schedule[`${day}_start_${index + 1}`] || ''}
                                     </td>
-                                    <td className="border border-gray-400 text-center text-[9pt] h-6">
+                                    <td className="border border-gray-400 text-center text-[7pt] h-4 p-0.5">
                                         {schedule[`${day}_end_${index + 1}`] || ''}
                                     </td>
                                 </React.Fragment>

@@ -94,8 +94,8 @@ export default function InternshipRegistrationPage() {
 
       const blob = await generatePDFBlob(templateRef.current, {
         filename: 'solicitacao-cadastro-estagio.pdf',
-        margin: [10, 10, 10, 10],
-        html2canvas: { scale: 2, useCORS: true },
+        margin: [5, 5, 5, 5], // Margens reduzidas para caber todo o conteúdo
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       })
 
@@ -165,6 +165,10 @@ export default function InternshipRegistrationPage() {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
                   <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
+                  <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Social</label>
@@ -310,17 +314,33 @@ export default function InternshipRegistrationPage() {
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Responsável Legal</label>
                   <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} />
                 </div>
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Responsável</label>
                   <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Responsável</label>
+                  <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone do Responsável</label>
+                  <input type="text" name="company_representative_phone" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
                   <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
                 </div>
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Supervisor</label>
                   <input type="text" name="company_supervisor_role" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Supervisor</label>
+                  <input type="text" name="company_supervisor_cpf" className="input w-full" onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone do Supervisor</label>
+                  <input type="text" name="company_supervisor_phone" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Setor de Realização</label>
