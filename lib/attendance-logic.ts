@@ -76,11 +76,22 @@ export function determineRecordType(context: AttendanceContext): {
   // REGRA 3: Verificar intervalo desde último registro
   const minutesSinceLastRecord = getMinutesDifference(lastRecord.timestamp, currentTime)
 
-  // Se passou muito tempo (>4 horas), provavelmente é nova entrada
-  if (minutesSinceLastRecord > 240) {
+  // 🔒 REGRA CRÍTICA: Impedir múltiplas entradas consecutivas
+  // Se o último registro foi ENTRADA, o próximo DEVE ser SAÍDA (exceto após 12h = novo dia)
+  if (lastRecord.type === 'ENTRY' && minutesSinceLastRecord < 720) { // 720 min = 12 horas
+    return {
+      type: 'EXIT',
+      reason: 'Última ação foi entrada - saída obrigatória',
+      confidence: 'high',
+      suggestions: ['Você deve registrar SAÍDA antes de fazer nova entrada']
+    }
+  }
+
+  // Se passou muito tempo (>12 horas), é um novo dia/turno
+  if (minutesSinceLastRecord > 720) {
     return {
       type: 'ENTRY',
-      reason: `Intervalo longo desde último registro (${Math.floor(minutesSinceLastRecord / 60)}h)`,
+      reason: `Novo turno/dia de trabalho (${Math.floor(minutesSinceLastRecord / 60)}h desde último registro)`,
       confidence: 'high'
     }
   }
