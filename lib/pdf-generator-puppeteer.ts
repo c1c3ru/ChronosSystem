@@ -16,8 +16,10 @@
  */
 
 // Tipo condicional para evitar erro quando puppeteer não está instalado
+type PaperFormat = 'A4' | 'Letter' | 'Legal' | 'Tabloid' | 'Ledger' | 'A0' | 'A1' | 'A2' | 'A3' | 'A5' | 'A6'
+
 type PDFOptions = {
-  format?: string
+  format?: PaperFormat
   margin?: {
     top?: string
     right?: string
@@ -34,7 +36,7 @@ type PDFOptions = {
  * Seguindo o padrão oficial do IFCE
  */
 export const PUPPETEER_DEFAULT_OPTIONS: PDFOptions = {
-  format: 'A4',
+  format: 'A4' as PaperFormat,
   margin: {
     top: '30mm',
     right: '20mm',
