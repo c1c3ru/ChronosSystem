@@ -45,6 +45,8 @@ export function buildCSP(customDirectives?: Record<string, string[]>): string {
         'connect-src': [
             "'self'",
             'https://vercel.live', // Vercel toolbar
+            'data:',
+            'blob:',
         ],
         'frame-src': [
             "'self'",
