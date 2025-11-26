@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface InternshipRegistrationRequestData {
     // Dados Pessoais
@@ -24,7 +25,7 @@ interface InternshipRegistrationRequestData {
     comunidade_etnia?: string
 
     // Pessoa com Deficiência
-    deficiencia: string[] // Array de deficiências selecionadas
+    deficiencia: string[]
 
     // Dados de Pessoa Física (se aplicável)
     nome_fantasia_pf?: string
@@ -58,19 +59,8 @@ interface InternshipRegistrationRequestData {
     carga_horaria_semanal?: string
     data_final_prevista?: string
 
-    // Horários Semanais
-    horarios: {
-        segunda_feira: { inicio: string, final: string }
-        terca_feira: { inicio: string, final: string }
-        quarta_feira: { inicio: string, final: string }
-        quinta_feira: { inicio: string, final: string }
-        sexta_feira: { inicio: string, final: string }
-        sabado: { inicio: string, final: string }
-        domingo: { inicio: string, final: string }
-    }
-
     // Turnos
-    turnos: {
+    turnos?: {
         primeira: { segunda: string, terca: string, quarta: string, quinta: string, sexta: string, sabado: string, domingo: string }
         segunda: { segunda: string, terca: string, quarta: string, quinta: string, sexta: string, sabado: string, domingo: string }
         terceira: { segunda: string, terca: string, quarta: string, quinta: string, sexta: string, sabado: string, domingo: string }
@@ -85,431 +75,548 @@ interface InternshipRegistrationRequestDocumentProps {
     data: InternshipRegistrationRequestData
 }
 
-export const InternshipRegistrationRequestDocument = forwardRef<HTMLDivElement, InternshipRegistrationRequestDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
-
-    // Componentes auxiliares
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
-    const Checkbox = ({ checked, label }: { checked: boolean, label: string }) => (
-        <div className="flex items-center mr-4 mb-1">
-            <div className={`w-3 h-3 border border-black mr-1 flex items-center justify-center text-[8px] leading-none`}>
-                {checked ? 'X' : ''}
-            </div>
-            <span className="text-[8pt]">{label}</span>
-        </div>
-    )
-
-    const deficienciaLabels: Record<string, string> = {
-        'alta_habilidade': 'Alta habilidade/superdotação',
-        'deficiencia_auditiva': 'Deficiência auditiva',
-        'deficiencia_fisica': 'Deficiência física',
-        'deficiencia_intelectual': 'Deficiência intelectual',
-        'deficiencia_motora': 'Deficiência motora',
-        'deficiencia_visual': 'Deficiência visual/baixa visão',
-        'surdocegueira': 'Surdocegueira'
-    }
-
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                `
-            }} />
-
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
-
-            <h1 className="text-center font-bold text-[12pt] mb-4 uppercase">SOLICITAÇÃO DE CADASTRO NO ESTÁGIO</h1>
-
-            {/* Dados Pessoais */}
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>NOME</Label>
-                            <Value>{data.nome}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CPF</Label>
-                            <Value>{data.cpf}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME SOCIAL</Label>
-                            <Value>{data.nome_social}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>CURSO</Label>
-                            <Value>{data.curso}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>MATRÍCULA</Label>
-                            <Value>{data.matricula}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Label>
-                            <Value>{data.endereco}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>BAIRRO/DISTRITO</Label>
-                            <Value>{data.bairro}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={1}>
-                            <Label>MUNICÍPIO-UF</Label>
-                            <Value>{data.municipio_uf}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CEP</Label>
-                            <Value>{data.cep}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.telefone}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL INSTITUCIONAL</Label>
-                            <Value>{data.email_institucional}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL PESSOAL</Label>
-                            <Value>{data.email_pessoal}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Cor/Raça e Etnia */}
-            <table className="official-table">
-                <thead>
-                    <tr>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={2}>COR/RAÇA</th>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={2}>ETNIA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-black p-2 align-top w-1/2" colSpan={2}>
-                            <div className="flex flex-wrap">
-                                {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'prefiro_nao_declarar'].map((cor) => (
-                                    <Checkbox
-                                        key={cor}
-                                        checked={data.cor_raca === cor}
-                                        label={cor === 'amarelo' ? 'Amarelo(a)' :
-                                            cor === 'branco' ? 'Branco(a)' :
-                                                cor === 'indigena' ? 'Indígena' :
-                                                    cor === 'pardo' ? 'Pardo(a)' :
-                                                        cor === 'preto' ? 'Preto(a)' :
-                                                            'Prefiro não declarar'}
-                                    />
-                                ))}
-                            </div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/2" colSpan={2}>
-                            <div className="flex flex-wrap">
-                                {['indigena', 'quilombola', 'outra', 'prefiro_nao_declarar'].map((etnia) => (
-                                    <Checkbox
-                                        key={etnia}
-                                        checked={data.etnia === etnia}
-                                        label={etnia === 'indigena' ? 'Indígena' :
-                                            etnia === 'quilombola' ? 'Quilombola' :
-                                                etnia === 'outra' ? `Outra: ${data.etnia_outra || '___________'}` :
-                                                    'Prefiro não declarar'}
-                                    />
-                                ))}
-                            </div>
-                            {data.comunidade_etnia && (
-                                <div className="mt-1 text-[8pt]">
-                                    Informar comunidade se marcar etnia: {data.comunidade_etnia}
-                                </div>
-                            )}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            {/* Pessoa com Deficiência */}
-            <SectionHeader title="APENAS PARA PESSOA COM DEFICIÊNCIA E/OU ALTAS HABILIDADES" />
-            <div className="border border-black p-2 mb-4">
-                <div className="grid grid-cols-2 gap-1">
-                    {Object.entries(deficienciaLabels).map(([key, label]) => (
-                        <Checkbox
-                            key={key}
-                            checked={data.deficiencia?.includes(key)}
-                            label={label}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Dados da Pessoa Física (se aplicável) */}
-            {data.nome_fantasia_pf && (
-                <>
-                    <SectionHeader title="DADOS DA CONCEDENTE (PESSOA FÍSICA)" />
-                    <table className="official-table">
-                        <tbody>
-                            <TableRow>
-                                <TableCell colSpan={4}>
-                                    <Label>NOME DE FANTASIA OU DE PESSOA FÍSICA</Label>
-                                    <Value>{data.nome_fantasia_pf}</Value>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell colSpan={2}>
-                                    <Label>CNPJ OU REGISTRO NO CONSELHO</Label>
-                                    <Value>{data.cnpj_registro_conselho}</Value>
-                                </TableCell>
-                                <TableCell colSpan={2}>
-                                    <Label>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Label>
-                                    <Value>{data.endereco_pf}</Value>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell colSpan={1}>
-                                    <Label>BAIRRO</Label>
-                                    <Value>{data.bairro_pf}</Value>
-                                </TableCell>
-                                <TableCell colSpan={1}>
-                                    <Label>MUNICÍPIO-UF</Label>
-                                    <Value>{data.municipio_uf_pf}</Value>
-                                </TableCell>
-                                <TableCell colSpan={2}>
-                                    <Label>CEP</Label>
-                                    <Value>{data.cep_pf}</Value>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell colSpan={2}>
-                                    <Label>DDD + TELEFONE</Label>
-                                    <Value>{data.telefone_pf}</Value>
-                                </TableCell>
-                                <TableCell colSpan={2}>
-                                    <Label>E-MAIL</Label>
-                                    <Value>{data.email_pf}</Value>
-                                </TableCell>
-                            </TableRow>
-                        </tbody>
-                    </table>
-                </>
-            )}
-
-            {/* Responsável Legal e Supervisor */}
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM</Label>
-                            <Value>{data.responsavel_legal}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>CARGO/QUALIFICAÇÃO</Label>
-                            <Value>{data.cargo_qualificacao}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CPF</Label>
-                            <Value>{data.cpf_responsavel}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.telefone_responsavel}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO</Label>
-                            <Value>{data.supervisor_nome}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CARGO/QUALIFICAÇÃO</Label>
-                            <Value>{data.supervisor_cargo}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>SETOR DE REALIZAÇÃO DO ESTÁGIO</Label>
-                            <Value>{data.setor_realizacao}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Tipo de Estágio e Datas */}
-            <table className="official-table text-center">
-                <thead>
-                    <tr>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={2}>TIPO DE ESTÁGIO</th>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={2}>FORMA DE ESTÁGIO</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-black p-2 align-top w-1/2" colSpan={2}>
-                            <div className="flex justify-center gap-4">
-                                <Checkbox checked={data.tipo_estagio === 'obrigatorio'} label="OBRIGATÓRIO" />
-                                <Checkbox checked={data.tipo_estagio === 'nao_obrigatorio'} label="NÃO OBRIGATÓRIO" />
-                            </div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/2" colSpan={2}>
-                            <div className="flex justify-center gap-4">
-                                <Checkbox checked={data.forma_estagio === 'presencial'} label="PRESENCIAL" />
-                                <Checkbox checked={data.forma_estagio === 'remoto'} label="REMOTO" />
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>DATA INICIAL</Label>
-                            <div className="text-[9pt] mt-1">{formatDate(data.data_inicial)}</div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/3" colSpan={2}>
-                            <Label>CARGA HORÁRIA SEMANAL</Label>
-                            <div className="text-[9pt] mt-1">{data.carga_horaria_semanal} HORAS</div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>DATA FINAL PREVISTA</Label>
-                            <div className="text-[9pt] mt-1">{formatDate(data.data_final_prevista)}</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            {/* Tabela de Horários Complexa */}
-            <div className="mb-4">
-                <div className="text-[8pt] font-bold mb-1 uppercase text-center bg-gray-200 border border-black border-b-0 p-1">DISTRIBUIÇÃO DA CARGA HORÁRIA SEMANAL</div>
-                <table className="w-full border-collapse border border-black text-[8pt]">
-                    <thead>
-                        <tr>
-                            <th className="border border-black p-1 bg-gray-100 w-16" rowSpan={2}>TURNO</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>SEGUNDA-FEIRA</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>TERÇA-FEIRA</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>QUARTA-FEIRA</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>QUINTA-FEIRA</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>SEXTA-FEIRA</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>SÁBADO</th>
-                            <th className="border border-black p-1 bg-gray-100" colSpan={2}>DOMINGO</th>
-                        </tr>
-                        <tr>
-                            {Array(7).fill(null).map((_, i) => (
-                                <React.Fragment key={i}>
-                                    <th className="border border-black p-0.5 bg-gray-100 text-[6pt]">INÍCIO</th>
-                                    <th className="border border-black p-0.5 bg-gray-100 text-[6pt]">FINAL</th>
-                                </React.Fragment>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {['primeira', 'segunda', 'terceira'].map((turno, idx) => (
-                            <tr key={turno}>
-                                <td className="border border-black p-1 font-bold text-center bg-gray-50">
-                                    {turno === 'primeira' ? '1ª' : turno === 'segunda' ? '2ª' : '3ª'}
-                                </td>
-                                {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
-                                    const horario = data.turnos[turno as keyof typeof data.turnos][dia as keyof typeof data.turnos.primeira]
-                                    const [inicio, fim] = horario ? horario.split('-') : ['', '']
-                                    return (
-                                        <React.Fragment key={dia}>
-                                            <td className="border border-black p-1 text-center text-[8pt] h-6">{inicio}</td>
-                                            <td className="border border-black p-1 text-center text-[8pt] h-6">{fim}</td>
-                                        </React.Fragment>
-                                    )
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Datas de Solicitação e Autorização */}
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>SOLICITAÇÃO EM</Label>
-                            <Value>{formatDate(data.data_solicitacao)}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>AUTORIZAÇÃO EM</Label>
-                            <Value>{formatDate(data.data_autorizacao)}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Assinaturas */}
-            <div className="grid grid-cols-2 gap-8 mt-8">
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-3/4 mx-auto text-[8pt]">
-                        <strong>ASSINATURA DO DISCENTE</strong>
-                    </div>
-                </div>
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-3/4 mx-auto text-[8pt]">
-                        <strong>ASSINATURA DO DOCENTE ORIENTADOR</strong>
-                    </div>
-                </div>
-            </div>
-
-            {/* Observação */}
-            <div className="mt-8 pt-2 border-t border-black text-[9pt] italic">
-                <p>
-                    <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser <strong>iniciadas após o cadastro</strong> do Termo de Compromisso de Estágio no sistema competente.
-                </p>
-            </div>
-
-        </div>
-    )
+// Estilos do documento
+const styles = StyleSheet.create({
+    page: {
+        padding: 25,
+        fontSize: 8,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 15,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 10,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 9,
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
+    mainTitle: {
+        fontSize: 12,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        marginBottom: 15,
+    },
+    table: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    tableCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        fontSize: 7,
+    },
+    tableCellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+        minHeight: 10,
+    },
+    sectionHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderTop: 1,
+        borderLeft: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    checkboxContainer: {
+        padding: 6,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 3,
+    },
+    checkbox: {
+        width: 8,
+        height: 8,
+        border: 1,
+        borderColor: '#000',
+        marginRight: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxMark: {
+        fontSize: 6,
+    },
+    checkboxLabel: {
+        fontSize: 7,
+    },
+    scheduleTable: {
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    scheduleHeader: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        backgroundColor: '#e0e0e0',
+        padding: 2,
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    scheduleHeaderRow: {
+        flexDirection: 'row',
+        fontSize: 5,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    scheduleTurnLabel: {
+        width: '8%',
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleDayColumn: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    scheduleDayColumnLast: {
+        borderRight: 0,
+    },
+    scheduleDayName: {
+        borderBottom: 1,
+        borderColor: '#000',
+        padding: 2,
+    },
+    scheduleTimeRow: {
+        flexDirection: 'row',
+    },
+    scheduleTimeCell: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 2,
+    },
+    scheduleTimeCellLast: {
+        borderRight: 0,
+    },
+    scheduleDataRow: {
+        flexDirection: 'row',
+        fontSize: 7,
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+        minHeight: 18,
+    },
+    scheduleDataRowLast: {
+        borderBottom: 0,
+    },
+    scheduleTurnCell: {
+        width: '8%',
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 2,
+        fontFamily: 'Helvetica-Bold',
+        backgroundColor: '#fafafa',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleDayData: {
+        flex: 1,
+        flexDirection: 'row',
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    scheduleDayDataLast: {
+        borderRight: 0,
+    },
+    scheduleTimeData: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleTimeDataLast: {
+        borderRight: 0,
+    },
+    signatureSection: {
+        flexDirection: 'row',
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    signatureBox: {
+        flex: 1,
+        textAlign: 'center',
+    },
+    signatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 4,
+        fontSize: 7,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        width: '80%',
+        marginHorizontal: 'auto',
+        marginTop: 30,
+    },
+    footer: {
+        marginTop: 10,
+        fontSize: 8,
+        textAlign: 'justify',
+    },
+    footerBold: {
+        fontFamily: 'Helvetica-Bold',
+    },
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
 })
 
-InternshipRegistrationRequestDocument.displayName = 'InternshipRegistrationRequestDocument'
+const formatDate = (dateString?: string): string => {
+    if (!dateString) return '___/___/_____'
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+}
+
+export const InternshipRegistrationRequestDocument: React.FC<InternshipRegistrationRequestDocumentProps> = ({ data }) => {
+    const turnos = data.turnos || { primeira: {}, segunda: {}, terceira: {} }
+
+    return (
+        <Document>
+            <Page size="A4" style={styles.page}>
+                {/* Cabeçalho */}
+                <View style={styles.header}>
+                    <Image src="/assets/logoifce.png" style={styles.logo} />
+                    <View style={styles.headerCenter}>
+                        <Text style={styles.headerTitle}>Pró-Reitoria de Extensão</Text>
+                        <Text style={styles.headerTitle}>Coordenação de Estágios e Acompanhamento de Egressos</Text>
+                        <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                        <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                    </View>
+                    <Image src="/assets/brasao.png" style={styles.logo} />
+                </View>
+
+                <Text style={styles.mainTitle}>Solicitação de Cadastro no Estágio</Text>
+
+                {/* Dados Pessoais */}
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>NOME</Text>
+                            <Text style={styles.value}>{data.nome}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.cpf}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>NOME SOCIAL</Text>
+                            <Text style={styles.value}>{data.nome_social}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>CURSO</Text>
+                            <Text style={styles.value}>{data.curso}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>MATRÍCULA</Text>
+                            <Text style={styles.value}>{data.matricula}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '60%' }]}>
+                            <Text style={styles.label}>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Text>
+                            <Text style={styles.value}>{data.endereco}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '40%' }]}>
+                            <Text style={styles.label}>BAIRRO/DISTRITO</Text>
+                            <Text style={styles.value}>{data.bairro}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '40%' }]}>
+                            <Text style={styles.label}>MUNICÍPIO-UF</Text>
+                            <Text style={styles.value}>{data.municipio_uf}</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '20%' }]}>
+                            <Text style={styles.label}>CEP</Text>
+                            <Text style={styles.value}>{data.cep}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '40%' }]}>
+                            <Text style={styles.label}>DDD + TELEFONE</Text>
+                            <Text style={styles.value}>{data.telefone}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, { width: '50%' }]}>
+                            <Text style={styles.label}>E-MAIL INSTITUCIONAL</Text>
+                            <Text style={styles.value}>{data.email_institucional}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                            <Text style={styles.label}>E-MAIL PESSOAL</Text>
+                            <Text style={styles.value}>{data.email_pessoal}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Cor/Raça e Etnia */}
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '50%' }]}>
+                            <Text style={styles.label}>COR/RAÇA</Text>
+                            <View style={styles.checkboxContainer}>
+                                {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'prefiro_nao_declarar'].map((cor) => (
+                                    <View key={cor} style={styles.checkboxRow}>
+                                        <View style={styles.checkbox}>
+                                            {data.cor_raca === cor && <Text style={styles.checkboxMark}>X</Text>}
+                                        </View>
+                                        <Text style={styles.checkboxLabel}>
+                                            {cor === 'amarelo' ? 'Amarelo(a)' :
+                                                cor === 'branco' ? 'Branco(a)' :
+                                                    cor === 'indigena' ? 'Indígena' :
+                                                        cor === 'pardo' ? 'Pardo(a)' :
+                                                            cor === 'preto' ? 'Preto(a)' :
+                                                                'Prefiro não declarar'}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                            <Text style={styles.label}>ETNIA</Text>
+                            <View style={styles.checkboxContainer}>
+                                {['indigena', 'quilombola', 'outra', 'prefiro_nao_declarar'].map((etnia) => (
+                                    <View key={etnia} style={styles.checkboxRow}>
+                                        <View style={styles.checkbox}>
+                                            {data.etnia === etnia && <Text style={styles.checkboxMark}>X</Text>}
+                                        </View>
+                                        <Text style={styles.checkboxLabel}>
+                                            {etnia === 'indigena' ? 'Indígena' :
+                                                etnia === 'quilombola' ? 'Quilombola' :
+                                                    etnia === 'outra' ? 'Outra' :
+                                                        'Prefiro não declarar'}
+                                        </Text>
+                                    </View>
+                                ))}
+                                {data.comunidade_etnia && (
+                                    <Text style={[styles.value, { marginTop: 4, fontSize: 7 }]}>
+                                        Comunidade: {data.comunidade_etnia}
+                                    </Text>
+                                )}
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Responsável Legal e Supervisor */}
+                <Text style={styles.sectionHeader}>DADOS DA CONCEDENTE</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM</Text>
+                            <Text style={styles.value}>{data.responsavel_legal}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '50%' }]}>
+                            <Text style={styles.label}>CARGO/QUALIFICAÇÃO</Text>
+                            <Text style={styles.value}>{data.cargo_qualificacao}</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '25%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.cpf_responsavel}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>DDD + TELEFONE</Text>
+                            <Text style={styles.value}>{data.telefone_responsavel}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE</Text>
+                            <Text style={styles.value}>{data.supervisor_nome}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>CARGO/QUALIFICAÇÃO</Text>
+                            <Text style={styles.value}>{data.supervisor_cargo}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>SETOR DE REALIZAÇÃO DO ESTÁGIO</Text>
+                            <Text style={styles.value}>{data.setor_realizacao}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Tipo de Estágio e Datas */}
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '25%' }]}>
+                            <Text style={styles.label}>TIPO DE ESTÁGIO</Text>
+                            <View style={styles.checkboxContainer}>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.tipo_estagio === 'obrigatorio' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Obrigatório</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.tipo_estagio === 'nao_obrigatorio' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Não Obrigatório</Text>
+                                </View>
+                            </View>
+                        </View>
+                        <View style={[styles.tableCell, { width: '25%' }]}>
+                            <Text style={styles.label}>FORMA DE ESTÁGIO</Text>
+                            <View style={styles.checkboxContainer}>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.forma_estagio === 'presencial' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Presencial</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.forma_estagio === 'remoto' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Remoto</Text>
+                                </View>
+                            </View>
+                        </View>
+                        <View style={[styles.tableCell, { width: '17%' }]}>
+                            <Text style={styles.label}>DATA INICIAL</Text>
+                            <Text style={styles.value}>{formatDate(data.data_inicial)}</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '16%' }]}>
+                            <Text style={styles.label}>CARGA HORÁRIA</Text>
+                            <Text style={styles.value}>{data.carga_horaria_semanal} H</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '17%' }]}>
+                            <Text style={styles.label}>DATA FINAL</Text>
+                            <Text style={styles.value}>{formatDate(data.data_final_prevista)}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Tabela de Horários */}
+                <View style={styles.scheduleTable}>
+                    <Text style={styles.scheduleHeader}>Distribuição da Carga Horária Semanal</Text>
+
+                    <View style={styles.scheduleHeaderRow}>
+                        <View style={styles.scheduleTurnLabel}>
+                            <Text>TURNO</Text>
+                        </View>
+                        {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map((day, i) => (
+                            <View key={day} style={[styles.scheduleDayColumn, ...(i === 6 ? [styles.scheduleDayColumnLast] : [])]}>
+                                <View style={styles.scheduleDayName}>
+                                    <Text>{day}</Text>
+                                </View>
+                                <View style={styles.scheduleTimeRow}>
+                                    <View style={styles.scheduleTimeCell}>
+                                        <Text>INI</Text>
+                                    </View>
+                                    <View style={styles.scheduleTimeCellLast}>
+                                        <Text>FIM</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+
+                    {['primeira', 'segunda', 'terceira'].map((turno, idx) => {
+                        const turnoData = turnos[turno as keyof typeof turnos] || {}
+                        return (
+                            <View key={turno} style={[styles.scheduleDataRow, ...(idx === 2 ? [styles.scheduleDataRowLast] : [])]}>
+                                <View style={styles.scheduleTurnCell}>
+                                    <Text>{idx + 1}º</Text>
+                                </View>
+                                {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia, i) => {
+                                    const horario = (turnoData[dia as keyof typeof turnoData] || '') as string
+                                    const [inicio, fim] = horario.includes('-') ? horario.split('-') : ['', '']
+                                    return (
+                                        <View key={dia} style={[styles.scheduleDayData, ...(i === 6 ? [styles.scheduleDayDataLast] : [])]}>
+                                            <View style={styles.scheduleTimeData}>
+                                                <Text>{inicio}</Text>
+                                            </View>
+                                            <View style={styles.scheduleTimeDataLast}>
+                                                <Text>{fim}</Text>
+                                            </View>
+                                        </View>
+                                    )
+                                })}
+                            </View>
+                        )
+                    })}
+                </View>
+
+                {/* Assinaturas */}
+                <View style={styles.signatureSection}>
+                    <View style={styles.signatureBox}>
+                        <View style={styles.signatureLine}>
+                            <Text>Assinatura do Discente</Text>
+                        </View>
+                    </View>
+                    <View style={styles.signatureBox}>
+                        <View style={styles.signatureLine}>
+                            <Text>Assinatura do Docente Orientador</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Observação */}
+                <View style={styles.footer}>
+                    <Text>
+                        <Text style={styles.footerBold}>Observação:</Text>
+                        {' '}As atividades de estágio supervisionado só podem ser{' '}
+                        <Text style={styles.footerBold}>iniciadas após o cadastro</Text>
+                        {' '}do Termo de Compromisso de Estágio no sistema competente.
+                    </Text>
+                </View>
+            </Page>
+        </Document>
+    )
+}

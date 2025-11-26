@@ -11,7 +11,6 @@ import { RescissionTermDocument } from '@/components/templates/RescissionTermDoc
 
 export default function RescissionTermPage() {
     const formRef = useRef<HTMLFormElement>(null)
-    const templateRef = useRef<HTMLDivElement>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [formData, setFormData] = useState<any>({})
 
@@ -48,7 +47,7 @@ export default function RescissionTermPage() {
 
     const handleGeneratePDF = async () => {
         try {
-            if (!formRef.current || !templateRef.current) return
+            if (!formRef.current) return
 
             const currentFormData = new FormData(formRef.current)
             const data = Object.fromEntries(currentFormData.entries())
@@ -59,19 +58,15 @@ export default function RescissionTermPage() {
             if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
             if (!data.date_year) data.date_year = String(now.getFullYear())
 
-            // Atualizar estado para garantir que o template renderize com os dados mais recentes
-            setFormData(data)
-
-            // Pequeno delay para garantir renderização
-            await new Promise(resolve => setTimeout(resolve, 100))
-
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { printElementAsPDF } = await import('@/lib/pdf-generator')
+            const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
 
-            await printElementAsPDF(templateRef.current, {
-                filename: 'termo-rescisao-estagio.pdf'
-            })
+            // Criar o documento React-PDF
+            const pdfDocument = <RescissionTermDocument data={data as any} />
+
+            // Gerar e baixar o PDF
+            await generateAndDownloadPDF(pdfDocument, 'termo-rescisao-estagio.pdf')
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {
@@ -241,10 +236,7 @@ export default function RescissionTermPage() {
                     </Card>
                 </form>
 
-                {/* Template Oculto para PDF */}
-                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-                    <RescissionTermDocument ref={templateRef} data={formData} />
-                </div>
+
             </div>
         </div>
     )

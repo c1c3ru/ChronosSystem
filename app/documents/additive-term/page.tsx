@@ -11,7 +11,6 @@ import { AdditiveTermDocument } from '@/components/templates/AdditiveTermDocumen
 
 export default function AdditiveTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
-  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState<any>({
     additive_type_prorogation: 'false',
@@ -66,7 +65,7 @@ export default function AdditiveTermPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current || !templateRef.current) return
+      if (!formRef.current) return
 
       const currentFormData = new FormData(formRef.current)
       const data = Object.fromEntries(currentFormData.entries())
@@ -84,17 +83,15 @@ export default function AdditiveTermPage() {
       if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
       if (!data.date_year) data.date_year = String(now.getFullYear())
 
-      // Atualizar estado para garantir que o template renderize com os dados mais recentes
-      setFormData(data)
-
-      // Pequeno delay para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 100))
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
 
-      await generatePDFWithPuppeteer(templateRef.current, 'termo-aditivo.pdf')
+      // Criar o documento React-PDF
+      const pdfDocument = <AdditiveTermDocument data={data as any} />
+
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'additive-term.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -102,7 +99,6 @@ export default function AdditiveTermPage() {
       toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -348,11 +344,6 @@ export default function AdditiveTermPage() {
             </CardContent>
           </Card>
         </form>
-
-        {/* Template Oculto para PDF */}
-        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-          <AdditiveTermDocument ref={templateRef} data={formData} />
-        </div>
       </div>
     </div>
   )

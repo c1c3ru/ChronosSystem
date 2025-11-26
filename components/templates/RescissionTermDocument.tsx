@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface RescissionTermDocumentProps {
     data: {
@@ -37,220 +38,287 @@ interface RescissionTermDocumentProps {
     }
 }
 
-export const RescissionTermDocument = forwardRef<HTMLDivElement, RescissionTermDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
-
-    // Componentes auxiliares
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                `
-            }} />
-
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
-
-            <h1 className="text-center font-bold text-[12pt] mb-8 uppercase">TERMO DE RESCISÃO DE CONTRATO DE ESTÁGIO</h1>
-
-            {/* Dados do Estagiário */}
-            <SectionHeader title="DADOS DO ESTAGIÁRIO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>NOME COMPLETO</Label>
-                            <Value>{data.student_name}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CPF</Label>
-                            <Value>{data.student_cpf}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={1}>
-                            <Label>RG</Label>
-                            <Value>{data.student_rg}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>CURSO</Label>
-                            <Value>{data.student_course}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>MATRÍCULA</Label>
-                            <Value>{data.student_enrollment}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.student_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>TELEFONE</Label>
-                            <Value>{data.student_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>{data.student_email}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Dados da Empresa */}
-            <SectionHeader title="DADOS DA EMPRESA CONCEDENTE" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>RAZÃO SOCIAL</Label>
-                            <Value>{data.company_name}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CNPJ</Label>
-                            <Value>{data.company_cnpj}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.company_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>TELEFONE</Label>
-                            <Value>{data.company_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>REPRESENTANTE LEGAL</Label>
-                            <Value>{data.company_representative}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>CPF DO REPRESENTANTE</Label>
-                            <Value>{data.company_representative_cpf}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Dados do Estágio */}
-            <SectionHeader title="DADOS DO ESTÁGIO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>DATA DE INÍCIO DO ESTÁGIO</Label>
-                            <Value>{formatDate(data.internship_start_date)}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>DATA PREVISTA DE TÉRMINO</Label>
-                            <Value>{formatDate(data.internship_end_date)}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>DATA DO TERMO DE COMPROMISSO ORIGINAL</Label>
-                            <Value>{formatDate(data.original_term_date)}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>DATA DA RESCISÃO</Label>
-                            <Value>{formatDate(data.rescission_date)}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Motivo da Rescisão */}
-            <SectionHeader title="MOTIVO DA RESCISÃO" />
-            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[150px] text-justify mb-8">
-                {data.rescission_reason}
-            </div>
-
-            {/* Declaração */}
-            <div className="mb-8 text-justify text-[10pt] leading-relaxed">
-                Por meio deste instrumento, as partes acima qualificadas declaram rescindido, de comum acordo, o Termo de Compromisso de Estágio firmado em <strong>{formatDate(data.original_term_date)}</strong>, a partir da data de <strong>{formatDate(data.rescission_date)}</strong>, ficando as partes desobrigadas de quaisquer responsabilidades decorrentes do referido termo a partir desta data.
-            </div>
-
-            <div className="text-right mb-16 text-[10pt]">
-                {data.city || 'Fortaleza'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
-            </div>
-
-            {/* Assinaturas */}
-            <div className="space-y-12">
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-2/3 mx-auto text-[8pt]">
-                        <strong>{data.student_name || 'ESTAGIÁRIO(A)'}</strong><br />
-                        CPF: {data.student_cpf}
-                    </div>
-                </div>
-
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-2/3 mx-auto text-[8pt]">
-                        <strong>{data.company_name || 'EMPRESA CONCEDENTE'}</strong><br />
-                        {data.company_representative}<br />
-                        CPF: {data.company_representative_cpf}
-                    </div>
-                </div>
-
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-2/3 mx-auto text-[8pt]">
-                        <strong>INSTITUIÇÃO DE ENSINO - IFCE CAMPUS MARACANAÚ</strong><br />
-                        Coordenador de Estágios
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    )
+// Estilos do documento
+const styles = StyleSheet.create({
+    page: {
+        padding: 30,
+        fontSize: 10,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 8,
+        marginBottom: 2,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
+    title: {
+        fontSize: 12,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginBottom: 20,
+        textTransform: 'uppercase',
+    },
+    sectionHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderTop: 1,
+        borderLeft: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    table: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    tableCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        fontSize: 7,
+    },
+    tableCellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+    },
+    textBox: {
+        border: 1,
+        borderColor: '#000',
+        padding: 8,
+        fontSize: 9,
+        minHeight: 100,
+        marginBottom: 10,
+        textAlign: 'justify',
+    },
+    paragraph: {
+        fontSize: 10,
+        textAlign: 'justify',
+        marginBottom: 15,
+        lineHeight: 1.5,
+    },
+    dateRight: {
+        fontSize: 10,
+        textAlign: 'right',
+        marginBottom: 30,
+    },
+    signatureBlock: {
+        marginTop: 40,
+        marginBottom: 20,
+    },
+    signatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '66%',
+        marginHorizontal: 'auto',
+        textAlign: 'center',
+        fontSize: 8,
+        marginBottom: 30,
+    },
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
 })
 
-RescissionTermDocument.displayName = 'RescissionTermDocument'
+const formatDate = (dateString: string): string => {
+    if (!dateString) return '___/___/_____'
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+}
+
+export const RescissionTermDocument: React.FC<RescissionTermDocumentProps> = ({ data }) => (
+    <Document>
+        <Page size="A4" style={styles.page}>
+            {/* Cabeçalho */}
+            <View style={styles.header}>
+                <Image src="/assets/logoifce.png" style={styles.logo} />
+                <View style={styles.headerCenter}>
+                    <Text style={styles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                    <Text style={styles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                    <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                    <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                </View>
+                <Image src="/assets/brasao.png" style={styles.logo} />
+            </View>
+
+            <Text style={styles.title}>TERMO DE RESCISÃO DE CONTRATO DE ESTÁGIO</Text>
+
+            {/* Dados do Estagiário */}
+            <Text style={styles.sectionHeader}>DADOS DO ESTAGIÁRIO</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '75%' }]}>
+                        <Text style={styles.label}>NOME COMPLETO</Text>
+                        <Text style={styles.value}>{data.student_name}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                        <Text style={styles.label}>CPF</Text>
+                        <Text style={styles.value}>{data.student_cpf}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '25%' }]}>
+                        <Text style={styles.label}>RG</Text>
+                        <Text style={styles.value}>{data.student_rg}</Text>
+                    </View>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>CURSO</Text>
+                        <Text style={styles.value}>{data.student_course}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                        <Text style={styles.label}>MATRÍCULA</Text>
+                        <Text style={styles.value}>{data.student_enrollment}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>{data.student_address}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>TELEFONE</Text>
+                        <Text style={styles.value}>{data.student_phone}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>E-MAIL</Text>
+                        <Text style={styles.value}>{data.student_email}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Dados da Empresa */}
+            <Text style={styles.sectionHeader}>DADOS DA EMPRESA CONCEDENTE</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '75%' }]}>
+                        <Text style={styles.label}>RAZÃO SOCIAL</Text>
+                        <Text style={styles.value}>{data.company_name}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                        <Text style={styles.label}>CNPJ</Text>
+                        <Text style={styles.value}>{data.company_cnpj}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>{data.company_address}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>TELEFONE</Text>
+                        <Text style={styles.value}>{data.company_phone}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>REPRESENTANTE LEGAL</Text>
+                        <Text style={styles.value}>{data.company_representative}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>CPF DO REPRESENTANTE</Text>
+                        <Text style={styles.value}>{data.company_representative_cpf}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Dados do Estágio */}
+            <Text style={styles.sectionHeader}>DADOS DO ESTÁGIO</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>DATA DE INÍCIO DO ESTÁGIO</Text>
+                        <Text style={styles.value}>{formatDate(data.internship_start_date)}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>DATA PREVISTA DE TÉRMINO</Text>
+                        <Text style={styles.value}>{formatDate(data.internship_end_date)}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>DATA DO TERMO DE COMPROMISSO ORIGINAL</Text>
+                        <Text style={styles.value}>{formatDate(data.original_term_date)}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>DATA DA RESCISÃO</Text>
+                        <Text style={styles.value}>{formatDate(data.rescission_date)}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Motivo da Rescisão */}
+            <Text style={styles.sectionHeader}>MOTIVO DA RESCISÃO</Text>
+            <View style={styles.textBox}>
+                <Text>{data.rescission_reason}</Text>
+            </View>
+
+            {/* Declaração */}
+            <Text style={styles.paragraph}>
+                Por meio deste instrumento, as partes acima qualificadas declaram rescindido, de comum acordo, o Termo de Compromisso de Estágio firmado em <Text style={styles.bold}>{formatDate(data.original_term_date)}</Text>, a partir da data de <Text style={styles.bold}>{formatDate(data.rescission_date)}</Text>, ficando as partes desobrigadas de quaisquer responsabilidades decorrentes do referido termo a partir desta data.
+            </Text>
+
+            <Text style={styles.dateRight}>
+                {data.city || 'Fortaleza'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
+            </Text>
+
+            {/* Assinaturas */}
+            <View style={styles.signatureBlock}>
+                <View style={styles.signatureLine}>
+                    <Text style={styles.bold}>{data.student_name || 'ESTAGIÁRIO(A)'}</Text>
+                    <Text>CPF: {data.student_cpf}</Text>
+                </View>
+
+                <View style={styles.signatureLine}>
+                    <Text style={styles.bold}>{data.company_name || 'EMPRESA CONCEDENTE'}</Text>
+                    <Text>{data.company_representative}</Text>
+                    <Text>CPF: {data.company_representative_cpf}</Text>
+                </View>
+
+                <View style={styles.signatureLine}>
+                    <Text style={styles.bold}>INSTITUIÇÃO DE ENSINO - IFCE CAMPUS MARACANAÚ</Text>
+                    <Text>Coordenador de Estágios</Text>
+                </View>
+            </View>
+        </Page>
+    </Document>
+)

@@ -1,4 +1,6 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
+import { commonStyles, formatDate } from '@/lib/pdf-styles-react'
 
 interface RealizationTermDocumentProps {
     data: {
@@ -35,198 +37,141 @@ interface RealizationTermDocumentProps {
     }
 }
 
-export const RealizationTermDocument = forwardRef<HTMLDivElement, RealizationTermDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
-
-    // Componentes auxiliares
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                `
-            }} />
-
+export const RealizationTermDocument: React.FC<RealizationTermDocumentProps> = ({ data }) => (
+    <Document>
+        <Page size="A4" style={commonStyles.page}>
             {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
+            <View style={commonStyles.header}>
+                <Image src="/assets/logoifce.png" style={commonStyles.logo} />
+                <View style={commonStyles.headerCenter}>
+                    <Text style={commonStyles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                    <Text style={commonStyles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                    <Text style={commonStyles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                    <Text style={commonStyles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                </View>
+                <Image src="/assets/brasao.png" style={commonStyles.logo} />
+            </View>
 
-            <h1 className="text-center font-bold text-[12pt] mb-8 uppercase">TERMO DE REALIZAÇÃO DE ESTÁGIO</h1>
+            <Text style={commonStyles.title}>TERMO DE REALIZAÇÃO DE ESTÁGIO</Text>
 
             {/* Dados do Estagiário */}
-            <SectionHeader title="DADOS DO ESTAGIÁRIO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>NOME COMPLETO</Label>
-                            <Value>{data.student_name}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CPF</Label>
-                            <Value>{data.student_cpf}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={1}>
-                            <Label>RG</Label>
-                            <Value>{data.student_rg}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>CURSO</Label>
-                            <Value>{data.student_course}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>MATRÍCULA</Label>
-                            <Value>{data.student_enrollment}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
+            <Text style={commonStyles.sectionHeader}>DADOS DO ESTAGIÁRIO</Text>
+            <View style={commonStyles.table}>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '75%' }]}>
+                        <Text style={commonStyles.label}>NOME COMPLETO</Text>
+                        <Text style={commonStyles.value}>{data.student_name}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CPF</Text>
+                        <Text style={commonStyles.value}>{data.student_cpf}</Text>
+                    </View>
+                </View>
+                <View style={[commonStyles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[commonStyles.tableCell, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>RG</Text>
+                        <Text style={commonStyles.value}>{data.student_rg}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, { width: '50%' }]}>
+                        <Text style={commonStyles.label}>CURSO</Text>
+                        <Text style={commonStyles.value}>{data.student_course}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>MATRÍCULA</Text>
+                        <Text style={commonStyles.value}>{data.student_enrollment}</Text>
+                    </View>
+                </View>
+            </View>
 
             {/* Dados da Empresa */}
-            <SectionHeader title="DADOS DA EMPRESA CONCEDENTE" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>RAZÃO SOCIAL</Label>
-                            <Value>{data.company_name}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CNPJ</Label>
-                            <Value>{data.company_cnpj}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.company_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>SUPERVISOR DO ESTÁGIO</Label>
-                            <Value>{data.company_supervisor}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
+            <Text style={commonStyles.sectionHeader}>DADOS DA EMPRESA CONCEDENTE</Text>
+            <View style={commonStyles.table}>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '75%' }]}>
+                        <Text style={commonStyles.label}>RAZÃO SOCIAL</Text>
+                        <Text style={commonStyles.value}>{data.company_name}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CNPJ</Text>
+                        <Text style={commonStyles.value}>{data.company_cnpj}</Text>
+                    </View>
+                </View>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '100%' }]}>
+                        <Text style={commonStyles.label}>ENDEREÇO</Text>
+                        <Text style={commonStyles.value}>{data.company_address}</Text>
+                    </View>
+                </View>
+                <View style={[commonStyles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '100%' }]}>
+                        <Text style={commonStyles.label}>SUPERVISOR DO ESTÁGIO</Text>
+                        <Text style={commonStyles.value}>{data.company_supervisor}</Text>
+                    </View>
+                </View>
+            </View>
 
             {/* Dados do Estágio */}
-            <SectionHeader title="DADOS DO ESTÁGIO REALIZADO" />
-            <table className="official-table text-center">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={1}>
-                            <Label>DATA DE INÍCIO</Label>
-                            <Value>{formatDate(data.internship_start_date)}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>DATA DE TÉRMINO</Label>
-                            <Value>{formatDate(data.internship_end_date)}</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CARGA HORÁRIA TOTAL</Label>
-                            <Value>{data.total_hours} HORAS</Value>
-                        </TableCell>
-                        <TableCell colSpan={1}>
-                            <Label>CARGA HORÁRIA SEMANAL</Label>
-                            <Value>{data.weekly_hours} HORAS</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
+            <Text style={commonStyles.sectionHeader}>DADOS DO ESTÁGIO REALIZADO</Text>
+            <View style={commonStyles.table}>
+                <View style={[commonStyles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[commonStyles.tableCell, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>DATA DE INÍCIO</Text>
+                        <Text style={commonStyles.value}>{formatDate(data.internship_start_date)}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>DATA DE TÉRMINO</Text>
+                        <Text style={commonStyles.value}>{formatDate(data.internship_end_date)}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CARGA HORÁRIA TOTAL</Text>
+                        <Text style={commonStyles.value}>{data.total_hours} HORAS</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CARGA HORÁRIA SEMANAL</Text>
+                        <Text style={commonStyles.value}>{data.weekly_hours} HORAS</Text>
+                    </View>
+                </View>
+            </View>
 
             {/* Atividades Desenvolvidas */}
-            <SectionHeader title="ATIVIDADES DESENVOLVIDAS DURANTE O ESTÁGIO" />
-            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[150px] text-justify mb-4">
-                {data.activities}
-            </div>
+            <Text style={commonStyles.sectionHeader}>ATIVIDADES DESENVOLVIDAS DURANTE O ESTÁGIO</Text>
+            <View style={commonStyles.textBox}>
+                <Text>{data.activities}</Text>
+            </View>
 
             {/* Avaliação do Desempenho */}
-            <SectionHeader title="AVALIAÇÃO DO DESEMPENHO DO ESTAGIÁRIO" />
-            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[100px] text-justify mb-8">
-                {data.performance_evaluation}
-            </div>
+            <Text style={commonStyles.sectionHeader}>AVALIAÇÃO DO DESEMPENHO DO ESTAGIÁRIO</Text>
+            <View style={[commonStyles.textBox, { minHeight: 80 }]}>
+                <Text>{data.performance_evaluation}</Text>
+            </View>
 
             {/* Declaração */}
-            <div className="mb-8 text-justify text-[10pt] leading-relaxed">
-                Declaramos, para os devidos fins, que o(a) estagiário(a) acima identificado(a) concluiu com êxito as atividades de estágio no período de <strong>{formatDate(data.internship_start_date)}</strong> a <strong>{formatDate(data.internship_end_date)}</strong>, cumprindo a carga horária total de <strong>{data.total_hours} horas</strong>, conforme estabelecido no Termo de Compromisso de Estágio.
-            </div>
+            <Text style={commonStyles.paragraph}>
+                Declaramos, para os devidos fins, que o(a) estagiário(a) acima identificado(a) concluiu com êxito as atividades de estágio no período de <Text style={commonStyles.bold}>{formatDate(data.internship_start_date)}</Text> a <Text style={commonStyles.bold}>{formatDate(data.internship_end_date)}</Text>, cumprindo a carga horária total de <Text style={commonStyles.bold}>{data.total_hours} horas</Text>, conforme estabelecido no Termo de Compromisso de Estágio.
+            </Text>
 
-            <div className="text-right mb-16 text-[10pt]">
+            <Text style={commonStyles.dateRight}>
                 {data.city || 'Fortaleza'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
-            </div>
+            </Text>
 
             {/* Assinaturas */}
-            <div className="space-y-12">
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-2/3 mx-auto text-[8pt]">
-                        <strong>{data.company_name || 'EMPRESA CONCEDENTE'}</strong><br />
-                        {data.company_supervisor}<br />
-                        Supervisor do Estágio
-                    </div>
-                </div>
+            <View style={commonStyles.signatureBlock}>
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>{data.company_name || 'EMPRESA CONCEDENTE'}</Text>
+                    <Text>{data.company_supervisor}</Text>
+                    <Text>Supervisor do Estágio</Text>
+                </View>
 
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-2/3 mx-auto text-[8pt]">
-                        <strong>{data.student_name || 'ESTAGIÁRIO(A)'}</strong><br />
-                        CPF: {data.student_cpf}
-                    </div>
-                </div>
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>{data.student_name || 'ESTAGIÁRIO(A)'}</Text>
+                    <Text>CPF: {data.student_cpf}</Text>
+                </View>
 
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-2/3 mx-auto text-[8pt]">
-                        <strong>INSTITUIÇÃO DE ENSINO - IFCE CAMPUS MARACANAÚ</strong><br />
-                        Coordenador de Estágios
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    )
-})
-
-RealizationTermDocument.displayName = 'RealizationTermDocument'
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>INSTITUIÇÃO DE ENSINO - IFCE CAMPUS MARACANAÚ</Text>
+                    <Text>Coordenador de Estágios</Text>
+                </View>
+            </View>
+        </Page>
+    </Document>
+)

@@ -8,11 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
-import { generatePDFWithPuppeteer } from '@/lib/pdf-generator'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
-  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState<any>({})
   const [schedule, setSchedule] = useState<Record<string, string>>({})
@@ -76,7 +74,7 @@ export default function InternshipRegistrationPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current || !templateRef.current) return
+      if (!formRef.current) return
 
       const currentFormData = new FormData(formRef.current)
       const data = Object.fromEntries(currentFormData.entries())
@@ -84,16 +82,15 @@ export default function InternshipRegistrationPage() {
       // Adicionar schedule ao data
       data.schedule = JSON.stringify(schedule)
 
-      // Atualizar estado para garantir que o template renderize com os dados mais recentes
-      setFormData(data)
-
-      // Pequeno delay para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 100))
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      // Gerar PDF com Puppeteer
-      await generatePDFWithPuppeteer(templateRef.current, 'solicitacao-cadastro-estagio.pdf')
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+
+      // Criar o documento React-PDF
+      const pdfDocument = <InternshipRegistrationDocument data={data as any} />
+
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'internship-registration.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -437,11 +434,6 @@ export default function InternshipRegistrationPage() {
             </CardContent>
           </Card>
         </form>
-
-        {/* Template Oculto para PDF */}
-        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-          <InternshipRegistrationDocument ref={templateRef} data={formData} />
-        </div>
       </div>
     </div>
   )

@@ -11,7 +11,6 @@ import { CommitmentTermDocument } from '@/components/templates/CommitmentTermDoc
 
 export default function CommitmentTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
-  const documentRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
     // Instituição Concedente
@@ -113,22 +112,26 @@ export default function CommitmentTermPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      // Validar campos obrigatórios básicos
-      if (!formData.student_name || !formData.company_name) {
-        toast.error('Preencha pelo menos os dados do aluno e da empresa')
-        return
-      }
+      if (!formRef.current) return
+
+      const currentFormData = new FormData(formRef.current)
+      const data = Object.fromEntries(currentFormData.entries())
+
+      // Adicionar data atual se não estiver presente (se aplicável)
+      const now = new Date()
+      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
+      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
+      if (!data.date_year) data.date_year = String(now.getFullYear())
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
 
-      if (!documentRef.current) {
-        throw new Error('Template do documento não encontrado')
-      }
+      // Criar o documento React-PDF
+      const pdfDocument = <CommitmentTermDocument data={data as any} />
 
-      // Gerar PDF com Puppeteer
-      await generatePDFWithPuppeteer(documentRef.current, `termo-compromisso_${formData.student_name.split(' ')[0]}.pdf`)
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'commitment-term.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -343,11 +346,6 @@ export default function CommitmentTermPage() {
             </CardContent>
           </Card>
         </form>
-      </div>
-
-      {/* Template Oculto para Geração do PDF */}
-      <div className="absolute top-0 left-0 -z-50 opacity-0 pointer-events-none">
-        <CommitmentTermDocument ref={documentRef} data={formData} />
       </div>
     </div>
   )

@@ -11,7 +11,6 @@ import { ProfessionalDeclarationDocument } from '@/components/templates/Professi
 
 export default function ProfessionalDeclarationPage() {
   const formRef = useRef<HTMLFormElement>(null)
-  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState<any>({})
 
@@ -48,28 +47,26 @@ export default function ProfessionalDeclarationPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current || !templateRef.current) return
+      if (!formRef.current) return
 
       const currentFormData = new FormData(formRef.current)
       const data = Object.fromEntries(currentFormData.entries())
 
-      // Adicionar data atual se não estiver presente
+      // Adicionar data atual se não estiver presente (se aplicável)
       const now = new Date()
       if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
       if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
       if (!data.date_year) data.date_year = String(now.getFullYear())
 
-      // Atualizar estado para garantir que o template renderize com os dados mais recentes
-      setFormData(data)
-
-      // Pequeno delay para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 100))
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
-
-      await generatePDFWithPuppeteer(templateRef.current, 'declaracao-atividades-profissionais.pdf')
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      
+      // Criar o documento React-PDF
+      const pdfDocument = <ProfessionalDeclarationDocument data={data as any} />
+      
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'professional-declaration.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -208,11 +205,6 @@ export default function ProfessionalDeclarationPage() {
             </CardContent>
           </Card>
         </form>
-
-        {/* Template Oculto para PDF */}
-        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-          <ProfessionalDeclarationDocument ref={templateRef} data={formData} />
-        </div>
       </div>
     </div>
   )

@@ -11,7 +11,6 @@ import { SemesterReportDocument } from '@/components/templates/SemesterReportDoc
 
 export default function SemesterReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
-  const templateRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState<any>({})
 
@@ -48,22 +47,26 @@ export default function SemesterReportPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current || !templateRef.current) return
+      if (!formRef.current) return
 
       const currentFormData = new FormData(formRef.current)
       const data = Object.fromEntries(currentFormData.entries())
 
-      // Atualizar estado para garantir que o template renderize com os dados mais recentes
-      setFormData(data)
-
-      // Pequeno delay para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Adicionar data atual se não estiver presente (se aplicável)
+      const now = new Date()
+      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
+      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
+      if (!data.date_year) data.date_year = String(now.getFullYear())
 
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
 
-      await generatePDFWithPuppeteer(templateRef.current, 'relatorio-semestral.pdf')
+      // Criar o documento React-PDF
+      const pdfDocument = <SemesterReportDocument data={data as any} />
+
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'semester-report.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -73,19 +76,14 @@ export default function SemesterReportPage() {
   }
 
   const evaluationCriteria = [
-    { key: 'eval_assiduity', label: 'Assiduidade' },
-    { key: 'eval_guidance', label: 'Atendimento às orientações' },
-    { key: 'eval_communication', label: 'Comunicação' },
-    { key: 'eval_cooperation', label: 'Cooperação' },
-    { key: 'eval_discipline', label: 'Disciplina' },
-    { key: 'eval_knowledge', label: 'Conhecimento adquirido no estágio' },
-    { key: 'eval_punctuality', label: 'Pontualidade' },
-    { key: 'eval_delivery', label: 'Pontualidade na entrega de documentos' },
-    { key: 'eval_proactivity', label: 'Proatividade' },
-    { key: 'eval_productivity', label: 'Produtividade' },
-    { key: 'eval_quality', label: 'Qualidade no desempenho das atividades' },
-    { key: 'eval_relationship', label: 'Relacionamento Interpessoal' },
-    { key: 'eval_responsibility', label: 'Responsabilidade' },
+    { key: 'criteria_1', label: 'Assiduidade e Pontualidade' },
+    { key: 'criteria_2', label: 'Iniciativa e Pró-atividade' },
+    { key: 'criteria_3', label: 'Relacionamento Interpessoal' },
+    { key: 'criteria_4', label: 'Capacidade de Aprendizagem' },
+    { key: 'criteria_5', label: 'Qualidade do Trabalho' },
+    { key: 'criteria_6', label: 'Organização e Planejamento' },
+    { key: 'criteria_7', label: 'Comunicação' },
+    { key: 'criteria_8', label: 'Responsabilidade' },
   ]
 
   return (
@@ -244,11 +242,6 @@ export default function SemesterReportPage() {
             </CardContent>
           </Card>
         </form>
-
-        {/* Template Oculto para PDF */}
-        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-          <SemesterReportDocument ref={templateRef} data={formData} />
-        </div>
       </div>
     </div>
   )

@@ -143,34 +143,36 @@ export default function InternshipRegistrationRequestPage() {
     }
 
     const handleGeneratePDF = async () => {
-        try {
-            if (!formData.nome || !formData.cpf) {
-                toast.error('Preencha pelo menos nome e CPF')
-                return
-            }
+    try {
+      if (!formRef.current) return
 
-            // Atualizar estado para garantir que o template renderize com os dados mais recentes
-            // (Já está sendo atualizado pelo handleChange, mas garantindo)
+      const currentFormData = new FormData(formRef.current)
+      const data = Object.fromEntries(currentFormData.entries())
 
-            // Pequeno delay para garantir renderização
-            await new Promise(resolve => setTimeout(resolve, 100))
+      // Adicionar data atual se não estiver presente (se aplicável)
+      const now = new Date()
+      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
+      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
+      if (!data.date_year) data.date_year = String(now.getFullYear())
 
-            toast.loading('Gerando PDF...', { id: 'pdf-generation' })
+      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      
+      // Criar o documento React-PDF
+      const pdfDocument = <InternshipRegistrationRequestDocument data={data as any} />
+      
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'internship-registration-request.pdf')
 
-            if (!documentRef.current) {
-                throw new Error('Template do documento não encontrado')
-            }
-
-            await generatePDFWithPuppeteer(documentRef.current, `solicitacao-cadastro-estagio_${formData.nome.split(' ')[0]}.pdf`)
-
-            toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
-        } catch (error) {
-            console.error('Erro ao gerar PDF:', error)
-            toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
-        }
+      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
+  }
+
+            
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
@@ -300,11 +302,6 @@ export default function InternshipRegistrationRequestPage() {
                         </CardContent>
                     </Card>
                 </form>
-            </div>
-
-            {/* Template Oculto para Geração do PDF */}
-            <div className="absolute top-0 left-0 -z-50 opacity-0 pointer-events-none">
-                <InternshipRegistrationRequestDocument ref={documentRef} data={formData} />
             </div>
         </div>
     )

@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface FinalReportDocumentProps {
     data: {
@@ -30,236 +31,483 @@ interface FinalReportDocumentProps {
     }
 }
 
-export const FinalReportDocument = forwardRef<HTMLDivElement, FinalReportDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
-
-    // Componentes auxiliares
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
-    const EvaluationRow = ({ label, value }: { label: string, value: string }) => (
-        <tr style={{ pageBreakInside: 'avoid' }}>
-            <td className="border border-black px-1.5 py-1 text-[8pt]">{label}</td>
-            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '1' ? 'X' : ''}</td>
-            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '2' ? 'X' : ''}</td>
-            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '3' ? 'X' : ''}</td>
-            <td className="border border-black px-1.5 py-1 text-center text-[8pt] font-bold">{value === '4' ? 'X' : ''}</td>
-        </tr>
-    )
-
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                `
-            }} />
-
-            {/* --- PÁGINA 1 --- */}
-
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
-
-            <h1 className="text-center font-bold text-[12pt] mb-8 uppercase">RELATÓRIO FINAL DE ATIVIDADES</h1>
-
-            {/* Identificação */}
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>DISCENTE ESTAGIÁRIO(A)</Label>
-                            <Value>{data.student_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>CURSO</Label>
-                            <Value>{data.student_course}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>MATRÍCULA</Label>
-                            <Value>{data.student_enrollment}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>SUPERVISOR DO ESTÁGIO</Label>
-                            <Value>{data.supervisor_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>DOCENTE ORIENTADOR</Label>
-                            <Value>{data.advisor_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Período e Carga Horária */}
-            <table className="official-table text-center">
-                <thead>
-                    <tr>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={2}>PERÍODO</th>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]">CARGA HORÁRIA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>DATA INICIAL</Label>
-                            <div className="text-[9pt] mt-1">{formatDate(data.period_start)}</div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>DATA FINAL</Label>
-                            <div className="text-[9pt] mt-1">{formatDate(data.period_end)}</div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>CARGA HORÁRIA TOTAL</Label>
-                            <div className="text-[9pt] mt-1">{data.hours_total} HORAS</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            {/* --- PÁGINA 2 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
-
-            {/* Atividades */}
-            <SectionHeader title="PRINCIPAIS ATIVIDADES DESENVOLVIDAS NO ESTÁGIO DURANTE O PERÍODO" />
-            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[800px] text-justify">
-                {data.activities}
-            </div>
-
-            {/* --- PÁGINA 3 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
-
-            {/* Avaliação */}
-            <div className="border border-black mb-4">
-                <div className="bg-gray-200 p-2 font-bold text-center border-b border-black text-[9pt]">
-                    AVALIAÇÃO AO DISCENTE ESTAGIÁRIO
-                </div>
-                <div className="flex">
-                    <div className="w-1/3 p-2 border-r border-black text-[8pt]">
-                        <div className="font-bold mb-4 text-center">ATRIBUIR VALORES ÀS CARACTERÍSTICAS DO ESTAGIÁRIO, DE ACORDO COM OS CONCEITOS</div>
-                        <div className="space-y-2 pl-2">
-                            <div>( 1 ) INSATISFATÓRIO</div>
-                            <div>( 2 ) POUCO SATISFATÓRIO</div>
-                            <div>( 3 ) SATISFATÓRIO</div>
-                            <div>( 4 ) MUITO SATISFATÓRIO</div>
-                        </div>
-                    </div>
-                    <div className="w-2/3">
-                        <table className="w-full text-[8pt] border-collapse">
-                            <thead>
-                                <tr>
-                                    <th className="border-b border-r border-black px-1.5 py-1 text-left w-full">CONCEITOS</th>
-                                    <th className="border-b border-r border-black px-1.5 py-1 w-8 text-center">(1)</th>
-                                    <th className="border-b border-r border-black px-1.5 py-1 w-8 text-center">(2)</th>
-                                    <th className="border-b border-r border-black px-1.5 py-1 w-8 text-center">(3)</th>
-                                    <th className="border-b border-black px-1.5 py-1 w-8 text-center">(4)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <EvaluationRow label="ASSIDUIDADE" value={data.eval_assiduity} />
-                                <EvaluationRow label="ATENDIMENTO ÀS ORIENTAÇÕES" value={data.eval_guidance} />
-                                <EvaluationRow label="COMUNICAÇÃO" value={data.eval_communication} />
-                                <EvaluationRow label="COOPERAÇÃO" value={data.eval_cooperation} />
-                                <EvaluationRow label="DISCIPLINA" value={data.eval_discipline} />
-                                <EvaluationRow label="CONHECIMENTO ADQUIRIDO NO ESTÁGIO" value={data.eval_knowledge} />
-                                <EvaluationRow label="PONTUALIDADE" value={data.eval_punctuality} />
-                                <EvaluationRow label="PONTUALIDADE NA ENTREGA DE DOCUMENTOS" value={data.eval_delivery} />
-                                <EvaluationRow label="PROATIVIDADE" value={data.eval_proactivity} />
-                                <EvaluationRow label="PRODUTIVIDADE" value={data.eval_productivity} />
-                                <EvaluationRow label="QUALIDADE NO DESEMPENHO DAS ATIVIDADES" value={data.eval_quality} />
-                                <EvaluationRow label="RELACIONAMENTO INTERPESSOAL" value={data.eval_relationship} />
-                                <EvaluationRow label="RESPONSABILIDADE" value={data.eval_responsibility} />
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            {/* --- PÁGINA 4 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
-
-            {/* Observações */}
-            <SectionHeader title="OBSERVAÇÕES – COMENTÁRIOS – SUGESTÕES" />
-            <div className="border border-black p-4 text-[9pt] whitespace-pre-wrap min-h-[300px] mb-8 text-justify">
-                {data.comments}
-            </div>
-
-            {/* Assinaturas */}
-            <table className="official-table">
-                <thead>
-                    <tr>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt] w-3/4">ASSINATURAS</th>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt] w-1/4">DATA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-black p-2 align-bottom h-24 relative">
-                            <div className="absolute bottom-2 left-2 text-[8pt] font-bold">SUPERVISOR DO ESTÁGIO</div>
-                        </td>
-                        <td className="border border-black p-2 align-bottom text-center">
-                            <div className="text-[7pt] text-left mb-8">EMITIDO EM</div>
-                            ___/___/_____
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className="border border-black p-2 align-bottom h-24 relative">
-                            <div className="absolute bottom-2 left-2 text-[8pt] font-bold">DISCENTE ESTAGIÁRIO</div>
-                        </td>
-                        <td className="border border-black p-2 align-bottom text-center">
-                            <div className="text-[7pt] text-left mb-8">CIENTE EM</div>
-                            ___/___/_____
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-        </div>
-    )
+// Estilos do documento
+const styles = StyleSheet.create({
+    page: {
+        padding: 30,
+        fontSize: 9,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 10,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 9,
+        marginBottom: 2,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
+    title: {
+        fontSize: 12,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginBottom: 20,
+        textTransform: 'uppercase',
+    },
+    sectionHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderTop: 1,
+        borderLeft: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    table: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    tableCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        fontSize: 7,
+    },
+    tableCellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+        minHeight: 10,
+    },
+    periodTable: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    periodHeader: {
+        flexDirection: 'row',
+        backgroundColor: '#e0e0e0',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    periodHeaderCell: {
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    periodHeaderCellLast: {
+        borderRight: 0,
+    },
+    periodRow: {
+        flexDirection: 'row',
+    },
+    periodCell: {
+        flex: 1,
+        padding: 8,
+        borderRight: 1,
+        borderColor: '#000',
+        textAlign: 'center',
+    },
+    periodCellLast: {
+        borderRight: 0,
+    },
+    textBox: {
+        border: 1,
+        borderColor: '#000',
+        padding: 8,
+        fontSize: 9,
+        minHeight: 400,
+        marginBottom: 10,
+        textAlign: 'justify',
+    },
+    evaluationContainer: {
+        border: 1,
+        borderColor: '#000',
+        marginBottom: 15,
+    },
+    evaluationHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 8,
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    evaluationBody: {
+        flexDirection: 'row',
+    },
+    evaluationLegend: {
+        width: '33%',
+        padding: 8,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    evaluationLegendTitle: {
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginBottom: 15,
+    },
+    evaluationLegendItem: {
+        fontSize: 8,
+        marginBottom: 8,
+        paddingLeft: 8,
+    },
+    evaluationTable: {
+        width: '67%',
+    },
+    evaluationTableHeader: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    evaluationTableHeaderCell: {
+        padding: 4,
+        fontSize: 7,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    evaluationTableHeaderCellLast: {
+        borderRight: 0,
+    },
+    evaluationTableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    evaluationTableRowLast: {
+        borderBottom: 0,
+    },
+    evaluationTableCell: {
+        padding: 4,
+        fontSize: 8,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    evaluationTableCellCenter: {
+        textAlign: 'center',
+        fontFamily: 'Helvetica-Bold',
+    },
+    evaluationTableCellLast: {
+        borderRight: 0,
+    },
+    commentsBox: {
+        border: 1,
+        borderColor: '#000',
+        padding: 8,
+        fontSize: 9,
+        minHeight: 150,
+        marginBottom: 20,
+        textAlign: 'justify',
+    },
+    signatureTable: {
+        width: '100%',
+        border: 1,
+        borderColor: '#000',
+    },
+    signatureHeader: {
+        flexDirection: 'row',
+        backgroundColor: '#e0e0e0',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    signatureHeaderCell: {
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    signatureHeaderCellLast: {
+        borderRight: 0,
+    },
+    signatureRow: {
+        flexDirection: 'row',
+        minHeight: 60,
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    signatureRowLast: {
+        borderBottom: 0,
+    },
+    signatureCell: {
+        padding: 8,
+        borderRight: 1,
+        borderColor: '#000',
+        justifyContent: 'flex-end',
+    },
+    signatureCellLast: {
+        borderRight: 0,
+    },
+    signatureLabel: {
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+    },
+    signatureDateLabel: {
+        fontSize: 7,
+        marginBottom: 20,
+    },
+    signatureDate: {
+        fontSize: 8,
+        textAlign: 'center',
+    },
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
 })
 
-FinalReportDocument.displayName = 'FinalReportDocument'
+const formatDate = (dateString: string): string => {
+    if (!dateString) return '___/___/_____'
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+}
+
+export const FinalReportDocument: React.FC<FinalReportDocumentProps> = ({ data }) => {
+    const evaluations = [
+        { label: 'ASSIDUIDADE', value: data.eval_assiduity },
+        { label: 'ATENDIMENTO ÀS ORIENTAÇÕES', value: data.eval_guidance },
+        { label: 'COMUNICAÇÃO', value: data.eval_communication },
+        { label: 'COOPERAÇÃO', value: data.eval_cooperation },
+        { label: 'DISCIPLINA', value: data.eval_discipline },
+        { label: 'CONHECIMENTO ADQUIRIDO NO ESTÁGIO', value: data.eval_knowledge },
+        { label: 'PONTUALIDADE', value: data.eval_punctuality },
+        { label: 'PONTUALIDADE NA ENTREGA DE DOCUMENTOS', value: data.eval_delivery },
+        { label: 'PROATIVIDADE', value: data.eval_proactivity },
+        { label: 'PRODUTIVIDADE', value: data.eval_productivity },
+        { label: 'QUALIDADE NO DESEMPENHO DAS ATIVIDADES', value: data.eval_quality },
+        { label: 'RELACIONAMENTO INTERPESSOAL', value: data.eval_relationship },
+        { label: 'RESPONSABILIDADE', value: data.eval_responsibility },
+    ]
+
+    return (
+        <Document>
+            {/* Página 1 - Identificação */}
+            <Page size="A4" style={styles.page}>
+                {/* Cabeçalho */}
+                <View style={styles.header}>
+                    <Image src="/assets/logoifce.png" style={styles.logo} />
+                    <View style={styles.headerCenter}>
+                        <Text style={styles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                        <Text style={styles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                        <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                        <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                    </View>
+                    <Image src="/assets/brasao.png" style={styles.logo} />
+                </View>
+
+                <Text style={styles.title}>RELATÓRIO FINAL DE ATIVIDADES</Text>
+
+                {/* Identificação */}
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>DISCENTE ESTAGIÁRIO(A)</Text>
+                            <Text style={styles.value}>{data.student_name}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>CURSO</Text>
+                            <Text style={styles.value}>{data.student_course}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>MATRÍCULA</Text>
+                            <Text style={styles.value}>{data.student_enrollment}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>SUPERVISOR DO ESTÁGIO</Text>
+                            <Text style={styles.value}>{data.supervisor_name}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>DOCENTE ORIENTADOR</Text>
+                            <Text style={styles.value}>{data.advisor_name}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Período e Carga Horária */}
+                <View style={styles.periodTable}>
+                    <View style={styles.periodHeader}>
+                        <View style={[styles.periodHeaderCell, { width: '33%' }]}>
+                            <Text>PERÍODO</Text>
+                        </View>
+                        <View style={[styles.periodHeaderCell, { width: '33%' }]}>
+                            <Text></Text>
+                        </View>
+                        <View style={[styles.periodHeaderCell, styles.periodHeaderCellLast, { width: '34%' }]}>
+                            <Text>CARGA HORÁRIA</Text>
+                        </View>
+                    </View>
+                    <View style={styles.periodRow}>
+                        <View style={[styles.periodCell, { width: '33%' }]}>
+                            <Text style={styles.label}>DATA INICIAL</Text>
+                            <Text style={[styles.value, { marginTop: 4 }]}>{formatDate(data.period_start)}</Text>
+                        </View>
+                        <View style={[styles.periodCell, { width: '33%' }]}>
+                            <Text style={styles.label}>DATA FINAL</Text>
+                            <Text style={[styles.value, { marginTop: 4 }]}>{formatDate(data.period_end)}</Text>
+                        </View>
+                        <View style={[styles.periodCell, styles.periodCellLast, { width: '34%' }]}>
+                            <Text style={styles.label}>CARGA HORÁRIA TOTAL</Text>
+                            <Text style={[styles.value, { marginTop: 4 }]}>{data.hours_total} HORAS</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Atividades */}
+                <Text style={styles.sectionHeader}>PRINCIPAIS ATIVIDADES DESENVOLVIDAS NO ESTÁGIO DURANTE O PERÍODO</Text>
+                <View style={styles.textBox}>
+                    <Text>{data.activities}</Text>
+                </View>
+            </Page>
+
+            {/* Página 2 - Avaliação */}
+            <Page size="A4" style={styles.page}>
+                {/* Avaliação */}
+                <View style={styles.evaluationContainer}>
+                    <Text style={styles.evaluationHeader}>AVALIAÇÃO AO DISCENTE ESTAGIÁRIO</Text>
+                    <View style={styles.evaluationBody}>
+                        {/* Legenda */}
+                        <View style={styles.evaluationLegend}>
+                            <Text style={styles.evaluationLegendTitle}>
+                                ATRIBUIR VALORES ÀS CARACTERÍSTICAS DO ESTAGIÁRIO, DE ACORDO COM OS CONCEITOS
+                            </Text>
+                            <Text style={styles.evaluationLegendItem}>( 1 ) INSATISFATÓRIO</Text>
+                            <Text style={styles.evaluationLegendItem}>( 2 ) POUCO SATISFATÓRIO</Text>
+                            <Text style={styles.evaluationLegendItem}>( 3 ) SATISFATÓRIO</Text>
+                            <Text style={styles.evaluationLegendItem}>( 4 ) MUITO SATISFATÓRIO</Text>
+                        </View>
+
+                        {/* Tabela de Avaliação */}
+                        <View style={styles.evaluationTable}>
+                            <View style={styles.evaluationTableHeader}>
+                                <View style={[styles.evaluationTableHeaderCell, { width: '60%' }]}>
+                                    <Text>CONCEITOS</Text>
+                                </View>
+                                <View style={[styles.evaluationTableHeaderCell, { width: '10%' }]}>
+                                    <Text>(1)</Text>
+                                </View>
+                                <View style={[styles.evaluationTableHeaderCell, { width: '10%' }]}>
+                                    <Text>(2)</Text>
+                                </View>
+                                <View style={[styles.evaluationTableHeaderCell, { width: '10%' }]}>
+                                    <Text>(3)</Text>
+                                </View>
+                                <View style={[styles.evaluationTableHeaderCell, styles.evaluationTableHeaderCellLast, { width: '10%' }]}>
+                                    <Text>(4)</Text>
+                                </View>
+                            </View>
+
+                            {evaluations.map((evaluation, index) => (
+                                <View
+                                    key={evaluation.label}
+                                    style={[
+                                        styles.evaluationTableRow,
+                                        ...(index === evaluations.length - 1 ? [styles.evaluationTableRowLast] : [])
+                                    ]}
+                                >
+                                    <View style={[styles.evaluationTableCell, { width: '60%' }]}>
+                                        <Text>{evaluation.label}</Text>
+                                    </View>
+                                    <View style={[styles.evaluationTableCell, styles.evaluationTableCellCenter, { width: '10%' }]}>
+                                        <Text>{evaluation.value === '1' ? 'X' : ''}</Text>
+                                    </View>
+                                    <View style={[styles.evaluationTableCell, styles.evaluationTableCellCenter, { width: '10%' }]}>
+                                        <Text>{evaluation.value === '2' ? 'X' : ''}</Text>
+                                    </View>
+                                    <View style={[styles.evaluationTableCell, styles.evaluationTableCellCenter, { width: '10%' }]}>
+                                        <Text>{evaluation.value === '3' ? 'X' : ''}</Text>
+                                    </View>
+                                    <View style={[styles.evaluationTableCell, styles.evaluationTableCellCenter, styles.evaluationTableCellLast, { width: '10%' }]}>
+                                        <Text>{evaluation.value === '4' ? 'X' : ''}</Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                </View>
+
+                {/* Observações */}
+                <Text style={styles.sectionHeader}>OBSERVAÇÕES – COMENTÁRIOS – SUGESTÕES</Text>
+                <View style={styles.commentsBox}>
+                    <Text>{data.comments}</Text>
+                </View>
+
+                {/* Assinaturas */}
+                <View style={styles.signatureTable}>
+                    <View style={styles.signatureHeader}>
+                        <View style={[styles.signatureHeaderCell, { width: '75%' }]}>
+                            <Text>ASSINATURAS</Text>
+                        </View>
+                        <View style={[styles.signatureHeaderCell, styles.signatureHeaderCellLast, { width: '25%' }]}>
+                            <Text>DATA</Text>
+                        </View>
+                    </View>
+                    <View style={styles.signatureRow}>
+                        <View style={[styles.signatureCell, { width: '75%' }]}>
+                            <Text style={styles.signatureLabel}>SUPERVISOR DO ESTÁGIO</Text>
+                        </View>
+                        <View style={[styles.signatureCell, styles.signatureCellLast, { width: '25%' }]}>
+                            <Text style={styles.signatureDateLabel}>EMITIDO EM</Text>
+                            <Text style={styles.signatureDate}>___/___/_____</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.signatureRow, styles.signatureRowLast]}>
+                        <View style={[styles.signatureCell, { width: '75%' }]}>
+                            <Text style={styles.signatureLabel}>DISCENTE ESTAGIÁRIO</Text>
+                        </View>
+                        <View style={[styles.signatureCell, styles.signatureCellLast, { width: '25%' }]}>
+                            <Text style={styles.signatureDateLabel}>CIENTE EM</Text>
+                            <Text style={styles.signatureDate}>___/___/_____</Text>
+                        </View>
+                    </View>
+                </View>
+            </Page>
+        </Document>
+    )
+}

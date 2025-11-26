@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface CommitmentTermDocumentProps {
     data: {
@@ -65,536 +66,618 @@ interface CommitmentTermDocumentProps {
     }
 }
 
-export const CommitmentTermDocument = forwardRef<HTMLDivElement, CommitmentTermDocumentProps>(({ data }, ref) => {
+const styles = StyleSheet.create({
+    page: {
+        padding: 30,
+        fontSize: 9,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 10,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 9,
+        marginBottom: 2,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
+    title: {
+        fontSize: 12,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginBottom: 15,
+        textTransform: 'uppercase',
+    },
+    paragraph: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 15,
+        lineHeight: 1.4,
+    },
+    clauseTitle: {
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    clauseText: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 5,
+        lineHeight: 1.3,
+    },
+    listItem: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 5,
+        marginLeft: 15,
+        lineHeight: 1.3,
+    },
+    sectionHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderTop: 1,
+        borderLeft: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    table: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    tableCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        fontSize: 7,
+    },
+    tableCellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+        minHeight: 10,
+    },
+    textBox: {
+        border: 1,
+        borderColor: '#000',
+        padding: 8,
+        fontSize: 9,
+        minHeight: 80,
+        marginBottom: 10,
+    },
+    scheduleTable: {
+        width: '100%',
+        border: 1,
+        borderColor: '#000',
+        marginBottom: 10,
+    },
+    scheduleHeaderRow: {
+        flexDirection: 'row',
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+        backgroundColor: '#f0f0f0',
+    },
+    scheduleHeaderCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    scheduleHeaderCellLast: {
+        borderRight: 0,
+    },
+    scheduleRow: {
+        flexDirection: 'row',
+        fontSize: 7,
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+        minHeight: 18,
+    },
+    scheduleRowLast: {
+        borderBottom: 0,
+    },
+    scheduleCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleCellLast: {
+        borderRight: 0,
+    },
+    dateRight: {
+        fontSize: 9,
+        textAlign: 'right',
+        marginBottom: 30,
+        marginTop: 20,
+    },
+    signatureBlock: {
+        marginTop: 40,
+    },
+    signatureRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 30,
+    },
+    signatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '45%',
+        textAlign: 'center',
+        fontSize: 7,
+    },
+    signatureLineFull: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '66%',
+        marginHorizontal: 'auto',
+        textAlign: 'center',
+        fontSize: 7,
+        marginBottom: 30,
+    },
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
+})
+
+const formatDate = (dateString: string): string => {
+    if (!dateString) return '___/___/_____'
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+}
+
+const formatCurrency = (value: string): string => {
+    if (!value) return 'R$ _____'
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))
+}
+
+export const CommitmentTermDocument: React.FC<CommitmentTermDocumentProps> = ({ data }) => {
     const schedule = data.schedule ? JSON.parse(data.schedule) : {}
 
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
-
-    const formatCurrency = (value: string) => {
-        if (!value) return '_____'
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))
-    }
-
-    // Componentes auxiliares para manter o código limpo
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
     return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                    .clause-title { font-weight: bold; margin-top: 10px; margin-bottom: 5px; text-transform: uppercase; font-size: 9pt; }
-                    .clause-text { text-align: justify; margin-bottom: 5px; font-size: 9pt; line-height: 1.3; }
-                    .list-item { margin-left: 15px; text-indent: -15px; padding-left: 15px; }
-                `
-            }} />
+        <Document>
+            {/* Página 1 - Identificação das Partes */}
+            <Page size="A4" style={styles.page}>
+                <View style={styles.header}>
+                    <Image src="/assets/logoifce.png" style={styles.logo} />
+                    <View style={styles.headerCenter}>
+                        <Text style={styles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                        <Text style={styles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                        <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                        <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                    </View>
+                    <Image src="/assets/brasao.png" style={styles.logo} />
+                </View>
 
-            {/* --- PÁGINA 1 --- */}
+                <Text style={styles.title}>TERMO DE COMPROMISSO DE ESTÁGIO</Text>
 
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
+                <Text style={styles.paragraph}>
+                    Nos termos da Lei nº 11.788, de 25/09/2008, e do Regulamento de Estágio do IFCE, os entes abaixo qualificados celebram entre si o presente <Text style={styles.bold}>Termo de Compromisso de Estágio</Text>, regrado pelas cláusulas que seguem:
+                </Text>
 
-            <h1 className="text-center font-bold text-[12pt] mb-4 uppercase">TERMO DE COMPROMISSO DE ESTÁGIO</h1>
+                {/* Instituição de Ensino */}
+                <Text style={styles.sectionHeader}>Instituição de Ensino – IFCE</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>CAMPUS</Text>
+                            <Text style={styles.value}>MARACANAÚ</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>CNPJ</Text>
+                            <Text style={styles.value}>10.744.098/0009-00</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Text>
+                            <Text style={styles.value}>AV. VICE PRESIDENTE JOSÉ DE ALENCAR, S/N</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '33%' }]}>
+                            <Text style={styles.label}>BAIRRO</Text>
+                            <Text style={styles.value}>JEREISSATI I</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '34%' }]}>
+                            <Text style={styles.label}>MUNICÍPIO</Text>
+                            <Text style={styles.value}>MARACANAÚ</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '33%' }]}>
+                            <Text style={styles.label}>CEP</Text>
+                            <Text style={styles.value}>61.939-140</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '50%' }]}>
+                            <Text style={styles.label}>DDD + TELEFONE</Text>
+                            <Text style={styles.value}>85 3512-8709</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                            <Text style={styles.label}>E-MAIL</Text>
+                            <Text style={styles.value}>gabmaracanau@ifce.edu.br</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>REPRESENTANTE PARA ESTE ESPECÍFICO FIM</Text>
+                            <Text style={styles.value}>ELDER KENED CARDOSO</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>CARGO/QUALIFICAÇÃO</Text>
+                            <Text style={styles.value}>ASSISTENTE EM ADMINISTRAÇÃO</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>SIAPE</Text>
+                            <Text style={styles.value}>1818968</Text>
+                        </View>
+                    </View>
+                </View>
 
-            <p className="text-justify text-[9pt] mb-4">
-                Nos termos da Lei nº 11.788, de 25/09/2008, e do Regulamento de Estágio do IFCE, os entes abaixo qualificados celebram entre si o presente <strong>Termo de Compromisso de Estágio</strong>, regrado pelas cláusulas que seguem:
-            </p>
+                {/* Instituição Concedente */}
+                <Text style={styles.sectionHeader}>Instituição Concedente de vaga de estágio</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>RAZÃO SOCIAL</Text>
+                            <Text style={styles.value}>{data.company_name}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>NOME DE FANTASIA OU DE PESSOA FÍSICA</Text>
+                            <Text style={styles.value}>{data.company_fantasy_name}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '40%' }]}>
+                            <Text style={styles.label}>CNPJ OU REGISTRO NO CONSELHO</Text>
+                            <Text style={styles.value}>{data.company_cnpj}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '60%' }]}>
+                            <Text style={styles.label}>ENDEREÇO</Text>
+                            <Text style={styles.value}>{data.company_address}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '30%' }]}>
+                            <Text style={styles.label}>BAIRRO</Text>
+                            <Text style={styles.value}>{data.company_neighborhood}</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '40%' }]}>
+                            <Text style={styles.label}>MUNICÍPIO-UF</Text>
+                            <Text style={styles.value}>{data.company_city_state}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '30%' }]}>
+                            <Text style={styles.label}>CEP</Text>
+                            <Text style={styles.value}>{data.company_zip}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '30%' }]}>
+                            <Text style={styles.label}>DDD + TELEFONE</Text>
+                            <Text style={styles.value}>{data.company_phone}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '70%' }]}>
+                            <Text style={styles.label}>E-MAIL</Text>
+                            <Text style={styles.value}>{data.company_email}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>RESPONSÁVEL LEGAL PELA INSTITUIÇÃO</Text>
+                            <Text style={styles.value}>{data.company_representative}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, { width: '60%' }]}>
+                            <Text style={styles.label}>CARGO/QUALIFICAÇÃO</Text>
+                            <Text style={styles.value}>{data.company_representative_role}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '40%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.company_representative_cpf}</Text>
+                        </View>
+                    </View>
+                </View>
 
-            {/* Instituição de Ensino */}
-            <SectionHeader title="Instituição de Ensino – IFCE" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>CAMPUS</Label>
-                            <Value>MARACANAÚ</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CNPJ</Label>
-                            <Value>10.744.098/0009-00</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Label>
-                            <Value>AV. VICE PRESIDENTE JOSÉ DE ALENCAR, S/N</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>BAIRRO</Label>
-                            <Value>JEREISSATI I</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>MUNICÍPIO</Label>
-                            <Value>MARACANAÚ</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CEP</Label>
-                            <Value>61.939-140</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>85 3512-8709</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>gabmaracanau@ifce.edu.br</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>REPRESENTANTE PARA ESTE ESPECÍFICO FIM</Label>
-                            <Value>ELDER KENED CARDOSO</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>CARGO/QUALIFICAÇÃO</Label>
-                            <Value>ASSISTENTE EM ADMINISTRAÇÃO</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>SIAPE</Label>
-                            <Value>1818968</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>estagio.maracanau@ifce.edu.br</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>DDD+TELEFONE</Label>
-                            <Value>85 3512-8706</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
+                {/* Discente */}
+                <Text style={styles.sectionHeader}>DISCENTE ESTAGIÁRIO(A)</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>NOME</Text>
+                            <Text style={styles.value}>{data.student_name}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.student_cpf}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>NOME SOCIAL</Text>
+                            <Text style={styles.value}>{data.student_social_name}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, { width: '75%' }]}>
+                            <Text style={styles.label}>CURSO</Text>
+                            <Text style={styles.value}>{data.student_course}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                            <Text style={styles.label}>MATRICULA</Text>
+                            <Text style={styles.value}>{data.student_id}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>ENDEREÇO</Text>
+                            <Text style={styles.value}>{data.student_address}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, { width: '50%' }]}>
+                            <Text style={styles.label}>MUNICÍPIO-UF</Text>
+                            <Text style={styles.value}>{data.student_city_state}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                            <Text style={styles.label}>E-MAIL INSTITUCIONAL</Text>
+                            <Text style={styles.value}>{data.student_email_institutional}</Text>
+                        </View>
+                    </View>
+                </View>
+            </Page>
 
-            {/* Instituição Concedente */}
-            <SectionHeader title="Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>RAZÃO SOCIAL</Label>
-                            <Value>{data.company_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME DE FANTASIA OU DE PESSOA FÍSICA</Label>
-                            <Value>{data.company_fantasy_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>CNPJ OU REGISTRO NO CONSELHO</Label>
-                            <Value>{data.company_cnpj}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Label>
-                            <Value>{data.company_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>
-                            <Label>BAIRRO</Label>
-                            <Value>{data.company_neighborhood}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>MUNICÍPIO-UF</Label>
-                            <Value>{data.company_city_state}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CEP</Label>
-                            <Value>{data.company_zip}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.company_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={3}>
-                            <Label>E-MAIL</Label>
-                            <Value>{data.company_email}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM</Label>
-                            <Value>{data.company_representative}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>CARGO/QUALIFICAÇÃO</Label>
-                            <Value>{data.company_representative_role}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CPF</Label>
-                            <Value>{data.company_representative_cpf}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.company_representative_phone}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
+            {/* Página 2 - Cláusulas */}
+            <Page size="A4" style={styles.page}>
+                <Text style={styles.clauseTitle}>CLÁUSULA PRIMEIRA – DO OBJETO E DA VIGÊNCIA</Text>
+                <Text style={styles.clauseText}>
+                    I - O estágio supervisionado será OBRIGATÓRIO, com atividades compatíveis com a formação recebida no curso, realizadas de forma <Text style={styles.bold}>{data.modality ? data.modality.toUpperCase() : '_______'}</Text>.
+                </Text>
+                <Text style={styles.clauseText}>
+                    II - Este termo terá vigência de <Text style={styles.bold}>{formatDate(data.start_date)}</Text> a <Text style={styles.bold}>{formatDate(data.end_date)}</Text>.
+                </Text>
 
-            {/* Discente */}
-            <SectionHeader title="DISCENTE ESTAGIÁRIO(A)" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>NOME</Label>
-                            <Value>{data.student_name}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CPF</Label>
-                            <Value>{data.student_cpf}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME SOCIAL</Label>
-                            <Value>{data.student_social_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>CURSO</Label>
-                            <Value>{data.student_course}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>MATRICULA</Label>
-                            <Value>{data.student_id}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)</Label>
-                            <Value>{data.student_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>MUNICÍPIO-UF</Label>
-                            <Value>{data.student_city_state}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CEP</Label>
-                            <Value>{data.student_zip}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.student_phone}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>E-MAIL INSTITUCIONAL</Label>
-                            <Value>{data.student_email_institutional}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
+                <Text style={styles.clauseTitle}>CLÁUSULA SEGUNDA – DOS DIREITOS E DEVERES DO IFCE</Text>
+                <Text style={styles.listItem}>I - Avaliar as instalações da CONCEDENTE;</Text>
+                <Text style={styles.listItem}>II - Indicar Docente orientador;</Text>
+                <Text style={styles.listItem}>III - Exigir relatórios das atividades;</Text>
+                <Text style={styles.listItem}>IV - Reorientar o estagiário se necessário;</Text>
+                <Text style={styles.listItem}>V - Manter comunicação com a concedente.</Text>
 
-            {/* --- PÁGINA 2 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
+                <Text style={styles.clauseTitle}>CLÁUSULA TERCEIRA – DOS DIREITOS E DEVERES DA CONCEDENTE</Text>
+                <Text style={styles.listItem}>I - Oferecer condições adequadas de desenvolvimento;</Text>
+                <Text style={styles.listItem}>II - Proporcionar aprimoramento e avaliação;</Text>
+                <Text style={styles.listItem}>III - Designar supervisor qualificado;</Text>
+                <Text style={styles.listItem}>IV - Conceder recesso de 30 dias quando aplicável;</Text>
+                <Text style={styles.listItem}>V - Fornecer termo de realização ao final.</Text>
 
-            <div className="clause-title">CLÁUSULA PRIMEIRA – DO OBJETO, DE SUA QUALIFICAÇÃO E DA VIGÊNCIA DO CONTRATO</div>
-            <div className="clause-text">
-                I - O estágio supervisionado regrado por este termo será OBRIGATÓRIO, com atividades compatíveis com a formação recebida no curso do DISCENTE ESTAGIÁRIO, e realizadas de forma <strong>{data.modality ? data.modality.toUpperCase() : '_______'}</strong> (presencial, remota ou híbrida), tudo conforme plano de atividades constante da CLÁUSULA SEXTA.
-            </div>
-            <div className="clause-text">
-                II - Este termo de compromisso terá vigência de <strong>{formatDate(data.start_date)}</strong> a <strong>{formatDate(data.end_date)}</strong>, podendo ser rescindido a qualquer tempo, unilateralmente, mediante comunicação formal, independente de pré-aviso.
-            </div>
-            <div className="clause-text">
-                III - O aditamento deste termo será realizado em caso das necessidades previstas no Regulamento de Estágio do IFCE.
-            </div>
+                <Text style={styles.clauseTitle}>CLÁUSULA QUARTA – DOS DIREITOS E DEVERES DO ESTAGIÁRIO</Text>
+                <Text style={styles.listItem}>I - Cumprir as atividades estabelecidas;</Text>
+                <Text style={styles.listItem}>II - Respeitar as normas internas;</Text>
+                <Text style={styles.listItem}>III - Respeitar a legislação pertinente;</Text>
+                <Text style={styles.listItem}>IV - Cumprir as orientações do supervisor.</Text>
 
-            <div className="clause-title">CLÁUSULA SEGUNDA – DOS DIREITOS E DEVERES DO IFCE</div>
-            <div className="clause-text">Caberá à unidade do IFCE onde o discente estuda:</div>
-            <div className="clause-text list-item">I - Avaliar as instalações da CONCEDENTE DO ESTÁGIO e sua adequação às atividades previstas no plano de atividades;</div>
-            <div className="clause-text list-item">II - Indicar Docente orientador como responsável pelo acompanhamento e avaliação das atividades do DISCENTE ESTAGIÁRIO;</div>
-            <div className="clause-text list-item">III - Exigir do DISCENTE ESTAGIÁRIO a apresentação de relatório das atividades;</div>
-            <div className="clause-text list-item">IV - Reorientar o DISCENTE ESTAGIÁRIO para outro local em caso de descumprimento de normas pertinentes ao estágio supervisionado;</div>
-            <div className="clause-text list-item">V - Manter comunicação com a parte concedente do estágio para o bom desenvolvimento das atividades.</div>
+                <Text style={styles.clauseTitle}>CLÁUSULA QUINTA – DO SEGURO E DA REMUNERAÇÃO</Text>
+                <Text style={styles.clauseText}>
+                    I - Seguro contra acidentes: <Text style={styles.bold}>{data.insurance_company || '________________________'}</Text>.
+                </Text>
+                {data.has_grant === 'true' ? (
+                    <Text style={styles.clauseText}>
+                        II - Bolsa-auxílio: <Text style={styles.bold}>{formatCurrency(data.grant_value)}</Text>.
+                    </Text>
+                ) : (
+                    <Text style={styles.clauseText}>
+                        II - Sem bolsa-auxílio.
+                    </Text>
+                )}
+                {data.has_transport === 'true' ? (
+                    <Text style={styles.clauseText}>
+                        III - Auxílio-transporte: <Text style={styles.bold}>{formatCurrency(data.transport_value)}</Text>.
+                    </Text>
+                ) : (
+                    <Text style={styles.clauseText}>
+                        III - Sem auxílio-transporte.
+                    </Text>
+                )}
+            </Page>
 
-            <div className="clause-title">CLÁUSULA TERCEIRA – DOS DIREITOS E DEVERES DA CONCEDENTE DO ESTÁGIO</div>
-            <div className="clause-text">Caberá à Instituição Concedente da vaga de Estágio:</div>
-            <div className="clause-text list-item">I - Oferecer ao DISCENTE ESTAGIÁRIO, inclusive aquele com deficiência, condições de desenvolvimento vivencial, treinamento prático e de relacionamento humano com observância do plano de atividades do estagiário que passa a ser parte integrante deste documento;</div>
-            <div className="clause-text list-item">II - Proporcionar ao IFCE condições para o aprimoramento e avaliação do DISCENTE ESTAGIÁRIO;</div>
-            <div className="clause-text list-item">III - Designar profissional com formação e/ou experiência profissional na área para supervisionar das atividades do estágio;</div>
-            <div className="clause-text list-item">IV - Estabelecer nos períodos de atividades acadêmicas redução de, pelo menos, a metade da jornada a ser cumprida em estágio;</div>
-            <div className="clause-text list-item">V - Conceder período de 30 dias de recesso ao DISCENTE ESTAGIÁRIO sempre que o estágio tenha duração igual ou superior a 01(um) ano ou proporcional quando de duração inferior, a ser gozado preferencialmente durante as férias escolares;</div>
-            <div className="clause-text list-item">VI - Fornecer, por ocasião do encerramento do estágio, termo de realização do estágio com indicação resumida das atividades desenvolvidas, dos períodos e da avaliação de desempenho do DISCENTE ESTAGIÁRIO;</div>
-            <div className="clause-text">
-                PARÁGRAFO ÚNICO – A CONCEDENTE DO ESTÁGIO autoriza o IFCE ao uso de suas informações para cadastro em sistemas competentes.
-            </div>
+            {/* Página 3 - Orientador, Supervisor e Plano */}
+            <Page size="A4" style={styles.page}>
+                <Text style={styles.clauseTitle}>CLÁUSULA SEXTA – DO DOCENTE ORIENTADOR E SUPERVISOR</Text>
 
-            <div className="clause-title">CLÁUSULA QUARTA – DOS DIREITOS E DEVERES DO DISCENTE ESTAGIÁRIO</div>
-            <div className="clause-text">Caberá ao DISCENTE ESTAGIÁRIO:</div>
-            <div className="clause-text list-item">I - Cumprir as atividades estabelecidas no plano de atividades;</div>
-            <div className="clause-text list-item">II - Respeitar as normas internas da CONCEDENTE DO ESTÁGIO;</div>
-            <div className="clause-text list-item">III - Respeitar a legislação pertinente ao estágio;</div>
-            <div className="clause-text list-item">IV - Cumprir as orientações do Docente orientador e/ou do Supervisor do estágio.</div>
+                <Text style={styles.sectionHeader}>DOCENTE ORIENTADOR</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>NOME</Text>
+                            <Text style={styles.value}>{data.advisor_name}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, { width: '33%' }]}>
+                            <Text style={styles.label}>SIAPE</Text>
+                            <Text style={styles.value}>{data.advisor_siape}</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '33%' }]}>
+                            <Text style={styles.label}>TELEFONE</Text>
+                            <Text style={styles.value}>{data.advisor_phone}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '34%' }]}>
+                            <Text style={styles.label}>E-MAIL</Text>
+                            <Text style={styles.value}>{data.advisor_email}</Text>
+                        </View>
+                    </View>
+                </View>
 
-            <div className="clause-title">CLÁUSULA QUINTA – DO SEGURO OBRIGATÓRIO E DA REMUNERAÇÃO</div>
-            <div className="clause-text list-item">
-                I - A concedente neste ato contrata em favor do DISCENTE ESTAGIÁRIO seguro contra acidentes pessoais, com cobertura limitada ao local e período de estágio, mediante apólice da empresa <strong>{data.insurance_company || '________________________'}</strong>.
-            </div>
+                <Text style={styles.sectionHeader}>SUPERVISOR DO ESTÁGIO</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>NOME</Text>
+                            <Text style={styles.value}>{data.supervisor_name}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>FORMAÇÃO OU EXPERIÊNCIA PROFISSIONAL</Text>
+                            <Text style={styles.value}>{data.supervisor_education}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                        <View style={[styles.tableCell, { width: '33%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.supervisor_cpf}</Text>
+                        </View>
+                        <View style={[styles.tableCell, { width: '33%' }]}>
+                            <Text style={styles.label}>TELEFONE</Text>
+                            <Text style={styles.value}>{data.supervisor_phone}</Text>
+                        </View>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '34%' }]}>
+                            <Text style={styles.label}>E-MAIL</Text>
+                            <Text style={styles.value}>{data.supervisor_email}</Text>
+                        </View>
+                    </View>
+                </View>
 
-            {data.has_grant === 'true' ? (
-                <div className="clause-text list-item">
-                    II - A CONCEDENTE DO ESTÁGIO remunerará mensalmente o DISCENTE ESTAGIÁRIO através de bolsa-auxílio no valor de <strong>{formatCurrency(data.grant_value)}</strong>.
-                </div>
-            ) : (
-                <div className="clause-text list-item">
-                    II - A CONCEDENTE DO ESTÁGIO não remunerará mensalmente o DISCENTE ESTAGIÁRIO.
-                </div>
-            )}
+                <Text style={styles.clauseTitle}>CLÁUSULA SÉTIMA – DO PLANO DE ATIVIDADES</Text>
 
-            <div className="clause-text text-red-500 text-[8pt] italic my-1">(apagar o inciso que não for utilizado e atentar quanto a numeração dos incisos)</div>
+                <Text style={styles.sectionHeader}>ATIVIDADES A SEREM DESENVOLVIDAS</Text>
+                <View style={styles.textBox}>
+                    <Text>{data.activities_description}</Text>
+                </View>
 
-            {data.has_transport === 'true' ? (
-                <div className="clause-text list-item">
-                    III - A CONCEDENTE DO ESTÁGIO fornecerá ao DISCENTE ESTAGIÁRIO auxílio-transporte no valor de <strong>{formatCurrency(data.transport_value)}</strong>.
-                </div>
-            ) : (
-                <div className="clause-text list-item">
-                    III - A CONCEDENTE DO ESTÁGIO não fornecerá ao DISCENTE ESTAGIÁRIO auxílio-transporte.
-                </div>
-            )}
+                <Text style={styles.sectionHeader}>RESULTADOS ESPERADOS</Text>
+                <View style={styles.textBox}>
+                    <Text>{data.expected_results}</Text>
+                </View>
 
-            <div className="clause-text text-red-500 text-[8pt] italic my-1">(apagar o inciso que não for utilizado e atentar quanto a numeração dos incisos)</div>
+                <Text style={styles.clauseText}>
+                    Carga horária semanal: <Text style={styles.bold}>{data.weekly_hours}</Text> horas.
+                </Text>
 
-            {/* --- PÁGINA 3 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
-
-            <div className="clause-title">CLÁUSULA SEXTA – DO DOCENTE ORIENTADOR E DO SUPERVISOR DO ESTÁGIO</div>
-            <div className="clause-text">
-                I - O IFCE designa o(a) professor(a) a seguir qualificado(a) como Docente orientador do estágio, para cumprir funções previstas no Regulamento de Estágio do IFCE.
-            </div>
-
-            <SectionHeader title="DOCENTE ORIENTADOR" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME</Label>
-                            <Value>{data.advisor_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>
-                            <Label>SIAPE</Label>
-                            <Value>{data.advisor_siape}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.advisor_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>{data.advisor_email}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            <div className="clause-text">
-                II - A CONCEDENTE DO ESTÁGIO designa o profissional a seguir qualificado(a) como Supervisor do Estágio, para cumprir funções previstas Regulamento de Estágio do IFCE.
-            </div>
-
-            <SectionHeader title="SUPERVISOR DO ESTÁGIO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME</Label>
-                            <Value>{data.supervisor_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>FORMAÇÃO OU EXPERIÊNCIA PROFISSIONAL</Label>
-                            <Value>{data.supervisor_education}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>
-                            <Label>CPF</Label>
-                            <Value>{data.supervisor_cpf}</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>DDD + TELEFONE</Label>
-                            <Value>{data.supervisor_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>{data.supervisor_email}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            <div className="clause-title">CLÁUSULA SÉTIMA – DO PLANO DE ATIVIDADES, DO CRONOGRAMA E DA CARGA HORÁRIA DO ESTÁGIO</div>
-            <div className="clause-text">
-                I - O <strong>Plano de Atividades</strong> do estágio é acordado entre o Docente Orientador, o Supervisor do Estágio e o DISCENTE ESTAGIÁRIO, e se configura conforme o quadro abaixo.
-            </div>
-
-            <SectionHeader title="ATIVIDADES A SEREM DESENVOLVIDAS" />
-            <div className="border border-black p-2 min-h-[100px] text-[9pt] whitespace-pre-line mb-2">
-                {data.activities_description}
-            </div>
-
-            <SectionHeader title="RESULTADOS ESPERADOS" />
-            <div className="border border-black p-2 min-h-[100px] text-[9pt] whitespace-pre-line mb-4">
-                {data.expected_results}
-            </div>
-
-            <div className="clause-text">
-                II - A carga horária semanal de estágio será de <strong>{data.weekly_hours}</strong> horas, distribuídas conforme detalhado no quadro abaixo:
-            </div>
-
-            <table className="w-full border-collapse border border-black text-center text-[7pt] mb-4">
-                <thead>
-                    <tr>
-                        <th className="border border-black p-1 bg-gray-100" rowSpan={2} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', width: '20px' }}>TURNO</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>SEGUNDA-FEIRA</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>TERÇA-FEIRA</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>QUARTA-FEIRA</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>QUINTA-FEIRA</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>SEXTA-FEIRA</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>SÁBADO</th>
-                        <th className="border border-black p-1 bg-gray-100" colSpan={2}>DOMINGO</th>
-                    </tr>
-                    <tr>
-                        {Array(7).fill(null).map((_, i) => (
-                            <React.Fragment key={i}>
-                                <th className="border border-black p-0.5 w-10 text-[6pt]">INÍCIO</th>
-                                <th className="border border-black p-0.5 w-10 text-[6pt]">FIM</th>
-                            </React.Fragment>
+                {/* Tabela de Horários Simplificada */}
+                <View style={styles.scheduleTable}>
+                    <View style={styles.scheduleHeaderRow}>
+                        <View style={[styles.scheduleHeaderCell, { width: '15%' }]}>
+                            <Text>TURNO</Text>
+                        </View>
+                        {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map((day, i) => (
+                            <View key={day} style={[styles.scheduleHeaderCell, ...(i === 6 ? [styles.scheduleHeaderCellLast] : []), { width: '12.14%' }]}>
+                                <Text>{day}</Text>
+                            </View>
                         ))}
-                    </tr>
-                </thead>
-                <tbody>
+                    </View>
                     {['morning', 'afternoon', 'night'].map((shift, idx) => {
                         const shiftLabels = { morning: '1º', afternoon: '2º', night: '3º' }
                         return (
-                            <tr key={shift}>
-                                <td className="border border-black p-1 font-bold">{shiftLabels[shift as keyof typeof shiftLabels]}</td>
-                                {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => {
+                            <View key={shift} style={[styles.scheduleRow, ...(idx === 2 ? [styles.scheduleRowLast] : [])]}>
+                                <View style={[styles.scheduleCell, { width: '15%', fontFamily: 'Helvetica-Bold' }]}>
+                                    <Text>{shiftLabels[shift as keyof typeof shiftLabels]}</Text>
+                                </View>
+                                {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day, i) => {
                                     const time = schedule[shift]?.[day] || ''
-                                    const [start, end] = time.includes('-') ? time.split('-') : ['', '']
                                     return (
-                                        <React.Fragment key={day}>
-                                            <td className="border border-black p-0.5 h-6">{start}</td>
-                                            <td className="border border-black p-0.5 h-6">{end}</td>
-                                        </React.Fragment>
+                                        <View key={day} style={[styles.scheduleCell, ...(i === 6 ? [styles.scheduleCellLast] : []), { width: '12.14%' }]}>
+                                            <Text>{time}</Text>
+                                        </View>
                                     )
                                 })}
-                            </tr>
+                            </View>
                         )
                     })}
-                </tbody>
-            </table>
+                </View>
+            </Page>
 
-            {/* --- PÁGINA 4 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
+            {/* Página 4 - Disposições Finais e Assinaturas */}
+            <Page size="A4" style={styles.page}>
+                <Text style={styles.clauseTitle}>CLÁUSULA OITAVA – DO CANCELAMENTO</Text>
+                <Text style={styles.clauseText}>Constituem motivos para cessação:</Text>
+                <Text style={styles.listItem}>I - Não cumprimento das cláusulas;</Text>
+                <Text style={styles.listItem}>II - Conclusão do curso;</Text>
+                <Text style={styles.listItem}>III - Abandono do estágio;</Text>
+                <Text style={styles.listItem}>IV - Cancelamento ou trancamento de matrícula;</Text>
+                <Text style={styles.listItem}>V - Pedido de rescisão por qualquer das partes.</Text>
 
-            <div className="clause-title">CLÁUSULA OITAVA – DO CANCELAMENTO DO ESTÁGIO</div>
-            <div className="clause-text">Constituem motivos para cessação automática do presente Termo de Compromisso:</div>
-            <div className="clause-text list-item">I - O não cumprimento das cláusulas estabelecidas neste documento;</div>
-            <div className="clause-text list-item">II - A conclusão do curso;</div>
-            <div className="clause-text list-item">III - O abandono do estágio, do semestre ou do curso;</div>
-            <div className="clause-text list-item">IV - O cancelamento ou trancamento da matrícula no curso;</div>
-            <div className="clause-text list-item">V - Pedido de rescisão por qualquer das partes definidas na inicial deste termo.</div>
+                <Text style={styles.clauseTitle}>CLÁUSULA NONA – DAS DISPOSIÇÕES FINAIS</Text>
+                <Text style={styles.listItem}>I - Zelar pelo cumprimento deste termo;</Text>
+                <Text style={styles.listItem}>II - Foro da Justiça Federal de Fortaleza.</Text>
 
-            <div className="clause-title">CLÁUSULA NOVA – DAS DISPOSIÇÕES ESPECIAIS E DO FORO</div>
-            <div className="clause-text list-item">I - A todos os partícipes no estágio compete zelar pelo cumprimento deste termo de compromisso.</div>
-            <div className="clause-text list-item">II - As partes elegem o Foro da Justiça Federal de Fortaleza, Seção Judiciária do Estado do Ceará, renunciando, desde logo, a qualquer outro, por mais privilégios que venha a ter, para dirimir qualquer questão que se originar deste termo de compromisso e que não possa ser resolvido amigavelmente.</div>
+                <Text style={styles.paragraph}>
+                    Estando de acordo, as partes assinam o presente instrumento para que se cumpram os efeitos legais.
+                </Text>
 
-            <p className="mt-8 mb-8 text-justify text-[9pt]">
-                Estando de acordo com o que ficou acima expresso, vai o presente instrumento assinado pelas partes citadas, para que se cumpram os efeitos legais.
-            </p>
+                <Text style={styles.dateRight}>
+                    Maracanaú - CE, _____ de _______________ de 20_____.
+                </Text>
 
-            <p className="text-right mb-12 text-[9pt]">
-                Maracanaú-CE, _____ de _______________ de 20_____.
-            </p>
+                <View style={styles.signatureBlock}>
+                    <View style={styles.signatureRow}>
+                        <View style={styles.signatureLine}>
+                            <Text style={styles.bold}>Representante do IFCE</Text>
+                        </View>
+                        <View style={styles.signatureLine}>
+                            <Text style={styles.bold}>Representante da CONCEDENTE</Text>
+                        </View>
+                    </View>
 
-            <div className="space-y-12 mt-16">
-                <div className="grid grid-cols-2 gap-8">
-                    <div className="text-center">
-                        <div className="border-t border-black w-full pt-1 text-[8pt]">Representante do IFCE</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="border-t border-black w-full pt-1 text-[8pt]">Representante da CONCEDENTE DO ESTÁGIO</div>
-                    </div>
-                </div>
+                    <View style={styles.signatureLineFull}>
+                        <Text style={styles.bold}>DISCENTE ESTAGIÁRIO(A)</Text>
+                    </View>
 
-                <div className="text-center">
-                    <div className="border-t border-black w-2/3 mx-auto pt-1 text-[8pt]">DISCENTE ESTAGIÁRIO(A)</div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8">
-                    <div className="text-center">
-                        <div className="border-t border-black w-full pt-1 text-[8pt]">Docente Orientador</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="border-t border-black w-full pt-1 text-[8pt]">Supervisor do Estágio</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <View style={styles.signatureRow}>
+                        <View style={styles.signatureLine}>
+                            <Text style={styles.bold}>Docente Orientador</Text>
+                        </View>
+                        <View style={styles.signatureLine}>
+                            <Text style={styles.bold}>Supervisor do Estágio</Text>
+                        </View>
+                    </View>
+                </View>
+            </Page>
+        </Document>
     )
-})
-
-CommitmentTermDocument.displayName = 'CommitmentTermDocument'
+}

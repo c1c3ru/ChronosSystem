@@ -1,280 +1,730 @@
-import React, { forwardRef } from 'react';
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
-// Tipagem básica dos dados (ajuste conforme seu projeto)
-interface DocumentProps {
-    data: any;
+interface InternshipRegistrationDocumentProps {
+    data: any
 }
 
-export const InternshipRegistrationDocument = forwardRef<HTMLDivElement, DocumentProps>(({ data }, ref) => {
+// Estilos do documento
+const styles = StyleSheet.create({
+    page: {
+        padding: 25,
+        fontSize: 8,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 15,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 10,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 9,
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    logo: {
+        width: 60,
+        height: 60,
+    },
+    mainTitle: {
+        fontSize: 14,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        marginBottom: 15,
+    },
+    formContainer: {
+        border: 1,
+        borderColor: '#000',
+    },
+    row: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    cell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    cellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+        color: '#666',
+    },
+    value: {
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        minHeight: 10,
+    },
+    sectionHeader: {
+        width: '100%',
+        padding: 4,
+        backgroundColor: '#f0f0f0',
+        textAlign: 'center',
+        fontSize: 7,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    checkboxContainer: {
+        padding: 6,
+    },
+    checkboxTitle: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    checkbox: {
+        width: 8,
+        height: 8,
+        border: 1,
+        borderColor: '#000',
+        marginRight: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxMark: {
+        fontSize: 6,
+    },
+    checkboxLabel: {
+        fontSize: 7,
+        textTransform: 'uppercase',
+    },
+    scheduleHeader: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        backgroundColor: '#f0f0f0',
+        padding: 2,
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    scheduleTable: {
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    scheduleHeaderRow: {
+        flexDirection: 'row',
+        fontSize: 5,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    scheduleTurnLabel: {
+        width: '8%',
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleDayColumn: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    scheduleDayColumnLast: {
+        borderRight: 0,
+    },
+    scheduleDayName: {
+        borderBottom: 1,
+        borderColor: '#000',
+        padding: 2,
+    },
+    scheduleTimeRow: {
+        flexDirection: 'row',
+    },
+    scheduleTimeCell: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 2,
+    },
+    scheduleTimeCellLast: {
+        borderRight: 0,
+    },
+    scheduleDataRow: {
+        flexDirection: 'row',
+        fontSize: 7,
+        textAlign: 'center',
+        borderBottom: 1,
+        borderColor: '#000',
+        minHeight: 18,
+    },
+    scheduleDataRowLast: {
+        borderBottom: 0,
+    },
+    scheduleTurnCell: {
+        width: '8%',
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 2,
+        fontFamily: 'Helvetica-Bold',
+        backgroundColor: '#fafafa',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleDayData: {
+        flex: 1,
+        flexDirection: 'row',
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    scheduleDayDataLast: {
+        borderRight: 0,
+    },
+    scheduleTimeData: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scheduleTimeDataLast: {
+        borderRight: 0,
+    },
+    signatureSection: {
+        flexDirection: 'row',
+        minHeight: 80,
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    signatureBox: {
+        flex: 1,
+        borderRight: 1,
+        borderColor: '#000',
+        padding: 8,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    signatureBoxLast: {
+        borderRight: 0,
+    },
+    signatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 4,
+        fontSize: 7,
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        width: '80%',
+        marginTop: 8,
+    },
+    signatureDate: {
+        fontSize: 7,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 4,
+    },
+    footer: {
+        marginTop: 8,
+        fontSize: 8,
+        textAlign: 'justify',
+    },
+    footerBold: {
+        fontFamily: 'Helvetica-Bold',
+    },
+    footerUnderline: {
+        textDecoration: 'underline',
+    },
+    footerUppercase: {
+        textTransform: 'uppercase',
+    },
+})
 
-    // Helper para renderizar checkboxes marcados ou vazios visualmente
-    const CheckBox = ({ checked, label }: { checked: boolean; label?: string }) => (
-        <div className="flex items-center mr-4">
-            <span className="font-mono text-sm mr-1">
-                {checked ? '( X )' : '(   )'}
-            </span>
-            {label && <span className="text-[10px] uppercase">{label}</span>}
-        </div>
-    );
-
-    // Helper para renderizar campos com label e valor
-    const Field = ({ label, value, className = "" }: { label: string; value: string; className?: string }) => (
-        <div className={`border-r border-black last:border-r-0 px-2 py-1 h-full ${className}`}>
-            <div className="text-[9px] font-bold uppercase leading-none mb-1 text-gray-600">{label}</div>
-            <div className="text-[11px] font-medium uppercase min-h-[16px] break-words leading-tight">
-                {value || ''}
-            </div>
-        </div>
-    );
+export const InternshipRegistrationDocument: React.FC<InternshipRegistrationDocumentProps> = ({ data }) => {
+    const scheduleData = data.schedule ? JSON.parse(data.schedule) : {}
 
     return (
-        <div ref={ref} className="bg-white text-black font-sans box-border p-8 mx-auto" style={{ width: '210mm', minHeight: '297mm' }}>
+        <Document>
+            <Page size="A4" style={styles.page}>
+                {/* Cabeçalho */}
+                <View style={styles.header}>
+                    <Image src="/assets/logoifce.png" style={styles.logo} />
+                    <View style={styles.headerCenter}>
+                        <Text style={styles.headerTitle}>Pró-Reitoria de Extensão</Text>
+                        <Text style={styles.headerTitle}>Coordenação de Estágios e Acompanhamento de Egressos</Text>
+                        <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                        <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                        <Text style={styles.mainTitle}>Solicitação de Cadastro no Estágio</Text>
+                    </View>
+                    <Image src="/assets/brasao.png" style={styles.logo} />
+                </View>
 
-            {/* --- CABEÇALHO --- */}
-            <header className="flex justify-between items-start mb-4">
-                {/* Logo IFCE */}
-                <div className="w-24 h-24 flex items-center justify-center">
-                    <img src="/assets/logoifce.png" alt="Logo IFCE" className="max-w-full max-h-full object-contain" />
-                </div>
+                {/* Formulário */}
+                <View style={styles.formContainer}>
+                    {/* Linha 1 - Nome e CPF */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '70%' }]}>
+                            <Text style={styles.label}>Nome</Text>
+                            <Text style={styles.value}>{data.student_name}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '30%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.student_cpf}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex-1 text-center px-4">
-                    <h1 className="text-sm font-bold uppercase">Pró-Reitoria de Extensão</h1>
-                    <h2 className="text-sm font-bold uppercase">Coordenação de Estágios e Acompanhamento de Egressos</h2>
-                    <div className="mt-2 text-sm uppercase">IFCE Campus Maracanaú</div>
-                    <div className="text-sm uppercase">Setor de Acompanhamento de Estágio</div>
-                    <h3 className="text-xl font-bold uppercase mt-4">Solicitação de Cadastro no Estágio</h3>
-                </div>
+                    {/* Linha 2 - Nome Social */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>Nome Social</Text>
+                            <Text style={styles.value}>{data.student_social_name}</Text>
+                        </View>
+                    </View>
 
-                {/* Brasão da República */}
-                <div className="w-24 h-24 flex items-center justify-center">
-                    <img src="/assets/brasao.png" alt="Brasão" className="max-w-full max-h-full object-contain" />
-                </div>
-            </header>
+                    {/* Linha 3 - Curso e Matrícula */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '70%' }]}>
+                            <Text style={styles.label}>Curso</Text>
+                            <Text style={styles.value}>{data.student_course}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '30%' }]}>
+                            <Text style={styles.label}>Matrícula</Text>
+                            <Text style={styles.value}>{data.student_enrollment}</Text>
+                        </View>
+                    </View>
 
-            {/* --- CORPO DO FORMULÁRIO (Simulando Tabela com Bordas) --- */}
-            <div className="border border-black text-xs">
+                    {/* Linha 4 - Endereço e Bairro */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '60%' }]}>
+                            <Text style={styles.label}>Endereço (Logradouro, Número e Complemento)</Text>
+                            <Text style={styles.value}>{data.student_address}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '40%' }]}>
+                            <Text style={styles.label}>Bairro/Distrito</Text>
+                            <Text style={styles.value}>{data.student_neighborhood}</Text>
+                        </View>
+                    </View>
 
-                {/* Linha 1 */}
-                <div className="flex border-b border-black">
-                    <div className="w-[70%]"><Field label="Nome" value={data.student_name} /></div>
-                    <div className="w-[30%]"><Field label="CPF" value={data.student_cpf} /></div>
-                </div>
+                    {/* Linha 5 - Município, CEP e Telefone */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '40%' }]}>
+                            <Text style={styles.label}>Município-UF</Text>
+                            <Text style={styles.value}>{data.student_city_uf}</Text>
+                        </View>
+                        <View style={[styles.cell, { width: '20%' }]}>
+                            <Text style={styles.label}>CEP</Text>
+                            <Text style={styles.value}>{data.student_zip}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '40%' }]}>
+                            <Text style={styles.label}>DDD + Telefone</Text>
+                            <Text style={styles.value}>{data.student_phone}</Text>
+                        </View>
+                    </View>
 
-                {/* Linha 2 */}
-                <div className="flex border-b border-black">
-                    <div className="w-full"><Field label="Nome Social" value={data.student_social_name} /></div>
-                </div>
+                    {/* Linha 6 - Emails */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '50%' }]}>
+                            <Text style={styles.label}>E-mail Institucional</Text>
+                            <Text style={styles.value}>{data.student_email_institutional}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '50%' }]}>
+                            <Text style={styles.label}>E-mail Pessoal</Text>
+                            <Text style={styles.value}>{data.student_email_personal}</Text>
+                        </View>
+                    </View>
 
-                {/* Linha 3 */}
-                <div className="flex border-b border-black">
-                    <div className="w-[70%]"><Field label="Curso" value={data.student_course} /></div>
-                    <div className="w-[30%]"><Field label="Matrícula" value={data.student_enrollment} /></div>
-                </div>
+                    {/* Linha 7 - Checkboxes Complexos */}
+                    <View style={[styles.row, { minHeight: 70 }]}>
+                        {/* Cor/Raça */}
+                        <View style={[styles.cell, { width: '25%' }]}>
+                            <Text style={styles.checkboxTitle}>Cor/Raça</Text>
+                            <View style={styles.checkboxContainer}>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_race === 'amarelo' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Amarelo(a)</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_race === 'branco' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Branco(a)</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_race === 'indigena' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Indígena</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_race === 'pardo' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Pardo(a)</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_race === 'preto' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Preto(a)</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_race === 'nao_declarar' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Prefiro não declarar</Text>
+                                </View>
+                            </View>
+                        </View>
 
-                {/* Linha 4 */}
-                <div className="flex border-b border-black">
-                    <div className="w-[60%]"><Field label="Endereço (Logradouro, Número e Complemento)" value={data.student_address} /></div>
-                    <div className="w-[40%]"><Field label="Bairro/Distrito" value={data.student_neighborhood} /></div>
-                </div>
+                        {/* Etnia */}
+                        <View style={[styles.cell, { width: '35%' }]}>
+                            <Text style={styles.checkboxTitle}>Etnia</Text>
+                            <View style={styles.checkboxContainer}>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_ethnicity === 'indigena' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Indígena</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_ethnicity === 'quilombola' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Quilombola</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_ethnicity === 'outra' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Outra</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_ethnicity === 'nao_declarar' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Prefiro não declarar</Text>
+                                </View>
+                                <Text style={[styles.label, { marginTop: 4 }]}>Informar comunidade se marcar etnia:</Text>
+                                <Text style={[styles.value, { fontSize: 7, marginTop: 2 }]}>{data.student_ethnicity_community}</Text>
+                            </View>
+                        </View>
 
-                {/* Linha 5 */}
-                <div className="flex border-b border-black">
-                    <div className="w-[40%]"><Field label="Município-UF" value={data.student_city_uf} /></div>
-                    <div className="w-[20%]"><Field label="CEP" value={data.student_zip} /></div>
-                    <div className="w-[40%]"><Field label="DDD + Telefone" value={data.student_phone} /></div>
-                </div>
+                        {/* Deficiência */}
+                        <View style={[styles.cell, styles.cellLast, { width: '40%' }]}>
+                            <Text style={styles.checkboxTitle}>Apenas para pessoa com deficiência e/ou AH/SD</Text>
+                            <View style={styles.checkboxContainer}>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'alta_habilidade' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Alta habilidade/superdotação</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'auditiva' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Deficiência auditiva</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'intelectual' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Deficiência intelectual</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'motora' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Deficiência motora</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'visual_baixa' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Deficiência visual/baixa visão</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'visual' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Deficiência visual</Text>
+                                </View>
+                                <View style={styles.checkboxRow}>
+                                    <View style={styles.checkbox}>
+                                        {data.student_disability === 'surdocegueira' && <Text style={styles.checkboxMark}>X</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>Surdocegueira</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
 
-                {/* Linha 6 - Emails */}
-                <div className="flex border-b border-black">
-                    <div className="w-[50%]"><Field label="E-mail Institucional" value={data.student_email_institutional} /></div>
-                    <div className="w-[50%]"><Field label="E-mail Pessoal" value={data.student_email_personal} /></div>
-                </div>
+                    {/* Dados da Concedente - Header */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.sectionHeader}>Dados da Concedente</Text>
+                        </View>
+                    </View>
 
-                {/* Linha 7 - Checkboxes Complexos */}
-                <div className="flex border-b border-black min-h-[100px]">
-                    {/* Cor/Raça */}
-                    <div className="w-[25%] border-r border-black p-2">
-                        <div className="text-[9px] font-bold uppercase mb-2 text-center">Cor/Raça</div>
-                        <div className="flex flex-col gap-1">
-                            <CheckBox checked={data.student_race === 'amarelo'} label="Amarelo(a)" />
-                            <CheckBox checked={data.student_race === 'branco'} label="Branco(a)" />
-                            <CheckBox checked={data.student_race === 'indigena'} label="Indígena" />
-                            <CheckBox checked={data.student_race === 'pardo'} label="Pardo(a)" />
-                            <CheckBox checked={data.student_race === 'preto'} label="Preto(a)" />
-                            <CheckBox checked={data.student_race === 'nao_declarar'} label="Prefiro não declarar" />
-                        </div>
-                    </div>
+                    {/* Razão Social */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>Razão Social</Text>
+                            <Text style={styles.value}>{data.company_name}</Text>
+                        </View>
+                    </View>
 
-                    {/* Etnia */}
-                    <div className="w-[35%] border-r border-black p-2 flex flex-col justify-between">
-                        <div>
-                            <div className="text-[9px] font-bold uppercase mb-2 text-center">Etnia</div>
-                            <div className="flex flex-col gap-1">
-                                <CheckBox checked={data.student_ethnicity === 'indigena'} label="Indígena" />
-                                <CheckBox checked={data.student_ethnicity === 'quilombola'} label="Quilombola" />
-                                <CheckBox checked={data.student_ethnicity === 'outra'} label="Outra" />
-                                <CheckBox checked={data.student_ethnicity === 'nao_declarar'} label="Prefiro não declarar" />
-                            </div>
-                        </div>
-                        <div className="mt-2 pt-2 border-t border-gray-300">
-                            <span className="text-[9px]">Informar comunidade se marcar etnia:</span>
-                            <div className="border-b border-black mt-4 h-4 text-[11px]">{data.student_ethnicity_community}</div>
-                        </div>
-                    </div>
+                    {/* Nome de Fantasia */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>Nome de Fantasia ou de Pessoa Física</Text>
+                            <Text style={styles.value}>{data.company_fantasy_name}</Text>
+                        </View>
+                    </View>
 
-                    {/* Deficiência */}
-                    <div className="w-[40%] p-2">
-                        <div className="text-[9px] font-bold uppercase mb-2 text-center">Apenas para pessoa com deficiência e/ou AH/SD</div>
-                        <div className="flex flex-col gap-1">
-                            <CheckBox checked={data.student_disability === 'alta_habilidade'} label="Alta habilidade/superdotação" />
-                            <CheckBox checked={data.student_disability === 'auditiva'} label="Deficiência auditiva" />
-                            <CheckBox checked={data.student_disability === 'intelectual'} label="Deficiência intelectual" />
-                            <CheckBox checked={data.student_disability === 'motora'} label="Deficiência motora" />
-                            <CheckBox checked={data.student_disability === 'visual_baixa'} label="Deficiência visual/baixa visão" />
-                            <CheckBox checked={data.student_disability === 'visual'} label="Deficiência visual" />
-                            <CheckBox checked={data.student_disability === 'surdocegueira'} label="Surdocegueira" />
-                        </div>
-                    </div>
-                </div>
+                    {/* CNPJ e Endereço */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '30%' }]}>
+                            <Text style={styles.label}>CNPJ ou Registro no Conselho</Text>
+                            <Text style={styles.value}>{data.company_cnpj}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '70%' }]}>
+                            <Text style={styles.label}>Endereço (Logradouro, Número e Complemento)</Text>
+                            <Text style={styles.value}>{data.company_address}</Text>
+                        </View>
+                    </View>
 
-                {/* --- DADOS DA EMPRESA --- */}
-                <div className="flex border-b border-black bg-gray-100">
-                    <div className="w-full px-2 py-1 text-[9px] font-bold uppercase text-center border-b border-black">Dados da Concedente</div>
-                </div>
+                    {/* Bairro, Município e CEP */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '30%' }]}>
+                            <Text style={styles.label}>Bairro</Text>
+                            <Text style={styles.value}>{data.company_neighborhood}</Text>
+                        </View>
+                        <View style={[styles.cell, { width: '50%' }]}>
+                            <Text style={styles.label}>Município-UF</Text>
+                            <Text style={styles.value}>{data.company_city_uf}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '20%' }]}>
+                            <Text style={styles.label}>CEP</Text>
+                            <Text style={styles.value}>{data.company_zip}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-full"><Field label="Razão Social" value={data.company_name} /></div>
-                </div>
-                <div className="flex border-b border-black">
-                    <div className="w-full"><Field label="Nome de Fantasia ou de Pessoa Física" value={data.company_fantasy_name} /></div>
-                </div>
+                    {/* Telefone e Email */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '30%' }]}>
+                            <Text style={styles.label}>DDD + Telefone</Text>
+                            <Text style={styles.value}>{data.company_phone}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '70%' }]}>
+                            <Text style={styles.label}>E-mail</Text>
+                            <Text style={styles.value}>{data.company_email}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-[30%]"><Field label="CNPJ ou Registro no Conselho" value={data.company_cnpj} /></div>
-                    <div className="w-[70%]"><Field label="Endereço (Logradouro, Número e Complemento)" value={data.company_address} /></div>
-                </div>
+                    {/* Responsável Legal */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>Responsável Legal pela Instituição para este Fim</Text>
+                            <Text style={styles.value}>{data.company_representative}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-[30%]"><Field label="Bairro" value={data.company_neighborhood} /></div>
-                    <div className="w-[50%]"><Field label="Município-UF" value={data.company_city_uf} /></div>
-                    <div className="w-[20%]"><Field label="CEP" value={data.company_zip} /></div>
-                </div>
+                    {/* Cargo, CPF e Telefone do Responsável */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '60%' }]}>
+                            <Text style={styles.label}>Cargo/Qualificação</Text>
+                            <Text style={styles.value}>{data.company_representative_role}</Text>
+                        </View>
+                        <View style={[styles.cell, { width: '20%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.company_representative_cpf}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '20%' }]}>
+                            <Text style={styles.label}>DDD + Telefone</Text>
+                            <Text style={styles.value}>{data.company_representative_phone}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-[30%]"><Field label="DDD + Telefone" value={data.company_phone} /></div>
-                    <div className="w-[70%]"><Field label="E-mail" value={data.company_email} /></div>
-                </div>
+                    {/* Supervisor do Estágio */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>Supervisor do Estágio na Instituição Concedente</Text>
+                            <Text style={styles.value}>{data.company_supervisor}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-full"><Field label="Responsável Legal pela Instituição para este Fim" value={data.company_representative} /></div>
-                </div>
+                    {/* Cargo, CPF e Telefone do Supervisor */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, { width: '60%' }]}>
+                            <Text style={styles.label}>Cargo/Qualificação</Text>
+                            <Text style={styles.value}>{data.company_supervisor_role}</Text>
+                        </View>
+                        <View style={[styles.cell, { width: '20%' }]}>
+                            <Text style={styles.label}>CPF</Text>
+                            <Text style={styles.value}>{data.company_supervisor_cpf}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '20%' }]}>
+                            <Text style={styles.label}>DDD + Telefone</Text>
+                            <Text style={styles.value}>{data.company_supervisor_phone}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-[60%]"><Field label="Cargo/Qualificação" value={data.company_representative_role} /></div>
-                    <div className="w-[20%]"><Field label="CPF" value={data.company_representative_cpf} /></div>
-                    <div className="w-[20%]"><Field label="DDD + Telefone" value={data.company_representative_phone} /></div>
-                </div>
+                    {/* Setor */}
+                    <View style={styles.row}>
+                        <View style={[styles.cell, styles.cellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>Setor de Realização do Estágio</Text>
+                            <Text style={styles.value}>{data.company_sector}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-full"><Field label="Supervisor do Estágio na Instituição Concedente" value={data.company_supervisor} /></div>
-                </div>
+                    {/* Dados do Estágio */}
+                    <View style={styles.row}>
+                        {/* Tipo */}
+                        <View style={[styles.cell, { width: '20%' }]}>
+                            <Text style={styles.label}>Tipo de Estágio</Text>
+                            <View style={styles.checkboxRow}>
+                                <View style={styles.checkbox}>
+                                    {data.internship_type === 'obrigatorio' && <Text style={styles.checkboxMark}>X</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>Obrigatório</Text>
+                            </View>
+                            <View style={styles.checkboxRow}>
+                                <View style={styles.checkbox}>
+                                    {data.internship_type === 'nao_obrigatorio' && <Text style={styles.checkboxMark}>X</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>Não Obrigatório</Text>
+                            </View>
+                        </View>
+                        {/* Forma */}
+                        <View style={[styles.cell, { width: '20%' }]}>
+                            <Text style={styles.label}>Forma de Estágio</Text>
+                            <View style={styles.checkboxRow}>
+                                <View style={styles.checkbox}>
+                                    {data.internship_mode === 'presencial' && <Text style={styles.checkboxMark}>X</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>Presencial</Text>
+                            </View>
+                            <View style={styles.checkboxRow}>
+                                <View style={styles.checkbox}>
+                                    {data.internship_mode === 'remoto' && <Text style={styles.checkboxMark}>X</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>Remoto</Text>
+                            </View>
+                        </View>
+                        {/* Datas */}
+                        <View style={[styles.cell, { width: '15%' }]}>
+                            <Text style={styles.label}>Data Inicial</Text>
+                            <Text style={styles.value}>{data.start_date}</Text>
+                        </View>
+                        <View style={[styles.cell, { width: '25%' }]}>
+                            <Text style={styles.label}>Carga Horária Semanal</Text>
+                            <Text style={styles.value}>{data.weekly_hours ? `${data.weekly_hours} HORAS` : ''}</Text>
+                        </View>
+                        <View style={[styles.cell, styles.cellLast, { width: '20%' }]}>
+                            <Text style={styles.label}>Data Final Prevista</Text>
+                            <Text style={styles.value}>{data.end_date}</Text>
+                        </View>
+                    </View>
 
-                <div className="flex border-b border-black">
-                    <div className="w-[60%]"><Field label="Cargo/Qualificação" value={data.company_supervisor_role} /></div>
-                    <div className="w-[20%]"><Field label="CPF" value={data.company_supervisor_cpf} /></div>
-                    <div className="w-[20%]"><Field label="DDD + Telefone" value={data.company_supervisor_phone} /></div>
-                </div>
+                    {/* Tabela de Horários */}
+                    <View style={styles.scheduleTable}>
+                        <Text style={styles.scheduleHeader}>Previsão de Distribuição da Carga Horária</Text>
 
-                <div className="flex border-b border-black">
-                    <div className="w-full"><Field label="Setor de Realização do Estágio" value={data.company_sector} /></div>
-                </div>
+                        {/* Cabeçalho da Tabela */}
+                        <View style={styles.scheduleHeaderRow}>
+                            <View style={styles.scheduleTurnLabel}>
+                                <Text>TURNO</Text>
+                            </View>
+                            {['SEGUNDA-FEIRA', 'TERÇA-FEIRA', 'QUARTA-FEIRA', 'QUINTA-FEIRA', 'SEXTA-FEIRA', 'SÁBADO', 'DOMINGO'].map((day, i) => (
+                                <View key={day} style={[styles.scheduleDayColumn, ...(i === 6 ? [styles.scheduleDayColumnLast] : [])]}>
+                                    <View style={styles.scheduleDayName}>
+                                        <Text>{day}</Text>
+                                    </View>
+                                    <View style={styles.scheduleTimeRow}>
+                                        <View style={styles.scheduleTimeCell}>
+                                            <Text>INÍCIO</Text>
+                                        </View>
+                                        <View style={styles.scheduleTimeCellLast}>
+                                            <Text>FINAL</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
 
-                {/* --- DADOS DO ESTÁGIO (Linha combinada) --- */}
-                <div className="flex border-b border-black">
-                    {/* Tipo */}
-                    <div className="w-[20%] border-r border-black p-2">
-                        <div className="text-[9px] font-bold uppercase mb-1">Tipo de Estágio</div>
-                        <CheckBox checked={data.internship_type === 'obrigatorio'} label="Obrigatório" />
-                        <CheckBox checked={data.internship_type === 'nao_obrigatorio'} label="Não Obrigatório" />
-                    </div>
-                    {/* Forma */}
-                    <div className="w-[20%] border-r border-black p-2">
-                        <div className="text-[9px] font-bold uppercase mb-1">Forma de Estágio</div>
-                        <CheckBox checked={data.internship_mode === 'presencial'} label="Presencial" />
-                        <CheckBox checked={data.internship_mode === 'remoto'} label="Remoto" />
-                    </div>
-                    {/* Datas */}
-                    <div className="w-[15%] border-r border-black"><Field label="Data Inicial" value={data.start_date} /></div>
-                    <div className="w-[25%] border-r border-black"><Field label="Carga Horária Semanal" value={data.weekly_hours ? `${data.weekly_hours} HORAS` : ''} /></div>
-                    <div className="w-[20%]"><Field label="Data Final Prevista" value={data.end_date} /></div>
-                </div>
-
-                {/* --- TABELA DE HORÁRIOS --- */}
-                <div className="border-b border-black">
-                    <div className="text-[9px] font-bold uppercase text-center bg-gray-100 border-b border-black py-1">
-                        Previsão de Distribuição da Carga Horária
-                    </div>
-
-                    {/* Cabeçalho da Tabela */}
-                    <div className="flex text-[8px] font-bold uppercase text-center border-b border-black">
-                        <div className="w-[10%] border-r border-black py-2 flex items-center justify-center rotate-180" style={{ writingMode: 'vertical-rl' }}>TURNO</div>
-                        {['SEGUNDA-FEIRA', 'TERÇA-FEIRA', 'QUARTA-FEIRA', 'QUINTA-FEIRA', 'SEXTA-FEIRA', 'SÁBADO', 'DOMINGO'].map((day, i) => (
-                            <div key={day} className={`flex-1 ${i < 6 ? 'border-r border-black' : ''}`}>
-                                <div className="border-b border-black py-1">{day}</div>
-                                <div className="flex">
-                                    <div className="w-1/2 border-r border-black py-1">INÍCIO</div>
-                                    <div className="w-1/2 py-1">FINAL</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Linhas da Tabela (1º, 2º, 3º) */}
-                    {['1º', '2º', '3º'].map((turno, idx) => {
-                        const scheduleData = data.schedule ? JSON.parse(data.schedule) : {};
-                        return (
-                            <div key={turno} className="flex text-[10px] text-center border-b border-black h-8">
-                                <div className="w-[10%] border-r border-black flex items-center justify-center font-bold bg-gray-50">{turno}</div>
+                        {/* Linhas de Dados */}
+                        {['1º', '2º', '3º'].map((turno, idx) => (
+                            <View key={turno} style={[styles.scheduleDataRow, ...(idx === 2 ? [styles.scheduleDataRowLast] : [])]}>
+                                <View style={styles.scheduleTurnCell}>
+                                    <Text>{turno}</Text>
+                                </View>
                                 {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map((day, i) => (
-                                    <div key={day} className={`flex-1 flex ${i < 6 ? 'border-r border-black' : ''}`}>
-                                        <div className="w-1/2 border-r border-black flex items-center justify-center">
-                                            {scheduleData[`${day}_start_${idx + 1}`] || ''}
-                                        </div>
-                                        <div className="w-1/2 flex items-center justify-center">
-                                            {scheduleData[`${day}_end_${idx + 1}`] || ''}
-                                        </div>
-                                    </div>
+                                    <View key={day} style={[styles.scheduleDayData, ...(i === 6 ? [styles.scheduleDayDataLast] : [])]}>
+                                        <View style={styles.scheduleTimeData}>
+                                            <Text>{scheduleData[`${day}_start_${idx + 1}`] || ''}</Text>
+                                        </View>
+                                        <View style={styles.scheduleTimeDataLast}>
+                                            <Text>{scheduleData[`${day}_end_${idx + 1}`] || ''}</Text>
+                                        </View>
+                                    </View>
                                 ))}
-                            </div>
-                        );
-                    })}
-                </div>
+                            </View>
+                        ))}
+                    </View>
 
-                {/* --- ASSINATURAS --- */}
-                <div className="flex h-32 border-b border-black">
-                    <div className="w-1/2 border-r border-black relative">
-                        <div className="absolute bottom-2 left-0 w-full px-8 text-center">
-                            <div className="border-t border-black pt-1 text-[10px] font-bold uppercase">Solicitação em ____/____/____</div>
-                            <div className="mt-6 border-t border-black pt-1 text-[10px] uppercase">Assinatura do Discente</div>
-                        </div>
-                    </div>
-                    <div className="w-1/2 relative">
-                        <div className="absolute bottom-2 left-0 w-full px-8 text-center">
-                            <div className="border-t border-black pt-1 text-[10px] font-bold uppercase">Autorização em ____/____/____</div>
-                            <div className="mt-6 border-t border-black pt-1 text-[10px] uppercase">Assinatura do Docente Orientador</div>
-                        </div>
-                    </div>
-                </div>
+                    {/* Assinaturas */}
+                    <View style={[styles.signatureSection, { borderBottom: 0 }]}>
+                        <View style={styles.signatureBox}>
+                            <Text style={styles.signatureDate}>Solicitação em ____/____/____</Text>
+                            <View style={styles.signatureLine}>
+                                <Text>Assinatura do Discente</Text>
+                            </View>
+                        </View>
+                        <View style={[styles.signatureBox, styles.signatureBoxLast]}>
+                            <Text style={styles.signatureDate}>Autorização em ____/____/____</Text>
+                            <View style={styles.signatureLine}>
+                                <Text>Assinatura do Docente Orientador</Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
 
-            </div>
-
-            {/* --- RODAPÉ --- */}
-            <div className="mt-4 text-xs font-bold text-justify">
-                <span className="underline">Observação:</span> As atividades de estágio supervisionado só podem ser <span className="uppercase">iniciadas após o cadastro</span> do Termo de Compromisso de Estágio no sistema competente.
-            </div>
-
-        </div>
-    );
-});
-
-InternshipRegistrationDocument.displayName = 'InternshipRegistrationDocument';
+                {/* Rodapé */}
+                <View style={styles.footer}>
+                    <Text>
+                        <Text style={styles.footerUnderline}>Observação:</Text>
+                        {' '}As atividades de estágio supervisionado só podem ser{' '}
+                        <Text style={styles.footerUppercase}>iniciadas após o cadastro</Text>
+                        {' '}do Termo de Compromisso de Estágio no sistema competente.
+                    </Text>
+                </View>
+            </Page>
+        </Document>
+    )
+}

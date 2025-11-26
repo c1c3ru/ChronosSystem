@@ -1,22 +1,20 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
+import { commonStyles, formatDate } from '@/lib/pdf-styles-react'
 
 interface ProfessionalDeclarationDocumentProps {
     data: {
         company_name: string
         company_cnpj: string
         company_address: string
-
         employee_name: string
         employee_cpf: string
         employee_ctps: string
         employee_ctps_series: string
-
         start_date: string
         role: string
         weekly_hours: string
-
         activities: string
-
         city: string
         date_day: string
         date_month: string
@@ -24,66 +22,95 @@ interface ProfessionalDeclarationDocumentProps {
     }
 }
 
-export const ProfessionalDeclarationDocument = forwardRef<HTMLDivElement, ProfessionalDeclarationDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
+export const ProfessionalDeclarationDocument: React.FC<ProfessionalDeclarationDocumentProps> = ({ data }) => (
+    <Document>
+        <Page size="A4" style={commonStyles.page}>
+            <View style={commonStyles.header}>
+                <Image src="/assets/logoifce.png" style={commonStyles.logo} />
+                <View style={commonStyles.headerCenter}>
+                    <Text style={commonStyles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                    <Text style={commonStyles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                    <Text style={commonStyles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                    <Text style={commonStyles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                </View>
+                <Image src="/assets/brasao.png" style={commonStyles.logo} />
+            </View>
 
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                `
-            }} />
+            <Text style={commonStyles.title}>DECLARAÇÃO DE ATIVIDADES PROFISSIONAIS</Text>
 
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
+            <View style={commonStyles.table}>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '75%' }]}>
+                        <Text style={commonStyles.label}>EMPRESA</Text>
+                        <Text style={commonStyles.value}>{data.company_name}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CNPJ</Text>
+                        <Text style={commonStyles.value}>{data.company_cnpj}</Text>
+                    </View>
+                </View>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '100%' }]}>
+                        <Text style={commonStyles.label}>ENDEREÇO</Text>
+                        <Text style={commonStyles.value}>{data.company_address}</Text>
+                    </View>
+                </View>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '75%' }]}>
+                        <Text style={commonStyles.label}>FUNCIONÁRIO</Text>
+                        <Text style={commonStyles.value}>{data.employee_name}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CPF</Text>
+                        <Text style={commonStyles.value}>{data.employee_cpf}</Text>
+                    </View>
+                </View>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '50%' }]}>
+                        <Text style={commonStyles.label}>CTPS</Text>
+                        <Text style={commonStyles.value}>{data.employee_ctps}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '50%' }]}>
+                        <Text style={commonStyles.label}>SÉRIE</Text>
+                        <Text style={commonStyles.value}>{data.employee_ctps_series}</Text>
+                    </View>
+                </View>
+                <View style={[commonStyles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[commonStyles.tableCell, { width: '33.33%' }]}>
+                        <Text style={commonStyles.label}>DATA DE ADMISSÃO</Text>
+                        <Text style={commonStyles.value}>{formatDate(data.start_date)}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, { width: '33.33%' }]}>
+                        <Text style={commonStyles.label}>CARGO</Text>
+                        <Text style={commonStyles.value}>{data.role}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '33.33%' }]}>
+                        <Text style={commonStyles.label}>CARGA HORÁRIA SEMANAL</Text>
+                        <Text style={commonStyles.value}>{data.weekly_hours}h</Text>
+                    </View>
+                </View>
+            </View>
 
-            <h1 className="text-center font-bold text-[12pt] mb-12 uppercase mt-8">DECLARAÇÃO DE ATIVIDADES PROFISSIONAIS</h1>
+            <Text style={commonStyles.sectionHeader}>ATIVIDADES PROFISSIONAIS DESENVOLVIDAS</Text>
+            <View style={commonStyles.textBox}>
+                <Text>{data.activities}</Text>
+            </View>
 
-            <div className="mb-8 text-justify indent-12 leading-loose text-[10pt]">
-                Declaramos para os devidos fins que o(a) Sr(a) <strong>{data.employee_name || '__________________________________________________'}</strong>, portador(a) do CPF nº <strong>{data.employee_cpf || '__________________'}</strong> e da CTPS nº <strong>{data.employee_ctps || '__________'}</strong>, Série <strong>{data.employee_ctps_series || '_____'}</strong>, exerce atividades nesta empresa desde <strong>{formatDate(data.start_date)}</strong>, na função de <strong>{data.role || '____________________'}</strong>, cumprindo carga horária semanal de <strong>{data.weekly_hours || '___'}</strong> horas.
-            </div>
+            <Text style={commonStyles.paragraph}>
+                Declaramos, para os devidos fins, que o(a) funcionário(a) acima identificado(a) exerce atividades profissionais em nossa empresa desde <Text style={commonStyles.bold}>{formatDate(data.start_date)}</Text>, no cargo de <Text style={commonStyles.bold}>{data.role}</Text>, com carga horária semanal de <Text style={commonStyles.bold}>{data.weekly_hours} horas</Text>.
+            </Text>
 
-            <div className="mb-4 font-bold text-[10pt]">DESCRIÇÃO DAS ATIVIDADES DESENVOLVIDAS:</div>
-
-            <div className="border border-black p-4 min-h-[300px] whitespace-pre-wrap mb-12 text-justify text-[10pt]">
-                {data.activities}
-            </div>
-
-            <div className="text-right mb-24 text-[10pt]">
+            <Text style={commonStyles.dateRight}>
                 {data.city || 'Fortaleza'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
-            </div>
+            </Text>
 
-            <div className="text-center">
-                <div className="border-t border-black pt-1 w-2/3 mx-auto text-[10pt]">
-                    <strong>{data.company_name || 'RAZÃO SOCIAL DA EMPRESA'}</strong><br />
-                    CNPJ: {data.company_cnpj || '__________________'}<br />
-                    (Assinatura e Carimbo)
-                </div>
-            </div>
-
-            <div className="mt-24 text-center text-[8pt] text-gray-600 border-t border-gray-300 pt-2 w-full">
-                {data.company_address || 'Endereço da Empresa'}
-            </div>
-
-        </div>
-    )
-})
-
-ProfessionalDeclarationDocument.displayName = 'ProfessionalDeclarationDocument'
+            <View style={commonStyles.signatureBlock}>
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>{data.company_name || 'EMPRESA'}</Text>
+                    <Text>Representante Legal</Text>
+                    <Text>Assinatura e Carimbo</Text>
+                </View>
+            </View>
+        </Page>
+    </Document>
+)

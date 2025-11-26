@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface EquivalenceRequestDocumentProps {
     data: {
@@ -34,232 +35,452 @@ interface EquivalenceRequestDocumentProps {
     }
 }
 
-export const EquivalenceRequestDocument = forwardRef<HTMLDivElement, EquivalenceRequestDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
-
-    // Componentes auxiliares
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
-    const Checkbox = ({ checked, label }: { checked: boolean, label: string }) => (
-        <div className="flex items-center mb-1">
-            <div className={`w-3 h-3 border border-black mr-2 flex items-center justify-center text-[8px] leading-none`}>
-                {checked ? 'X' : ''}
-            </div>
-            <span className="text-[8pt]">{label}</span>
-        </div>
-    )
-
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                `
-            }} />
-
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
-
-            <h1 className="text-center font-bold text-[12pt] mb-4 uppercase">SOLICITAÇÃO DE EQUIVALÊNCIA DE ESTÁGIO</h1>
-
-            <div className="mb-4 text-justify indent-8 text-[9pt]">
-                Ilmo. Sr. Coordenador de Estágios do IFCE, venho requerer a V.Sa. a equivalência da atividade profissional que exerço/exerci, como Estágio Curricular Supervisionado, conforme documentação anexa.
-            </div>
-
-            {/* Dados do Discente */}
-            <SectionHeader title="DADOS DO DISCENTE" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME</Label>
-                            <Value>{data.student_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={1}>
-                            <Label>MATRÍCULA</Label>
-                            <Value>{data.student_enrollment}</Value>
-                        </TableCell>
-                        <TableCell colSpan={3}>
-                            <Label>CURSO</Label>
-                            <Value>{data.student_course}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.student_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>TELEFONE</Label>
-                            <Value>{data.student_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>{data.student_email}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Dados da Empresa */}
-            <SectionHeader title="DADOS DA EMPRESA / INSTITUIÇÃO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME DA EMPRESA</Label>
-                            <Value>{data.company_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.company_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>TELEFONE</Label>
-                            <Value>{data.company_phone}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>E-MAIL</Label>
-                            <Value>{data.company_email}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>CHEFE IMEDIATO</Label>
-                            <Value>{data.company_supervisor}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Atividades */}
-            <SectionHeader title="DESCRIÇÃO DAS ATIVIDADES DESENVOLVIDAS" />
-            <div className="border border-black p-2 text-[9pt] whitespace-pre-wrap min-h-[80px] text-justify mb-4">
-                {data.activities}
-            </div>
-
-            {/* Período */}
-            <table className="official-table text-center">
-                <thead>
-                    <tr>
-                        <th className="border border-black bg-gray-200 p-1 text-[8pt]" colSpan={3}>PERÍODO DE REALIZAÇÃO</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>DATA INICIAL</Label>
-                            <div className="text-[9pt] mt-1">{formatDate(data.start_date)}</div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>DATA FINAL</Label>
-                            <div className="text-[9pt] mt-1">{formatDate(data.end_date)}</div>
-                        </td>
-                        <td className="border border-black p-2 align-top w-1/3">
-                            <Label>CARGA HORÁRIA TOTAL</Label>
-                            <div className="text-[9pt] mt-1">{data.total_hours} HORAS</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            {/* Documentos Anexos */}
-            <div className="border border-black p-2 mb-4 text-[9pt]">
-                <div className="font-bold mb-2">DOCUMENTOS ANEXOS (CÓPIAS AUTENTICADAS OU COM O ORIGINAL):</div>
-                <Checkbox checked={data.doc_work_card === 'true'} label="Carteira de Trabalho (páginas da foto, qualificação civil e contrato de trabalho)" />
-                <Checkbox checked={data.doc_service_declaration === 'true'} label="Declaração de Tempo de Serviço (em papel timbrado da empresa)" />
-                <Checkbox checked={data.doc_activities_declaration === 'true'} label="Declaração de Atividades Profissionais (com descrição detalhada)" />
-                <div className="flex items-center">
-                    <Checkbox checked={data.doc_other === 'true'} label="Outros:" />
-                    <span className="ml-2 border-b border-black flex-1 text-[9pt] italic">{data.doc_other_desc}</span>
-                </div>
-            </div>
-
-            {/* Assinatura do Aluno */}
-            <div className="text-center mt-8 mb-8">
-                <div className="border-t border-black pt-1 w-1/2 mx-auto text-[8pt]">
-                    ASSINATURA DO DISCENTE
-                </div>
-            </div>
-
-            {/* Parecer da Coordenação */}
-            <div className="border-2 border-black p-4 mt-4">
-                <div className="font-bold text-center mb-4 bg-gray-200 p-1 border border-black text-[9pt]">PARECER DA COORDENAÇÃO DE ESTÁGIOS</div>
-
-                <div className="flex justify-center gap-8 mb-4 text-[9pt]">
-                    <div className="flex items-center">
-                        <div className="w-4 h-4 border border-black mr-2"></div>
-                        <span>DEFERIDO</span>
-                    </div>
-                    <div className="flex items-center">
-                        <div className="w-4 h-4 border border-black mr-2"></div>
-                        <span>INDEFERIDO</span>
-                    </div>
-                </div>
-
-                <div className="mb-2 font-bold text-[9pt]">JUSTIFICATIVA:</div>
-                <div className="border-b border-black h-5 mb-2"></div>
-                <div className="border-b border-black h-5 mb-2"></div>
-                <div className="border-b border-black h-5 mb-8"></div>
-
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-1/2 mx-auto text-[8pt]">
-                        COORDENADOR DE ESTÁGIOS
-                    </div>
-                    <div className="text-[8pt] mt-1">DATA: ___/___/_____</div>
-                </div>
-            </div>
-
-        </div>
-    )
+// Estilos do documento
+const styles = StyleSheet.create({
+    page: {
+        padding: 30,
+        fontSize: 9,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 10,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 9,
+        marginBottom: 2,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
+    title: {
+        fontSize: 12,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginBottom: 15,
+        textTransform: 'uppercase',
+    },
+    introText: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 15,
+        lineHeight: 1.4,
+        textIndent: 30,
+    },
+    sectionHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderTop: 1,
+        borderLeft: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    table: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    tableCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        fontSize: 7,
+    },
+    tableCellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+        minHeight: 10,
+    },
+    textBox: {
+        border: 1,
+        borderColor: '#000',
+        padding: 8,
+        fontSize: 9,
+        minHeight: 80,
+        marginBottom: 10,
+        textAlign: 'justify',
+    },
+    periodTable: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    periodHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    periodRow: {
+        flexDirection: 'row',
+    },
+    periodCell: {
+        flex: 1,
+        padding: 8,
+        borderRight: 1,
+        borderColor: '#000',
+        textAlign: 'center',
+    },
+    periodCellLast: {
+        borderRight: 0,
+    },
+    checkboxContainer: {
+        border: 1,
+        borderColor: '#000',
+        padding: 8,
+        marginBottom: 10,
+    },
+    checkboxTitle: {
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 8,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    checkbox: {
+        width: 10,
+        height: 10,
+        border: 1,
+        borderColor: '#000',
+        marginRight: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxText: {
+        fontSize: 8,
+    },
+    checkboxMark: {
+        fontSize: 8,
+    },
+    checkboxOtherRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    checkboxOtherText: {
+        fontSize: 8,
+        fontStyle: 'italic',
+        marginLeft: 8,
+        borderBottom: 1,
+        borderColor: '#000',
+        flex: 1,
+        paddingBottom: 2,
+    },
+    signatureBlock: {
+        marginTop: 30,
+        marginBottom: 20,
+    },
+    signatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '50%',
+        marginHorizontal: 'auto',
+        textAlign: 'center',
+        fontSize: 8,
+        marginBottom: 30,
+    },
+    parecerBox: {
+        border: 2,
+        borderColor: '#000',
+        padding: 15,
+        marginTop: 15,
+    },
+    parecerHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        border: 1,
+        borderColor: '#000',
+        marginBottom: 15,
+    },
+    parecerOptions: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 30,
+        marginBottom: 15,
+    },
+    parecerOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    parecerCheckbox: {
+        width: 12,
+        height: 12,
+        border: 1,
+        borderColor: '#000',
+        marginRight: 8,
+    },
+    parecerLabel: {
+        fontSize: 9,
+    },
+    justificativaTitle: {
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 8,
+    },
+    justificativaLine: {
+        borderBottom: 1,
+        borderColor: '#000',
+        height: 15,
+        marginBottom: 8,
+    },
+    parecerSignature: {
+        marginTop: 30,
+        textAlign: 'center',
+    },
+    parecerSignatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '50%',
+        marginHorizontal: 'auto',
+        fontSize: 8,
+        marginBottom: 5,
+    },
+    parecerDate: {
+        fontSize: 8,
+        marginTop: 5,
+    },
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
 })
 
-EquivalenceRequestDocument.displayName = 'EquivalenceRequestDocument'
+const formatDate = (dateString: string): string => {
+    if (!dateString) return '___/___/_____'
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+}
+
+export const EquivalenceRequestDocument: React.FC<EquivalenceRequestDocumentProps> = ({ data }) => (
+    <Document>
+        <Page size="A4" style={styles.page}>
+            {/* Cabeçalho */}
+            <View style={styles.header}>
+                <Image src="/assets/logoifce.png" style={styles.logo} />
+                <View style={styles.headerCenter}>
+                    <Text style={styles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                    <Text style={styles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                    <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                    <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                </View>
+                <Image src="/assets/brasao.png" style={styles.logo} />
+            </View>
+
+            <Text style={styles.title}>SOLICITAÇÃO DE EQUIVALÊNCIA DE ESTÁGIO</Text>
+
+            <Text style={styles.introText}>
+                Ilmo. Sr. Coordenador de Estágios do IFCE, venho requerer a V.Sa. a equivalência da atividade profissional que exerço/exerci, como Estágio Curricular Supervisionado, conforme documentação anexa.
+            </Text>
+
+            {/* Dados do Discente */}
+            <Text style={styles.sectionHeader}>DADOS DO DISCENTE</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>NOME</Text>
+                        <Text style={styles.value}>{data.student_name}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '30%' }]}>
+                        <Text style={styles.label}>MATRÍCULA</Text>
+                        <Text style={styles.value}>{data.student_enrollment}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '70%' }]}>
+                        <Text style={styles.label}>CURSO</Text>
+                        <Text style={styles.value}>{data.student_course}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>{data.student_address}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>TELEFONE</Text>
+                        <Text style={styles.value}>{data.student_phone}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>E-MAIL</Text>
+                        <Text style={styles.value}>{data.student_email}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Dados da Empresa */}
+            <Text style={styles.sectionHeader}>DADOS DA EMPRESA / INSTITUIÇÃO</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>NOME DA EMPRESA</Text>
+                        <Text style={styles.value}>{data.company_name}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>{data.company_address}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>TELEFONE</Text>
+                        <Text style={styles.value}>{data.company_phone}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>E-MAIL</Text>
+                        <Text style={styles.value}>{data.company_email}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>CHEFE IMEDIATO</Text>
+                        <Text style={styles.value}>{data.company_supervisor}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Descrição das Atividades */}
+            <Text style={styles.sectionHeader}>DESCRIÇÃO DAS ATIVIDADES DESENVOLVIDAS</Text>
+            <View style={styles.textBox}>
+                <Text>{data.activities}</Text>
+            </View>
+
+            {/* Período de Realização */}
+            <View style={styles.periodTable}>
+                <View style={styles.periodHeader}>
+                    <Text>PERÍODO DE REALIZAÇÃO</Text>
+                </View>
+                <View style={styles.periodRow}>
+                    <View style={[styles.periodCell, { borderRight: 1, borderColor: '#000' }]}>
+                        <Text style={styles.label}>DATA INICIAL</Text>
+                        <Text style={[styles.value, { marginTop: 4 }]}>{formatDate(data.start_date)}</Text>
+                    </View>
+                    <View style={[styles.periodCell, { borderRight: 1, borderColor: '#000' }]}>
+                        <Text style={styles.label}>DATA FINAL</Text>
+                        <Text style={[styles.value, { marginTop: 4 }]}>{formatDate(data.end_date)}</Text>
+                    </View>
+                    <View style={styles.periodCellLast}>
+                        <Text style={styles.label}>CARGA HORÁRIA TOTAL</Text>
+                        <Text style={[styles.value, { marginTop: 4 }]}>{data.total_hours} HORAS</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Documentos Anexos */}
+            <View style={styles.checkboxContainer}>
+                <Text style={styles.checkboxTitle}>DOCUMENTOS ANEXOS (CÓPIAS AUTENTICADAS OU COM O ORIGINAL):</Text>
+
+                <View style={styles.checkboxRow}>
+                    <View style={styles.checkbox}>
+                        {data.doc_work_card === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <Text style={styles.checkboxText}>Carteira de Trabalho (páginas da foto, qualificação civil e contrato de trabalho)</Text>
+                </View>
+
+                <View style={styles.checkboxRow}>
+                    <View style={styles.checkbox}>
+                        {data.doc_service_declaration === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <Text style={styles.checkboxText}>Declaração de Tempo de Serviço (em papel timbrado da empresa)</Text>
+                </View>
+
+                <View style={styles.checkboxRow}>
+                    <View style={styles.checkbox}>
+                        {data.doc_activities_declaration === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <Text style={styles.checkboxText}>Declaração de Atividades Profissionais (com descrição detalhada)</Text>
+                </View>
+
+                <View style={styles.checkboxOtherRow}>
+                    <View style={styles.checkbox}>
+                        {data.doc_other === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <Text style={styles.checkboxText}>Outros:</Text>
+                    <Text style={styles.checkboxOtherText}>{data.doc_other_desc}</Text>
+                </View>
+            </View>
+
+            {/* Assinatura do Aluno */}
+            <View style={styles.signatureBlock}>
+                <View style={styles.signatureLine}>
+                    <Text>ASSINATURA DO DISCENTE</Text>
+                </View>
+            </View>
+
+            {/* Parecer da Coordenação */}
+            <View style={styles.parecerBox}>
+                <View style={styles.parecerHeader}>
+                    <Text>PARECER DA COORDENAÇÃO DE ESTÁGIOS</Text>
+                </View>
+
+                <View style={styles.parecerOptions}>
+                    <View style={styles.parecerOption}>
+                        <View style={styles.parecerCheckbox} />
+                        <Text style={styles.parecerLabel}>DEFERIDO</Text>
+                    </View>
+                    <View style={styles.parecerOption}>
+                        <View style={styles.parecerCheckbox} />
+                        <Text style={styles.parecerLabel}>INDEFERIDO</Text>
+                    </View>
+                </View>
+
+                <Text style={styles.justificativaTitle}>JUSTIFICATIVA:</Text>
+                <View style={styles.justificativaLine} />
+                <View style={styles.justificativaLine} />
+                <View style={styles.justificativaLine} />
+
+                <View style={styles.parecerSignature}>
+                    <View style={styles.parecerSignatureLine}>
+                        <Text>COORDENADOR DE ESTÁGIOS</Text>
+                    </View>
+                    <Text style={styles.parecerDate}>DATA: ___/___/_____</Text>
+                </View>
+            </View>
+        </Page>
+    </Document>
+)

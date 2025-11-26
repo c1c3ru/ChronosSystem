@@ -1,14 +1,17 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
+import { commonStyles, formatDate } from '@/lib/pdf-styles-react'
 
 interface ExtensionDeclarationDocumentProps {
     data: {
-        company_name: string
         student_name: string
+        student_cpf: string
         student_course: string
         student_enrollment: string
-        current_start_date: string
-        current_end_date: string
+        company_name: string
+        original_end_date: string
         new_end_date: string
+        extension_reason: string
         city: string
         date_day: string
         date_month: string
@@ -16,63 +19,88 @@ interface ExtensionDeclarationDocumentProps {
     }
 }
 
-export const ExtensionDeclarationDocument = forwardRef<HTMLDivElement, ExtensionDeclarationDocumentProps>(({ data }, ref) => {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '___/___/_____'
-        const [year, month, day] = dateString.split('-')
-        return `${day}/${month}/${year}`
-    }
+export const ExtensionDeclarationDocument: React.FC<ExtensionDeclarationDocumentProps> = ({ data }) => (
+    <Document>
+        <Page size="A4" style={commonStyles.page}>
+            <View style={commonStyles.header}>
+                <Image src="/assets/logoifce.png" style={commonStyles.logo} />
+                <View style={commonStyles.headerCenter}>
+                    <Text style={commonStyles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                    <Text style={commonStyles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                    <Text style={commonStyles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                    <Text style={commonStyles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                </View>
+                <Image src="/assets/brasao.png" style={commonStyles.logo} />
+            </View>
 
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                `
-            }} />
+            <Text style={commonStyles.title}>DECLARAÇÃO DE PRORROGAÇÃO DE ESTÁGIO</Text>
 
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
+            <View style={commonStyles.table}>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '75%' }]}>
+                        <Text style={commonStyles.label}>NOME DO ESTAGIÁRIO</Text>
+                        <Text style={commonStyles.value}>{data.student_name}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>CPF</Text>
+                        <Text style={commonStyles.value}>{data.student_cpf}</Text>
+                    </View>
+                </View>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, { width: '75%' }]}>
+                        <Text style={commonStyles.label}>CURSO</Text>
+                        <Text style={commonStyles.value}>{data.student_course}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '25%' }]}>
+                        <Text style={commonStyles.label}>MATRÍCULA</Text>
+                        <Text style={commonStyles.value}>{data.student_enrollment}</Text>
+                    </View>
+                </View>
+                <View style={commonStyles.tableRow}>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '100%' }]}>
+                        <Text style={commonStyles.label}>EMPRESA CONCEDENTE</Text>
+                        <Text style={commonStyles.value}>{data.company_name}</Text>
+                    </View>
+                </View>
+                <View style={[commonStyles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[commonStyles.tableCell, { width: '50%' }]}>
+                        <Text style={commonStyles.label}>DATA DE TÉRMINO ORIGINAL</Text>
+                        <Text style={commonStyles.value}>{formatDate(data.original_end_date)}</Text>
+                    </View>
+                    <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '50%' }]}>
+                        <Text style={commonStyles.label}>NOVA DATA DE TÉRMINO</Text>
+                        <Text style={commonStyles.value}>{formatDate(data.new_end_date)}</Text>
+                    </View>
+                </View>
+            </View>
 
-            <h1 className="text-center font-bold text-[12pt] mb-12 uppercase mt-8">DECLARAÇÃO DE PRORROGAÇÃO DE ESTÁGIO</h1>
+            <Text style={commonStyles.sectionHeader}>JUSTIFICATIVA DA PRORROGAÇÃO</Text>
+            <View style={commonStyles.textBox}>
+                <Text>{data.extension_reason}</Text>
+            </View>
 
-            <div className="mb-8 text-justify indent-12 leading-loose text-[10pt]">
-                Declaramos que o Termo de Compromisso de Estágio firmado entre a empresa <strong>{data.company_name || '__________________________________________________'}</strong> e o estagiário <strong>{data.student_name || '__________________________________________________'}</strong>, aluno do curso <strong>{data.student_course || '____________________'}</strong>, matrícula <strong>{data.student_enrollment || '__________'}</strong>, com vigência de <strong>{formatDate(data.current_start_date)}</strong> a <strong>{formatDate(data.current_end_date)}</strong>, fica prorrogado até <strong>{formatDate(data.new_end_date)}</strong>, mantendo-se inalteradas as demais cláusulas e condições do referido Termo.
-            </div>
+            <Text style={commonStyles.paragraph}>
+                Declaramos, para os devidos fins, que o estágio do(a) aluno(a) acima identificado(a), que tinha término previsto para <Text style={commonStyles.bold}>{formatDate(data.original_end_date)}</Text>, foi prorrogado até <Text style={commonStyles.bold}>{formatDate(data.new_end_date)}</Text>, conforme justificativa apresentada.
+            </Text>
 
-            <div className="text-right mb-24 mt-12 text-[10pt]">
+            <Text style={commonStyles.dateRight}>
                 {data.city || 'Fortaleza'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
-            </div>
+            </Text>
 
-            <div className="grid grid-cols-2 gap-8 mt-12">
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-3/4 mx-auto text-[10pt]">
-                        <strong>{data.company_name || 'EMPRESA CONCEDENTE'}</strong><br />
-                        (Assinatura e Carimbo)
-                    </div>
-                </div>
-                <div className="text-center">
-                    <div className="border-t border-black pt-1 w-3/4 mx-auto text-[10pt]">
-                        <strong>{data.student_name || 'ESTAGIÁRIO(A)'}</strong><br />
-                        (Assinatura do Estagiário)
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    )
-})
-
-ExtensionDeclarationDocument.displayName = 'ExtensionDeclarationDocument'
+            <View style={commonStyles.signatureBlock}>
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>{data.student_name || 'ESTAGIÁRIO(A)'}</Text>
+                    <Text>CPF: {data.student_cpf}</Text>
+                </View>
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>{data.company_name || 'EMPRESA CONCEDENTE'}</Text>
+                    <Text>Representante Legal</Text>
+                </View>
+                <View style={commonStyles.signatureLine}>
+                    <Text style={commonStyles.bold}>INSTITUIÇÃO DE ENSINO - IFCE CAMPUS MARACANAÚ</Text>
+                    <Text>Coordenador de Estágios</Text>
+                </View>
+            </View>
+        </Page>
+    </Document>
+)

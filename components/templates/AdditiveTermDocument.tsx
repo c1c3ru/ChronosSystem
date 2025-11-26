@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface AdditiveTermDocumentProps {
     data: {
@@ -59,250 +60,383 @@ interface AdditiveTermDocumentProps {
     }
 }
 
-export const AdditiveTermDocument = forwardRef<HTMLDivElement, AdditiveTermDocumentProps>(({ data }, ref) => {
-
-    // Componentes auxiliares
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[6pt] font-bold uppercase leading-tight">{children}</span>
-    )
-
-    const Value = ({ children }: { children: React.ReactNode }) => (
-        <span className="block text-[8pt] leading-tight min-h-[14px]">{children}</span>
-    )
-
-    const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-        <tr className={className}>{children}</tr>
-    )
-
-    const TableCell = ({ children, colSpan = 1, className = '', style = {} }: { children: React.ReactNode, colSpan?: number, className?: string, style?: React.CSSProperties }) => (
-        <td colSpan={colSpan} className={`border border-black px-1 py-0.5 align-top ${className}`} style={style}>
-            {children}
-        </td>
-    )
-
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-gray-200 border border-black border-b-0 text-center font-bold text-[8pt] py-0.5 uppercase">
-            {title}
-        </div>
-    )
-
-    const Checkbox = ({ checked }: { checked: boolean }) => (
-        <span className={`inline-block w-3 h-3 border border-black mr-2 text-center leading-3 text-[8px] align-middle`}>
-            {checked ? 'X' : ''}
-        </span>
-    )
-
-    return (
-        <div ref={ref} className="bg-white text-black font-sans box-border mx-auto" style={{ width: '210mm', padding: '10mm' }}>
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                    @media print {
-                        @page { margin: 10mm; size: A4; }
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    }
-                    .official-table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 8pt; margin-bottom: 10px; }
-                    .official-table td { border: 1px solid black; padding: 2px 4px; vertical-align: top; }
-                    .clause-title { font-weight: bold; margin-top: 10px; margin-bottom: 5px; text-transform: uppercase; font-size: 9pt; }
-                    .clause-text { text-align: justify; margin-bottom: 5px; font-size: 9pt; line-height: 1.3; }
-                    .list-item { margin-left: 15px; text-indent: -15px; padding-left: 15px; }
-                `
-            }} />
-
-            {/* --- PÁGINA 1 --- */}
-
-            {/* Cabeçalho */}
-            <div className="flex items-center justify-between mb-4">
-                <img src="/assets/logoifce.png" alt="Logo IFCE" className="h-16 object-contain" />
-                <div className="text-center flex-1 px-4">
-                    <h1 className="font-bold text-[10pt]">PRÓ-REITORIA DE EXTENSÃO</h1>
-                    <h2 className="text-[9pt]">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</h2>
-                    <h3 className="text-[9pt] mt-2">IFCE Campus Maracanaú</h3>
-                    <h4 className="text-[9pt]">Setor de Acompanhamento de Estágio</h4>
-                </div>
-                <img src="/assets/brasao.png" alt="Brasão Brasil" className="h-16 object-contain" />
-            </div>
-
-            <h1 className="text-center font-bold text-[12pt] mb-4 uppercase">TERMO ADITIVO AO TERMO DE COMPROMISSO DE ESTÁGIO</h1>
-
-            <p className="text-justify text-[9pt] mb-4">
-                Pelo presente instrumento jurídico, as partes abaixo nomeadas e qualificadas celebram entre si este <strong>TERMO ADITIVO AO TERMO DE COMPROMISSO DE ESTÁGIO</strong>, firmado entre a UNIDADE CONCEDENTE e o ESTAGIÁRIO, com a interveniência obrigatória da INSTITUIÇÃO DE ENSINO, nos termos da Lei nº 11.788, de 25 de setembro de 2008, conforme as cláusulas e condições a seguir:
-            </p>
-
-            <div className="clause-title">CLÁUSULA PRIMEIRA – DA IDENTIFICAÇÃO DAS PARTES</div>
-
-            {/* Instituição Concedente */}
-            <SectionHeader title="UNIDADE CONCEDENTE" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>RAZÃO SOCIAL</Label>
-                            <Value>{data.company_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>CNPJ</Label>
-                            <Value>{data.company_cnpj}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.company_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>REPRESENTADA POR</Label>
-                            <Value>{data.company_representative}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>CARGO</Label>
-                            <Value>{data.company_representative_role}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Estagiário */}
-            <SectionHeader title="ESTAGIÁRIO(A)" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>NOME</Label>
-                            <Value>{data.student_name}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>CPF</Label>
-                            <Value>{data.student_cpf}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>MATRÍCULA</Label>
-                            <Value>{data.student_id}</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={2}>
-                            <Label>CURSO</Label>
-                            <Value>{data.student_course}</Value>
-                        </TableCell>
-                        <TableCell colSpan={2}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>{data.student_address}</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* Instituição de Ensino */}
-            <SectionHeader title="INSTITUIÇÃO DE ENSINO" />
-            <table className="official-table">
-                <tbody>
-                    <TableRow>
-                        <TableCell colSpan={3}>
-                            <Label>CAMPUS</Label>
-                            <Value>MARACANAÚ</Value>
-                        </TableCell>
-                        <TableCell>
-                            <Label>CNPJ</Label>
-                            <Value>10.744.098/0009-00</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>ENDEREÇO</Label>
-                            <Value>AV. VICE PRESIDENTE JOSÉ DE ALENCAR, S/N, JEREISSATI I, MARACANAÚ-CE, CEP: 61.939-140</Value>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={4}>
-                            <Label>REPRESENTADA POR</Label>
-                            <Value>ELDER KENED CARDOSO - ASSISTENTE EM ADMINISTRAÇÃO - SIAPE 1818968</Value>
-                        </TableCell>
-                    </TableRow>
-                </tbody>
-            </table>
-
-            {/* --- PÁGINA 2 --- */}
-            <div style={{ pageBreakBefore: 'always' }}></div>
-
-            <div className="clause-title">CLÁUSULA SEGUNDA – DO OBJETO DO ADITIVO</div>
-            <div className="clause-text">
-                O presente Termo Aditivo tem por objetivo alterar as seguintes condições do Termo de Compromisso de Estágio original:
-            </div>
-
-            <div className="border border-black p-4 mb-4 text-[9pt]">
-                <div className="mb-3 flex items-start">
-                    <Checkbox checked={data.additive_type_prorogation === 'true'} />
-                    <div className="flex-1">
-                        <strong>PRORROGAÇÃO DE VIGÊNCIA:</strong> O estágio terá sua vigência prorrogada até <strong>{data.new_end_date || '___/___/_____'}</strong>.
-                    </div>
-                </div>
-
-                <div className="mb-3 flex items-start">
-                    <Checkbox checked={data.additive_type_allowance === 'true'} />
-                    <div className="flex-1">
-                        <strong>ALTERAÇÃO DO VALOR DA BOLSA:</strong> O valor da bolsa-auxílio passará a ser de <strong>R$ {data.new_allowance_value || '_______'}</strong>.
-                    </div>
-                </div>
-
-                <div className="mb-3 flex items-start">
-                    <Checkbox checked={data.additive_type_supervisor === 'true'} />
-                    <div className="flex-1">
-                        <strong>ALTERAÇÃO DE SUPERVISOR:</strong> O novo supervisor será o(a) Sr(a). <strong>{data.new_supervisor_name || '______________________'}</strong>, cargo <strong>{data.new_supervisor_role || '________________'}</strong>, registro profissional <strong>{data.new_supervisor_council || '________________'}</strong>.
-                    </div>
-                </div>
-
-                <div className="mb-3 flex items-start">
-                    <Checkbox checked={data.additive_type_schedule === 'true'} />
-                    <div className="flex-1">
-                        <strong>ALTERAÇÃO DE HORÁRIO:</strong> O novo horário de estágio será:<br />
-                        <span className="whitespace-pre-line block mt-1 ml-4 italic">{data.new_schedule || '__________________________________________________________________'}</span>
-                    </div>
-                </div>
-
-                <div className="flex items-start">
-                    <Checkbox checked={data.additive_type_other === 'true'} />
-                    <div className="flex-1">
-                        <strong>OUTRAS ALTERAÇÕES:</strong><br />
-                        <span className="whitespace-pre-line block mt-1 ml-4 italic">{data.other_changes || '__________________________________________________________________'}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="clause-title">CLÁUSULA TERCEIRA – DA RATIFICAÇÃO</div>
-            <div className="clause-text">
-                Permanecem inalteradas e ratificadas todas as demais cláusulas e condições do Termo de Compromisso de Estágio original que não foram expressamente modificadas por este instrumento.
-            </div>
-
-            <p className="mt-8 mb-8 text-justify text-[9pt]">
-                E, por estarem de inteiro e comum acordo, as partes assinam o presente Termo Aditivo em 03 (três) vias de igual teor e forma.
-            </p>
-
-            <p className="text-right mb-12 text-[9pt]">
-                {data.campus_city || 'Maracanaú'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
-            </p>
-
-            <div className="space-y-12 mt-16">
-                <div className="grid grid-cols-2 gap-8">
-                    <div className="text-center">
-                        <div className="border-t border-black w-full pt-1 text-[8pt]">UNIDADE CONCEDENTE<br />(Assinatura e Carimbo)</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="border-t border-black w-full pt-1 text-[8pt]">ESTAGIÁRIO(A)</div>
-                    </div>
-                </div>
-
-                <div className="text-center mt-8">
-                    <div className="border-t border-black w-2/3 mx-auto pt-1 text-[8pt]">INSTITUIÇÃO DE ENSINO (IFCE)<br />(Assinatura e Carimbo)</div>
-                </div>
-            </div>
-        </div>
-    )
+// Estilos do documento
+const styles = StyleSheet.create({
+    page: {
+        padding: 30,
+        fontSize: 9,
+        fontFamily: 'Helvetica',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    headerCenter: {
+        flex: 1,
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        fontSize: 10,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 2,
+    },
+    headerSubtitle: {
+        fontSize: 9,
+        marginBottom: 2,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
+    title: {
+        fontSize: 12,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginBottom: 15,
+        textTransform: 'uppercase',
+    },
+    paragraph: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 15,
+        lineHeight: 1.4,
+    },
+    clauseTitle: {
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    clauseText: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 5,
+        lineHeight: 1.3,
+    },
+    sectionHeader: {
+        backgroundColor: '#e0e0e0',
+        padding: 4,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        borderTop: 1,
+        borderLeft: 1,
+        borderRight: 1,
+        borderColor: '#000',
+    },
+    table: {
+        width: '100%',
+        marginBottom: 10,
+        border: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottom: 1,
+        borderColor: '#000',
+    },
+    tableCell: {
+        padding: 4,
+        borderRight: 1,
+        borderColor: '#000',
+        fontSize: 7,
+    },
+    tableCellLast: {
+        borderRight: 0,
+    },
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+        minHeight: 10,
+    },
+    changesBox: {
+        border: 1,
+        borderColor: '#000',
+        padding: 15,
+        marginBottom: 15,
+    },
+    changeRow: {
+        flexDirection: 'row',
+        marginBottom: 12,
+    },
+    checkbox: {
+        width: 10,
+        height: 10,
+        border: 1,
+        borderColor: '#000',
+        marginRight: 8,
+        marginTop: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxMark: {
+        fontSize: 7,
+    },
+    changeContent: {
+        flex: 1,
+        fontSize: 9,
+    },
+    dateRight: {
+        fontSize: 9,
+        textAlign: 'right',
+        marginBottom: 30,
+        marginTop: 20,
+    },
+    signatureBlock: {
+        marginTop: 40,
+    },
+    signatureRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 30,
+    },
+    signatureLine: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '45%',
+        textAlign: 'center',
+        fontSize: 7,
+    },
+    signatureLineFull: {
+        borderTop: 1,
+        borderColor: '#000',
+        paddingTop: 5,
+        width: '66%',
+        marginHorizontal: 'auto',
+        textAlign: 'center',
+        fontSize: 7,
+        marginTop: 20,
+    },
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
 })
 
-AdditiveTermDocument.displayName = 'AdditiveTermDocument'
+const formatDate = (dateString: string): string => {
+    if (!dateString) return '___/___/_____'
+    const [year, month, day] = dateString.split('-')
+    return `${day}/${month}/${year}`
+}
+
+export const AdditiveTermDocument: React.FC<AdditiveTermDocumentProps> = ({ data }) => (
+    <Document>
+        <Page size="A4" style={styles.page}>
+            {/* Cabeçalho */}
+            <View style={styles.header}>
+                <Image src="/assets/logoifce.png" style={styles.logo} />
+                <View style={styles.headerCenter}>
+                    <Text style={styles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
+                    <Text style={styles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
+                    <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
+                    <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
+                </View>
+                <Image src="/assets/brasao.png" style={styles.logo} />
+            </View>
+
+            <Text style={styles.title}>TERMO ADITIVO AO TERMO DE COMPROMISSO DE ESTÁGIO</Text>
+
+            <Text style={styles.paragraph}>
+                Pelo presente instrumento jurídico, as partes abaixo nomeadas e qualificadas celebram entre si este <Text style={styles.bold}>TERMO ADITIVO AO TERMO DE COMPROMISSO DE ESTÁGIO</Text>, firmado entre a UNIDADE CONCEDENTE e o ESTAGIÁRIO, com a interveniência obrigatória da INSTITUIÇÃO DE ENSINO, nos termos da Lei nº 11.788, de 25 de setembro de 2008, conforme as cláusulas e condições a seguir:
+            </Text>
+
+            <Text style={styles.clauseTitle}>CLÁUSULA PRIMEIRA – DA IDENTIFICAÇÃO DAS PARTES</Text>
+
+            {/* Unidade Concedente */}
+            <Text style={styles.sectionHeader}>UNIDADE CONCEDENTE</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>RAZÃO SOCIAL</Text>
+                        <Text style={styles.value}>{data.company_name}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>CNPJ</Text>
+                        <Text style={styles.value}>{data.company_cnpj}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>{data.company_address}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>REPRESENTADA POR</Text>
+                        <Text style={styles.value}>{data.company_representative}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>CARGO</Text>
+                        <Text style={styles.value}>{data.company_representative_role}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Estagiário */}
+            <Text style={styles.sectionHeader}>ESTAGIÁRIO(A)</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>NOME</Text>
+                        <Text style={styles.value}>{data.student_name}</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>CPF</Text>
+                        <Text style={styles.value}>{data.student_cpf}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>MATRÍCULA</Text>
+                        <Text style={styles.value}>{data.student_id}</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, { width: '50%' }]}>
+                        <Text style={styles.label}>CURSO</Text>
+                        <Text style={styles.value}>{data.student_course}</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>{data.student_address}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Instituição de Ensino */}
+            <Text style={styles.sectionHeader}>INSTITUIÇÃO DE ENSINO</Text>
+            <View style={styles.table}>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, { width: '75%' }]}>
+                        <Text style={styles.label}>CAMPUS</Text>
+                        <Text style={styles.value}>MARACANAÚ</Text>
+                    </View>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '25%' }]}>
+                        <Text style={styles.label}>CNPJ</Text>
+                        <Text style={styles.value}>10.744.098/0009-00</Text>
+                    </View>
+                </View>
+                <View style={styles.tableRow}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>ENDEREÇO</Text>
+                        <Text style={styles.value}>AV. VICE PRESIDENTE JOSÉ DE ALENCAR, S/N, JEREISSATI I, MARACANAÚ-CE, CEP: 61.939-140</Text>
+                    </View>
+                </View>
+                <View style={[styles.tableRow, { borderBottom: 0 }]}>
+                    <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                        <Text style={styles.label}>REPRESENTADA POR</Text>
+                        <Text style={styles.value}>ELDER KENED CARDOSO - ASSISTENTE EM ADMINISTRAÇÃO - SIAPE 1818968</Text>
+                    </View>
+                </View>
+            </View>
+
+            <Text style={styles.clauseTitle}>CLÁUSULA SEGUNDA – DO OBJETO DO ADITIVO</Text>
+            <Text style={styles.clauseText}>
+                O presente Termo Aditivo tem por objetivo alterar as seguintes condições do Termo de Compromisso de Estágio original:
+            </Text>
+
+            <View style={styles.changesBox}>
+                {/* Prorrogação */}
+                <View style={styles.changeRow}>
+                    <View style={styles.checkbox}>
+                        {data.additive_type_prorogation === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <View style={styles.changeContent}>
+                        <Text style={styles.bold}>PRORROGAÇÃO DE VIGÊNCIA:</Text>
+                        <Text> O estágio terá sua vigência prorrogada até <Text style={styles.bold}>{formatDate(data.new_end_date)}</Text>.</Text>
+                    </View>
+                </View>
+
+                {/* Alteração de Bolsa */}
+                <View style={styles.changeRow}>
+                    <View style={styles.checkbox}>
+                        {data.additive_type_allowance === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <View style={styles.changeContent}>
+                        <Text style={styles.bold}>ALTERAÇÃO DO VALOR DA BOLSA:</Text>
+                        <Text> O valor da bolsa-auxílio passará a ser de <Text style={styles.bold}>R$ {data.new_allowance_value || '_______'}</Text>.</Text>
+                    </View>
+                </View>
+
+                {/* Alteração de Supervisor */}
+                <View style={styles.changeRow}>
+                    <View style={styles.checkbox}>
+                        {data.additive_type_supervisor === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <View style={styles.changeContent}>
+                        <Text style={styles.bold}>ALTERAÇÃO DE SUPERVISOR:</Text>
+                        <Text> O novo supervisor será o(a) Sr(a). <Text style={styles.bold}>{data.new_supervisor_name || '______________________'}</Text>, cargo <Text style={styles.bold}>{data.new_supervisor_role || '________________'}</Text>, registro profissional <Text style={styles.bold}>{data.new_supervisor_council || '________________'}</Text>.</Text>
+                    </View>
+                </View>
+
+                {/* Alteração de Horário */}
+                <View style={styles.changeRow}>
+                    <View style={styles.checkbox}>
+                        {data.additive_type_schedule === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <View style={styles.changeContent}>
+                        <Text style={styles.bold}>ALTERAÇÃO DE HORÁRIO:</Text>
+                        <Text> O novo horário de estágio será:{'\n'}</Text>
+                        <Text style={{ fontStyle: 'italic', marginTop: 4, marginLeft: 15 }}>{data.new_schedule || '__________________________________________________________________'}</Text>
+                    </View>
+                </View>
+
+                {/* Outras Alterações */}
+                <View style={styles.changeRow}>
+                    <View style={styles.checkbox}>
+                        {data.additive_type_other === 'true' && <Text style={styles.checkboxMark}>X</Text>}
+                    </View>
+                    <View style={styles.changeContent}>
+                        <Text style={styles.bold}>OUTRAS ALTERAÇÕES:</Text>
+                        <Text>{'\n'}</Text>
+                        <Text style={{ fontStyle: 'italic', marginTop: 4, marginLeft: 15 }}>{data.other_changes || '__________________________________________________________________'}</Text>
+                    </View>
+                </View>
+            </View>
+
+            <Text style={styles.clauseTitle}>CLÁUSULA TERCEIRA – DA RATIFICAÇÃO</Text>
+            <Text style={styles.clauseText}>
+                Permanecem inalteradas e ratificadas todas as demais cláusulas e condições do Termo de Compromisso de Estágio original que não foram expressamente modificadas por este instrumento.
+            </Text>
+
+            <Text style={styles.paragraph}>
+                E, por estarem de inteiro e comum acordo, as partes assinam o presente Termo Aditivo em 03 (três) vias de igual teor e forma.
+            </Text>
+
+            <Text style={styles.dateRight}>
+                {data.campus_city || 'Maracanaú'} - CE, {data.date_day || '___'} de {data.date_month || '_______________'} de {data.date_year || '20___'}.
+            </Text>
+
+            {/* Assinaturas */}
+            <View style={styles.signatureBlock}>
+                <View style={styles.signatureRow}>
+                    <View style={styles.signatureLine}>
+                        <Text style={styles.bold}>UNIDADE CONCEDENTE</Text>
+                        <Text>(Assinatura e Carimbo)</Text>
+                    </View>
+                    <View style={styles.signatureLine}>
+                        <Text style={styles.bold}>ESTAGIÁRIO(A)</Text>
+                    </View>
+                </View>
+
+                <View style={styles.signatureLineFull}>
+                    <Text style={styles.bold}>INSTITUIÇÃO DE ENSINO (IFCE)</Text>
+                    <Text>(Assinatura e Carimbo)</Text>
+                </View>
+            </View>
+        </Page>
+    </Document>
+)

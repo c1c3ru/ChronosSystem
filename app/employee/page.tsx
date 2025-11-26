@@ -945,6 +945,18 @@ export default function EmployeePage() {
                     <span>Declaração de Extensão</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
+                  <a href="/documents/rescission-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Termo de Rescisão</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/realization-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Termo de Realização</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/student-evaluation" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Ficha de Avaliação</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
                 </div>
               </CardContent>
             </Card>
