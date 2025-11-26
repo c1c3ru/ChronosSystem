@@ -70,8 +70,9 @@ export default function StudentEvaluationPage() {
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {
-            console.error('Erro ao gerar PDF:', error)
-            toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
+            console.error('❌ Erro detalhado ao gerar PDF:', error)
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            toast.error(`Erro: ${errorMessage}`, { id: 'pdf-generation', duration: 10000 })
         }
     }
 
