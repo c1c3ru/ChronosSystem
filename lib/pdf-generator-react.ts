@@ -25,7 +25,7 @@ export async function generateAndDownloadPDF(
         console.log('✅ PDF gerado com sucesso:', filename)
     } catch (error) {
         console.error('❌ Erro ao gerar PDF:', error)
-        throw new Error('Falha ao gerar PDF. Verifique se todos os campos estão preenchidos.')
+        throw error
     }
 }
 
