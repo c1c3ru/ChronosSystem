@@ -172,6 +172,8 @@ const styles = StyleSheet.create({
         padding: 2,
     },
     scheduleTimeCellLast: {
+        flex: 1,
+        padding: 2,
         borderRight: 0,
     },
     scheduleDataRow: {
@@ -213,6 +215,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     scheduleTimeDataLast: {
+        flex: 1,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
         borderRight: 0,
     },
     signatureSection: {
