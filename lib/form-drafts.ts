@@ -13,6 +13,9 @@ export type FormType =
   | 'extension-declaration'
   | 'professional-declaration'
   | 'semester-report'
+  | 'rescission-term'
+  | 'realization-term'
+  | 'student-evaluation'
 
 export interface FormDraftData {
   formType: FormType

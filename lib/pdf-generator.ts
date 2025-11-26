@@ -325,6 +325,42 @@ export function downloadPDFBlob(blob: Blob, filename: string): void {
 }
 
 /**
+ * Converte imagens em base64 para uso no PDF
+ */
+async function convertImagesToBase64(html: string, baseUrl: string): Promise<string> {
+  // Encontrar todas as tags img com src começando com /
+  const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
+  let result = html
+  const matches = Array.from(html.matchAll(imgRegex))
+
+  for (const match of matches) {
+    const fullTag = match[0]
+    const src = match[1]
+
+    if (src && src.startsWith('/')) {
+      try {
+        const fullUrl = `${baseUrl}${src}`
+        const response = await fetch(fullUrl)
+        const blob = await response.blob()
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        })
+
+        // Substituir o src original pelo base64
+        const newTag = fullTag.replace(src, base64)
+        result = result.replace(fullTag, newTag)
+      } catch (error) {
+        console.warn(`Não foi possível carregar imagem: ${src}`, error)
+      }
+    }
+  }
+
+  return result
+}
+
+/**
  * Gera PDF usando Puppeteer (server-side) via API
  * Melhor qualidade e suporte a múltiplas páginas
  */
@@ -333,15 +369,34 @@ export async function generatePDFWithPuppeteer(
   filename: string = 'document.pdf'
 ): Promise<void> {
   try {
-    // Obter HTML do elemento
-    const html = element.outerHTML
+    console.log('🎯 Iniciando geração de PDF...')
 
-    // Criar HTML completo com estilos
+    // Obter HTML do elemento
+    let html = element.outerHTML
+    console.log('📝 HTML obtido, tamanho:', html.length, 'caracteres')
+
+    // Obter a URL base para resolver caminhos relativos
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    console.log('🌐 URL base:', baseUrl)
+
+    // Converter imagens para base64
+    if (baseUrl) {
+      console.log('🖼️ Convertendo imagens para base64...')
+      try {
+        html = await convertImagesToBase64(html, baseUrl)
+        console.log('✅ Imagens convertidas com sucesso')
+      } catch (error) {
+        console.warn('⚠️ Erro ao converter imagens, continuando sem conversão:', error)
+      }
+    }
+
+    // Criar HTML completo com estilos do Tailwind e estilos customizados
     const fullHtml = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8">
+          <script src="https://cdn.tailwindcss.com"></script>
           <style>
             * {
               margin: 0;
@@ -363,6 +418,19 @@ export async function generatePDFWithPuppeteer(
                 print-color-adjust: exact;
               }
             }
+            /* Estilos para tabelas oficiais */
+            .official-table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              border: 1px solid black; 
+              font-size: 8pt; 
+              margin-bottom: 10px; 
+            }
+            .official-table td { 
+              border: 1px solid black; 
+              padding: 2px 4px; 
+              vertical-align: top; 
+            }
           </style>
         </head>
         <body>
@@ -370,6 +438,8 @@ export async function generatePDFWithPuppeteer(
         </body>
       </html>
     `
+
+    console.log('📄 Enviando HTML para geração de PDF...', 'Tamanho do HTML:', fullHtml.length)
 
     // Chamar API para gerar PDF
     const response = await fetch('/api/pdf/generate', {
@@ -383,12 +453,25 @@ export async function generatePDFWithPuppeteer(
       })
     })
 
+    console.log('📡 Resposta recebida, status:', response.status)
+
     if (!response.ok) {
-      throw new Error('Falha ao gerar PDF')
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      console.error('❌ Erro da API:', errorData)
+      throw new Error(`Falha ao gerar PDF: ${errorData.error || response.statusText}`)
     }
+
+    console.log('✅ Resposta OK, obtendo blob...')
 
     // Obter blob do PDF
     const blob = await response.blob()
+
+    console.log('📦 Blob obtido, tamanho:', blob.size, 'bytes')
+
+    // Verificar se o blob é válido
+    if (blob.size === 0) {
+      throw new Error('PDF gerado está vazio')
+    }
 
     // Fazer download
     downloadPDFBlob(blob, filename)
@@ -396,6 +479,7 @@ export async function generatePDFWithPuppeteer(
     console.log('✅ PDF gerado com Puppeteer:', filename)
   } catch (error) {
     console.error('❌ Erro ao gerar PDF com Puppeteer:', error)
-    throw new Error('Falha ao gerar PDF. Tente novamente.')
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    throw new Error(`Falha ao gerar PDF: ${errorMessage}`)
   }
 }
