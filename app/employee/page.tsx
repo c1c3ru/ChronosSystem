@@ -695,7 +695,7 @@ export default function EmployeePage() {
           )}
 
           {/* Main Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start">
             {/* QR Code Scanner */}
             <Card variant="glass" className={`group hover:scale-105 transition-all duration-200 h-full ${workStatus?.isWorking
               ? 'border-2 border-warning/50 shadow-lg shadow-warning/20'
@@ -910,51 +910,55 @@ export default function EmployeePage() {
 
                 <div className="space-y-2">
                   <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Cadastro de Estágio</span>
+                    <span>Ficha de Cadastro de Estágio</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/internship-registration-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>Solicitação de Cadastro de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo de Compromisso</span>
+                    <span>Termo de Compromisso de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Relatório Final</span>
+                    <span>Relatório Final de Atividades</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Relatório Mensal</span>
+                    <span>Relatório Mensal de Atividades</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Relatório Semestral</span>
+                    <span>Relatório Semestral de Atividades</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo Aditivo</span>
+                    <span>Termo Aditivo ao Termo de Compromisso</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Solicitação de Equiparação</span>
+                    <span>Solicitação de Equivalência de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Declaração Profissional</span>
+                    <span>Declaração de Atividades Profissionais</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Declaração de Extensão</span>
+                    <span>Declaração de Atividade de Extensão</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/rescission-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo de Rescisão</span>
+                    <span>Termo de Rescisão de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/realization-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo de Realização</span>
+                    <span>Termo de Realização de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/student-evaluation" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Ficha de Avaliação</span>
+                    <span>Ficha de Avaliação de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
@@ -963,8 +967,8 @@ export default function EmployeePage() {
 
             {/* Justifications */}
             <Link href="/employee/justifications">
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer h-full">
-                <CardContent className="p-8 text-center flex flex-col h-full">
+              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                <CardContent className="p-8 text-center flex flex-col">
                   <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
                     <AlertTriangle className="h-10 w-10 text-warning" />
                   </div>
@@ -974,7 +978,6 @@ export default function EmployeePage() {
                   <p className="text-neutral-400 text-sm mb-6">
                     Justifique atrasos e faltas (&gt;30 min)
                   </p>
-                  <div className="flex-1"></div>
                   <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10 mt-auto">
                     Gerenciar
                   </Button>
@@ -1098,7 +1101,7 @@ export default function EmployeePage() {
             </>
           )}
         </div>
-      </div>
+      </div >
 
     </div>
   )
