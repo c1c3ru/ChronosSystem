@@ -117,3 +117,13 @@ export function formatPhone(phone: string): string {
     }
     return phone
 }
+
+/**
+ * Retorna a URL absoluta para um asset
+ */
+export const getAssetUrl = (path: string): string => {
+    if (typeof window !== 'undefined') {
+        return `${window.location.origin}${path}`
+    }
+    return path
+}
