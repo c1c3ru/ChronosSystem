@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
         borderRight: 0,
     },
     textBox: {
+        width: '100%',
         borderWidth: 1, borderStyle: 'solid',
         borderColor: '#000',
         padding: 8,
@@ -403,7 +404,7 @@ export const FinalReportDocument: React.FC<FinalReportDocumentProps> = ({ data }
                 {/* Atividades */}
                 <Text style={styles.sectionHeader}>PRINCIPAIS ATIVIDADES DESENVOLVIDAS NO ESTÁGIO DURANTE O PERÍODO</Text>
                 <View style={styles.textBox}>
-                    <Text>{data.activities}</Text>
+                    <Text style={{ width: '100%' }}>{data.activities}</Text>
                 </View>
             </Page>
 
