@@ -67,9 +67,11 @@ export default function RescissionTermPage() {
 
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+            const { printElementAsPDF } = await import('@/lib/pdf-generator')
 
-            await generatePDFWithPuppeteer(templateRef.current, 'termo-rescisao-estagio.pdf')
+            await printElementAsPDF(templateRef.current, {
+                filename: 'termo-rescisao-estagio.pdf'
+            })
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {

@@ -67,9 +67,11 @@ export default function RealizationTermPage() {
 
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+            const { printElementAsPDF } = await import('@/lib/pdf-generator')
 
-            await generatePDFWithPuppeteer(templateRef.current, 'termo-realizacao-estagio.pdf')
+            await printElementAsPDF(templateRef.current, {
+                filename: 'termo-realizacao-estagio.pdf'
+            })
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {

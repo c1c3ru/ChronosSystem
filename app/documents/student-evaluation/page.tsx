@@ -61,9 +61,11 @@ export default function StudentEvaluationPage() {
 
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generatePDFWithPuppeteer } = await import('@/lib/pdf-generator')
+            const { printElementAsPDF } = await import('@/lib/pdf-generator')
 
-            await generatePDFWithPuppeteer(templateRef.current, 'ficha-avaliacao-estagiario.pdf')
+            await printElementAsPDF(templateRef.current, {
+                filename: 'ficha-avaliacao-estagiario.pdf'
+            })
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {
