@@ -1,4 +1,5 @@
 import React from 'react'
+import { getAssetUrl } from '@/lib/pdf-generator-react'
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
 import { commonStyles, formatDate } from '@/lib/pdf-styles-react'
 
@@ -26,14 +27,14 @@ export const ProfessionalDeclarationDocument: React.FC<ProfessionalDeclarationDo
     <Document>
         <Page size="A4" style={commonStyles.page}>
             <View style={commonStyles.header}>
-                <Image src="/assets/logoifce.png" style={commonStyles.logo} />
+                <Image src={getAssetUrl("/assets/logoifce.png")} style={commonStyles.logo} />
                 <View style={commonStyles.headerCenter}>
                     <Text style={commonStyles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
                     <Text style={commonStyles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
                     <Text style={commonStyles.headerSubtitle}>IFCE Campus Maracanaú</Text>
                     <Text style={commonStyles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
                 </View>
-                <Image src="/assets/brasao.png" style={commonStyles.logo} />
+                <Image src={getAssetUrl("/assets/brasao.png")} style={commonStyles.logo} />
             </View>
 
             <Text style={commonStyles.title}>DECLARAÇÃO DE ATIVIDADES PROFISSIONAIS</Text>

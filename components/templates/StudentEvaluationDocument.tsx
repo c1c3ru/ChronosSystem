@@ -1,4 +1,5 @@
 import React from 'react'
+import { getAssetUrl } from '@/lib/pdf-generator-react'
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer'
 import { commonStyles, formatDate } from '@/lib/pdf-styles-react'
 
@@ -40,9 +41,9 @@ const styles = StyleSheet.create({
     evaluationHeader: {
         flexDirection: 'row',
         backgroundColor: '#e0e0e0',
-        borderTop: 1,
-        borderLeft: 1,
-        borderRight: 1,
+        borderTopWidth: 1, borderTopStyle: 'solid',
+        borderLeftWidth: 1, borderLeftStyle: 'solid',
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     evaluationHeaderCell: {
@@ -50,21 +51,21 @@ const styles = StyleSheet.create({
         fontSize: 7,
         fontFamily: 'Helvetica-Bold',
         textAlign: 'center',
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     evaluationRow: {
         flexDirection: 'row',
-        borderBottom: 1,
-        borderLeft: 1,
-        borderRight: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
+        borderLeftWidth: 1, borderLeftStyle: 'solid',
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     evaluationLabel: {
         width: '60%',
         padding: 4,
         fontSize: 8,
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     evaluationCell: {
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
         fontSize: 8,
         fontFamily: 'Helvetica-Bold',
         textAlign: 'center',
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     evaluationCellLast: {
@@ -85,11 +86,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         fontSize: 8,
         textAlign: 'center',
-        border: 1,
+        borderWidth: 1, borderStyle: 'solid',
         borderColor: '#000',
     },
     recommendationBox: {
-        border: 1,
+        borderWidth: 1, borderStyle: 'solid',
         borderColor: '#000',
         padding: 8,
         marginBottom: 15,
@@ -121,14 +122,14 @@ export const StudentEvaluationDocument: React.FC<StudentEvaluationDocumentProps>
         <Page size="A4" style={commonStyles.page}>
             {/* Cabeçalho */}
             <View style={commonStyles.header}>
-                <Image src="/assets/logoifce.png" style={commonStyles.logo} />
+                <Image src={getAssetUrl("/assets/logoifce.png")} style={commonStyles.logo} />
                 <View style={commonStyles.headerCenter}>
                     <Text style={commonStyles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
                     <Text style={commonStyles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
                     <Text style={commonStyles.headerSubtitle}>IFCE Campus Maracanaú</Text>
                     <Text style={commonStyles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
                 </View>
-                <Image src="/assets/brasao.png" style={commonStyles.logo} />
+                <Image src={getAssetUrl("/assets/brasao.png")} style={commonStyles.logo} />
             </View>
 
             <Text style={commonStyles.title}>FICHA DE AVALIAÇÃO DO DISCENTE ESTAGIÁRIO</Text>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { getAssetUrl } from '@/lib/pdf-generator-react'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface InternshipRegistrationRequestData {
@@ -118,17 +119,17 @@ const styles = StyleSheet.create({
     table: {
         width: '100%',
         marginBottom: 10,
-        border: 1,
+        borderWidth: 1, borderStyle: 'solid',
         borderColor: '#000',
     },
     tableRow: {
         flexDirection: 'row',
-        borderBottom: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
         borderColor: '#000',
     },
     tableCell: {
         padding: 4,
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
         fontSize: 7,
     },
@@ -152,9 +153,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Helvetica-Bold',
         textAlign: 'center',
         textTransform: 'uppercase',
-        borderTop: 1,
-        borderLeft: 1,
-        borderRight: 1,
+        borderTopWidth: 1, borderTopStyle: 'solid',
+        borderLeftWidth: 1, borderLeftStyle: 'solid',
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     checkboxContainer: {
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     checkbox: {
         width: 8,
         height: 8,
-        border: 1,
+        borderWidth: 1, borderStyle: 'solid',
         borderColor: '#000',
         marginRight: 4,
         justifyContent: 'center',
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
         fontSize: 7,
     },
     scheduleTable: {
-        borderBottom: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
         borderColor: '#000',
     },
     scheduleHeader: {
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         backgroundColor: '#e0e0e0',
         padding: 2,
-        borderBottom: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
         borderColor: '#000',
     },
     scheduleHeaderRow: {
@@ -200,12 +201,12 @@ const styles = StyleSheet.create({
         fontFamily: 'Helvetica-Bold',
         textTransform: 'uppercase',
         textAlign: 'center',
-        borderBottom: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
         borderColor: '#000',
     },
     scheduleTurnLabel: {
         width: '8%',
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
         padding: 4,
         justifyContent: 'center',
@@ -213,14 +214,14 @@ const styles = StyleSheet.create({
     },
     scheduleDayColumn: {
         flex: 1,
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     scheduleDayColumnLast: {
         borderRight: 0,
     },
     scheduleDayName: {
-        borderBottom: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
         borderColor: '#000',
         padding: 2,
     },
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     },
     scheduleTimeCell: {
         flex: 1,
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
         padding: 2,
     },
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         fontSize: 7,
         textAlign: 'center',
-        borderBottom: 1,
+        borderBottomWidth: 1, borderBottomStyle: 'solid',
         borderColor: '#000',
         minHeight: 18,
     },
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     },
     scheduleTurnCell: {
         width: '8%',
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
         padding: 2,
         fontFamily: 'Helvetica-Bold',
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
     scheduleDayData: {
         flex: 1,
         flexDirection: 'row',
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
     },
     scheduleDayDataLast: {
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
     },
     scheduleTimeData: {
         flex: 1,
-        borderRight: 1,
+        borderRightWidth: 1, borderRightStyle: 'solid',
         borderColor: '#000',
         padding: 2,
         justifyContent: 'center',
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     signatureLine: {
-        borderTop: 1,
+        borderTopWidth: 1, borderTopStyle: 'solid',
         borderColor: '#000',
         paddingTop: 4,
         fontSize: 7,
@@ -324,14 +325,14 @@ export const InternshipRegistrationRequestDocument: React.FC<InternshipRegistrat
             <Page size="A4" style={styles.page}>
                 {/* Cabeçalho */}
                 <View style={styles.header}>
-                    <Image src="/assets/logoifce.png" style={styles.logo} />
+                    <Image src={getAssetUrl("/assets/logoifce.png")} style={styles.logo} />
                     <View style={styles.headerCenter}>
                         <Text style={styles.headerTitle}>Pró-Reitoria de Extensão</Text>
                         <Text style={styles.headerTitle}>Coordenação de Estágios e Acompanhamento de Egressos</Text>
                         <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
                         <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
                     </View>
-                    <Image src="/assets/brasao.png" style={styles.logo} />
+                    <Image src={getAssetUrl("/assets/brasao.png")} style={styles.logo} />
                 </View>
 
                 <Text style={styles.mainTitle}>Solicitação de Cadastro no Estágio</Text>
