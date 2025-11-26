@@ -62,9 +62,12 @@ export const commonStyles = StyleSheet.create({
         fontFamily: 'Helvetica-Bold',
         textAlign: 'center',
         textTransform: 'uppercase',
-        borderTop: 1,
-        borderLeft: 1,
-        borderRight: 1,
+        borderTopWidth: 1,
+        borderTopStyle: 'solid',
+        borderLeftWidth: 1,
+        borderLeftStyle: 'solid',
+        borderRightWidth: 1,
+        borderRightStyle: 'solid',
         borderColor: '#000',
     },
 
@@ -72,51 +75,45 @@ export const commonStyles = StyleSheet.create({
     table: {
         width: '100%',
         marginBottom: 10,
-        border: 1,
+        borderWidth: 1,
+        borderStyle: 'solid',
         borderColor: '#000',
     },
     tableRow: {
         flexDirection: 'row',
-        borderBottom: 1,
+        borderBottomWidth: 1,
+        borderBottomStyle: 'solid',
         borderColor: '#000',
     },
     tableRowNoBorder: {
         flexDirection: 'row',
-        borderBottom: 0,
+        borderBottomWidth: 0,
     },
     tableCell: {
         padding: 4,
-        borderRight: 1,
+        borderRightWidth: 1,
+        borderRightStyle: 'solid',
         borderColor: '#000',
         fontSize: 7,
     },
     tableCellLast: {
-        borderRight: 0,
+        borderRightWidth: 0,
     },
     tableCellHeader: {
         backgroundColor: '#e0e0e0',
         padding: 4,
-        borderRight: 1,
+        borderRightWidth: 1,
+        borderRightStyle: 'solid',
         borderColor: '#000',
         fontSize: 7,
         fontFamily: 'Helvetica-Bold',
         textAlign: 'center',
     },
 
-    // Labels e valores
-    label: {
-        fontSize: 6,
-        fontFamily: 'Helvetica-Bold',
-        textTransform: 'uppercase',
-        marginBottom: 2,
-    },
-    value: {
-        fontSize: 8,
-    },
-
     // Caixas de texto
     textBox: {
-        border: 1,
+        borderWidth: 1,
+        borderStyle: 'solid',
         borderColor: '#000',
         padding: 8,
         fontSize: 9,
@@ -125,7 +122,8 @@ export const commonStyles = StyleSheet.create({
         textAlign: 'justify',
     },
     textBoxSmall: {
-        border: 1,
+        borderWidth: 1,
+        borderStyle: 'solid',
         borderColor: '#000',
         padding: 6,
         fontSize: 8,
@@ -133,57 +131,10 @@ export const commonStyles = StyleSheet.create({
         marginBottom: 10,
     },
 
-    // Parágrafos
-    paragraph: {
-        fontSize: 10,
-        textAlign: 'justify',
-        marginBottom: 15,
-        lineHeight: 1.5,
-    },
-    paragraphSmall: {
-        fontSize: 9,
-        textAlign: 'justify',
-        marginBottom: 10,
-        lineHeight: 1.4,
-    },
-    paragraphIndent: {
-        fontSize: 10,
-        textAlign: 'justify',
-        marginBottom: 15,
-        lineHeight: 1.5,
-        textIndent: 30,
-    },
-
-    // Alinhamentos
-    textCenter: {
-        textAlign: 'center',
-    },
-    textRight: {
-        textAlign: 'right',
-    },
-    textJustify: {
-        textAlign: 'justify',
-    },
-
-    // Data
-    dateRight: {
-        fontSize: 10,
-        textAlign: 'right',
-        marginBottom: 30,
-    },
-    dateCenter: {
-        fontSize: 10,
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-
     // Assinaturas
-    signatureBlock: {
-        marginTop: 40,
-        marginBottom: 20,
-    },
     signatureLine: {
-        borderTop: 1,
+        borderTopWidth: 1,
+        borderTopStyle: 'solid',
         borderColor: '#000',
         paddingTop: 5,
         width: '66%',
@@ -193,7 +144,8 @@ export const commonStyles = StyleSheet.create({
         marginBottom: 30,
     },
     signatureLineSmall: {
-        borderTop: 1,
+        borderTopWidth: 1,
+        borderTopStyle: 'solid',
         borderColor: '#000',
         paddingTop: 5,
         width: '50%',
@@ -203,67 +155,30 @@ export const commonStyles = StyleSheet.create({
         marginBottom: 25,
     },
 
-    // Estilos de texto
-    bold: {
-        fontFamily: 'Helvetica-Bold',
-    },
-    italic: {
-        fontFamily: 'Helvetica-Oblique',
-    },
-    boldItalic: {
-        fontFamily: 'Helvetica-BoldOblique',
-    },
-    underline: {
-        textDecoration: 'underline',
-    },
-
-    // Espaçamentos
-    mb5: { marginBottom: 5 },
-    mb10: { marginBottom: 10 },
-    mb15: { marginBottom: 15 },
-    mb20: { marginBottom: 20 },
-    mt5: { marginTop: 5 },
-    mt10: { marginTop: 10 },
-    mt15: { marginTop: 15 },
-    mt20: { marginTop: 20 },
-
-    // Containers
-    row: {
-        flexDirection: 'row',
-    },
-    column: {
-        flexDirection: 'column',
-    },
-    spaceBetween: {
-        justifyContent: 'space-between',
-    },
-    spaceAround: {
-        justifyContent: 'space-around',
-    },
-    center: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
     // Bordas
     border: {
-        border: 1,
+        borderWidth: 1,
+        borderStyle: 'solid',
         borderColor: '#000',
     },
     borderTop: {
-        borderTop: 1,
+        borderTopWidth: 1,
+        borderTopStyle: 'solid',
         borderColor: '#000',
     },
     borderBottom: {
-        borderBottom: 1,
+        borderBottomWidth: 1,
+        borderBottomStyle: 'solid',
         borderColor: '#000',
     },
     borderLeft: {
-        borderLeft: 1,
+        borderLeftWidth: 1,
+        borderLeftStyle: 'solid',
         borderColor: '#000',
     },
     borderRight: {
-        borderRight: 1,
+        borderRightWidth: 1,
+        borderRightStyle: 'solid',
         borderColor: '#000',
     },
 
@@ -271,7 +186,8 @@ export const commonStyles = StyleSheet.create({
     checkbox: {
         width: 10,
         height: 10,
-        border: 1,
+        borderWidth: 1,
+        borderStyle: 'solid',
         borderColor: '#000',
         marginRight: 5,
         textAlign: 'center',
