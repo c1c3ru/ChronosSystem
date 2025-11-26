@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
         minHeight: 10,
     },
     textBox: {
+        width: '100%',
         borderWidth: 1, borderStyle: 'solid',
         borderColor: '#000',
         padding: 8,
@@ -388,7 +389,7 @@ export const EquivalenceRequestDocument: React.FC<EquivalenceRequestDocumentProp
             {/* Descrição das Atividades */}
             <Text style={styles.sectionHeader}>DESCRIÇÃO DAS ATIVIDADES DESENVOLVIDAS</Text>
             <View style={styles.textBox}>
-                <Text>{data.activities}</Text>
+                <Text style={{ width: '100%' }}>{data.activities}</Text>
             </View>
 
             {/* Período de Realização */}
