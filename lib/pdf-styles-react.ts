@@ -110,6 +110,17 @@ export const commonStyles = StyleSheet.create({
         textAlign: 'center',
     },
 
+    // Labels e valores
+    label: {
+        fontSize: 6,
+        fontFamily: 'Helvetica-Bold',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    value: {
+        fontSize: 8,
+    },
+
     // Caixas de texto
     textBox: {
         borderWidth: 1,
@@ -129,6 +140,56 @@ export const commonStyles = StyleSheet.create({
         fontSize: 8,
         minHeight: 60,
         marginBottom: 10,
+    },
+
+    // Parágrafos
+    paragraph: {
+        fontSize: 10,
+        textAlign: 'justify',
+        marginBottom: 15,
+        lineHeight: 1.5,
+    },
+    paragraphSmall: {
+        fontSize: 9,
+        textAlign: 'justify',
+        marginBottom: 10,
+        lineHeight: 1.4,
+    },
+    paragraphIndent: {
+        fontSize: 10,
+        textAlign: 'justify',
+        marginBottom: 15,
+        lineHeight: 1.5,
+        textIndent: 30,
+    },
+
+    // Alinhamentos
+    textCenter: {
+        textAlign: 'center',
+    },
+    textRight: {
+        textAlign: 'right',
+    },
+    textJustify: {
+        textAlign: 'justify',
+    },
+
+    // Data
+    dateRight: {
+        fontSize: 10,
+        textAlign: 'right',
+        marginBottom: 30,
+    },
+    dateCenter: {
+        fontSize: 10,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+
+    // Assinaturas
+    signatureBlock: {
+        marginTop: 40,
+        marginBottom: 20,
     },
 
     // Assinaturas
@@ -153,6 +214,48 @@ export const commonStyles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 7,
         marginBottom: 25,
+    },
+
+    // Estilos de texto
+    bold: {
+        fontFamily: 'Helvetica-Bold',
+    },
+    italic: {
+        fontFamily: 'Helvetica-Oblique',
+    },
+    boldItalic: {
+        fontFamily: 'Helvetica-BoldOblique',
+    },
+    underline: {
+        textDecoration: 'underline',
+    },
+
+    // Espaçamentos
+    mb5: { marginBottom: 5 },
+    mb10: { marginBottom: 10 },
+    mb15: { marginBottom: 15 },
+    mb20: { marginBottom: 20 },
+    mt5: { marginTop: 5 },
+    mt10: { marginTop: 10 },
+    mt15: { marginTop: 15 },
+    mt20: { marginTop: 20 },
+
+    // Containers
+    row: {
+        flexDirection: 'row',
+    },
+    column: {
+        flexDirection: 'column',
+    },
+    spaceBetween: {
+        justifyContent: 'space-between',
+    },
+    spaceAround: {
+        justifyContent: 'space-around',
+    },
+    center: {
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     // Bordas
