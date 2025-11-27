@@ -102,6 +102,21 @@ export default withAuth(
     }
 
     // ========================================
+    // REDIRECIONAMENTO DE /DASHBOARD PARA DASHBOARD ESPECÍFICO
+    // ========================================
+    if (pathname === '/dashboard') {
+      logger.debug('Redirecting from /dashboard to role-specific dashboard', {
+        userId: token.sub,
+        role
+      })
+      if (role === 'ADMIN' || role === 'SUPERVISOR') {
+        return NextResponse.redirect(new URL('/admin', req.url))
+      } else if (role === 'EMPLOYEE') {
+        return NextResponse.redirect(new URL('/employee', req.url))
+      }
+    }
+
+    // ========================================
     // CONTROLE DE ACESSO BASEADO EM ROLES
     // ========================================
     // Definição de rotas por role

@@ -226,10 +226,10 @@ export const authOptions: NextAuthOptions = {
         console.log('❌ [REDIRECT] Erro ao parsear URL:', error)
       }
 
-      // Fallback para baseUrl (página inicial)
+      // Fallback: redirecionar para dashboard baseado no role
       // O middleware irá redirecionar conforme role e profileComplete
-      console.log('🏠 [REDIRECT] Fallback para baseUrl:', baseUrl)
-      return baseUrl
+      console.log('🏠 [REDIRECT] Fallback - redirecionando para dashboard')
+      return `${baseUrl}/dashboard`
     },
   },
   secret: NEXTAUTH_SECRET!,
