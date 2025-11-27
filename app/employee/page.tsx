@@ -908,35 +908,69 @@ export default function EmployeePage() {
                 </p>
                 <div className="flex-1"></div>
 
+
                 <div className="space-y-2">
-                  <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Ficha de Cadastro de Estágio</span>
+                  {/* FASE 1: CADASTRO E INÍCIO */}
+                  <a href="/documents/internship-registration-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>1. Solicitação de Cadastro de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/internship-registration-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Solicitação de Cadastro de Estágio</span>
+                  <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>2. Ficha de Cadastro de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo de Compromisso de Estágio</span>
+                    <span>3. Termo de Compromisso de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Relatório Final de Atividades</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
+
+                  {/* FASE 2: ACOMPANHAMENTO */}
+                  <div className="border-t border-neutral-700/50 my-2 pt-2">
+                    <p className="text-xs text-neutral-500 uppercase font-semibold mb-2 px-2">Acompanhamento</p>
+                  </div>
                   <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Relatório Mensal de Atividades</span>
+                    <span>4. Relatório Mensal de Atividades</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Relatório Semestral de Atividades</span>
+                    <span>5. Relatório Semestral de Atividades</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
+                  <a href="/documents/student-evaluation" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>6. Ficha de Avaliação de Estágio</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+
+                  {/* FASE 3: ALTERAÇÕES */}
+                  <div className="border-t border-neutral-700/50 my-2 pt-2">
+                    <p className="text-xs text-neutral-500 uppercase font-semibold mb-2 px-2">Alterações</p>
+                  </div>
                   <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo Aditivo ao Termo de Compromisso</span>
+                    <span>7. Termo Aditivo ao Termo de Compromisso</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
+
+                  {/* FASE 4: FINALIZAÇÃO */}
+                  <div className="border-t border-neutral-700/50 my-2 pt-2">
+                    <p className="text-xs text-neutral-500 uppercase font-semibold mb-2 px-2">Finalização</p>
+                  </div>
+                  <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>8. Relatório Final de Atividades</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/realization-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>9. Termo de Realização de Estágio</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a href="/documents/rescission-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                    <span>10. Termo de Rescisão de Estágio</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+
+                  {/* CASOS ESPECIAIS */}
+                  <div className="border-t border-neutral-700/50 my-2 pt-2">
+                    <p className="text-xs text-neutral-500 uppercase font-semibold mb-2 px-2">Casos Especiais</p>
+                  </div>
                   <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                     <span>Solicitação de Equivalência de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
@@ -947,18 +981,6 @@ export default function EmployeePage() {
                   </a>
                   <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
                     <span>Declaração de Atividade de Extensão</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                  <a href="/documents/rescission-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo de Rescisão de Estágio</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                  <a href="/documents/realization-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Termo de Realização de Estágio</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                  <a href="/documents/student-evaluation" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
-                    <span>Ficha de Avaliação de Estágio</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
