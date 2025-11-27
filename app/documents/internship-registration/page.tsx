@@ -82,6 +82,8 @@ export default function InternshipRegistrationPage() {
       // Adicionar schedule ao data
       data.schedule = JSON.stringify(schedule)
 
+      console.log('📋 Dados do formulário:', data)
+
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
       const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')

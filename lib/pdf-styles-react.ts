@@ -119,6 +119,7 @@ export const commonStyles = StyleSheet.create({
     },
     value: {
         fontSize: 8,
+        minHeight: 12,
     },
 
     // Caixas de texto
