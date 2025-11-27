@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { RescissionTermDocument } from '@/components/templates/RescissionTermDocument'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
 
 export default function RescissionTermPage() {
     const formRef = useRef<HTMLFormElement>(null)
@@ -30,7 +31,25 @@ export default function RescissionTermPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
-        setFormData((prev: any) => ({ ...prev, [name]: value }))
+    let maskedValue = value
+
+    // Aplicar máscaras baseado no nome do campo
+    if (name.includes('cpf')) {
+      maskedValue = maskCPF(value)
+    } else if (name.includes('cnpj')) {
+      maskedValue = maskCNPJ(value)
+    } else if (name.includes('zip') || name.includes('cep')) {
+      maskedValue = maskCEP(value)
+    } else if (name.includes('phone') || name.includes('telefone')) {
+      maskedValue = maskPhone(value)
+    }
+
+    // Atualizar o valor do input com a máscara
+    if (maskedValue !== value && e.target instanceof HTMLInputElement) {
+      e.target.value = maskedValue
+    }
+
+        setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }
 
     const handleSaveDraft = async () => {

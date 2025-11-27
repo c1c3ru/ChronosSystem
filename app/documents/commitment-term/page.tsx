@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { CommitmentTermDocument } from '@/components/templates/CommitmentTermDocument'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
 
 export default function CommitmentTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -94,7 +95,25 @@ export default function CommitmentTermPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    let maskedValue = value
+
+    // Aplicar máscaras baseado no nome do campo
+    if (name.includes('cpf')) {
+      maskedValue = maskCPF(value)
+    } else if (name.includes('cnpj')) {
+      maskedValue = maskCNPJ(value)
+    } else if (name.includes('zip') || name.includes('cep')) {
+      maskedValue = maskCEP(value)
+    } else if (name.includes('phone') || name.includes('telefone')) {
+      maskedValue = maskPhone(value)
+    }
+
+    // Atualizar o valor do input com a máscara
+    if (maskedValue !== value && e.target instanceof HTMLInputElement) {
+      e.target.value = maskedValue
+    }
+
+    setFormData(prev => ({ ...prev, [name]: maskedValue }))
   }
 
   const handleScheduleChange = (shift: string, day: string, value: string) => {
