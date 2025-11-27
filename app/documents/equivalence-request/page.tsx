@@ -66,8 +66,8 @@ export default function EquivalenceRequestPage() {
     if (!formRef.current) return
 
     setIsSaving(true)
-    const currentFormData = new FormData(formRef.current)
-    const data = Object.fromEntries(currentFormData.entries())
+    // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
 
     // Checkboxes
     const checkboxes = ['doc_work_card', 'doc_service_declaration', 'doc_activities_declaration', 'doc_other']
@@ -85,8 +85,8 @@ export default function EquivalenceRequestPage() {
     try {
       if (!formRef.current) return
 
-      const currentFormData = new FormData(formRef.current)
-      const data = Object.fromEntries(currentFormData.entries())
+      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
 
       // Adicionar data atual se não estiver presente
       const now = new Date()

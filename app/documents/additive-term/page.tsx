@@ -67,8 +67,8 @@ export default function AdditiveTermPage() {
     if (!formRef.current) return
 
     setIsSaving(true)
-    const currentFormData = new FormData(formRef.current)
-    const data = Object.fromEntries(currentFormData.entries())
+    // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+    const data: any = { ...formData }
 
     // Garantir que checkboxes não marcados sejam salvos como false
     const checkboxes = ['additive_type_prorogation', 'additive_type_allowance', 'additive_type_supervisor', 'additive_type_schedule', 'additive_type_other']
@@ -86,8 +86,8 @@ export default function AdditiveTermPage() {
     try {
       if (!formRef.current) return
 
-      const currentFormData = new FormData(formRef.current)
-      const data = Object.fromEntries(currentFormData.entries())
+      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
 
       // Processar checkboxes
       const checkboxes = ['additive_type_prorogation', 'additive_type_allowance', 'additive_type_supervisor', 'additive_type_schedule', 'additive_type_other']

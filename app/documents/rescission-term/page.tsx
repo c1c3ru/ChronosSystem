@@ -56,8 +56,8 @@ export default function RescissionTermPage() {
         if (!formRef.current) return
 
         setIsSaving(true)
-        const currentFormData = new FormData(formRef.current)
-        const data = Object.fromEntries(currentFormData.entries())
+        // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
 
         await saveDraft('rescission-term', data)
         toast.success('Rascunho salvo com sucesso!')
@@ -68,8 +68,8 @@ export default function RescissionTermPage() {
         try {
             if (!formRef.current) return
 
-            const currentFormData = new FormData(formRef.current)
-            const data = Object.fromEntries(currentFormData.entries())
+            // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
 
             // Adicionar data atual se não estiver presente
             const now = new Date()

@@ -78,8 +78,8 @@ export default function InternshipRegistrationPage() {
     if (!formRef.current) return
 
     setIsSaving(true)
-    const currentFormData = new FormData(formRef.current)
-    const data = Object.fromEntries(currentFormData.entries())
+    // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
 
     // Adicionar schedule
     data.schedule = JSON.stringify(schedule)
@@ -93,11 +93,11 @@ export default function InternshipRegistrationPage() {
     try {
       if (!formRef.current) return
 
-      const currentFormData = new FormData(formRef.current)
-      const data = Object.fromEntries(currentFormData.entries())
-
-      // Adicionar schedule ao data
-      data.schedule = JSON.stringify(schedule)
+      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data = {
+        ...formData,
+        schedule: JSON.stringify(schedule)
+      }
 
       console.log('📋 Dados do formulário:', data)
 
