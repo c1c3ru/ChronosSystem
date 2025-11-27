@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -39,13 +40,29 @@ export default function InternshipRegistrationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
+    let maskedValue = value
+
+    // Aplicar máscaras baseado no nome do campo
+    if (name.includes('cpf')) {
+      maskedValue = maskCPF(value)
+    } else if (name.includes('cnpj')) {
+      maskedValue = maskCNPJ(value)
+    } else if (name.includes('zip') || name.includes('cep')) {
+      maskedValue = maskCEP(value)
+    } else if (name.includes('phone') || name.includes('telefone')) {
+      maskedValue = maskPhone(value)
+    }
+
+    // Atualizar o valor do input com a máscara
+    if (maskedValue !== value && e.target instanceof HTMLInputElement) {
+      e.target.value = maskedValue
+    }
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      // Lógica para checkboxes exclusivos (radio behavior) se necessário
-      // Por enquanto, apenas atualiza o valor
       setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: value }))
+      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
