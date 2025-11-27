@@ -93,7 +93,7 @@ export default function CommitmentTermPage() {
     loadDraft()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     let maskedValue = value
 
@@ -199,24 +199,24 @@ export default function CommitmentTermPage() {
             <CardHeader><CardTitle className="text-lg">1. Instituição Concedente</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="company_name" value={formData.company_name} onChange={handleChange} placeholder="Razão Social" className="input w-full" />
-                <input name="company_fantasy_name" value={formData.company_fantasy_name} onChange={handleChange} placeholder="Nome Fantasia" className="input w-full" />
-                <input name="company_cnpj" value={formData.company_cnpj} onChange={handleChange} placeholder="CNPJ" className="input w-full" />
-                <input name="company_phone" value={formData.company_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
-                <input name="company_email" value={formData.company_email} onChange={handleChange} placeholder="E-mail" className="input w-full" />
+                <input name="company_name" value={formData.company_name} onChange={handleInputChange} placeholder="Razão Social" className="input w-full" />
+                <input name="company_fantasy_name" value={formData.company_fantasy_name} onChange={handleInputChange} placeholder="Nome Fantasia" className="input w-full" />
+                <input name="company_cnpj" value={formData.company_cnpj} onChange={handleInputChange} placeholder="CNPJ" className="input w-full" />
+                <input name="company_phone" value={formData.company_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
+                <input name="company_email" value={formData.company_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" />
               </div>
-              <input name="company_address" value={formData.company_address} onChange={handleChange} placeholder="Endereço Completo" className="input w-full" />
+              <input name="company_address" value={formData.company_address} onChange={handleInputChange} placeholder="Endereço Completo" className="input w-full" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input name="company_neighborhood" value={formData.company_neighborhood} onChange={handleChange} placeholder="Bairro" className="input w-full" />
-                <input name="company_city_state" value={formData.company_city_state} onChange={handleChange} placeholder="Município-UF" className="input w-full" />
-                <input name="company_zip" value={formData.company_zip} onChange={handleChange} placeholder="CEP" className="input w-full" />
+                <input name="company_neighborhood" value={formData.company_neighborhood} onChange={handleInputChange} placeholder="Bairro" className="input w-full" />
+                <input name="company_city_state" value={formData.company_city_state} onChange={handleInputChange} placeholder="Município-UF" className="input w-full" />
+                <input name="company_zip" value={formData.company_zip} onChange={handleInputChange} placeholder="CEP" className="input w-full" />
               </div>
               <h4 className="text-sm font-semibold text-neutral-300 mt-4">Representante Legal</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="company_representative" value={formData.company_representative} onChange={handleChange} placeholder="Nome do Representante" className="input w-full" />
-                <input name="company_representative_role" value={formData.company_representative_role} onChange={handleChange} placeholder="Cargo" className="input w-full" />
-                <input name="company_representative_cpf" value={formData.company_representative_cpf} onChange={handleChange} placeholder="CPF" className="input w-full" />
-                <input name="company_representative_phone" value={formData.company_representative_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
+                <input name="company_representative" value={formData.company_representative} onChange={handleInputChange} placeholder="Nome do Representante" className="input w-full" />
+                <input name="company_representative_role" value={formData.company_representative_role} onChange={handleInputChange} placeholder="Cargo" className="input w-full" />
+                <input name="company_representative_cpf" value={formData.company_representative_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" />
+                <input name="company_representative_phone" value={formData.company_representative_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
               </div>
             </CardContent>
           </Card>
@@ -226,22 +226,22 @@ export default function CommitmentTermPage() {
             <CardHeader><CardTitle className="text-lg">2. Discente Estagiário(a)</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="student_name" value={formData.student_name} onChange={handleChange} placeholder="Nome Completo" className="input w-full" />
-                <input name="student_cpf" value={formData.student_cpf} onChange={handleChange} placeholder="CPF" className="input w-full" />
-                <input name="student_social_name" value={formData.student_social_name} onChange={handleChange} placeholder="Nome Social (Opcional)" className="input w-full" />
-                <input name="student_id" value={formData.student_id} onChange={handleChange} placeholder="Matrícula" className="input w-full" />
-                <input name="student_course" value={formData.student_course} onChange={handleChange} placeholder="Curso" className="input w-full" />
+                <input name="student_name" value={formData.student_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" />
+                <input name="student_cpf" value={formData.student_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" />
+                <input name="student_social_name" value={formData.student_social_name} onChange={handleInputChange} placeholder="Nome Social (Opcional)" className="input w-full" />
+                <input name="student_id" value={formData.student_id} onChange={handleInputChange} placeholder="Matrícula" className="input w-full" />
+                <input name="student_course" value={formData.student_course} onChange={handleInputChange} placeholder="Curso" className="input w-full" />
               </div>
-              <input name="student_address" value={formData.student_address} onChange={handleChange} placeholder="Endereço Completo" className="input w-full" />
+              <input name="student_address" value={formData.student_address} onChange={handleInputChange} placeholder="Endereço Completo" className="input w-full" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input name="student_neighborhood" value={formData.student_neighborhood} onChange={handleChange} placeholder="Bairro" className="input w-full" />
-                <input name="student_city_state" value={formData.student_city_state} onChange={handleChange} placeholder="Município-UF" className="input w-full" />
-                <input name="student_zip" value={formData.student_zip} onChange={handleChange} placeholder="CEP" className="input w-full" />
+                <input name="student_neighborhood" value={formData.student_neighborhood} onChange={handleInputChange} placeholder="Bairro" className="input w-full" />
+                <input name="student_city_state" value={formData.student_city_state} onChange={handleInputChange} placeholder="Município-UF" className="input w-full" />
+                <input name="student_zip" value={formData.student_zip} onChange={handleInputChange} placeholder="CEP" className="input w-full" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input name="student_phone" value={formData.student_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
-                <input name="student_email_institutional" value={formData.student_email_institutional} onChange={handleChange} placeholder="E-mail Institucional" className="input w-full" />
-                <input name="student_email_personal" value={formData.student_email_personal} onChange={handleChange} placeholder="E-mail Pessoal" className="input w-full" />
+                <input name="student_phone" value={formData.student_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
+                <input name="student_email_institutional" value={formData.student_email_institutional} onChange={handleInputChange} placeholder="E-mail Institucional" className="input w-full" />
+                <input name="student_email_personal" value={formData.student_email_personal} onChange={handleInputChange} placeholder="E-mail Pessoal" className="input w-full" />
               </div>
             </CardContent>
           </Card>
@@ -253,7 +253,7 @@ export default function CommitmentTermPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Modalidade</label>
-                  <select name="modality" value={formData.modality} onChange={handleChange} className="input w-full">
+                  <select name="modality" value={formData.modality} onChange={handleInputChange} className="input w-full">
                     <option value="presencial">Presencial</option>
                     <option value="remota">Remota</option>
                     <option value="hibrida">Híbrida</option>
@@ -261,17 +261,17 @@ export default function CommitmentTermPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Data Início</label>
-                  <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="input w-full" />
+                  <input type="date" name="start_date" value={formData.start_date} onChange={handleInputChange} className="input w-full" />
                 </div>
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Data Fim</label>
-                  <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="input w-full" />
+                  <input type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="input w-full" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="insurance_policy" value={formData.insurance_policy} onChange={handleChange} placeholder="Nº Apólice de Seguro" className="input w-full" />
-                <input name="insurance_company" value={formData.insurance_company} onChange={handleChange} placeholder="Nome da Seguradora" className="input w-full" />
+                <input name="insurance_policy" value={formData.insurance_policy} onChange={handleInputChange} placeholder="Nº Apólice de Seguro" className="input w-full" />
+                <input name="insurance_company" value={formData.insurance_company} onChange={handleInputChange} placeholder="Nome da Seguradora" className="input w-full" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -281,7 +281,7 @@ export default function CommitmentTermPage() {
                     Possui Bolsa Auxílio?
                   </label>
                   {formData.has_grant === 'true' && (
-                    <input name="grant_value" value={formData.grant_value} onChange={handleChange} placeholder="Valor da Bolsa (R$)" className="input w-full" />
+                    <input name="grant_value" value={formData.grant_value} onChange={handleInputChange} placeholder="Valor da Bolsa (R$)" className="input w-full" />
                   )}
                 </div>
                 <div>
@@ -290,7 +290,7 @@ export default function CommitmentTermPage() {
                     Possui Auxílio Transporte?
                   </label>
                   {formData.has_transport === 'true' && (
-                    <input name="transport_value" value={formData.transport_value} onChange={handleChange} placeholder="Valor do Transporte (R$)" className="input w-full" />
+                    <input name="transport_value" value={formData.transport_value} onChange={handleInputChange} placeholder="Valor do Transporte (R$)" className="input w-full" />
                   )}
                 </div>
               </div>
@@ -304,20 +304,20 @@ export default function CommitmentTermPage() {
               <div>
                 <h4 className="text-sm font-semibold text-neutral-300 mb-2">Docente Orientador (IFCE)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input name="advisor_name" value={formData.advisor_name} onChange={handleChange} placeholder="Nome Completo" className="input w-full" />
-                  <input name="advisor_siape" value={formData.advisor_siape} onChange={handleChange} placeholder="SIAPE" className="input w-full" />
-                  <input name="advisor_phone" value={formData.advisor_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
-                  <input name="advisor_email" value={formData.advisor_email} onChange={handleChange} placeholder="E-mail" className="input w-full" />
+                  <input name="advisor_name" value={formData.advisor_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" />
+                  <input name="advisor_siape" value={formData.advisor_siape} onChange={handleInputChange} placeholder="SIAPE" className="input w-full" />
+                  <input name="advisor_phone" value={formData.advisor_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
+                  <input name="advisor_email" value={formData.advisor_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" />
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-neutral-300 mb-2">Supervisor do Estágio (Empresa)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input name="supervisor_name" value={formData.supervisor_name} onChange={handleChange} placeholder="Nome Completo" className="input w-full" />
-                  <input name="supervisor_education" value={formData.supervisor_education} onChange={handleChange} placeholder="Formação/Experiência" className="input w-full" />
-                  <input name="supervisor_cpf" value={formData.supervisor_cpf} onChange={handleChange} placeholder="CPF" className="input w-full" />
-                  <input name="supervisor_phone" value={formData.supervisor_phone} onChange={handleChange} placeholder="Telefone" className="input w-full" />
-                  <input name="supervisor_email" value={formData.supervisor_email} onChange={handleChange} placeholder="E-mail" className="input w-full" />
+                  <input name="supervisor_name" value={formData.supervisor_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" />
+                  <input name="supervisor_education" value={formData.supervisor_education} onChange={handleInputChange} placeholder="Formação/Experiência" className="input w-full" />
+                  <input name="supervisor_cpf" value={formData.supervisor_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" />
+                  <input name="supervisor_phone" value={formData.supervisor_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
+                  <input name="supervisor_email" value={formData.supervisor_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" />
                 </div>
               </div>
             </CardContent>
@@ -327,12 +327,12 @@ export default function CommitmentTermPage() {
           <Card variant="elevated">
             <CardHeader><CardTitle className="text-lg">5. Plano de Atividades</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <textarea name="activities_description" value={formData.activities_description} onChange={handleChange} rows={5} placeholder="Atividades a serem desenvolvidas (liste uma por linha)" className="input w-full" />
-              <textarea name="expected_results" value={formData.expected_results} onChange={handleChange} rows={5} placeholder="Resultados esperados (liste um por linha)" className="input w-full" />
+              <textarea name="activities_description" value={formData.activities_description} onChange={handleInputChange} rows={5} placeholder="Atividades a serem desenvolvidas (liste uma por linha)" className="input w-full" />
+              <textarea name="expected_results" value={formData.expected_results} onChange={handleInputChange} rows={5} placeholder="Resultados esperados (liste um por linha)" className="input w-full" />
 
               <div>
                 <label className="block text-sm text-neutral-400 mb-2">Carga Horária Semanal (Horas)</label>
-                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleChange} className="input w-full md:w-1/3" />
+                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleInputChange} className="input w-full md:w-1/3" />
               </div>
 
               <div className="overflow-x-auto">
