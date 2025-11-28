@@ -271,9 +271,21 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
         throw new Error('getUserMedia não é suportado neste navegador. Use HTTPS ou um navegador moderno.')
       }
 
+      // Detectar se é mobile
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      console.log('📱 [DEVICE] Tipo de dispositivo:', isMobile ? 'Mobile' : 'Desktop')
+      console.log('🌐 [BROWSER] User Agent:', navigator.userAgent)
+
       // Verificar se estamos em contexto seguro (HTTPS ou localhost)
-      if (location.protocol !== 'https:' && !location.hostname.includes('localhost') && location.hostname !== '127.0.0.1') {
-        throw new Error('Acesso à câmera requer HTTPS. Por favor, acesse o site via HTTPS.')
+      const isSecureContext = location.protocol === 'https:' || location.hostname.includes('localhost') || location.hostname === '127.0.0.1'
+      console.log('🔒 [SECURITY] Contexto seguro:', isSecureContext, '(Protocol:', location.protocol, ')')
+
+      if (!isSecureContext) {
+        if (isMobile) {
+          throw new Error('🔒 HTTPS obrigatório em dispositivos móveis. Acesse via https:// para usar a câmera.')
+        } else {
+          throw new Error('🔒 Acesso à câmera requer HTTPS. Por favor, acesse o site via HTTPS.')
+        }
       }
 
       // Parar stream anterior se existir
