@@ -24,6 +24,18 @@ export const maskRG = (value: string): string => {
         .replace(/(-\d{1})\d+?$/, '$1')
 }
 
+/**
+ * Máscara para CTPS (Carteira de Trabalho)
+ * Formato: XXXXXXX/XXXX-X
+ */
+export const maskCTPS = (value: string): string => {
+    return value
+        .replace(/\D/g, '')
+        .replace(/(\d{7})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d)/, '$1-$2')
+        .replace(/(-\d{1})\d+?$/, '$1')
+}
+
 export const maskCNPJ = (value: string): string => {
     return value
         .replace(/\D/g, '')

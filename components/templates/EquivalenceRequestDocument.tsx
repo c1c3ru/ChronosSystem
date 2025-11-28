@@ -221,7 +221,8 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     parecerBox: {
-        border: 2,
+        borderWidth: 2,
+        borderStyle: 'solid',
         borderColor: '#000',
         padding: 15,
         marginTop: 15,

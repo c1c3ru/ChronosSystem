@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationRequestDocument } from '@/components/templates/InternshipRegistrationRequestDocument'
-import { maskCPF, maskRG, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 /**
  * Página de Solicitação de Cadastro no Estágio
@@ -118,6 +118,8 @@ export default function InternshipRegistrationRequestPage() {
       maskedValue = maskCPF(value)
     } else if (name.includes('rg')) {
       maskedValue = maskRG(value)
+    } else if (name.includes('ctps') || name.includes('carteira')) {
+      maskedValue = maskCTPS(value)
     } else if (name.includes('cnpj')) {
       maskedValue = maskCNPJ(value)
     } else if (name.includes('zip') || name.includes('cep')) {

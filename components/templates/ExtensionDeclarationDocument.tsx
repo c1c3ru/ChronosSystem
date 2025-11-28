@@ -10,7 +10,7 @@ interface ExtensionDeclarationDocumentProps {
         student_course: string
         student_enrollment: string
         company_name: string
-        original_end_date: string
+        current_end_date: string
         new_end_date: string
         extension_reason: string
         city: string
@@ -66,7 +66,7 @@ export const ExtensionDeclarationDocument: React.FC<ExtensionDeclarationDocument
                 <View style={[commonStyles.tableRow, { borderBottom: 0 }]}>
                     <View style={[commonStyles.tableCell, { width: '50%' }]}>
                         <Text style={commonStyles.label}>DATA DE TÉRMINO ORIGINAL</Text>
-                        <Text style={commonStyles.value}>{formatDate(data.original_end_date)}</Text>
+                        <Text style={commonStyles.value}>{formatDate(data.current_end_date)}</Text>
                     </View>
                     <View style={[commonStyles.tableCell, commonStyles.tableCellLast, { width: '50%' }]}>
                         <Text style={commonStyles.label}>NOVA DATA DE TÉRMINO</Text>
@@ -81,7 +81,7 @@ export const ExtensionDeclarationDocument: React.FC<ExtensionDeclarationDocument
             </View>
 
             <Text style={commonStyles.paragraph}>
-                Declaramos, para os devidos fins, que o estágio do(a) aluno(a) acima identificado(a), que tinha término previsto para <Text style={commonStyles.bold}>{formatDate(data.original_end_date)}</Text>, foi prorrogado até <Text style={commonStyles.bold}>{formatDate(data.new_end_date)}</Text>, conforme justificativa apresentada.
+                Declaramos, para os devidos fins, que o estágio do(a) aluno(a) acima identificado(a), que tinha término previsto para <Text style={commonStyles.bold}>{formatDate(data.current_end_date)}</Text>, foi prorrogado até <Text style={commonStyles.bold}>{formatDate(data.new_end_date)}</Text>, conforme justificativa apresentada.
             </Text>
 
             <Text style={commonStyles.dateRight}>
