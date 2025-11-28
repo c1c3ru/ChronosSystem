@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { StudentEvaluationDocument } from '@/components/templates/StudentEvaluationDocument'
-import { maskCPF, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function StudentEvaluationPage() {
     const formRef = useRef<HTMLFormElement>(null)
@@ -36,6 +36,8 @@ export default function StudentEvaluationPage() {
     // Aplicar máscaras baseado no nome do campo
     if (name.includes('cpf')) {
       maskedValue = maskCPF(value)
+    } else if (name.includes('rg')) {
+      maskedValue = maskRG(value)
     } else if (name.includes('cnpj')) {
       maskedValue = maskCNPJ(value)
     } else if (name.includes('zip') || name.includes('cep')) {
