@@ -58,9 +58,13 @@ export default function InternshipRegistrationPage() {
       e.target.value = maskedValue
     }
 
+    // Tratamento especial para checkboxes e radio buttons
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
       setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
+    } else if (type === 'radio') {
+      // Radio buttons: sempre salvar o value quando selecionado
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
     } else {
       setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }
@@ -79,7 +83,7 @@ export default function InternshipRegistrationPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: any = { ...formData }
 
     // Adicionar schedule
     data.schedule = JSON.stringify(schedule)

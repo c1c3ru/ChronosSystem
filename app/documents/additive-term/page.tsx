@@ -58,6 +58,9 @@ export default function AdditiveTermPage() {
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
       setFormData((prev: any) => ({ ...prev, [name]: checked ? 'true' : 'false' }))
+    } else if (type === 'radio') {
+      // Radio buttons: sempre salvar o value quando selecionado
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
     } else {
       setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }

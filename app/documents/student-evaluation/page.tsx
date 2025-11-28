@@ -49,8 +49,18 @@ export default function StudentEvaluationPage() {
       e.target.value = maskedValue
     }
 
-        setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
+        // Tratamento especial para checkboxes e radio buttons
+    const { type } = e.target
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
+    } else if (type === 'radio') {
+      // Radio buttons: sempre salvar o value quando selecionado
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
+    } else {
+      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }
+  }
 
     const handleSaveDraft = async () => {
         if (!formRef.current) return

@@ -108,12 +108,23 @@ export default function CommitmentTermPage() {
       maskedValue = maskPhone(value)
     }
 
+
     // Atualizar o valor do input com a máscara
     if (maskedValue !== value && e.target instanceof HTMLInputElement) {
       e.target.value = maskedValue
     }
 
-    setFormData(prev => ({ ...prev, [name]: maskedValue }))
+    // Tratamento especial para checkboxes e radio buttons
+    const { type } = e.target
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setFormData(prev => ({ ...prev, [name]: checked ? value : '' }))
+    } else if (type === 'radio') {
+      // Radio buttons: sempre salvar o value quando selecionado
+      setFormData(prev => ({ ...prev, [name]: value }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: maskedValue }))
+    }
   }
 
   const handleScheduleChange = (shift: string, day: string, value: string) => {
