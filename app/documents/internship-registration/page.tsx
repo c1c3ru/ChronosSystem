@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
-import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -51,6 +51,8 @@ export default function InternshipRegistrationPage() {
       maskedValue = maskCEP(value)
     } else if (name.includes('phone') || name.includes('telefone')) {
       maskedValue = maskPhone(value)
+    } else if (name.includes('value') || name.includes('valor')) {
+      maskedValue = maskCurrency(value)
     }
 
     // Atualizar o valor do input com a máscara

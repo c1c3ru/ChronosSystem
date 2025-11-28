@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { MonthlyReportDocument } from '@/components/templates/MonthlyReportDocument'
-import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function MonthlyReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -42,6 +42,8 @@ export default function MonthlyReportPage() {
       maskedValue = maskCEP(value)
     } else if (name.includes('phone') || name.includes('telefone')) {
       maskedValue = maskPhone(value)
+    } else if (name.includes('value') || name.includes('valor')) {
+      maskedValue = maskCurrency(value)
     }
 
     // Atualizar o valor do input com a máscara

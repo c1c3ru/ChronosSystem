@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { AdditiveTermDocument } from '@/components/templates/AdditiveTermDocument'
-import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function AdditiveTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -48,6 +48,8 @@ export default function AdditiveTermPage() {
       maskedValue = maskCEP(value)
     } else if (name.includes('phone') || name.includes('telefone')) {
       maskedValue = maskPhone(value)
+    } else if (name.includes('value') || name.includes('valor')) {
+      maskedValue = maskCurrency(value)
     }
 
     // Atualizar o valor do input com a máscara

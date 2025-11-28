@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationRequestDocument } from '@/components/templates/InternshipRegistrationRequestDocument'
-import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'
+import { maskCPF, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 /**
  * Página de Solicitação de Cadastro no Estágio
@@ -122,6 +122,8 @@ export default function InternshipRegistrationRequestPage() {
       maskedValue = maskCEP(value)
     } else if (name.includes('phone') || name.includes('telefone')) {
       maskedValue = maskPhone(value)
+    } else if (name.includes('value') || name.includes('valor')) {
+      maskedValue = maskCurrency(value)
     }
 
     // Atualizar o valor do input com a máscara
