@@ -158,6 +158,8 @@ const styles = StyleSheet.create({
         minHeight: 400,
         marginBottom: 10,
         textAlign: 'justify',
+        flexWrap: 'wrap',
+        wordBreak: 'break-word',
     },
     evaluationContainer: {
         borderWidth: 1, borderStyle: 'solid',
@@ -404,7 +406,7 @@ export const FinalReportDocument: React.FC<FinalReportDocumentProps> = ({ data }
                 {/* Atividades */}
                 <Text style={styles.sectionHeader}>PRINCIPAIS ATIVIDADES DESENVOLVIDAS NO ESTÁGIO DURANTE O PERÍODO</Text>
                 <View style={styles.textBox}>
-                    <Text style={{ width: '100%' }}>{data.activities}</Text>
+                    <Text>{data.activities}</Text>
                 </View>
             </Page>
 
