@@ -31,47 +31,47 @@ export default function StudentEvaluationPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target
-    let maskedValue = value
+        let maskedValue = value
 
-    // Aplicar máscaras baseado no nome do campo
-    if (name.includes('cpf')) {
-      maskedValue = maskCPF(value)
-    } else if (name.includes('rg')) {
-      maskedValue = maskRG(value)
-    } else if (name.includes('cnpj')) {
-      maskedValue = maskCNPJ(value)
-    } else if (name.includes('zip') || name.includes('cep')) {
-      maskedValue = maskCEP(value)
-    } else if (name.includes('phone') || name.includes('telefone')) {
-      maskedValue = maskPhone(value)
-    } else if (name.includes('value') || name.includes('valor')) {
-      maskedValue = maskCurrency(value)
-    }
+        // Aplicar máscaras baseado no nome do campo
+        if (name.includes('cpf')) {
+            maskedValue = maskCPF(value)
+        } else if (name.includes('rg')) {
+            maskedValue = maskRG(value)
+        } else if (name.includes('cnpj')) {
+            maskedValue = maskCNPJ(value)
+        } else if (name.includes('zip') || name.includes('cep')) {
+            maskedValue = maskCEP(value)
+        } else if (name.includes('phone') || name.includes('telefone')) {
+            maskedValue = maskPhone(value)
+        } else if (name.includes('value') || name.includes('valor')) {
+            maskedValue = maskCurrency(value)
+        }
 
-    // Atualizar o valor do input com a máscara
-    if (maskedValue !== value && e.target instanceof HTMLInputElement) {
-      e.target.value = maskedValue
-    }
+        // Atualizar o valor do input com a máscara
+        if (maskedValue !== value && e.target instanceof HTMLInputElement) {
+            e.target.value = maskedValue
+        }
 
         // Tratamento especial para checkboxes e radio buttons
-    const { type } = e.target
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
-    } else if (type === 'radio') {
-      // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev: any) => ({ ...prev, [name]: value }))
-    } else {
-      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
+        const { type } = e.target
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked
+            setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
+        } else if (type === 'radio') {
+            // Radio buttons: sempre salvar o value quando selecionado
+            setFormData((prev: any) => ({ ...prev, [name]: value }))
+        } else {
+            setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
+        }
     }
-  }
 
     const handleSaveDraft = async () => {
         if (!formRef.current) return
 
         setIsSaving(true)
         // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+        const data: any = { ...formData }
 
         await saveDraft('student-evaluation', data)
         toast.success('Rascunho salvo com sucesso!')
@@ -83,13 +83,16 @@ export default function StudentEvaluationPage() {
             if (!formRef.current) return
 
             // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+            const data: any = { ...formData }
 
             // Adicionar data atual se não estiver presente (se aplicável)
             const now = new Date()
             if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
             if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
             if (!data.date_year) data.date_year = String(now.getFullYear())
+
+            console.log('📋 [PDF] Dados do formulário:', data)
+            console.log('📋 [PDF] Recommendation:', data.recommendation)
 
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
@@ -303,6 +306,7 @@ export default function StudentEvaluationPage() {
                                             value="sim"
                                             className="radio"
                                             onChange={handleInputChange}
+                                            checked={formData.recommendation === 'sim'}
                                         />
                                         <span className="text-neutral-300">Sim</span>
                                     </label>
@@ -313,6 +317,7 @@ export default function StudentEvaluationPage() {
                                             value="nao"
                                             className="radio"
                                             onChange={handleInputChange}
+                                            checked={formData.recommendation === 'nao'}
                                         />
                                         <span className="text-neutral-300">Não</span>
                                     </label>
