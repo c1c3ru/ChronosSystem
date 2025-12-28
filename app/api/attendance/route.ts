@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    logger.error('Erro ao criar registro de ponto', { error })
+    logger.error('Erro ao criar registro de ponto', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
