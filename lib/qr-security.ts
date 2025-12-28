@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { qrLogger } from '@/lib/logger'
 
 // Chave secreta para HMAC - OBRIGATÓRIA
 const QR_SECRET = process.env.QR_SECRET
@@ -37,10 +38,10 @@ function validateQRSecret(): void {
 export function generateSecureQR(machineId: string, expiresIn: number = 60): SecureQRData {
   // Validar QR_SECRET
   validateQRSecret()
-  
+
   // Gerar nonce único
   const nonce = crypto.randomBytes(16).toString('hex')
-  
+
   // Criar payload
   const payload: QRPayload = {
     machineId,
@@ -83,7 +84,7 @@ export function validateSecureQR(qrData: string): {
     if (!QR_SECRET) {
       return { isValid: false, error: 'QR_SECRET não está configurado no servidor' }
     }
-    
+
     // Separar payload e signature
     const parts = qrData.split('.')
     if (parts.length !== 2) {
@@ -113,7 +114,7 @@ export function validateSecureQR(qrData: string): {
     // Validar timestamp (expiração)
     const now = Date.now()
     const expirationTime = payload.timestamp + (payload.expiresIn * 1000)
-    
+
     if (now > expirationTime) {
       return { isValid: false, error: 'QR code expirado' }
     }
@@ -150,14 +151,14 @@ export function generateNonce(): string {
 export function isNonceUsed(nonce: string): boolean {
   // DEPRECATED: Função mantida para compatibilidade
   // A verificação real é feita no banco de dados via QrEvent.used
-  console.warn('⚠️ [QR-SECURITY] isNonceUsed() está deprecated. Use verificação no banco de dados.')
+  qrLogger.warn('isNonceUsed() está deprecated. Use verificação no banco de dados.', { nonce })
   return false
 }
 
 export function markNonceAsUsed(nonce: string): void {
   // DEPRECATED: Função mantida para compatibilidade
   // O nonce é marcado como usado no banco de dados via QrEvent.used
-  console.warn('⚠️ [QR-SECURITY] markNonceAsUsed() está deprecated. Use QrEvent.used no banco.')
+  qrLogger.warn('markNonceAsUsed() está deprecated. Use QrEvent.used no banco.', { nonce })
 }
 
 /**

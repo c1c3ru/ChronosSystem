@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { authLogger } from '@/lib/logger'
 
 declare module 'next-auth' {
   interface Session {
@@ -81,7 +82,7 @@ export const authOptions: NextAuthOptions = {
             image: user.image
           }
         } catch (error) {
-          console.error('Auth error:', error)
+          authLogger.error('Authentication failed', { error })
           return null
         }
       }
@@ -115,7 +116,7 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id
         token.profileComplete = user.profileComplete
 
-        console.log('JWT callback - primeira vez:', {
+        authLogger.debug('JWT callback - primeira vez', {
           userId: user.id,
           role: user.role,
           profileComplete: user.profileComplete
@@ -138,7 +139,7 @@ export const authOptions: NextAuthOptions = {
           token.name = dbUser.name
           token.email = dbUser.email
 
-          console.log('JWT callback - atualização:', {
+          authLogger.debug('JWT callback - atualização', {
             userId: token.sub,
             role: dbUser.role,
             profileComplete: dbUser.profileComplete
@@ -157,7 +158,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async signIn({ user, account, profile }) {
-      console.log('🔵 [SIGNIN] Callback iniciado:', {
+      authLogger.info('SignIn callback iniciado', {
         provider: account?.provider,
         email: user.email,
         userId: user.id,
@@ -167,18 +168,19 @@ export const authOptions: NextAuthOptions = {
 
       if (account?.provider === 'google') {
         try {
-          console.log('🔍 [SIGNIN] Processando login Google para:', user.email)
-          console.log('📋 [SIGNIN] Dados do perfil Google:', {
-            name: profile?.name,
-            email: profile?.email,
-            picture: (profile as any)?.picture,
-            email_verified: (profile as any)?.email_verified
+          authLogger.debug('Processando login Google', {
+            email: user.email,
+            profileData: {
+              name: profile?.name,
+              email: profile?.email,
+              picture: (profile as any)?.picture,
+              email_verified: (profile as any)?.email_verified
+            }
           })
 
           // Verificar se o email foi verificado pelo Google
           if (!(profile as any)?.email_verified) {
-            console.log('❌ [SIGNIN] Email não verificado pelo Google')
-            console.error('Google login blocked - email not verified', { email: user.email }) // Replaced logger.security
+            authLogger.security('Google login blocked - email not verified', { email: user.email })
             return false
           }
 
@@ -189,46 +191,47 @@ export const authOptions: NextAuthOptions = {
           //   return false
           // }
 
-          console.log('✅ [SIGNIN] Login Google autorizado para:', user.email)
-          console.log('Google login authorized', { email: user.email }) // Replaced logger.info
+          authLogger.info('Google login authorized', { email: user.email })
 
           // PrismaAdapter irá criar/atualizar o usuário automaticamente
           // Não é necessário criar manualmente
           return true
 
         } catch (error) {
-          console.error('❌ [SIGNIN] Erro ao processar usuário Google:', error)
-          console.error('❌ [SIGNIN] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
-          console.error('Google login error', { error, email: user.email }) // Replaced logger.error
+          authLogger.error('Google login error', {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            email: user.email
+          })
           return false
         }
       }
 
-      console.log('✅ [SIGNIN] Login com outros providers permitido')
+      authLogger.debug('Login com outros providers permitido')
       return true
     },
     async redirect({ url, baseUrl }) {
-      console.log('🔄 [REDIRECT] Callback chamado:', { url, baseUrl })
+      authLogger.debug('Redirect callback chamado', { url, baseUrl })
 
       // Permitir URLs relativas
       if (url.startsWith('/')) {
-        console.log('🔗 [REDIRECT] URL relativa:', url)
+        authLogger.debug('Redirect - URL relativa', { url })
         return `${baseUrl}${url}`
       }
 
       // Permitir URLs da mesma origem
       try {
         if (new URL(url).origin === baseUrl) {
-          console.log('✅ [REDIRECT] Mesma origem permitida:', url)
+          authLogger.debug('Redirect - mesma origem permitida', { url })
           return url
         }
       } catch (error) {
-        console.log('❌ [REDIRECT] Erro ao parsear URL:', error)
+        authLogger.warn('Erro ao parsear URL no redirect', { error })
       }
 
       // Fallback: redirecionar para dashboard baseado no role
       // O middleware irá redirecionar conforme role e profileComplete
-      console.log('🏠 [REDIRECT] Fallback - redirecionando para dashboard')
+      authLogger.debug('Redirect - fallback para dashboard')
       return `${baseUrl}/dashboard`
     },
   },
