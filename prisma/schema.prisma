@@ -157,13 +157,16 @@ model AttendanceRecord {
   // Justificativa para saída antecipada
   justification String?
 
-  user    User    @relation(fields: [userId], references: [id])
-  machine Machine @relation(fields: [machineId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  machine Machine @relation(fields: [machineId], references: [id], onDelete: Cascade)
 
-  @@index([userId, timestamp])
-  @@index([machineId, timestamp])
-  @@index([userId, type, timestamp])
-  @@index([timestamp])
+  // Índices otimizados para queries comuns
+  @@index([userId, timestamp(sort: Desc)])           // Dashboard, histórico por usuário
+  @@index([machineId, timestamp(sort: Desc)])        // Atividades por máquina
+  @@index([userId, type, timestamp(sort: Desc)])     // Filtros por tipo (ENTRY/EXIT)
+  @@index([timestamp(sort: Desc)])                   // Atividades recentes globais
+  @@index([userId, timestamp(sort: Desc), type])     // Dashboard com filtro de tipo
+  @@index([hash])                                     // Verificação de integridade
 }
 
 model QrEvent {

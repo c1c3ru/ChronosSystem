@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
     // Adicionar headers de rate limit na resposta
     const response = NextResponse.json(record, { status: 201 })
     return addRateLimitHeaders(response, rateLimitResult)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({
         error: 'Dados inválidos',

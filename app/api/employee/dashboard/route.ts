@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -9,16 +10,16 @@ export const dynamic = 'force-dynamic'
 // GET /api/employee/dashboard - Dashboard do funcionário
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 [API] Employee dashboard - Verificando sessão...')
+    logger.debug('Employee dashboard - verificando sessão')
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
-      console.log('❌ [API] Employee dashboard - Sessão não encontrada')
+      logger.warn('Employee dashboard - sessão não encontrada')
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
-    
-    console.log('✅ [API] Employee dashboard - Usuário autenticado:', {
-      id: session.user.id,
+
+    logger.info('Employee dashboard - usuário autenticado', {
+      userId: session.user.id,
       email: session.user.email,
       role: session.user.role
     })
@@ -63,14 +64,14 @@ export async function GET(request: NextRequest) {
     if (todayRecords.length >= 2) {
       const entries = todayRecords.filter((r: any) => r.type === 'ENTRY')
       const exits = todayRecords.filter((r: any) => r.type === 'EXIT')
-      
+
       let totalMinutes = 0
       for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
         const entryTime = entries[i].timestamp.getTime()
         const exitTime = exits[i].timestamp.getTime()
         totalMinutes += (exitTime - entryTime) / (1000 * 60)
       }
-      
+
       const hours = Math.floor(totalMinutes / 60)
       const minutes = Math.floor(totalMinutes % 60)
       todayHours = `${hours}h ${minutes.toString().padStart(2, '0')}min`
@@ -129,11 +130,13 @@ export async function GET(request: NextRequest) {
       }))
     })
 
-  } catch (error) {
-    console.error('Erro ao buscar dados do dashboard:', error)
+  } catch (error: unknown) {
+    logger.error('Erro ao buscar dados do dashboard', {
+      error: error instanceof Error ? error.message : String(error)
+    })
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erro interno do servidor',
         workStatus: {
           isWorking: false,
@@ -141,7 +144,7 @@ export async function GET(request: NextRequest) {
           todayHours: '0h 00min'
         },
         recentRecords: []
-      }, 
+      },
       { status: 500 }
     )
   }
