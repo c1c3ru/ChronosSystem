@@ -1,0 +1,17 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "noEmit": false,
+        "module": "commonjs",
+        "target": "es2017"
+    },
+    "include": [
+        "lib/swagger.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        ".next",
+        "out"
+    ]
+}

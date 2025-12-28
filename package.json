@@ -67,6 +67,8 @@
     "recharts": "^2.8.0",
     "sonner": "^2.0.7",
     "speakeasy": "^2.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-react": "^5.31.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4"
@@ -85,6 +87,8 @@
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@types/speakeasy": "^2.0.10",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-react": "^5.18.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.5",
