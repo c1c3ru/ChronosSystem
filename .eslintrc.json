@@ -1,11 +1,22 @@
 {
   "extends": [
     "next/core-web-vitals",
-    "prettier"
+    "prettier",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "plugins": [
+    "jsx-a11y"
   ],
   "rules": {
     "no-console": "off",
     "prefer-const": "warn",
-    "no-var": "error"
+    "no-var": "error",
+    "jsx-a11y/anchor-is-valid": "warn",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-unsupported-elements": "error",
+    "jsx-a11y/role-has-required-aria-props": "error",
+    "jsx-a11y/role-supports-aria-props": "error"
   }
 }
