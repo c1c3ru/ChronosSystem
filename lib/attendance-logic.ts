@@ -4,7 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
-import { isNationalHoliday } from '@/lib/holidays'
+import { isNationalHoliday, isHoliday } from '@/lib/holidays'
 
 interface WorkingHours {
   start: string // "08:00"
@@ -486,20 +486,20 @@ export function analyzeDayForJustification(
 /**
  * Valida se o registro faz sentido
  */
-export function validateRecord(context: AttendanceContext, suggestedType: 'ENTRY' | 'EXIT'): {
+export async function validateRecord(context: AttendanceContext, suggestedType: 'ENTRY' | 'EXIT'): Promise<{
   isValid: boolean
   warnings: string[]
   errors: string[]
-} {
+}> {
   const warnings: string[] = []
   const errors: string[] = []
 
   const { currentTime, lastRecord, workingHours, hasAuthorization } = context
 
-  // VALIDAÇÃO CRÍTICA: Verificar se é feriado nacional
-  const holidayCheck = isNationalHoliday(currentTime)
+  // VALIDAÇÃO CRÍTICA: Verificar se é feriado (Nacional ou Customizado no DB)
+  const holidayCheck = await isHoliday(currentTime)
   if (holidayCheck.isHoliday && !hasAuthorization) {
-    errors.push(`Registro bloqueado: Hoje é feriado nacional (${holidayCheck.holidayName}). Não é permitido registrar ponto em feriados sem autorização prévia.`)
+    errors.push(`Registro bloqueado: Hoje é feriado (${holidayCheck.holidayName}). Não é permitido registrar ponto em feriados sem autorização prévia.`)
   }
 
   // VALIDAÇÃO CRÍTICA: Verificar se é fim de semana

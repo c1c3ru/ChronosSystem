@@ -87,6 +87,7 @@ model User {
   reviewedJustifications Justification[] @relation("JustificationReviewer")
   qrEvents          QrEvent[]
   hourBalances      HourBalance[]
+  monthlyBalances   MonthlyBalance[]
   passwordResetTokens PasswordResetToken[]
   formDrafts        FormDraft[]
   
@@ -242,6 +243,24 @@ model HourBalance {
   @@index([date])
 }
 
+model MonthlyBalance {
+  id            String   @id @default(cuid())
+  userId        String
+  month         Int      // 1-12
+  year          Int      // 2024
+  totalWorked   Float
+  totalExpected Float
+  totalBalance  Float
+  status        String   @default("OPEN") // OPEN, CLOSED, AUDITED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, year])
+  @@index([userId, year])
+}
+
 model FormDraft {
   id            String   @id @default(cuid())
   userId        String
@@ -256,6 +275,19 @@ model FormDraft {
   @@unique([userId, formType])
   @@index([userId, formType])
   @@index([status])
+}
+
+model Holiday {
+  id          String   @id @default(cuid())
+  date        DateTime @unique
+  name        String
+  description String?
+  type        String   @default("NATIONAL") // NATIONAL, STATE, MUNICIPAL, OPTIONAL
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
 }
 
 // Roles: "ADMIN", "SUPERVISOR", "EMPLOYEE"

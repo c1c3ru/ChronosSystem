@@ -92,124 +92,79 @@ export async function POST(request: NextRequest) {
     let isSecureQR = false
     let qrEvent: any = null
 
-    // ESTRATÉGIA 1: Tentar validar como QR seguro (HMAC-SHA256)
+    // ESTRATÉGIA ÚNICA E SEGURA: Validar como QR seguro (HMAC-SHA256)
     const secureValidation = validateSecureQR(qrData)
 
-    if (secureValidation.isValid && secureValidation.payload) {
-      apiLogger.debug('Secure QR detected and valid', {
-        machineId: secureValidation.payload.machineId,
-        expiresIn: secureValidation.payload.expiresIn
+    if (!secureValidation.isValid || !secureValidation.payload) {
+      apiLogger.security('Insecure or invalid QR format attempted', {
+        userId: session.user.id,
+        error: secureValidation.error
       })
-      isSecureQR = true
-      machineId = secureValidation.payload.machineId
-      const { nonce, timestamp, expiresIn } = secureValidation.payload
 
-      // Verificar se o QR code existe no banco e não foi usado
-      qrEvent = await prisma.qrEvent.findUnique({
-        where: { nonce },
+      return NextResponse.json({
+        error: 'Este sistema exige QR codes criptografados e seguros. O formato detectado não é aceito.',
+        code: 'INSECURE_QR_FORMAT',
+        details: secureValidation.error
+      }, { status: 403 })
+    }
+
+    apiLogger.debug('Secure QR detected', {
+      machineId: secureValidation.payload.machineId,
+      expiresIn: secureValidation.payload.expiresIn
+    })
+
+    isSecureQR = true
+    machineId = secureValidation.payload.machineId
+    const { nonce } = secureValidation.payload
+
+    // VERIFICAÇÃO ATÔMICA: Marcar como usado E verificar se já estava usado em um único passo
+    // Isso evita race conditions (ataques de replay simultâneos)
+    try {
+      qrEvent = await prisma.qrEvent.update({
+        where: {
+          nonce: nonce,
+          used: false, // Só permite atualizar se não foi usado
+        },
+        data: {
+          used: true,
+          usedAt: new Date(),
+          usedBy: session.user.id
+        },
         include: { machine: true }
       })
+    } catch (error: any) {
+      // Se falhar, é porque o nonce não existe ou já foi usado (P2025 no Prisma)
+      apiLogger.warn('Replay attack or invalid nonce detected', {
+        userId: session.user.id,
+        nonce
+      })
 
-      if (!qrEvent) {
-        apiLogger.warn('Secure QR not found in database', { userId: session.user.id })
-        return NextResponse.json({
-          error: 'QR code não encontrado. Pode ter expirado ou ser inválido.',
-          code: 'QR_NOT_FOUND'
-        }, { status: 404 })
-      }
+      return NextResponse.json({
+        error: 'Este QR code já foi utilizado ou é inválido. Gere um novo QR na tela da máquina.',
+        code: 'QR_REPLAY_DETECTED'
+      }, { status: 400 })
+    }
 
-      // Verificar se a máquina do QR corresponde à máquina esperada
-      if (qrEvent.machineId !== machineId) {
-        apiLogger.warn('QR machine mismatch', { expected: machineId, actual: qrEvent.machineId })
-        return NextResponse.json({
-          error: 'QR code inválido para esta máquina',
-          code: 'INVALID_MACHINE'
-        }, { status: 400 })
-      }
+    // Validações adicionais de negócio no QR recuperado
+    if (qrEvent.machineId !== machineId) {
+      return NextResponse.json({
+        error: 'QR code inválido para esta máquina',
+        code: 'INVALID_MACHINE'
+      }, { status: 400 })
+    }
 
-      // Verificar se já foi usado
-      if (qrEvent.used) {
-        apiLogger.warn('QR already used', { userId: session.user.id })
-        return NextResponse.json({
-          error: 'QR code já foi utilizado. Gere um novo QR code.',
-          code: 'QR_ALREADY_USED'
-        }, { status: 400 })
-      }
+    if (new Date() > qrEvent.expiresAt) {
+      return NextResponse.json({
+        error: 'QR code expirado. Gere um novo.',
+        code: 'QR_EXPIRED'
+      }, { status: 400 })
+    }
 
-      // Verificar se expirou
-      const currentTime = new Date()
-      if (currentTime > qrEvent.expiresAt) {
-        apiLogger.warn('QR expired', { expiresAt: qrEvent.expiresAt.toISOString() })
-        return NextResponse.json({
-          error: 'QR code expirado. Gere um novo QR code.',
-          code: 'QR_EXPIRED'
-        }, { status: 400 })
-      }
-
-      // Verificar se a máquina está ativa
-      if (!qrEvent.machine.isActive) {
-        apiLogger.warn('Machine inactive', { machineId })
-        return NextResponse.json({
-          error: 'Máquina não está ativa',
-          code: 'MACHINE_INACTIVE'
-        }, { status: 400 })
-      }
-
-    } else {
-      apiLogger.debug('QR not secure, trying alternative formats')
-
-      // ESTRATÉGIA 2: Tentar como JSON simples
-      try {
-        const qrJson = JSON.parse(qrData)
-        machineId = qrJson.machineId || qrJson.id
-
-        if (!machineId) {
-          throw new Error('machineId não encontrado no JSON')
-        }
-
-        // Sanitizar machineId
-        machineId = String(machineId).trim()
-
-        apiLogger.debug('Simple JSON QR accepted', { machineId })
-
-        // Para QR JSON, verificar se tem expiração
-        if (qrJson.expires && Date.now() > qrJson.expires) {
-          return NextResponse.json({
-            error: 'QR code expirado',
-            code: 'QR_EXPIRED'
-          }, { status: 400 })
-        }
-
-        // Se tem nonce, verificar no banco
-        if (qrJson.nonce) {
-          qrEvent = await prisma.qrEvent.findUnique({
-            where: { nonce: qrJson.nonce },
-            include: { machine: true }
-          })
-
-          if (qrEvent && qrEvent.used) {
-            return NextResponse.json({
-              error: 'QR code já foi utilizado',
-              code: 'QR_ALREADY_USED'
-            }, { status: 400 })
-          }
-        }
-
-      } catch {
-        // ESTRATÉGIA 3: Usar como texto direto (ID da máquina)
-        machineId = qrData.trim()
-
-        // Validar se machineId não está vazio após trim
-        if (!machineId || machineId.length === 0) {
-          apiLogger.warn('Empty QR code after processing')
-          return NextResponse.json({
-            error: 'QR code inválido ou vazio',
-            code: 'INVALID_QR_DATA'
-          }, { status: 400 })
-        }
-
-        apiLogger.debug('Direct text QR', { machineId })
-      }
+    if (!qrEvent.machine.isActive) {
+      return NextResponse.json({
+        error: 'Máquina não está ativa',
+        code: 'MACHINE_INACTIVE'
+      }, { status: 400 })
     }
 
     // Verificar se a máquina existe e está ativa
@@ -294,7 +249,7 @@ export async function POST(request: NextRequest) {
     const recordType = attendanceAnalysis.type
 
     // Validar se o registro faz sentido
-    const validation = validateRecord({
+    const validation = await validateRecord({
       userId: session.user.id,
       currentTime,
       lastRecord: lastRecord ? {
@@ -348,19 +303,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Buscar último hash para hash chain
-    const prevRecord = await prisma.attendanceRecord.findFirst({
-      orderBy: { timestamp: 'desc' },
-      select: { hash: true }
-    })
-
-    // Criar hash para integridade
+    // Criar hash para integridade usando o último registro do próprio usuário
     const recordHash = generateRecordHash(
       session.user.id,
       machineId,
       recordType,
-      Date.now(),
-      prevRecord?.hash
+      currentTime.getTime(),
+      lastRecord?.hash
     )
 
     // Criar registro de ponto
@@ -386,33 +335,6 @@ export async function POST(request: NextRequest) {
         }
       }
     })
-
-    // Para QR seguro, marcar nonce como usado
-    if (isSecureQR && qrEvent) {
-      // Marcar QR como usado no banco para auditoria
-      await prisma.qrEvent.update({
-        where: { id: qrEvent.id },
-        data: {
-          used: true,
-          usedAt: new Date(),
-          usedBy: session.user.id
-        }
-      })
-
-      apiLogger.debug('Secure QR marked as used')
-    }
-
-    // Para QR JSON com nonce, marcar como usado
-    if (!isSecureQR && qrEvent) {
-      await prisma.qrEvent.update({
-        where: { id: qrEvent.id },
-        data: {
-          used: true,
-          usedAt: new Date(),
-          usedBy: session.user.id
-        }
-      })
-    }
 
     // Log de auditoria
     await prisma.auditLog.create({

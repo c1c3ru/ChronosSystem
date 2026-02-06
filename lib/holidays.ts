@@ -3,14 +3,16 @@
  * Inclui feriados fixos e móveis (calculados)
  */
 
-interface Holiday {
+import { prisma } from './prisma'
+
+interface HolidayDef {
     name: string
     date: string // formato: 'MM-DD' para fixos
     type: 'fixed' | 'mobile'
 }
 
 // Feriados fixos nacionais, estaduais (CE) e municipais (Fortaleza)
-const FIXED_HOLIDAYS: Holiday[] = [
+const FIXED_HOLIDAYS: HolidayDef[] = [
     { name: 'Confraternização Universal', date: '01-01', type: 'fixed' },
     { name: 'Data Magna do Ceará', date: '03-25', type: 'fixed' }, // Estadual CE
     { name: 'Tiradentes', date: '04-21', type: 'fixed' },
@@ -26,8 +28,6 @@ const FIXED_HOLIDAYS: Holiday[] = [
 
 /**
  * Calcula a data da Páscoa usando o algoritmo de Meeus/Jones/Butcher
- * @param year Ano para calcular a Páscoa
- * @returns Data da Páscoa
  */
 function calculateEaster(year: number): Date {
     const a = year % 19
@@ -50,24 +50,19 @@ function calculateEaster(year: number): Date {
 
 /**
  * Calcula feriados móveis para um ano específico
- * @param year Ano
- * @returns Array de datas de feriados móveis
  */
 function getMobileHolidays(year: number): { name: string; date: Date }[] {
     const easter = calculateEaster(year)
     const holidays: { name: string; date: Date }[] = []
 
-    // Carnaval (47 dias antes da Páscoa)
     const carnival = new Date(easter)
     carnival.setDate(easter.getDate() - 47)
     holidays.push({ name: 'Carnaval', date: carnival })
 
-    // Sexta-feira Santa (2 dias antes da Páscoa)
     const goodFriday = new Date(easter)
     goodFriday.setDate(easter.getDate() - 2)
     holidays.push({ name: 'Sexta-feira Santa', date: goodFriday })
 
-    // Corpus Christi (60 dias depois da Páscoa)
     const corpusChristi = new Date(easter)
     corpusChristi.setDate(easter.getDate() + 60)
     holidays.push({ name: 'Corpus Christi', date: corpusChristi })
@@ -76,23 +71,21 @@ function getMobileHolidays(year: number): { name: string; date: Date }[] {
 }
 
 /**
- * Verifica se uma data é feriado nacional
- * @param date Data para verificar
- * @returns Objeto com informação se é feriado e nome do feriado
+ * Verifica se uma data é feriado (Nacional, Estadual, Municipal ou Banco de Dados)
  */
-export function isNationalHoliday(date: Date): { isHoliday: boolean; holidayName?: string } {
+export async function isHoliday(date: Date): Promise<{ isHoliday: boolean; holidayName?: string }> {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     const dateKey = `${month}-${day}`
 
-    // Verificar feriados fixos
+    // 1. Verificar feriados fixos
     const fixedHoliday = FIXED_HOLIDAYS.find(h => h.date === dateKey)
     if (fixedHoliday) {
         return { isHoliday: true, holidayName: fixedHoliday.name }
     }
 
-    // Verificar feriados móveis
+    // 2. Verificar feriados móveis
     const mobileHolidays = getMobileHolidays(year)
     const mobileHoliday = mobileHolidays.find(h =>
         h.date.getDate() === date.getDate() &&
@@ -104,18 +97,99 @@ export function isNationalHoliday(date: Date): { isHoliday: boolean; holidayName
         return { isHoliday: true, holidayName: mobileHoliday.name }
     }
 
+    // 3. Verificar feriados customizados no Banco de Dados
+    try {
+        const dbHoliday = await (prisma as any).holiday.findFirst({
+            where: {
+                date: {
+                    gte: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0),
+                    lte: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59)
+                },
+                isActive: true
+            }
+        })
+
+        if (dbHoliday) {
+            return { isHoliday: true, holidayName: dbHoliday.name }
+        }
+    } catch (error) {
+        // Ignorar erro se a tabela ainda não existir (antes da migração)
+    }
+
     return { isHoliday: false }
 }
 
 /**
- * Obtém todos os feriados de um ano
- * @param year Ano
- * @returns Array com todos os feriados do ano
+ * @deprecated Use isHoliday(date) async instead
  */
+export function isNationalHoliday(date: Date): { isHoliday: boolean; holidayName?: string } {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateKey = `${month}-${day}`
+
+    const fixedHoliday = FIXED_HOLIDAYS.find(h => h.date === dateKey)
+    if (fixedHoliday) return { isHoliday: true, holidayName: fixedHoliday.name }
+
+    const mobileHolidays = getMobileHolidays(year)
+    const mobileHoliday = mobileHolidays.find(h =>
+        h.date.getDate() === date.getDate() &&
+        h.date.getMonth() === date.getMonth() &&
+        h.date.getFullYear() === date.getFullYear()
+    )
+
+    return mobileHoliday ? { isHoliday: true, holidayName: mobileHoliday.name } : { isHoliday: false }
+}
+
+/**
+ * Busca todos os feriados (fixos, móveis e DB) em um intervalo de datas
+ */
+export async function getHolidaysForPeriod(startDate: Date, endDate: Date): Promise<Map<string, string>> {
+    const holidayMap = new Map<string, string>()
+    const startYear = startDate.getFullYear()
+    const endYear = endDate.getFullYear()
+
+    // 1. Coletar feriados fixos e móveis para todos os anos do intervalo
+    for (let year = startYear; year <= endYear; year++) {
+        // Fixos
+        FIXED_HOLIDAYS.forEach(h => {
+            const dateStr = `${year}-${h.date}`
+            const d = new Date(dateStr + 'T00:00:00')
+            if (d >= startDate && d <= endDate) {
+                holidayMap.set(d.toISOString().split('T')[0], h.name)
+            }
+        })
+
+        // Móveis
+        getMobileHolidays(year).forEach(h => {
+            if (h.date >= startDate && h.date <= endDate) {
+                holidayMap.set(h.date.toISOString().split('T')[0], h.name)
+            }
+        })
+    }
+
+    // 2. Coletar feriados do Banco de Dados
+    try {
+        const dbHolidays = await (prisma as any).holiday.findMany({
+            where: {
+                date: { gte: startDate, lte: endDate },
+                isActive: true
+            }
+        })
+
+        dbHolidays.forEach((h: any) => {
+            holidayMap.set(h.date.toISOString().split('T')[0], h.name)
+        })
+    } catch (e) {
+        // Ignorar se a tabela não existir
+    }
+
+    return holidayMap
+}
+
 export function getYearHolidays(year: number): { name: string; date: Date; type: 'fixed' | 'mobile' }[] {
     const holidays: { name: string; date: Date; type: 'fixed' | 'mobile' }[] = []
 
-    // Adicionar feriados fixos
     FIXED_HOLIDAYS.forEach(h => {
         const [month, day] = h.date.split('-').map(Number)
         holidays.push({
@@ -125,7 +199,6 @@ export function getYearHolidays(year: number): { name: string; date: Date; type:
         })
     })
 
-    // Adicionar feriados móveis
     const mobileHolidays = getMobileHolidays(year)
     mobileHolidays.forEach(h => {
         holidays.push({
@@ -135,37 +208,22 @@ export function getYearHolidays(year: number): { name: string; date: Date; type:
         })
     })
 
-    // Ordenar por data
     holidays.sort((a, b) => a.date.getTime() - b.date.getTime())
-
     return holidays
 }
 
-/**
- * Verifica se uma data é dia útil (não é fim de semana nem feriado)
- * @param date Data para verificar
- * @returns true se for dia útil
- */
 export function isWorkingDay(date: Date): boolean {
     const dayOfWeek = date.getDay()
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
-    const { isHoliday } = isNationalHoliday(date)
-
-    return !isWeekend && !isHoliday
+    const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6
+    const { isHoliday: holiday } = isNationalHoliday(date)
+    return !isWeekendDay && !holiday
 }
 
-/**
- * Obtém o próximo dia útil a partir de uma data
- * @param date Data de referência
- * @returns Próximo dia útil
- */
 export function getNextWorkingDay(date: Date): Date {
     const nextDay = new Date(date)
     nextDay.setDate(nextDay.getDate() + 1)
-
     while (!isWorkingDay(nextDay)) {
         nextDay.setDate(nextDay.getDate() + 1)
     }
-
     return nextDay
 }

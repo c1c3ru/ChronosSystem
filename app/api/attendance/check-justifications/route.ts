@@ -3,17 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { analyzeDayForJustification, getUserWorkingHours, isWeekend } from '@/lib/attendance-logic'
-import { isNationalHoliday } from '@/lib/holidays'
+import { getHolidaysForPeriod } from '@/lib/holidays'
 
 export const dynamic = 'force-dynamic'
 
 /**
  * API para verificar dias que requerem justificativa obrigatória
- * 
- * Detecta:
- * - Atrasos > 30 minutos
- * - Saídas antecipadas (faltando > 10 min para completar carga horária)
- * - Faltas (ausência de registro)
  */
 export async function GET(request: NextRequest) {
     try {
@@ -25,7 +20,7 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url)
         const userId = searchParams.get('userId') || session.user.id
-        const daysBack = parseInt(searchParams.get('daysBack') || '30') // Últimos 30 dias por padrão
+        const daysBack = parseInt(searchParams.get('daysBack') || '30')
 
         // Verificar permissões
         const canViewAll = ['ADMIN', 'SUPERVISOR'].includes(session.user.role)
@@ -38,10 +33,12 @@ export async function GET(request: NextRequest) {
 
         // Calcular período de análise
         const endDate = new Date()
-        endDate.setHours(23, 59, 59, 999)
-        const startDate = new Date(endDate)
+        const startDate = new Date()
         startDate.setDate(startDate.getDate() - daysBack)
         startDate.setHours(0, 0, 0, 0)
+
+        // BUSCA OTIMIZADA: Pegar todos os feriados do período de uma vez
+        const holidayMap = await getHolidaysForPeriod(startDate, endDate)
 
         // Buscar todos os registros do período
         const records = await prisma.attendanceRecord.findMany({
@@ -94,8 +91,8 @@ export async function GET(request: NextRequest) {
             const dateKey = currentDate.toISOString().split('T')[0]
             const dayData = dayRecords.get(dateKey) || { entry: null, exit: null }
 
-            // Verificar se é dia de trabalho
-            const isWorkDay = !isWeekend(currentDate) && !isNationalHoliday(currentDate).isHoliday
+            // Verificar se é dia de trabalho (Fim de semana OU feriado no mapa)
+            const isWorkDay = !isWeekend(currentDate) && !holidayMap.has(dateKey)
 
             // Analisar o dia
             const analysis = analyzeDayForJustification(
@@ -136,18 +133,14 @@ export async function GET(request: NextRequest) {
             },
             summary: {
                 totalDaysRequiringJustification: daysRequiringJustification.length,
-                withPendingJustification: daysRequiringJustification.filter(d => d.existingJustification?.status === 'PENDING').length,
-                withoutJustification: daysRequiringJustification.filter(d => !d.existingJustification).length,
-                withRejectedJustification: daysRequiringJustification.filter(d => d.existingJustification?.status === 'REJECTED').length
+                pending: daysRequiringJustification.filter(d => d.existingJustification?.status === 'PENDING').length,
+                missing: daysRequiringJustification.filter(d => !d.existingJustification).length
             },
             daysRequiringJustification
         })
 
     } catch (error: any) {
-        console.error('Erro ao verificar justificativas obrigatórias:', error)
-        return NextResponse.json({
-            error: 'Erro interno do servidor',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        }, { status: 500 })
+        console.error('Erro ao verificar justificativas:', error)
+        return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
     }
 }
