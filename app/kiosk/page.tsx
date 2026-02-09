@@ -262,17 +262,22 @@ export default function KioskPage() {
             <div>
               <h1 className="text-2xl font-bold text-white">Chronos Kiosk</h1>
               {machines.length > 0 ? (
-                <select
-                  value={selectedMachineId}
-                  onChange={(e) => handleMachineChange(e.target.value)}
-                  className="mt-2 px-3 py-1 bg-neutral-700/50 border border-neutral-600 rounded-lg text-sm text-neutral-300 hover:bg-neutral-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  {machines.map((machine) => (
-                    <option key={machine.id} value={machine.id}>
-                      {machine.name} - {machine.location}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-col mt-2">
+                  <label htmlFor="machine-select" className="sr-only">Selecionar Máquina</label>
+                  <select
+                    id="machine-select"
+                    title="Selecionar Máquina"
+                    value={selectedMachineId}
+                    onChange={(e) => handleMachineChange(e.target.value)}
+                    className="px-3 py-1 bg-neutral-700/50 border border-neutral-600 rounded-lg text-sm text-neutral-300 hover:bg-neutral-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {machines.map((machine) => (
+                      <option key={machine.id} value={machine.id}>
+                        {machine.name} - {machine.location}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               ) : (
                 <div className="flex items-center text-neutral-400 mt-1">
                   <MapPin className="h-4 w-4 mr-1" />
@@ -403,8 +408,13 @@ export default function KioskPage() {
 
       {/* Footer */}
       <div className="glass border-t border-neutral-700/50 p-4">
-        <div className="text-center text-neutral-500 text-sm">
-          © 2024 Chronos System - Sistema de Ponto Eletrônico Seguro
+        <div className="text-center">
+          <p className="text-neutral-500 text-sm">
+            © 2024 Chronos System - Sistema de Ponto Eletrônico Seguro
+          </p>
+          <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50">
+            Desenvolvido por c1c3ru • Coordenação de Tecnologia da Informação • Campus Maracanau
+          </p>
         </div>
       </div>
     </div>

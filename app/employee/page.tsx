@@ -1178,8 +1178,20 @@ export default function EmployeePage() {
             </>
           )}
         </div>
-      </div >
-
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 pb-8">
+          <div className="text-center pt-8 border-t border-neutral-700/50">
+            <p className="text-neutral-500 text-sm">
+              © 2024 Chronos System. Sistema de ponto eletrônico moderno e seguro.
+            </p>
+            <p className="text-neutral-600 text-xs mt-2">
+              Desenvolvido com ❤️ usando Next.js, Tailwind CSS e Design Tokens
+            </p>
+            <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50">
+              Desenvolvido por c1c3ru • Coordenação de Tecnologia da Informação • Campus Maracanau
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

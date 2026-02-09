@@ -51,7 +51,7 @@ export default function HomePage() {
                         </CardContent>
                     </Card>
 
-                    <Card variant="glass" className="group hover:scale-105 transition-all duration-300 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                    <Card variant="glass" className="group hover:scale-105 transition-all duration-300 animate-slide-up delay-1">
                         <CardContent className="p-8 text-center">
                             <div className="bg-secondary-500/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-secondary-500/30 transition-colors">
                                 <Shield className="h-10 w-10 text-secondary-500" />
@@ -65,7 +65,7 @@ export default function HomePage() {
                         </CardContent>
                     </Card>
 
-                    <Card variant="glass" className="group hover:scale-105 transition-all duration-300 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                    <Card variant="glass" className="group hover:scale-105 transition-all duration-300 animate-slide-up delay-2">
                         <CardContent className="p-8 text-center">
                             <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
                                 <Zap className="h-10 w-10 text-warning" />
@@ -95,7 +95,7 @@ export default function HomePage() {
                             'Design moderno com tokens profissionais',
                             'Código limpo e bem documentado'
                         ].map((benefit, index) => (
-                            <div key={index} className="flex items-center space-x-3 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div key={index} className={`flex items-center space-x-3 animate-slide-up delay-${index + 1}`}>
                                 <CheckCircle className="h-6 w-6 text-primary flex-shrink-0" />
                                 <span className="text-neutral-300">{benefit}</span>
                             </div>
@@ -176,6 +176,9 @@ export default function HomePage() {
                     </p>
                     <p className="text-neutral-600 text-xs mt-2">
                         Desenvolvido com ❤️ usando Next.js, Tailwind CSS e Design Tokens
+                    </p>
+                    <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50">
+                        Desenvolvido por c1c3ru • Coordenação de Tecnologia da Informação • Campus Maracanau
                     </p>
                 </div>
             </div>
