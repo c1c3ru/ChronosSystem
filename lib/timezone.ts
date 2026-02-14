@@ -7,12 +7,9 @@
  * Usa offset UTC-3 ao invés de toLocaleString para evitar problemas de parsing
  */
 export function getNowInFortaleza(): Date {
-  const now = new Date()
-  // Fortaleza está em UTC-3 (offset de -3 horas)
-  // Criar uma nova data com o offset correto
-  const offset = -3 * 60 * 60 * 1000 // -3 horas em milissegundos
-  const fortalezaTime = new Date(now.getTime() + offset)
-  return fortalezaTime
+  // Retorna a data atual UTC
+  // A formatação para o timezone de Fortaleza deve ser feita apenas na exibição
+  return new Date()
 }
 
 /**

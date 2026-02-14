@@ -34,7 +34,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
   }
 
   const trimmedData = qrData.trim()
-  
+
   if (trimmedData.length === 0) {
     return {
       isValid: false,
@@ -47,26 +47,26 @@ export function validateQRFormat(qrData: string): QRValidationResult {
   // VALIDAÇÃO 1: QR Seguro (HMAC-SHA256)
   if (trimmedData.includes('.')) {
     const parts = trimmedData.split('.')
-    
+
     if (parts.length === 2) {
       try {
         // Tentar decodificar payload
         const payload = JSON.parse(atob(parts[0]))
-        
+
         if (payload.machineId && payload.nonce && payload.timestamp) {
           const warnings: string[] = []
-          
+
           // Verificar expiração no payload
           let isExpired = false
           if (payload.expiresIn) {
             const expirationTime = payload.timestamp + (payload.expiresIn * 1000)
             isExpired = Date.now() > expirationTime
-            
+
             if (isExpired) {
               warnings.push('QR code pode estar expirado')
             }
           }
-          
+
           return {
             isValid: true,
             type: 'SECURE',
@@ -91,7 +91,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         }
       }
     }
-    
+
     // Tem ponto mas não é formato seguro válido
     return {
       isValid: false,
@@ -106,7 +106,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
     try {
       const qrJson = JSON.parse(trimmedData)
       const machineId = qrJson.machineId || qrJson.id
-      
+
       if (!machineId) {
         return {
           isValid: false,
@@ -131,12 +131,12 @@ export function validateQRFormat(qrData: string): QRValidationResult {
       const hasNonce = !!qrJson.nonce
 
       return {
-        isValid: !isExpired, // Inválido se expirado
+        isValid: false, // BLOQUEADO: Política de segurança exige QR Code Seguro (HMAC)
         type: 'JSON',
         machineId,
         confidence: hasNonce ? 'medium' : 'low',
-        warnings: warnings.length > 0 ? warnings : undefined,
-        error: isExpired ? 'QR code expirado' : undefined,
+        warnings: ['QR Code simples não é mais aceito por segurança'],
+        error: 'Este formato de QR Code não é seguro e foi desabilitado',
         details: {
           hasNonce,
           hasExpiration: !!qrJson.expires,
@@ -157,7 +157,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
   // VALIDAÇÃO 3: Texto Direto (ID da máquina)
   // Verificar se parece com um ID válido
   const textPattern = /^[a-zA-Z0-9_-]+$/
-  
+
   if (textPattern.test(trimmedData)) {
     // Verificar comprimento razoável
     if (trimmedData.length < 3) {
@@ -168,7 +168,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         confidence: 'high'
       }
     }
-    
+
     if (trimmedData.length > 50) {
       return {
         isValid: false,
@@ -179,11 +179,12 @@ export function validateQRFormat(qrData: string): QRValidationResult {
     }
 
     return {
-      isValid: true,
+      isValid: false, // BLOQUEADO: Política de segurança exige QR Code Seguro (HMAC)
       type: 'TEXT',
       machineId: trimmedData,
       confidence: 'low',
-      warnings: ['QR code simples sem validação de segurança'],
+      error: 'QR Code simples (texto) não é seguro e foi desabilitado',
+      warnings: ['Use um QR Code gerado pelo sistema'],
       details: {
         hasNonce: false,
         hasExpiration: false,
@@ -263,7 +264,7 @@ export function formatQRError(validation: QRValidationResult): string {
   }
 
   const baseError = validation.error || 'QR code inválido'
-  
+
   // Adicionar sugestões baseadas no tipo de erro
   switch (validation.type) {
     case 'INVALID':
@@ -277,7 +278,7 @@ export function formatQRError(validation: QRValidationResult): string {
         return `${baseError}. Use um QR code gerado pelo sistema.`
       }
       return `${baseError}. Verifique se o QR code está correto.`
-    
+
     default:
       return baseError
   }
@@ -309,7 +310,7 @@ export function getQRFeedback(validation: QRValidationResult): {
         message: `QR seguro detectado (${validation.confidence === 'high' ? 'Alta segurança' : 'Segurança média'})`,
         showWarnings: !!validation.warnings?.length
       }
-    
+
     case 'JSON':
       return {
         icon: '📄',
@@ -317,7 +318,7 @@ export function getQRFeedback(validation: QRValidationResult): {
         message: `QR JSON detectado (${validation.confidence === 'medium' ? 'Segurança média' : 'Segurança baixa'})`,
         showWarnings: !!validation.warnings?.length
       }
-    
+
     case 'TEXT':
       return {
         icon: '📝',
@@ -325,7 +326,7 @@ export function getQRFeedback(validation: QRValidationResult): {
         message: 'QR simples detectado (Segurança baixa)',
         showWarnings: true
       }
-    
+
     default:
       return {
         icon: '❓',

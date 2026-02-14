@@ -18,8 +18,8 @@ import { getNowInFortaleza } from '@/lib/timezone'
  * 
  * Suporta automaticamente:
  * ✅ QR codes seguros (HMAC-SHA256)
- * ✅ QR codes JSON simples
- * ✅ QR codes texto direto (ID da máquina)
+ * ❌ QR codes JSON simples (Desabilitado por segurança)
+ * ❌ QR codes texto direto (Desabilitado por segurança)
  * ✅ Análise inteligente de tipo de registro
  * ✅ Rate limiting
  * ✅ Validação robusta
