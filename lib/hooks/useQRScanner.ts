@@ -9,11 +9,20 @@ interface UseQRScannerProps {
     enabled: boolean
 }
 
+
 export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const [validation, setValidation] = useState<QRValidationResult | null>(null)
     const [lastError, setLastError] = useState<string | null>(null)
+
+    // Use ref to stabilize the callback identity and prevent re-creation of processFrame
+    const onScanRef = useRef(onScan)
+
+    // Update ref when prop changes
+    useEffect(() => {
+        onScanRef.current = onScan
+    }, [onScan])
 
     const stopScanning = useCallback(() => {
         if (scanIntervalRef.current) {
@@ -76,10 +85,11 @@ export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
                 return
             }
 
-            onScan(qrData)
+            // Call the ref instead of the prop
+            onScanRef.current(qrData)
             stopScanning()
         }
-    }, [onScan, stopScanning])
+    }, [stopScanning]) // Removed onScan from dependencies
 
     const startScanning = useCallback((video: HTMLVideoElement) => {
         stopScanning()
