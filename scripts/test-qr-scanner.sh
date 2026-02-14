@@ -73,8 +73,8 @@ check_playwright() {
 check_server() {
     print_info "Verificando se o servidor está rodando..."
     
-    if curl -s http://localhost:3000 > /dev/null; then
-        print_success "Servidor rodando em http://localhost:3000"
+    if curl -s http://localhost:5000 > /dev/null; then
+        print_success "Servidor rodando em http://localhost:5000"
     else
         print_warning "Servidor não está rodando. Iniciando..."
         npm run dev &
@@ -82,7 +82,7 @@ check_server() {
         
         # Aguardar servidor iniciar
         for i in {1..30}; do
-            if curl -s http://localhost:3000 > /dev/null; then
+            if curl -s http://localhost:5000 > /dev/null; then
                 print_success "Servidor iniciado com sucesso"
                 return 0
             fi
