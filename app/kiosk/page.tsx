@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle } from 'lucide-react'
 import QRCode from 'qrcode'
+import Image from 'next/image'
 
 interface QRData {
   qrData: string
@@ -407,13 +408,22 @@ export default function KioskPage() {
       </div>
 
       {/* Footer */}
-      <div className="glass border-t border-neutral-700/50 p-4">
-        <div className="text-center">
-          <p className="text-neutral-500 text-sm">
-            © 2024 Chronos System - Sistema de Ponto Eletrônico Seguro
-          </p>
-          <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50">
-            Desenvolvido por c1c3ru • Coordenação de Tecnologia da Informação • Campus Maracanau
+      <div className="glass border-t border-neutral-700/50 p-6">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/assets/logoifce.png"
+              alt="Logo IFCE"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+            <p className="text-neutral-500 text-sm">
+              © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto eletrônico moderno e seguro.
+            </p>
+          </div>
+          <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50 text-center">
+            Desenvolvido por c1c3ru • Campus Maracanau
           </p>
         </div>
       </div>
