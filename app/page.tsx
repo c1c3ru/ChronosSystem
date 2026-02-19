@@ -177,9 +177,10 @@ export default function HomePage() {
                             <Image
                                 src="/assets/logoifce.png"
                                 alt="Logo IFCE"
-                                width={32}
-                                height={32}
-                                className="object-contain"
+                                width={36}
+                                height={36}
+                                className="object-contain mix-blend-screen opacity-90"
+                                style={{ mixBlendMode: 'screen' }}
                             />
                             <p className="text-neutral-500 text-sm">
                                 © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto eletrônico moderno e seguro.
