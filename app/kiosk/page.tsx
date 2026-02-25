@@ -208,7 +208,15 @@ export default function KioskPage() {
       const data = await response.json()
 
       if (data.success) {
-        setRecentScans(data.activity)
+        // Garantir que timestamp venha como string ISO e seja usado para formatar a hora no frontend
+        const normalized = (data.activity || []).map((item: any) => ({
+          ...item,
+          timestamp: typeof item.timestamp === 'string'
+            ? item.timestamp
+            : new Date(item.timestamp).toISOString(),
+        }))
+
+        setRecentScans(normalized)
       } else {
         console.error('Erro ao buscar atividade:', data.error)
         setRecentScans([])
@@ -306,7 +314,7 @@ export default function KioskPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex p-8 gap-8">
+      <div className="flex-1 flex flex-col gap-6 p-4 md:flex-row md:p-8 md:gap-8">
         {/* QR Code Section */}
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-lg">
@@ -369,7 +377,7 @@ export default function KioskPage() {
         </div>
 
         {/* Recent Activity Sidebar */}
-        <div className="w-80">
+        <div className="w-full md:w-80 md:mt-0 mt-4">
           <div className="glass rounded-xl p-6 h-full">
             <div className="flex items-center mb-6">
               <Users className="h-5 w-5 text-primary mr-2" />
@@ -390,7 +398,20 @@ export default function KioskPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-neutral-300 font-mono">{scan.time}</p>
+                    <p className="text-sm text-neutral-300 font-mono">
+                      {(() => {
+                        try {
+                          const date = new Date(scan.timestamp)
+                          if (Number.isNaN(date.getTime())) return '--:--'
+                          return date.toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        } catch {
+                          return '--:--'
+                        }
+                      })()}
+                    </p>
                     <CheckCircle className="h-4 w-4 text-green-500 ml-auto mt-1" />
                   </div>
                 </div>

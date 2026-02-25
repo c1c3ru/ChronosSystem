@@ -42,11 +42,8 @@ export async function GET() {
       id: record.id,
       user: record.user.name || record.user.email.split('@')[0], // Nome ou primeira parte do email
       type: record.type,
-      time: record.timestamp.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      timestamp: record.timestamp,
+      // timestamp cru em ISO; formatação fica no frontend para respeitar o timezone do dispositivo
+      timestamp: record.timestamp.toISOString(),
       machine: record.machine.name,
       location: record.machine.location
     }))
