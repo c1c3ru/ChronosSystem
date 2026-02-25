@@ -46,7 +46,7 @@ interface WorkStatus {
   isWorking: boolean
   lastRecord: {
     type: 'ENTRY' | 'EXIT'
-    time: string
+    timestamp: string // ISO string para formatar no frontend
     location: string
   } | null
   todayHours: string
@@ -347,10 +347,18 @@ export default function EmployeePage() {
 
         // Mostrar feedback de sucesso imediatamente
         const recordType = result.record.type === 'ENTRY' ? 'Entrada' : 'Saída'
-        const recordTime = result.record.time || new Date(result.record.timestamp).toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
+        const recordTime = (() => {
+          try {
+            const date = new Date(result.record.timestamp)
+            if (Number.isNaN(date.getTime())) return '--:--'
+            return date.toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          } catch {
+            return '--:--'
+          }
+        })()
 
         // 🎯 Salvar tipo do último registro para cores
         setLastRecordType(result.record.type)
@@ -585,7 +593,18 @@ export default function EmployeePage() {
                     {workStatus?.lastRecord && (
                       <p className="text-neutral-400 flex items-center mt-1">
                         <MapPin className="h-4 w-4 mr-1" />
-                        Último registro: {workStatus.lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'} às {workStatus.lastRecord.time} - {workStatus.lastRecord.location}
+                        Último registro: {workStatus.lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'} às {(() => {
+                          try {
+                            const date = new Date(workStatus.lastRecord.timestamp)
+                            if (Number.isNaN(date.getTime())) return '--:--'
+                            return date.toLocaleTimeString('pt-BR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          } catch {
+                            return '--:--'
+                          }
+                        })()} - {workStatus.lastRecord.location}
                       </p>
                     )}
                   </div>
@@ -1135,14 +1154,40 @@ export default function EmployeePage() {
                                 <div className="flex items-center space-x-2 text-sm">
                                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                   <span className="text-green-400 font-medium">Entrada:</span>
-                                  <span className="text-neutral-300">{record.entry}</span>
+                                  <span className="text-neutral-300">
+                                    {(() => {
+                                      try {
+                                        const date = new Date(record.entry)
+                                        if (Number.isNaN(date.getTime())) return '--:--'
+                                        return date.toLocaleTimeString('pt-BR', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
+                                      } catch {
+                                        return '--:--'
+                                      }
+                                    })()}
+                                  </span>
                                 </div>
                               )}
                               {record.exit && (
                                 <div className="flex items-center space-x-2 text-sm">
                                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                   <span className="text-orange-400 font-medium">Saída:</span>
-                                  <span className="text-neutral-300">{record.exit}</span>
+                                  <span className="text-neutral-300">
+                                    {(() => {
+                                      try {
+                                        const date = new Date(record.exit)
+                                        if (Number.isNaN(date.getTime())) return '--:--'
+                                        return date.toLocaleTimeString('pt-BR', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
+                                      } catch {
+                                        return '--:--'
+                                      }
+                                    })()}
+                                  </span>
                                 </div>
                               )}
                               {!record.entry && record.status === 'Ausente' && (

@@ -26,13 +26,13 @@ interface DayRecord {
   totalHours: string
   entries: Array<{
     id: string
-    time: string
+    timestamp: string // ISO string para formatar no frontend
     machine: string
     location: string
   }>
   exits: Array<{
     id: string
-    time: string
+    timestamp: string // ISO string para formatar no frontend
     machine: string
     location: string
   }>
@@ -319,7 +319,20 @@ export default function AttendanceHistoryPage() {
                                     <LogIn className="h-4 w-4 text-success" />
                                   </div>
                                   <div>
-                                    <p className="text-white font-medium">{entry.time}</p>
+                                    <p className="text-white font-medium">
+                                    {(() => {
+                                      try {
+                                        const date = new Date(entry.timestamp)
+                                        if (Number.isNaN(date.getTime())) return '--:--'
+                                        return date.toLocaleTimeString('pt-BR', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
+                                      } catch {
+                                        return '--:--'
+                                      }
+                                    })()}
+                                  </p>
                                     <p className="text-neutral-400 text-xs flex items-center">
                                       <MapPin className="h-3 w-3 mr-1" />
                                       {entry.location}
@@ -352,7 +365,20 @@ export default function AttendanceHistoryPage() {
                                     <LogOut className="h-4 w-4 text-warning" />
                                   </div>
                                   <div>
-                                    <p className="text-white font-medium">{exit.time}</p>
+                                    <p className="text-white font-medium">
+                                    {(() => {
+                                      try {
+                                        const date = new Date(exit.timestamp)
+                                        if (Number.isNaN(date.getTime())) return '--:--'
+                                        return date.toLocaleTimeString('pt-BR', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })
+                                      } catch {
+                                        return '--:--'
+                                      }
+                                    })()}
+                                  </p>
                                     <p className="text-neutral-400 text-xs flex items-center">
                                       <MapPin className="h-3 w-3 mr-1" />
                                       {exit.location}

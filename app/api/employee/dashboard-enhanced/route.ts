@@ -163,10 +163,7 @@ export async function GET(request: NextRequest) {
         isWorking,
         lastRecord: lastRecord ? {
           type: lastRecord.type,
-          time: new Date(lastRecord.timestamp).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          timestamp: lastRecord.timestamp.toISOString(), // ISO cru para formatar no frontend
           location: lastRecord.machine?.location || 'Não informado',
           label: lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'
         } : null,
@@ -413,7 +410,7 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
           ? entries[0].timestamp
           : new Date(entries[0].timestamp)
         return !isNaN(entryTimestamp.getTime())
-          ? entryTimestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+          ? entryTimestamp.toISOString() // ISO cru para formatar no frontend
           : undefined
       })() : undefined,
       exit: exits[0] ? (() => {
@@ -421,7 +418,7 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
           ? exits[0].timestamp
           : new Date(exits[0].timestamp)
         return !isNaN(exitTimestamp.getTime())
-          ? exitTimestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+          ? exitTimestamp.toISOString() // ISO cru para formatar no frontend
           : undefined
       })() : undefined,
       totalHours: `${hours}h ${minutes.toString().padStart(2, '0')}min`,

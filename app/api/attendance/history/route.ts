@@ -112,19 +112,13 @@ export async function GET(request: NextRequest) {
         totalHours,
         entries: entries.map(r => ({
           id: r.id,
-          time: new Date(r.timestamp).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          timestamp: new Date(r.timestamp).toISOString(), // ISO cru para formatar no frontend
           machine: r.machine.name,
           location: r.machine.location
         })),
         exits: exits.map(r => ({
           id: r.id,
-          time: new Date(r.timestamp).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          timestamp: new Date(r.timestamp).toISOString(), // ISO cru para formatar no frontend
           machine: r.machine.name,
           location: r.machine.location
         }))

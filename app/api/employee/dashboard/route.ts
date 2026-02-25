@@ -106,26 +106,19 @@ export async function GET(request: NextRequest) {
         isWorking,
         lastRecord: lastRecord ? {
           type: lastRecord.type,
-          time: lastRecord.timestamp.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          timestamp: lastRecord.timestamp.toISOString(), // Envia ISO cru para formatar no frontend
           location: lastRecord.machine.location
         } : null,
         todayHours
       },
       recentRecords: recentRecords.map((record: any) => ({
         id: record.id,
-        timestamp: record.timestamp,
+        timestamp: record.timestamp.toISOString(), // ISO cru para formatar no frontend
         type: record.type,
         machine: record.machine,
         date: record.timestamp.toLocaleDateString('pt-BR', {
           day: '2-digit',
           month: '2-digit'
-        }),
-        time: record.timestamp.toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit'
         })
       }))
     })
