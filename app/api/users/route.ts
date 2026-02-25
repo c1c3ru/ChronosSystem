@@ -78,6 +78,8 @@ export async function GET(request: NextRequest) {
           siapeNumber: true,
           contractType: true,
           weeklyHours: true,
+          shiftStartTime: true,
+          shiftEndTime: true,
           profileComplete: true,
           createdAt: true,
           updatedAt: true,

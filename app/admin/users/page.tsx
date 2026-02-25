@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  Users, 
-  UserPlus, 
-  Edit, 
-  Trash2, 
+import {
+  Users,
+  UserPlus,
+  Edit,
+  Trash2,
   ArrowLeft,
   Search,
   Filter,
@@ -36,6 +36,8 @@ interface User {
   siapeNumber?: string
   contractType?: string
   weeklyHours?: number
+  shiftStartTime?: string
+  shiftEndTime?: string
   profileComplete: boolean
   createdAt: string
   updatedAt: string
@@ -56,7 +58,7 @@ export default function UsersPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -80,7 +82,7 @@ export default function UsersPage() {
     try {
       setLoading(true)
       const response = await fetch('/api/users')
-      
+
       if (response.ok) {
         const data = await response.json()
         setUsers(data.users || [])
@@ -94,15 +96,15 @@ export default function UsersPage() {
 
   const handleDeleteUser = async (userId: string, userName: string) => {
     if (!confirm(`Tem certeza que deseja excluir o usuário "${userName}"?\n\nEsta ação não pode ser desfeita.`)) return
-    
+
     try {
       setDeleting(userId)
       toast.loading('Excluindo usuário...', { id: 'delete-user' })
-      
+
       const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE'
       })
-      
+
       if (response.ok) {
         toast.success('Usuário excluído com sucesso!', { id: 'delete-user' })
         loadUsers() // Reload users list
@@ -125,7 +127,7 @@ export default function UsersPage() {
 
   const filteredUsers = (users || []).filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
   })
@@ -195,6 +197,7 @@ export default function UsersPage() {
                   className="input"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
+                  title="Filtrar por papel"
                 >
                   <option value="ALL">Todos os Roles</option>
                   <option value="ADMIN">Admin</option>
@@ -219,11 +222,10 @@ export default function UsersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-white">{user.name}</h3>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
                           user.role === 'SUPERVISOR' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-blue-500/20 text-blue-400'
-                        }`}>
+                            'bg-blue-500/20 text-blue-400'
+                          }`}>
                           {user.role}
                         </span>
                         {user.profileComplete ? (
@@ -232,9 +234,9 @@ export default function UsersPage() {
                           <AlertTriangle className="h-4 w-4 text-yellow-400" />
                         )}
                       </div>
-                      
+
                       <p className="text-neutral-400 text-sm mb-2">{user.email}</p>
-                      
+
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                         {user.siapeNumber && (
                           <div>
@@ -260,8 +262,16 @@ export default function UsersPage() {
                             <p className="text-white font-medium">{user.weeklyHours}h/semana</p>
                           </div>
                         )}
+                        {user.shiftStartTime && user.shiftEndTime && (
+                          <div>
+                            <span className="text-neutral-500">Horário:</span>
+                            <p className="text-white font-medium">
+                              {user.shiftStartTime} - {user.shiftEndTime}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      
+
                       <div className="flex items-center gap-4 mt-3 text-xs text-neutral-500">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -285,8 +295,8 @@ export default function UsersPage() {
                       </Link>
                     </Button>
                     {session?.user?.role === 'ADMIN' && user.id !== session.user.id && (
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         title="Deletar"
                         onClick={() => handleDeleteUser(user.id, user.name)}
@@ -308,7 +318,7 @@ export default function UsersPage() {
               <Users className="h-12 w-12 text-neutral-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">Nenhum usuário encontrado</h3>
               <p className="text-neutral-400 mb-4">
-                {searchTerm || roleFilter !== 'ALL' 
+                {searchTerm || roleFilter !== 'ALL'
                   ? 'Tente ajustar os filtros de busca'
                   : 'Comece criando o primeiro usuário'
                 }

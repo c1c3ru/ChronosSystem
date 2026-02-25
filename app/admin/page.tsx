@@ -48,6 +48,27 @@ interface RecentActivity {
   type: 'ENTRY' | 'EXIT'
 }
 
+interface InternOverview {
+  id: string
+  name: string | null
+  email: string
+  department: string | null
+  shift: string
+  shiftStartTime: string
+  shiftEndTime: string
+  contractType: string
+  weeklyHours: number
+  dailyHours: number
+  hourBalance: number
+  _count: {
+    attendanceRecords: number
+  }
+  lastStatus: {
+    type: 'ENTRY' | 'EXIT'
+    timestamp: string
+  } | null
+}
+
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -56,6 +77,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState<'ALL' | 'ENTRY' | 'EXIT'>('ALL')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  /* New state for intern overview */
+  const [interns, setInterns] = useState<InternOverview[]>([])
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -85,9 +109,10 @@ export default function AdminPage() {
       setLoading(true)
 
       // Carregar dados reais das APIs
-      const [statsResponse, activityResponse] = await Promise.all([
+      const [statsResponse, activityResponse, internsResponse] = await Promise.all([
         fetch('/api/dashboard/stats'),
-        fetch('/api/dashboard/activity?limit=5')
+        fetch('/api/dashboard/activity?limit=5'),
+        fetch('/api/admin/interns/overview')
       ])
 
       if (statsResponse.ok) {
@@ -105,6 +130,11 @@ export default function AdminPage() {
         const activityData = await activityResponse.json()
         setRecentActivity(activityData)
       }
+
+      if (internsResponse.ok) {
+        const internsData = await internsResponse.json()
+        setInterns(internsData)
+      }
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error)
       // Fallback para dados mockados em caso de erro
@@ -116,6 +146,7 @@ export default function AdminPage() {
       })
 
       setRecentActivity([])
+      setInterns([])
     } finally {
       setLoading(false)
     }
@@ -319,6 +350,69 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               </Link>
+            </div>
+
+            {/* Interns Overview */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-primary" />
+                  Visão Geral de Estagiários
+                </h2>
+                <Link href="/admin/users">
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                    Ver todos
+                  </Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {interns.map(intern => (
+                  <Card key={intern.id} variant="glass" className="overflow-hidden border-neutral-700/30 hover:border-primary/30 transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-semibold truncate">{intern.name || 'Sem nome'}</h3>
+                          <p className="text-neutral-400 text-xs truncate">{intern.email}</p>
+                        </div>
+                        <div className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex-shrink-0 ${intern.lastStatus?.type === 'ENTRY' ? 'bg-success/20 text-success border border-success/30' : 'bg-neutral-800 text-neutral-500 border border-neutral-700'
+                          }`}>
+                          {intern.lastStatus?.type === 'ENTRY' ? 'Presente' : 'Ausente'}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                        <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50">
+                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Horário</p>
+                          <p className="text-white text-xs font-medium">{intern.shiftStartTime} - {intern.shiftEndTime}</p>
+                        </div>
+                        <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50">
+                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Saldo Atual</p>
+                          <p className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}>
+                            {intern.hourBalance > 0 ? '+' : ''}{intern.hourBalance.toFixed(1)}h
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-neutral-800/50 flex items-center justify-between text-[11px] text-neutral-400">
+                        <div className="flex items-center">
+                          <div className={`h-1.5 w-1.5 rounded-full mr-2 ${intern.lastStatus?.type === 'ENTRY' ? 'bg-success animate-pulse' : 'bg-neutral-600'}`} />
+                          {intern.lastStatus
+                            ? `${intern.lastStatus.type === 'ENTRY' ? 'Entrou às' : 'Saiu às'} ${new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                            : 'Sem registros hoje'}
+                        </div>
+                        <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
+                          {intern.contractType.split('_')[1] || intern.contractType}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {interns.length === 0 && (
+                  <div className="col-span-full py-8 text-center bg-neutral-800/20 rounded-xl border border-dashed border-neutral-700">
+                    <p className="text-neutral-500">Nenhum estagiário encontrado</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Recent Activity */}

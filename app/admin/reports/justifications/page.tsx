@@ -36,10 +36,21 @@ interface Justification {
   }
 }
 
+interface JustificationOverview {
+  userId: string
+  name: string | null
+  email: string
+  missingCount: number
+  pendingCount: number
+  missingDates: { date: string, reason: string }[]
+  pendingDates: { date: string, justificationId: string, reason: string }[]
+}
+
 export default function JustificationsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [justifications, setJustifications] = useState<Justification[]>([])
+  const [overview, setOverview] = useState<JustificationOverview[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
@@ -47,6 +58,7 @@ export default function JustificationsPage() {
   const [selectedJustification, setSelectedJustification] = useState<Justification | null>(null)
   const [adminResponse, setAdminResponse] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'LIST' | 'OVERVIEW'>('LIST')
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -67,25 +79,35 @@ export default function JustificationsPage() {
   // Load justifications
   useEffect(() => {
     if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadJustifications()
+      loadData()
     }
   }, [session])
 
-  const loadJustifications = async () => {
+  const loadData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/admin/justifications')
+      const [justResponse, overviewResponse] = await Promise.all([
+        fetch('/api/admin/justifications'),
+        fetch('/api/admin/justifications/overview')
+      ])
 
-      if (response.ok) {
-        const data = await response.json()
+      if (justResponse.ok) {
+        const data = await justResponse.json()
         setJustifications(data)
       }
+
+      if (overviewResponse.ok) {
+        const data = await overviewResponse.json()
+        setOverview(data)
+      }
     } catch (error) {
-      console.error('Erro ao carregar justificativas:', error)
+      console.error('Erro ao carregar dados:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  const loadJustifications = loadData // Alias for backward compatibility if used anywhere
 
   const handleJustificationAction = async (justificationId: string, action: 'APPROVED' | 'REJECTED') => {
     try {
@@ -225,6 +247,7 @@ export default function JustificationsPage() {
                   className="input"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
+                  title="Filtrar por status"
                 >
                   <option value="ALL">Todos</option>
                   <option value="PENDING">Pendente</option>
@@ -242,6 +265,7 @@ export default function JustificationsPage() {
                   className="input"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
+                  title="Filtrar por tipo"
                 >
                   <option value="ALL">Todos</option>
                   <option value="LATE">Atraso</option>
@@ -309,82 +333,220 @@ export default function JustificationsPage() {
           </Card>
         </div>
 
-        {/* Justifications List */}
-        <div className="space-y-4">
-          {filteredJustifications.map((justification) => (
-            <Card key={justification.id}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-neutral-400" />
-                        <span className="font-medium text-white">{justification.user.name}</span>
-                        <span className="text-neutral-400 text-sm">({justification.user.email})</span>
+        {/* Tabs */}
+        <div className="flex border-b border-neutral-700 mb-6">
+          <button
+            className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'LIST' ? 'text-primary' : 'text-neutral-400 hover:text-neutral-300'
+              }`}
+            onClick={() => setActiveTab('LIST')}
+          >
+            Lista de Justificativas
+            {activeTab === 'LIST' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+            )}
+          </button>
+          <button
+            className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'OVERVIEW' ? 'text-primary' : 'text-neutral-400 hover:text-neutral-300'
+              }`}
+            onClick={() => setActiveTab('OVERVIEW')}
+          >
+            Pendências por Usuário
+            {overview.length > 0 && (
+              <span className="ml-2 bg-error text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                {overview.length}
+              </span>
+            )}
+            {activeTab === 'OVERVIEW' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+            )}
+          </button>
+        </div>
+
+        {activeTab === 'OVERVIEW' ? (
+          <div className="space-y-6">
+            {overview.map((user) => (
+              <Card key={user.userId} className="border-l-4 border-l-error bg-neutral-800/20">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <div className="text-white font-bold text-lg flex items-center">
+                        <User className="h-5 w-5 mr-2 text-primary" />
+                        {user.name}
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(justification.type)}`}>
-                        {getTypeText(justification.type)}
-                      </span>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(justification.status)}`}>
-                        {getStatusText(justification.status)}
-                      </span>
+                      <p className="text-sm text-neutral-400 ml-7">{user.email}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {user.missingCount > 0 && (
+                        <div className="bg-error/10 text-error px-3 py-1 rounded-full text-xs font-bold border border-error/20 flex items-center">
+                          <X className="h-3 w-3 mr-1" />
+                          {user.missingCount} Faltas sem Justificativa
+                        </div>
+                      )}
+                      {user.pendingCount > 0 && (
+                        <div className="bg-warning/10 text-warning px-3 py-1 rounded-full text-xs font-bold border border-warning/20 flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {user.pendingCount} Justificativas Pendentes
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-6 mt-4">
+                    {/* Missing Justifications */}
+                    <div>
+                      <h4 className="text-xs font-bold text-neutral-500 mb-3 uppercase tracking-widest">Faltas Pendentes (Últimos 30 dias)</h4>
+                      <div className="space-y-2">
+                        {user.missingDates.length > 0 ? user.missingDates.map((m, idx) => (
+                          <div key={idx} className="bg-neutral-900/40 p-3 rounded-lg border border-neutral-700/30 flex items-center justify-between">
+                            <div>
+                              <p className="text-white text-sm font-semibold">{formatDate(m.date)}</p>
+                              <p className="text-[11px] text-neutral-500">{m.reason}</p>
+                            </div>
+                            <div className="text-[9px] font-bold bg-neutral-800 text-neutral-400 px-2 py-0.5 rounded border border-neutral-700">
+                              NÃO ENVIADA
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="text-[11px] text-neutral-600 italic">Nenhuma falta sem justificativa</div>
+                        )}
+                      </div>
+                    </div>
+                    {/* Pending Review */}
+                    <div>
+                      <h4 className="text-xs font-bold text-neutral-500 mb-3 uppercase tracking-widest">Justificativas para Analisar</h4>
+                      <div className="space-y-2">
+                        {user.pendingDates.length > 0 ? user.pendingDates.map((p, idx) => (
+                          <div key={idx} className="bg-neutral-900/40 p-3 rounded-lg border border-warning/20 flex items-center justify-between group">
+                            <div className="min-w-0 pr-4">
+                              <p className="text-white text-sm font-semibold">{formatDate(p.date)}</p>
+                              <p className="text-[11px] text-neutral-400 italic truncate italic">"{p.reason}"</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 px-3 text-xs text-primary hover:bg-primary/20 bg-primary/10 border border-primary/20 shrink-0"
+                              onClick={() => {
+                                const j = justifications.find(just => just.id === p.justificationId);
+                                if (j) setSelectedJustification(j);
+                                else {
+                                  // Caso não esteja na lista filtrada, buscamos via API ou usamos o que temos
+                                  setSelectedJustification({
+                                    id: p.justificationId,
+                                    date: p.date,
+                                    reason: p.reason,
+                                    status: 'PENDING',
+                                    type: 'ABSENCE', // Fallback
+                                    createdAt: new Date().toISOString(),
+                                    user: { name: user.name || '', email: user.email, role: 'EMPLOYEE' }
+                                  } as any);
+                                }
+                              }}
+                            >
+                              Analisar
+                            </Button>
+                          </div>
+                        )) : (
+                          <div className="text-[11px] text-neutral-600 italic">Nenhuma justificativa pendente</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {overview.length === 0 && (
+              <div className="text-center py-20 bg-neutral-800/10 rounded-2xl border border-dashed border-neutral-700">
+                <div className="bg-success/20 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check className="h-8 w-8 text-success" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Excelente!</h3>
+                <p className="text-neutral-400 max-w-xs mx-auto text-sm">Nenhum estagiário possui pendências de justificativa nos últimos 30 dias.</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Justifications List */
+          <div className="space-y-4">
+            {filteredJustifications.map((justification) => (
+              <Card key={justification.id} className="hover:border-primary/20 transition-colors">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-neutral-800 p-1.5 rounded-lg">
+                            <User className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="font-bold text-white truncate">{justification.user.name}</span>
+                          <span className="text-neutral-500 text-xs hidden sm:inline">({justification.user.email})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getTypeColor(justification.type)}`}>
+                            {getTypeText(justification.type)}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusColor(justification.status)}`}>
+                            {getStatusText(justification.status)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-4 text-xs text-neutral-400">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-3.5 w-3.5 text-neutral-500" />
+                          <span>Data da ocorrência: <span className="text-neutral-200 font-medium">{formatDate(justification.date)}</span></span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-3.5 w-3.5 text-neutral-500" />
+                          <span>Enviado em: <span className="text-neutral-200 font-medium">{formatDate(justification.createdAt)}</span></span>
+                        </div>
+                      </div>
+
+                      <div className="mb-4 bg-neutral-900/40 p-3 rounded-lg border border-neutral-700/30">
+                        <p className="text-[10px] font-bold text-neutral-500 uppercase mb-2 tracking-widest">Justificativa do Estagiário</p>
+                        <p className="text-white text-sm leading-relaxed">{justification.reason}</p>
+                      </div>
+
+                      {justification.adminResponse && (
+                        <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
+                          <p className="text-[10px] font-bold text-primary/70 uppercase mb-1 tracking-widest">Resposta da Administração</p>
+                          <p className="text-neutral-200 text-sm italic">"{justification.adminResponse}"</p>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex items-center space-x-4 mb-3 text-sm text-neutral-400">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>Data: {formatDate(justification.date)}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>Enviado: {formatDate(justification.createdAt)}</span>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <p className="text-sm font-medium text-neutral-300 mb-1">Justificativa:</p>
-                      <p className="text-white">{justification.reason}</p>
-                    </div>
-
-                    {justification.adminResponse && (
-                      <div className="bg-neutral-800/50 rounded-lg p-3">
-                        <p className="text-sm font-medium text-neutral-300 mb-1">Resposta do Admin:</p>
-                        <p className="text-white text-sm">{justification.adminResponse}</p>
+                    {justification.status === 'PENDING' && (
+                      <div className="flex shrink-0">
+                        <Button
+                          size="sm"
+                          onClick={() => setSelectedJustification(justification)}
+                          className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Analisar
+                        </Button>
                       </div>
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            ))}
 
-                  {justification.status === 'PENDING' && (
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        onClick={() => setSelectedJustification(justification)}
-                        variant="ghost"
-                      >
-                        <MessageSquare className="h-4 w-4 mr-1" />
-                        Analisar
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredJustifications.length === 0 && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <AlertTriangle className="h-12 w-12 text-neutral-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">Nenhuma justificativa encontrada</h3>
-              <p className="text-neutral-400">
-                {searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL'
-                  ? 'Tente ajustar os filtros de busca'
-                  : 'Não há justificativas no sistema'
-                }
-              </p>
-            </CardContent>
-          </Card>
+            {filteredJustifications.length === 0 && (
+              <Card className="bg-neutral-800/20 border-dashed border-neutral-700">
+                <CardContent className="p-12 text-center">
+                  <AlertTriangle className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">Nenhuma justificativa encontrada</h3>
+                  <p className="text-neutral-400 text-sm max-w-sm mx-auto">
+                    {searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL'
+                      ? 'Tente ajustar os filtros de busca para encontrar o que procura.'
+                      : 'Não há justificativas enviadas no momento.'
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
       </div>
 
