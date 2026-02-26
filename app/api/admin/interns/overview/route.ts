@@ -67,8 +67,18 @@ export async function GET(request: NextRequest) {
             // Está "Presente" se o ÚLTIMO registro registrado HOJE foi ENTRADA.
             const isPresent = todayRecords.length > 0 && todayRecords[0].type === 'ENTRY'
 
+            // Ajuste de saldo em tempo real se o estagiário estiver presente
+            let currentBalance = intern.hourBalance
+            if (isPresent && todayRecords[0]) {
+                const now = new Date()
+                const lastEntryTime = new Date(todayRecords[0].timestamp)
+                const diffHours = (now.getTime() - lastEntryTime.getTime()) / (1000 * 60 * 60)
+                currentBalance += diffHours
+            }
+
             return {
                 ...intern,
+                hourBalance: currentBalance,
                 lastStatus: intern.attendanceRecords[0] || null,
                 isPresent, // Novo campo para o UI
                 attendanceRecords: undefined

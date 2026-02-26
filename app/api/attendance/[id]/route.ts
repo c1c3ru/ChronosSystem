@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { updateHourBalance } from '@/lib/hour-calculator'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -13,7 +14,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -46,7 +47,7 @@ export async function GET(
 
     // Verificar permissões: admin/supervisor podem ver qualquer registro, usuário comum só seu próprio
     const canView = ['ADMIN', 'SUPERVISOR'].includes(session.user.role) || record.userId === session.user.id
-    
+
     if (!canView) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
@@ -65,7 +66,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -105,6 +106,14 @@ export async function DELETE(
       where: { id: recordId }
     })
 
+
+    // Atualizar saldo de horas do usuário afetado
+    try {
+      await updateHourBalance(record.userId)
+    } catch (hourError) {
+      console.error('Erro ao atualizar saldo de horas após exclusão:', hourError)
+    }
+
     // Log de auditoria
     await prisma.auditLog.create({
       data: {
@@ -141,7 +150,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -165,11 +174,11 @@ export async function PATCH(
 
     // Apenas permitir atualizar timestamp e tipo
     const updateData: any = {}
-    
+
     if (body.timestamp) {
       updateData.timestamp = new Date(body.timestamp)
     }
-    
+
     if (body.type && ['ENTRY', 'EXIT'].includes(body.type)) {
       updateData.type = body.type
     }
@@ -197,6 +206,14 @@ export async function PATCH(
         }
       }
     })
+
+
+    // Atualizar saldo de horas do usuário afetado
+    try {
+      await updateHourBalance(record.userId)
+    } catch (hourError) {
+      console.error('Erro ao atualizar saldo de horas após atualização:', hourError)
+    }
 
     // Log de auditoria
     await prisma.auditLog.create({

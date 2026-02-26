@@ -7,6 +7,7 @@ import { rateLimiters } from '@/lib/rate-limit'
 import { apiLogger } from '@/lib/logger'
 import { determineRecordType, getUserWorkingHours, validateRecord, isWeekend } from '@/lib/attendance-logic'
 import { getNowInFortaleza } from '@/lib/timezone'
+import { updateHourBalance } from '@/lib/hour-calculator'
 
 /**
  * API UNIFICADA PARA QR CODES
@@ -335,6 +336,15 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+
+    // Calcular saldo de horas após registro de ponto
+    try {
+      await updateHourBalance(session.user.id, attendanceRecord.timestamp)
+      apiLogger.info('Saldo de horas atualizado via QR-Unified', { userId: session.user.id })
+    } catch (hourError) {
+      apiLogger.error('Erro ao calcular saldo de horas via QR-Unified', { error: hourError })
+    }
 
     // Log de auditoria
     await prisma.auditLog.create({
