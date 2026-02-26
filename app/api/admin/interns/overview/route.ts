@@ -63,12 +63,9 @@ export async function GET(request: NextRequest) {
                 new Date(r.timestamp) >= today
             )
 
-            const hasEntryToday = todayRecords.some(r => r.type === 'ENTRY')
-            const hasExitToday = todayRecords.some(r => r.type === 'EXIT')
-
-            // Lógica conforme escolha A do usuário:
-            // Presente apenas se completou o ciclo (entrou E saiu hoje)
-            const isPresent = hasEntryToday && hasExitToday
+            // Lógica de tempo real (Restrita a registros de HOJE):
+            // Está "Presente" se o ÚLTIMO registro registrado HOJE foi ENTRADA.
+            const isPresent = todayRecords.length > 0 && todayRecords[0].type === 'ENTRY'
 
             return {
                 ...intern,
