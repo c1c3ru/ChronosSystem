@@ -90,11 +90,27 @@ model User {
   monthlyBalances   MonthlyBalance[]
   passwordResetTokens PasswordResetToken[]
   formDrafts        FormDraft[]
+  attendanceNotifications AttendanceNotification[]
   
   @@index([role])
   @@index([department])
   @@index([contractType])
   @@index([shift])
+}
+
+model AttendanceNotification {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String    // 'EXIT_REMINDER' | 'MISSED_EXIT'
+  sentAt      DateTime  @default(now())
+  acknowledgedAt DateTime?
+  expiresAt   DateTime  // 3 dias depois
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("attendance_notifications")
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model VerificationToken {

@@ -1,0 +1,9 @@
+import { Resend } from 'resend';
+
+if (!process.env.RESEND_API_KEY) {
+    console.warn('⚠️ RESEND_API_KEY is not defined in environment variables');
+}
+
+export const resend = new Resend(process.env.RESEND_API_KEY);
+
+export const RESEND_FROM = process.env.RESEND_FROM || 'Chronos <notifications@resend.dev>';

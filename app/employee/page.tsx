@@ -41,6 +41,7 @@ import { handleCompleteLogout } from '@/lib/logout'
 import QRScanner from '@/components/QRScanner'
 import InternshipTimeline from '@/components/InternshipTimeline'
 import { HolidayNotification } from '@/components/HolidayNotification'
+import { NotificationCenter } from '@/components/NotificationCenter'
 
 interface WorkStatus {
   isWorking: boolean
@@ -520,6 +521,9 @@ export default function EmployeePage() {
 
 
 
+
+          {/* 🎯 Central de Notificações Inteligentes */}
+          <NotificationCenter />
 
           {/* 🎯 Notificação de Último Registro com Cores Dinâmicas */}
           {lastRegistration && (

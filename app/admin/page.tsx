@@ -67,6 +67,7 @@ interface InternOverview {
     type: 'ENTRY' | 'EXIT'
     timestamp: string
   } | null
+  isPresent: boolean
 }
 
 export default function AdminPage() {
@@ -374,9 +375,9 @@ export default function AdminPage() {
                           <h3 className="text-white font-semibold truncate">{intern.name || 'Sem nome'}</h3>
                           <p className="text-neutral-400 text-xs truncate">{intern.email}</p>
                         </div>
-                        <div className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex-shrink-0 ${intern.lastStatus?.type === 'ENTRY' ? 'bg-success/20 text-success border border-success/30' : 'bg-neutral-800 text-neutral-500 border border-neutral-700'
+                        <div className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex-shrink-0 ${intern.isPresent ? 'bg-success/20 text-success border border-success/30' : 'bg-neutral-800 text-neutral-500 border border-neutral-700'
                           }`}>
-                          {intern.lastStatus?.type === 'ENTRY' ? 'Presente' : 'Ausente'}
+                          {intern.isPresent ? 'Presente' : 'Ausente'}
                         </div>
                       </div>
 

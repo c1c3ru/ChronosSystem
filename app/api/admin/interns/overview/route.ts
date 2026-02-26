@@ -36,7 +36,11 @@ export async function GET(request: NextRequest) {
                     }
                 },
                 attendanceRecords: {
-                    take: 1,
+                    where: {
+                        timestamp: {
+                            gte: new Date(new Date().setHours(0, 0, 0, 0))
+                        }
+                    },
                     orderBy: {
                         timestamp: 'desc'
                     },
@@ -51,11 +55,28 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        const formattedInterns = interns.map(intern => ({
-            ...intern,
-            lastStatus: intern.attendanceRecords[0] || null,
-            attendanceRecords: undefined // Remover o array original
-        }))
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const formattedInterns = interns.map(intern => {
+            const todayRecords = intern.attendanceRecords.filter(r =>
+                new Date(r.timestamp) >= today
+            )
+
+            const hasEntryToday = todayRecords.some(r => r.type === 'ENTRY')
+            const hasExitToday = todayRecords.some(r => r.type === 'EXIT')
+
+            // Lógica conforme escolha A do usuário:
+            // Presente apenas se completou o ciclo (entrou E saiu hoje)
+            const isPresent = hasEntryToday && hasExitToday
+
+            return {
+                ...intern,
+                lastStatus: intern.attendanceRecords[0] || null,
+                isPresent, // Novo campo para o UI
+                attendanceRecords: undefined
+            }
+        })
 
         return NextResponse.json(formattedInterns)
 
