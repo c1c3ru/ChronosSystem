@@ -109,7 +109,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
 
 // --- SUBCOMPONENTES ---
 
-function QRScannerIdle({ onActivate }: { onActivate: () => void }) {
+const QRScannerIdle = React.memo(function QRScannerIdle({ onActivate }: { onActivate: () => void }) {
   return (
     <div className="text-center py-8">
       <div className="w-20 h-20 bg-gradient-to-br from-secondary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -123,9 +123,9 @@ function QRScannerIdle({ onActivate }: { onActivate: () => void }) {
       </Button>
     </div>
   )
-}
+})
 
-function QRScannerLoading() {
+const QRScannerLoading = React.memo(function QRScannerLoading() {
   return (
     <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black">
       <div>
@@ -134,9 +134,9 @@ function QRScannerLoading() {
       </div>
     </div>
   )
-}
+})
 
-function QRScannerError({ error, onRetry, onCancel }: { error: string | null, onRetry: () => void, onCancel: () => void }) {
+const QRScannerError = React.memo(function QRScannerError({ error, onRetry, onCancel }: { error: string | null, onRetry: () => void, onCancel: () => void }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95">
       <div className="max-w-md">
@@ -154,9 +154,9 @@ function QRScannerError({ error, onRetry, onCancel }: { error: string | null, on
       </div>
     </div>
   )
-}
+})
 
-function QRScannerOverlay({ validation }: { validation: any }) {
+const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { validation: any }) {
   return (
     <>
       {/* Moldura de scanning */}
@@ -191,6 +191,9 @@ function QRScannerOverlay({ validation }: { validation: any }) {
                   {validation.isValid ? 'QR Code Seguro Detectado' : 'Formato Não Seguro'}
                 </div>
                 {validation.machineId && <div className="text-xs text-neutral-400">Máquina: {validation.machineId}</div>}
+                {!validation.isValid && validation.error && (
+                  <div className="text-xs text-error-400 mt-1 font-medium">{validation.error}</div>
+                )}
               </div>
             </div>
           </div>
@@ -198,15 +201,16 @@ function QRScannerOverlay({ validation }: { validation: any }) {
       )}
     </>
   )
-}
+})
 
-function QRScannerControls({ onSwitch, onClose, facingMode }: { onSwitch: () => void, onClose: () => void, facingMode: string }) {
+const QRScannerControls = React.memo(function QRScannerControls({ onSwitch, onClose, facingMode }: { onSwitch: () => void, onClose: () => void, facingMode: string }) {
   return (
     <div className="absolute top-4 right-4 z-20 flex gap-2">
       <Button
         onClick={onSwitch}
         variant="ghost"
         size="sm"
+        aria-label="Trocar câmera"
         className="bg-black/60 border border-white/20 text-white backdrop-blur-md"
       >
         <Camera className="h-5 w-5" />
@@ -215,15 +219,16 @@ function QRScannerControls({ onSwitch, onClose, facingMode }: { onSwitch: () => 
         onClick={onClose}
         variant="ghost"
         size="sm"
+        aria-label="Fechar scanner"
         className="bg-black/60 border border-white/20 text-white backdrop-blur-md"
       >
         <X className="h-5 w-5" />
       </Button>
     </div>
   )
-}
+})
 
-function QRScannerStatus({ facingMode }: { facingMode: string }) {
+const QRScannerStatus = React.memo(function QRScannerStatus({ facingMode }: { facingMode: string }) {
   return (
     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20">
       <div className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-sm border border-primary-500/30 flex items-center gap-3 shadow-xl">
@@ -235,6 +240,6 @@ function QRScannerStatus({ facingMode }: { facingMode: string }) {
       </div>
     </div>
   )
-}
+})
 
 export { QRScanner }

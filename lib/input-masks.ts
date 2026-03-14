@@ -72,7 +72,7 @@ export const validateEmail = (email: string): boolean => {
  */
 export const maskCurrency = (value: string): string => {
     // Remove tudo que não é dígito
-    let numbers = value.replace(/\D/g, '')
+    const numbers = value.replace(/\D/g, '')
 
     // Se vazio, retorna vazio
     if (!numbers) return ''

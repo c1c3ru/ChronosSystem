@@ -81,6 +81,8 @@ export default function AdminPage() {
 
   /* New state for intern overview */
   const [interns, setInterns] = useState<InternOverview[]>([])
+  const [internPage, setInternPage] = useState(1)
+  const internsPerPage = 6
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function AdminPage() {
     if (!session) {
       signIn()
     }
-  }, [status])
+  }, [status, session])
 
   // Check if user is admin or supervisor
   useEffect(() => {
@@ -182,6 +184,9 @@ export default function AdminPage() {
   const filteredActivity = recentActivity.filter(activity =>
     filterType === 'ALL' || activity.type === filterType
   )
+
+  const totalInternPages = Math.ceil(interns.length / internsPerPage)
+  const paginatedInterns = interns.slice((internPage - 1) * internsPerPage, internPage * internsPerPage)
 
   if (status === 'loading') {
     return <Loading size="lg" text="Carregando..." />
@@ -367,7 +372,7 @@ export default function AdminPage() {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {interns.map(intern => (
+                {paginatedInterns.map(intern => (
                   <Card key={intern.id} variant="glass" className="overflow-hidden border-neutral-700/30 hover:border-primary/30 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -414,6 +419,44 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+
+              {totalInternPages > 1 && (
+                <div className="flex items-center justify-center space-x-2 mt-6">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setInternPage(Math.max(1, internPage - 1))}
+                    disabled={internPage === 1}
+                    className="bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700/50 hover:border-neutral-600"
+                  >
+                    Anterior
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalInternPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setInternPage(page)}
+                        className={`w-8 h-8 rounded-md flex items-center justify-center text-sm font-medium transition-colors ${
+                          internPage === page
+                            ? 'bg-primary text-black'
+                            : 'text-neutral-400 hover:bg-neutral-700/50 hover:text-white'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setInternPage(Math.min(totalInternPages, internPage + 1))}
+                    disabled={internPage === totalInternPages}
+                    className="bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700/50 hover:border-neutral-600"
+                  >
+                    Próximo
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Recent Activity */}

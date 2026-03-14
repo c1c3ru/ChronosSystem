@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  Search
+  Search,
+  Download
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -111,6 +112,15 @@ export default function AttendanceHistoryPage() {
   const handlePageChange = (newPage: number) => {
     loadRecords(newPage)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleExport = () => {
+    const params = new URLSearchParams()
+    if (typeFilter !== 'ALL') params.append('type', typeFilter)
+    if (dateFrom) params.append('dateFrom', dateFrom)
+    if (dateTo) params.append('dateTo', dateTo)
+
+    window.open(`/api/attendance/export?${params}`, '_blank')
   }
 
   const getStatusColor = (status: string) => {
@@ -212,14 +222,23 @@ export default function AttendanceHistoryPage() {
                   />
                 </div>
 
-                {/* Apply Button */}
-                <div className="flex items-end">
+                {/* Action Buttons */}
+                <div className="flex items-end gap-2 lg:col-span-1">
                   <Button
                     onClick={handleFilterChange}
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="flex-1 bg-primary hover:bg-primary/90"
                   >
                     <Search className="h-4 w-4 mr-2" />
                     Filtrar
+                  </Button>
+                  <Button
+                    onClick={handleExport}
+                    variant="outline"
+                    className="flex-1 border-neutral-700 hover:bg-neutral-800"
+                    title="Exportar para CSV"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar
                   </Button>
                 </div>
               </div>

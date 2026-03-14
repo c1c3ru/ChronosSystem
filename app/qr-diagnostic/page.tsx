@@ -223,7 +223,7 @@ export default function QRDiagnosticPage() {
                                         <div className="bg-error/10 border border-error/30 rounded p-3">
                                             <p className="font-semibold text-error mb-1">📹 Permissão Negada</p>
                                             <p>1. Clique no ícone 🔒 ou 📹 na barra de endereços</p>
-                                            <p>2. Selecione "Permitir" para câmera</p>
+                                            <p>2. Selecione &quot;Permitir&quot; para câmera</p>
                                             <p>3. Recarregue a página</p>
                                         </div>
                                     )}

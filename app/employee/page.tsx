@@ -101,6 +101,11 @@ export default function EmployeePage() {
     checkCameraPermission()
   }, [])
 
+  const handleRegisterClick = () => {
+    if (cooldownSeconds > 0) return
+    startScanning()
+  }
+
   const checkCameraPermission = async () => {
     try {
       setIsCheckingCamera(true)
@@ -474,56 +479,76 @@ export default function EmployeePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
-      {/* Header - Mobile Optimized */}
-      <div className="glass border-b border-neutral-700/50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+    <div className="min-h-screen bg-slate-950 selection:bg-primary/30 selection:text-white overflow-x-hidden">
+      {/* Dynamic background mesh */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[130px] rounded-full animate-pulse-slow" />
+        <div className="absolute bottom-0 left-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[130px] rounded-full" />
+      </div>
+
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 glass border-b border-white/5 backdrop-blur-3xl">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Left Section */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-                <Home className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              </Link>
-              <div className="h-5 w-px bg-neutral-600 hidden sm:block" />
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="bg-primary/20 rounded-lg sm:rounded-xl p-1.5 sm:p-2">
-                  <User className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-lg sm:text-xl font-bold text-white">Portal do Estagiário</h1>
-                  <p className="text-neutral-400 text-xs sm:text-sm">Sistema Chronos - Registro de Ponto</p>
-                </div>
-                <div className="block sm:hidden">
-                  <h1 className="text-base font-bold text-white">Portal</h1>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center border border-primary/20 shadow-inner group hover:scale-105 transition-all duration-300">
+                <Shield className="h-7 w-7 text-primary animate-pulse-slow" />
+              </div>
+              <div className="hidden xs:block">
+                <h1 className="text-xl font-black text-white tracking-tighter italic leading-none">CHRONOS</h1>
+                <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-80">Security Suite</span>
               </div>
             </div>
 
-            {/* Right Section */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-white font-medium text-sm">{session.user.name}</p>
-                <p className="text-neutral-400 text-xs">{session.user.email}</p>
+            <div className="flex items-center gap-3 sm:gap-6">
+              <NotificationCenter />
+              <div className="h-8 w-px bg-white/10 hidden sm:block" />
+              <div className="flex items-center gap-4 pl-2">
+                <div className="hidden lg:block text-right">
+                  <p className="text-sm font-bold text-slate-100 leading-none mb-1">{session?.user?.name}</p>
+                  <div className="flex items-center justify-end gap-1.5 opacity-60">
+                    <div className="w-1.5 h-1.5 rounded-full bg-success-500 animate-pulse" />
+                    <span className="text-[9px] text-slate-300 uppercase font-black tracking-widest leading-none">Status: Online</span>
+                  </div>
+                </div>
+                
+                <div className="relative group cursor-pointer" onClick={() => router.push('/employee/profile')}>
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-[2px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-lg group-hover:shadow-primary/20">
+                    <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center overflow-hidden border border-white/5">
+                      {session?.user?.image ? (
+                        <Image src={session.user.image} alt="" width={40} height={40} className="object-cover" />
+                      ) : (
+                        <User className="h-5 w-5 text-slate-400" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-primary border-2 border-slate-950 flex items-center justify-center shadow-lg">
+                    <Settings className="h-2 w-2 text-white" />
+                  </div>
+                </div>
+
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleCompleteLogout}
+                  className="w-10 h-10 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/10 transition-all border border-transparent hover:border-danger/20"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleCompleteLogout} className="p-2">
-                <LogOut className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-
-
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:py-8">
+        <div className="space-y-6 sm:space-y-8">
 
 
-          {/* 🎯 Central de Notificações Inteligentes */}
-          <NotificationCenter />
+
+
+          {/* 🎯 Notificação de Feriado Integrada */}
+          <HolidayNotification />
 
           {/* 🎯 Notificação de Último Registro com Cores Dinâmicas */}
           {lastRegistration && (
@@ -555,7 +580,7 @@ export default function EmployeePage() {
           <HolidayNotification />
 
           {/* Status Card */}
-          <Card variant="glass" className="overflow-hidden">
+          <Card className="glass-card overflow-hidden border-white/5 ring-1 ring-white/10 hover:ring-primary/20">
             <CardContent className="p-6">
               {/* 🎯 Banner de Próximo Registro */}
               <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${workStatus?.isWorking
@@ -721,10 +746,13 @@ export default function EmployeePage() {
           {/* Main Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start">
             {/* QR Code Scanner */}
-            <Card variant="glass" className={`group hover:scale-105 transition-all duration-200 h-full ${workStatus?.isWorking
-              ? 'border-2 border-warning/50 shadow-lg shadow-warning/20'
-              : 'border-2 border-success-500/50 shadow-lg shadow-success-500/20'
-              }`}>
+            <Card className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${workStatus?.isWorking
+              ? 'border-warning/30 hover:border-warning/50'
+              : 'border-primary/30 hover:border-primary/50'
+              }`}
+              onClick={handleRegisterClick}
+            >
+              <div className={`absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-b ${workStatus?.isWorking ? 'from-warning/20 to-transparent' : 'from-primary/20 to-transparent'}`} />
               <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
                 {/* 🎯 INDICADOR VISUAL GRANDE E CLARO */}
                 <div className={`rounded-2xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 transition-all ${workStatus?.isWorking
@@ -856,67 +884,81 @@ export default function EmployeePage() {
                 </div>
 
                 <Button
-                  onClick={() => {
-                    console.log('🔘 [BUTTON] Botão clicado!')
-                    console.log('🔘 [BUTTON] Estados:', { scanning, isCheckingCamera, cameraPermission })
-                    startScanning()
-                  }}
-                  className={`w-full mt-auto text-base sm:text-lg font-bold py-6 ${workStatus?.isWorking
-                    ? 'bg-warning hover:bg-warning/90 text-neutral-900'
-                    : 'bg-success-500 hover:bg-success-600 text-white'
-                    }`}
+                  onClick={handleRegisterClick}
+                  className={`
+                    w-full mt-auto py-8 rounded-2xl relative overflow-hidden transition-all duration-500 group shadow-2xl
+                    ${workStatus?.isWorking
+                      ? 'bg-gradient-to-br from-warning via-warning/90 to-amber-600 hover:shadow-warning/20'
+                      : 'bg-gradient-to-br from-primary via-primary/90 to-primary/70 hover:shadow-primary/20'
+                    }
+                    ${cooldownSeconds > 0 ? 'grayscale pointer-events-none' : 'hover:scale-[1.02] active:scale-95'}
+                  `}
                   disabled={scanning || isCheckingCamera || cooldownSeconds > 0}
                 >
-                  <Camera className="h-5 w-5 mr-2" />
-                  {scanning ? 'Abrindo Scanner...' :
-                    isCheckingCamera ? 'Verificando...' :
-                      cooldownSeconds > 0 ? `Aguarde ${cooldownSeconds}s` :
-                        workStatus?.isWorking ? '📤 REGISTRAR SAÍDA' : '📥 REGISTRAR ENTRADA'}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  <div className="relative flex items-center justify-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-sm group-hover:rotate-12 transition-transform duration-300">
+                      <Camera className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold opacity-70 leading-none mb-1">
+                        {scanning ? 'Sincronizando...' : 'Ação Requerida'}
+                      </p>
+                      <h4 className="text-lg sm:text-xl font-black text-white tracking-widest leading-none">
+                        {scanning ? 'SCANNER ATIVO' :
+                          isCheckingCamera ? 'CONFIGURANDO...' :
+                            cooldownSeconds > 0 ? `AGUARDE ${cooldownSeconds}S` :
+                              workStatus?.isWorking ? 'REGISTRAR SAÍDA' : 'REGISTRAR ENTRADA'}
+                      </h4>
+                    </div>
+                  </div>
                 </Button>
               </CardContent>
             </Card>
 
             {/* History */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-              <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
-                <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-secondary-500/30 transition-colors">
-                  <History className="h-10 w-10 text-secondary-500" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                  Histórico Completo
-                </h3>
-                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                  Visualize seu histórico de registros e relatórios mensais
-                </p>
-                <div className="flex-1"></div>
-                <Button variant="secondary" className="w-full mt-auto">
-                  Ver Histórico
-                </Button>
-              </CardContent>
+            <Card variant="glass" className="group hover:border-secondary-500/40 hover:shadow-2xl hover:shadow-secondary-500/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5" asChild>
+              <Link href="/employee/attendance-history">
+                <CardContent className="p-6 sm:p-8 flex flex-col h-full relative">
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-secondary-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="bg-secondary-500/10 rounded-2xl w-14 h-14 flex items-center justify-center mb-6 group-hover:bg-secondary-500/20 group-hover:scale-110 transition-all duration-500">
+                    <History className="h-7 w-7 text-secondary-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
+                    Histórico Completo
+                  </h3>
+                  <p className="text-neutral-400 text-sm leading-relaxed mb-6 group-hover:text-neutral-300 transition-colors">
+                    Acesse seus registros retroativos e relatórios mensais consolidados.
+                  </p>
+                  <div className="mt-auto flex items-center text-secondary-500 text-sm font-bold group-hover:translate-x-2 transition-transform duration-300">
+                    Acessar agora <ChevronRight className="h-4 w-4 ml-1" />
+                  </div>
+                </CardContent>
+              </Link>
             </Card>
 
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
-              <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
-                <div className="bg-neutral-700/40 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                  <Lock className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                  Senha e segurança
-                </h3>
-                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                  Altere sua senha com segurança sempre que precisar.
-                </p>
-                <div className="flex-1"></div>
-                <Button asChild variant="secondary" className="w-full mt-auto">
-                  <Link href="/auth/change-password">
-                    Alterar senha
-                  </Link>
-                </Button>
-                <p className="text-[11px] text-neutral-500 text-center mt-3">
-                  Se esquecer a senha e não conseguir acessar, use a opção &quot;Esqueci minha senha&quot; na tela de login.
-                </p>
-              </CardContent>
+
+            {/* Security */}
+            <Card variant="glass" className="group hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5" asChild>
+              <Link href="/auth/change-password">
+                <CardContent className="p-6 sm:p-8 flex flex-col h-full relative">
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="bg-primary/10 rounded-2xl w-14 h-14 flex items-center justify-center mb-6 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-500">
+                    <Lock className="h-7 w-7 text-primary shadow-glow" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
+                    Segurança e Acesso
+                  </h3>
+                  <p className="text-neutral-400 text-sm leading-relaxed mb-6 group-hover:text-neutral-300 transition-colors">
+                    Gerencie suas credenciais e mantenha sua conta IFCE protegida.
+                  </p>
+                  <div className="mt-auto flex items-center text-primary text-sm font-bold group-hover:translate-x-2 transition-transform duration-300">
+                    Alterar senha <ChevronRight className="h-4 w-4 ml-1" />
+                  </div>
+                </CardContent>
+              </Link>
             </Card>
+
 
 
             {/* FASE 1: Cadastro e Início */}
@@ -1067,24 +1109,26 @@ export default function EmployeePage() {
             </Card>
 
             {/* Justifications */}
-            <Link href="/employee/justifications">
-              <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
-                <CardContent className="p-8 text-center flex flex-col">
-                  <div className="bg-warning/20 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 group-hover:bg-warning/30 transition-colors">
-                    <AlertTriangle className="h-10 w-10 text-warning" />
+            <Card variant="glass" className="group hover:border-warning/40 hover:shadow-2xl hover:shadow-warning/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5" asChild>
+              <Link href="/employee/justifications">
+                <CardContent className="p-6 sm:p-8 flex flex-col h-full relative">
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-warning/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div className="bg-warning/10 rounded-2xl w-14 h-14 flex items-center justify-center mb-6 group-hover:bg-warning/20 group-hover:scale-110 transition-all duration-500">
+                    <AlertTriangle className="h-7 w-7 text-warning" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
-                    Justificativas
+                  <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
+                    Central de Justificativas
                   </h3>
-                  <p className="text-neutral-400 text-sm mb-6">
-                    Justifique atrasos e faltas (&gt;30 min)
+                  <p className="text-neutral-400 text-sm leading-relaxed mb-6 group-hover:text-neutral-300 transition-colors">
+                    Envie atestados e documentos para justificar atrasos inesperados.
                   </p>
-                  <Button variant="ghost" className="w-full border border-warning/30 hover:bg-warning/10 mt-auto">
-                    Gerenciar
-                  </Button>
+                  <div className="mt-auto flex items-center text-warning text-sm font-bold group-hover:translate-x-2 transition-transform duration-300">
+                    Gerenciar justificativas <ChevronRight className="h-4 w-4 ml-1" />
+                  </div>
                 </CardContent>
-              </Card>
-            </Link>
+              </Link>
+            </Card>
+
           </div>
 
           {!loading && (

@@ -2,9 +2,12 @@ import crypto from 'crypto'
 import { qrLogger } from '@/lib/logger'
 
 // Chave secreta para HMAC - OBRIGATÓRIA
-const QR_SECRET = process.env.QR_SECRET
-if (!QR_SECRET) {
-  throw new Error('QR_SECRET environment variable is required')
+const getSecret = () => {
+  const secret = process.env.QR_SECRET
+  if (!secret) {
+    throw new Error('QR_SECRET environment variable is required')
+  }
+  return secret
 }
 
 export interface QRPayload {
@@ -21,14 +24,7 @@ export interface SecureQRData {
   fullQR: string // payload.signature
 }
 
-/**
- * Valida se QR_SECRET está configurado
- */
-function validateQRSecret(): void {
-  if (!QR_SECRET) {
-    throw new Error('QR_SECRET não está configurado. Configure a variável de ambiente QR_SECRET.')
-  }
-}
+
 
 /**
  * Gera um QR code seguro com assinatura HMAC-SHA256
@@ -37,7 +33,7 @@ function validateQRSecret(): void {
  */
 export function generateSecureQR(machineId: string, expiresIn: number = 60): SecureQRData {
   // Validar QR_SECRET
-  validateQRSecret()
+  getSecret()
 
   // Gerar nonce único
   const nonce = crypto.randomBytes(16).toString('hex')
@@ -57,7 +53,7 @@ export function generateSecureQR(machineId: string, expiresIn: number = 60): Sec
 
   // Gerar assinatura HMAC-SHA256
   const signature = crypto
-    .createHmac('sha256', QR_SECRET!)
+    .createHmac('sha256', getSecret())
     .update(payloadBase64)
     .digest('base64url')
 
@@ -81,9 +77,7 @@ export function validateSecureQR(qrData: string): {
 } {
   try {
     // Validar QR_SECRET
-    if (!QR_SECRET) {
-      return { isValid: false, error: 'QR_SECRET não está configurado no servidor' }
-    }
+    getSecret()
 
     // Separar payload e signature
     const parts = qrData.split('.')
@@ -95,15 +89,15 @@ export function validateSecureQR(qrData: string): {
 
     // Recalcular assinatura
     const expectedSignature = crypto
-      .createHmac('sha256', QR_SECRET)
+      .createHmac('sha256', getSecret())
       .update(payloadBase64)
       .digest('base64url')
 
     // Verificação timing-safe
-    if (!crypto.timingSafeEqual(
-      Buffer.from(expectedSignature, 'base64url'),
-      Buffer.from(receivedSignature, 'base64url')
-    )) {
+    const expectedBuffer = Buffer.from(expectedSignature, 'base64url')
+    const receivedBuffer = Buffer.from(receivedSignature, 'base64url')
+
+    if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
       return { isValid: false, error: 'Assinatura inválida' }
     }
 

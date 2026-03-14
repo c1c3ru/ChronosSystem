@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils'
 import { designTokens } from '@/lib/design-tokens'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive'
-  size?: 'sm' | 'md' | 'lg'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline'
+  size?: 'sm' | 'md' | 'lg' | 'icon'
   loading?: boolean
   asChild?: boolean
   children: React.ReactNode
@@ -19,13 +19,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       primary: 'btn-primary',
       secondary: 'btn-secondary',
       ghost: 'btn-ghost',
-      destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+      destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+      outline: 'bg-transparent border border-neutral-700 text-neutral-200 hover:bg-neutral-800'
     }
 
     const sizeClasses = {
       sm: 'btn-sm',
       md: 'btn-md',
-      lg: 'btn-lg'
+      lg: 'btn-lg',
+      icon: 'h-10 w-10 p-0 flex items-center justify-center'
     }
 
     const buttonClasses = cn(

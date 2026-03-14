@@ -328,8 +328,8 @@ describe('attendance-logic', () => {
         const workingHours = DEFAULT_WORKING_HOURS
         const userId = 'test-user-123'
 
-        it('deve permitir registro em dia útil normal', () => {
-            const result = validateRecord({
+        it('deve permitir registro em dia útil normal', async () => {
+            const result = await validateRecord({
                 userId,
                 currentTime: new Date('2024-01-15T08:00:00'), // Segunda-feira
                 lastRecord: null,
@@ -340,8 +340,8 @@ describe('attendance-logic', () => {
             expect(result.errors).toHaveLength(0)
         })
 
-        it('deve bloquear registro em fim de semana sem autorização', () => {
-            const result = validateRecord({
+        it('deve bloquear registro em fim de semana sem autorização', async () => {
+            const result = await validateRecord({
                 userId,
                 currentTime: new Date('2024-01-13T08:00:00'), // Sábado
                 lastRecord: null,
@@ -354,8 +354,8 @@ describe('attendance-logic', () => {
             expect(result.errors[0]).toContain('sábado')
         })
 
-        it('deve permitir registro em fim de semana com autorização', () => {
-            const result = validateRecord({
+        it('deve permitir registro em fim de semana com autorização', async () => {
+            const result = await validateRecord({
                 userId,
                 currentTime: new Date('2024-01-13T08:00:00'), // Sábado
                 lastRecord: null,
@@ -366,11 +366,11 @@ describe('attendance-logic', () => {
             expect(result.isValid).toBe(true)
         })
 
-        it('deve bloquear registros muito próximos', () => {
+        it('deve bloquear registros muito próximos', async () => {
             const lastTime = new Date('2024-01-15T08:00:00')
             const currentTime = new Date('2024-01-15T08:02:00') // 2 minutos depois
 
-            const result = validateRecord({
+            const result = await validateRecord({
                 userId,
                 currentTime,
                 lastRecord: {
@@ -384,8 +384,8 @@ describe('attendance-logic', () => {
             expect(result.errors.some(e => e.includes('muito próximo'))).toBe(true)
         })
 
-        it('deve gerar warning para horário não convencional', () => {
-            const result = validateRecord({
+        it('deve gerar warning para horário não convencional', async () => {
+            const result = await validateRecord({
                 userId,
                 currentTime: new Date('2024-01-15T23:00:00'), // 23h
                 lastRecord: null,
@@ -399,22 +399,22 @@ describe('attendance-logic', () => {
 
     describe('isWeekend', () => {
         it('deve detectar sábado como fim de semana', () => {
-            const saturday = new Date('2024-01-13') // Sábado
+            const saturday = new Date('2024-01-13T12:00:00') // Sábado
             expect(isWeekend(saturday)).toBe(true)
         })
 
         it('deve detectar domingo como fim de semana', () => {
-            const sunday = new Date('2024-01-14') // Domingo
+            const sunday = new Date('2024-01-14T12:00:00') // Domingo
             expect(isWeekend(sunday)).toBe(true)
         })
 
         it('não deve detectar segunda-feira como fim de semana', () => {
-            const monday = new Date('2024-01-15') // Segunda
+            const monday = new Date('2024-01-15T12:00:00') // Segunda
             expect(isWeekend(monday)).toBe(false)
         })
 
         it('não deve detectar sexta-feira como fim de semana', () => {
-            const friday = new Date('2024-01-19') // Sexta
+            const friday = new Date('2024-01-19T12:00:00') // Sexta
             expect(isWeekend(friday)).toBe(false)
         })
     })

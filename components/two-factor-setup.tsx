@@ -208,11 +208,12 @@ export function TwoFactorSetup() {
               </Alert>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <label htmlFor="token-disable" className="text-sm font-medium">
                   Código do app autenticador (para desabilitar):
                 </label>
                 <div className="flex space-x-2">
                   <Input
+                    id="token-disable"
                     type="text"
                     placeholder="000000"
                     value={token}
@@ -289,11 +290,12 @@ export function TwoFactorSetup() {
 
             {/* Verificação */}
             <div className="space-y-3">
-              <label className="text-sm font-medium">
+              <label htmlFor="token-verify" className="text-sm font-medium">
                 Digite o código de 6 dígitos do seu app:
               </label>
               <div className="flex space-x-2">
                 <Input
+                  id="token-verify"
                   type="text"
                   placeholder="000000"
                   value={token}

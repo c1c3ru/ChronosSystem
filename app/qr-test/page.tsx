@@ -132,7 +132,7 @@ export default function QRTestPage() {
                         <CardTitle>📱 Como Testar</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-neutral-300 space-y-2">
-                        <p>1. Clique em "Ativar Scanner"</p>
+                        <p>1. Clique em &quot;Ativar Scanner&quot;</p>
                         <p>2. Permita o acesso à câmera quando solicitado</p>
                         <p>3. Aponte a câmera para um QR Code</p>
                         <p>4. O scanner detectará automaticamente</p>
