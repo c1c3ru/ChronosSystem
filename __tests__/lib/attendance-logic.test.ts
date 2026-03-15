@@ -381,7 +381,7 @@ describe('attendance-logic', () => {
             }, 'EXIT')
 
             expect(result.isValid).toBe(false)
-            expect(result.errors.some(e => e.includes('muito próximo'))).toBe(true)
+            expect(result.errors.some((e: string) => e.includes('muito próximo'))).toBe(true)
         })
 
         it('deve gerar warning para horário não convencional', async () => {
