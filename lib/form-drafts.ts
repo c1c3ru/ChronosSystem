@@ -218,9 +218,9 @@ export function populateFormWithData(
   data: Record<string, any>
 ): void {
   Object.entries(data).forEach(([key, value]) => {
-    const input = formElement.querySelector(`[name="${key}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null
+    const inputs = formElement.querySelectorAll(`[name="${key}"]`) as NodeListOf<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 
-    if (input) {
+    inputs.forEach(input => {
       if (input.type === 'checkbox' || input.type === 'radio') {
         const checkbox = input as HTMLInputElement
         checkbox.checked = value === 'on' || value === true || value === checkbox.value
@@ -231,6 +231,6 @@ export function populateFormWithData(
       } else {
         input.value = String(value)
       }
-    }
+    })
   })
 }

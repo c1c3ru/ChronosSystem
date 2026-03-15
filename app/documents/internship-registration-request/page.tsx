@@ -35,10 +35,10 @@ export default function InternshipRegistrationRequestPage() {
         email_pessoal: '',
 
         // Cor/Raça
-        cor_raca: 'prefiro_nao_declarar' as 'amarelo' | 'branco' | 'indigena' | 'pardo' | 'preto' | 'prefiro_nao_declarar',
+        cor_raca: 'nao_declarar' as 'amarelo' | 'branco' | 'indigena' | 'pardo' | 'preto' | 'nao_declarar',
 
         // Etnia
-        etnia: 'prefiro_nao_declarar' as 'indigena' | 'quilombola' | 'outra' | 'prefiro_nao_declarar',
+        etnia: 'nao_declarar' as 'indigena' | 'quilombola' | 'outra' | 'nao_declarar',
         etnia_outra: '',
         comunidade_etnia: '',
 
@@ -284,7 +284,7 @@ export default function InternshipRegistrationRequestPage() {
                                         <option value="indigena">Indígena</option>
                                         <option value="pardo">Pardo(a)</option>
                                         <option value="preto">Preto(a)</option>
-                                        <option value="prefiro_nao_declarar">Prefiro não declarar</option>
+                                        <option value="nao_declarar">Prefiro não declarar</option>
                                     </select>
                                 </div>
                                 <div>
@@ -293,7 +293,7 @@ export default function InternshipRegistrationRequestPage() {
                                         <option value="indigena">Indígena</option>
                                         <option value="quilombola">Quilombola</option>
                                         <option value="outra">Outra</option>
-                                        <option value="prefiro_nao_declarar">Prefiro não declarar</option>
+                                        <option value="nao_declarar">Prefiro não declarar</option>
                                     </select>
                                 </div>
                             </div>
@@ -340,16 +340,24 @@ export default function InternshipRegistrationRequestPage() {
                     <Card variant="elevated">
                         <CardHeader><CardTitle className="text-lg">Deficiências (Se houver)</CardTitle></CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {['Física', 'Auditiva', 'Visual', 'Mental', 'Múltipla'].map(def => (
-                                    <label key={def} className="flex items-center gap-2 text-neutral-300">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { id: 'alta_habilidade', label: 'Alta habilidade/superdotação' },
+                                    { id: 'auditiva', label: 'Deficiência auditiva' },
+                                    { id: 'intelectual', label: 'Deficiência intelectual' },
+                                    { id: 'motora', label: 'Deficiência motora' },
+                                    { id: 'visual_baixa', label: 'Deficiência visual/baixa visão' },
+                                    { id: 'visual', label: 'Deficiência visual' },
+                                    { id: 'surdocegueira', label: 'Surdocegueira' }
+                                ].map(def => (
+                                    <label key={def.id} className="flex items-center gap-2 text-neutral-300">
                                         <input
                                             type="checkbox"
-                                            checked={formData.deficiencia.includes(def.toLowerCase())}
-                                            onChange={() => handleDeficienciaChange(def.toLowerCase())}
+                                            checked={formData.deficiencia.includes(def.id)}
+                                            onChange={() => handleDeficienciaChange(def.id)}
                                             className="w-4 h-4 rounded border-neutral-600 bg-neutral-800 text-primary focus:ring-primary focus:ring-offset-neutral-900"
                                         />
-                                        {def}
+                                        {def.label}
                                     </label>
                                 ))}
                             </div>

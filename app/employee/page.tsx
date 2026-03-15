@@ -228,14 +228,8 @@ export default function EmployeePage() {
     }
   }
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-
-    if (!session) {
-      signIn()
-    }
-  }, [status])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load employee data
   useEffect(() => {
@@ -471,11 +465,20 @@ export default function EmployeePage() {
 
 
   if (status === 'loading') {
-    return <Loading size="lg" text="Carregando..." />
+    return <Loading size="lg" text="Aguarde um momento..." />
   }
 
+  // Fallback visual caso o middleware falhe e o usuário não tenha sessão
   if (!session) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+        <p className="text-slate-400 mb-6 text-center max-w-md font-outfit">
+          Sua sessão expirou ou você não está autenticado.
+        </p>
+        <Button onClick={() => signIn()}>Fazer Login</Button>
+      </div>
+    )
   }
 
   return (

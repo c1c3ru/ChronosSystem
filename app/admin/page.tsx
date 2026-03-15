@@ -84,21 +84,8 @@ export default function AdminPage() {
   const [internPage, setInternPage] = useState(1)
   const internsPerPage = 6
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-
-    if (!session) {
-      signIn()
-    }
-  }, [status, session])
-
-  // Check if user is admin or supervisor
-  useEffect(() => {
-    if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      window.location.href = '/employee'
-    }
-  }, [session])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load dashboard data
   useEffect(() => {
@@ -189,11 +176,27 @@ export default function AdminPage() {
   const paginatedInterns = interns.slice((internPage - 1) * internsPerPage, internPage * internsPerPage)
 
   if (status === 'loading') {
-    return <Loading size="lg" text="Carregando..." />
+    return <Loading size="lg" text="Aguarde um momento..." />
   }
 
-  if (!session) {
-    return null
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+            Ir para Área do Funcionário
+          </Button>
+          <Button onClick={() => signIn()} variant="primary">
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

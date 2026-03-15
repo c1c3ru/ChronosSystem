@@ -12,7 +12,19 @@ export default async function InternshipRegistrationPage() {
     const session = await getServerSession(authOptions)
 
     if (!session) {
-        redirect('/auth/signin')
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-4">
+                <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+                <p className="text-slate-400 mb-6 text-center max-w-md font-outfit">
+                    Sua sessão expirou ou você não está autenticado.
+                </p>
+                <div className="flex gap-4">
+                  <a href="/auth/signin" className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-bold transition-colors">
+                    Fazer Login
+                  </a>
+                </div>
+            </div>
+        )
     }
 
     return (

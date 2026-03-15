@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { 
   Shield, 
@@ -49,16 +49,13 @@ export default function PasswordResetPage() {
   const [isSendingEmails, setIsSendingEmails] = useState(false)
   const [customMessage, setCustomMessage] = useState('')
 
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
   useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
-      router.push('/auth/signin')
-      return
+    if (session && ['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+      loadUsers()
+      loadActiveTokens()
     }
-
-    loadUsers()
-    loadActiveTokens()
   }, [session, status])
 
   const loadUsers = async () => {
@@ -249,6 +246,32 @@ export default function PasswordResetPage() {
     return <div className="flex items-center justify-center min-h-screen">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
     </div>
+  }
+
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4 text-center">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => window.location.href = '/employee'} 
+            className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-md transition-colors"
+          >
+            Ir para Área do Funcionário
+          </button>
+          <button 
+            onClick={() => signIn()} 
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          >
+            Fazer Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

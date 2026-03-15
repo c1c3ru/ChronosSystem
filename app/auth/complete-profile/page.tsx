@@ -79,12 +79,13 @@ export default function CompleteProfilePage() {
     }
   }
 
-  // Redirect if not authenticated or profile already complete
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
   useEffect(() => {
     if (status === 'loading' || hasRedirected) return
     
     if (!session) {
-      signIn()
+      // Deixar o middleware cuidar disso, ou mostrar fallback no render
       return
     }
 
@@ -343,7 +344,15 @@ export default function CompleteProfilePage() {
   }
 
   if (!session) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Para completar seu perfil, você precisa estar autenticado.
+        </p>
+        <Button onClick={() => signIn()}>Fazer Login</Button>
+      </div>
+    )
   }
 
   return (
