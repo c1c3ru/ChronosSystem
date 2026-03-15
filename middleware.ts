@@ -189,7 +189,8 @@ export default withAuth(
     },
     pages: {
       signIn: '/auth/signin',
-    }
+    },
+    secret: process.env.NEXTAUTH_SECRET,
   }
 )
 
