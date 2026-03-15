@@ -86,7 +86,7 @@ export function determinarTipoRegistro(contexto: any) {
 }
 
 // Validação
-export async function validarRegistro(contexto: any, tipoSolicitado: string) {
+export function validarRegistro(contexto: any, tipoSolicitado: string) {
   const data = contexto.horaAtual || contexto.currentTime || new Date()
   const ultimoPonto = contexto.ultimoRegistro || contexto.lastRecord
   const possuiAutorizacao = contexto.hasAuthorization || contexto.possuiAutorizacao || false
@@ -220,4 +220,54 @@ export {
   analisarDiaParaJustificativa as analyzeDayForJustification,
   obterHorarioTrabalhoUsuario as getUserWorkingHours,
   HORARIO_TRABALHO_PADRAO as DEFAULT_WORKING_HOURS
+}
+
+// Novos tipos e classe para compatibilidade com a API
+export type AttendanceRecordType = 'ENTRY' | 'EXIT'
+
+import { validateProximity } from './geolocation'
+
+export class AttendanceLogic {
+  /**
+   * Determina o tipo de registro (entrada/saída) baseado no contexto
+   */
+  determineRecordType(context: any) {
+    return determinarTipoRegistro(context)
+  }
+
+  /**
+   * Valida se um registro de ponto pode ser realizado
+   */
+  validateRecord(type: AttendanceRecordType, lastRecord: any, date: Date = new Date()) {
+    return validarRegistro({
+      ultimoRegistro: lastRecord,
+      horaAtual: date
+    }, type)
+  }
+
+  /**
+   * Valida a proximidade do usuário em relação à máquina
+   */
+  validarProximidade(userLocation: any, machineLocation: any, maxRadius: number) {
+    return validateProximity(userLocation, machineLocation, maxRadius)
+  }
+
+  /**
+   * Detecta anomalias em uma sequência de registros
+   */
+  detectSequenceAnomaly(records: any[]) {
+    const anomalies: string[] = []
+    
+    // Verificar registros duplicados em sequência
+    for (let i = 1; i < records.length; i++) {
+      const typeCurrent = records[i].type || records[i].tipo
+      const typePrev = records[i-1].type || records[i-1].tipo
+      
+      if (typeCurrent === typePrev) {
+        anomalies.push(`Sequência inválida: dois registros de ${typeCurrent} seguidos.`)
+      }
+    }
+
+    return anomalies
+  }
 }

@@ -256,14 +256,22 @@ export default function AttendanceLogicDemo() {
             <CardContent>
               <div className="space-y-3">
                 {testScenarios.map((scenario) => (
-                  <div
+                   <div
                     key={scenario.id}
                     className={`p-4 rounded-lg border cursor-pointer transition-all ${
                       selectedScenario?.id === scenario.id
                         ? 'border-primary bg-primary/10'
                         : 'border-neutral-700 bg-neutral-800/30 hover:bg-neutral-800/50'
                     }`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedScenario(scenario)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setSelectedScenario(scenario)
+                      }
+                    }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

@@ -127,7 +127,7 @@ const QRScannerIdle = React.memo(function QRScannerIdle({ onActivate }: { onActi
 
 const QRScannerLoading = React.memo(function QRScannerLoading() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black">
+    <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black" role="status" aria-live="polite">
       <div>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
         <p className="text-white text-base font-medium">Iniciando câmera...</p>
@@ -138,7 +138,7 @@ const QRScannerLoading = React.memo(function QRScannerLoading() {
 
 const QRScannerError = React.memo(function QRScannerError({ error, onRetry, onCancel }: { error: string | null, onRetry: () => void, onCancel: () => void }) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95">
+    <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95" role="alert" aria-live="assertive">
       <div className="max-w-md">
         <AlertTriangle className="h-12 w-12 text-error-400 mx-auto mb-4" />
         <p className="text-error-400 text-base font-medium mb-2">Falha no Scanner</p>
@@ -179,7 +179,7 @@ const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { 
 
       {/* Validation Feedback */}
       {validation && (
-        <div className="absolute top-4 left-4 right-4 z-20 animate-fade-in">
+        <div className="absolute top-4 left-4 right-4 z-20 animate-fade-in" role="status" aria-live="polite">
           <div className={`
             bg-black/80 backdrop-blur-md rounded-xl p-4 border-l-4 shadow-2xl
             ${validation.isValid ? 'border-success-500' : 'border-error-500'}

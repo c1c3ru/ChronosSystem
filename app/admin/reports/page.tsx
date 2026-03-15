@@ -148,10 +148,11 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="period-select" className="block text-sm font-medium text-neutral-300 mb-2">
                   Período
                 </label>
                 <select
+                  id="period-select"
                   className="input"
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -164,10 +165,11 @@ export default function ReportsPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="user-select" className="block text-sm font-medium text-neutral-300 mb-2">
                   Usuário
                 </label>
                 <select
+                  id="user-select"
                   className="input"
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}

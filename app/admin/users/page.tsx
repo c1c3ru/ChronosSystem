@@ -176,8 +176,10 @@ export default function UsersPage() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
+                  <label htmlFor="search-users" className="sr-only">Buscar usuários</label>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="search-users"
                     type="text"
                     placeholder="Buscar por nome ou email..."
                     className="input pl-10 w-full"
@@ -187,8 +189,10 @@ export default function UsersPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <label htmlFor="role-filter" className="sr-only">Filtrar por papel</label>
                 <Filter className="h-4 w-4 text-neutral-400" />
                 <select
+                  id="role-filter"
                   className="input"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}

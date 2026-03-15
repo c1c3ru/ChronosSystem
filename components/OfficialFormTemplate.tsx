@@ -206,9 +206,9 @@ interface FormFieldProps {
 export function FormField({ label, children, colSpan, className = '' }: FormFieldProps) {
     return (
         <td className={`border border-gray-400 px-2 py-1.5 align-top ${className}`} colSpan={colSpan}>
-            <div className="text-[8pt] font-semibold text-gray-700 mb-1">
+            <label className="block text-[8pt] font-semibold text-gray-700 mb-1">
                 {label}
-            </div>
+            </label>
             <div className="min-h-[24px]">
                 {children}
             </div>

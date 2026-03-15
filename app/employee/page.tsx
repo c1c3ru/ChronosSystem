@@ -519,7 +519,7 @@ export default function EmployeePage() {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-[2px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-lg group-hover:shadow-primary/20">
                     <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center overflow-hidden border border-white/5">
                       {session?.user?.image ? (
-                        <Image src={session.user.image} alt="" width={40} height={40} className="object-cover" />
+                        <Image src={session.user.image} alt="Foto de perfil" width={40} height={40} className="object-cover" />
                       ) : (
                         <User className="h-5 w-5 text-slate-400" />
                       )}
@@ -534,6 +534,7 @@ export default function EmployeePage() {
                   variant="ghost" 
                   size="icon" 
                   onClick={handleCompleteLogout}
+                  aria-label="Sair da conta"
                   className="w-10 h-10 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/10 transition-all border border-transparent hover:border-danger/20"
                 >
                   <LogOut className="h-5 w-5" />
@@ -749,11 +750,21 @@ export default function EmployeePage() {
           {/* Main Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start">
             {/* QR Code Scanner */}
-            <Card className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${workStatus?.isWorking
-              ? 'border-warning/30 hover:border-warning/50'
-              : 'border-primary/30 hover:border-primary/50'
+            <Card 
+              className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${workStatus?.isWorking
+                ? 'border-warning/30 hover:border-warning/50 focus:border-warning/50'
+                : 'border-primary/30 hover:border-primary/50 focus:border-primary/50'
               }`}
               onClick={handleRegisterClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleRegisterClick();
+                }
+              }}
+              aria-label={workStatus?.isWorking ? 'Registrar ponto de saída' : 'Registrar ponto de entrada'}
             >
               <div className={`absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-b ${workStatus?.isWorking ? 'from-warning/20 to-transparent' : 'from-primary/20 to-transparent'}`} />
               <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
