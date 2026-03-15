@@ -2,6 +2,7 @@
   "name": "chronos-system",
   "version": "2.0.0",
   "description": "Sistema de Registro de Ponto Eletrônico - Monolito Next.js",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev -p 5000 -H 0.0.0.0",
