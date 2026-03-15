@@ -18,7 +18,6 @@
     }
   ],
   "env": {
-    "NEXTAUTH_URL": "https://chronos-system.vercel.app",
     "NODE_ENV": "production",
     "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING": "1",
     "NEXT_TELEMETRY_DISABLED": "1"
@@ -82,14 +81,9 @@
   ],
   "redirects": [
     {
-      "source": "/dashboard",
-      "destination": "/admin",
-      "permanent": true
-    },
-    {
       "source": "/login",
       "destination": "/auth/signin",
-      "permanent": true
+      "permanent": false
     }
   ]
 }

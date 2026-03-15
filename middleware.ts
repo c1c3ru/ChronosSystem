@@ -3,97 +3,96 @@ import { NextResponse } from 'next/server'
 import { getSecurityHeaders } from '@/lib/security-headers'
 import { logger } from '@/lib/logger'
 
-// Definição centralizada de rotas públicas (usada no callback authorized)
+// Definição centralizada de rotas públicas (matches exactos)
 const PUBLIC_ROUTES = [
   '/',
   '/auth/signin',
-  '/auth/signup',
-  '/auth/complete-profile',
+  '/auth/recover',
+  '/auth/error',
   '/kiosk',
-  '/test-form',
-  '/demo-form'
+  '/auth/reset-password',
+  '/unauthorized'
 ]
 
-const PUBLIC_API_PREFIXES = [
-  '/api/auth/',
-  '/api/health',
-  '/api/kiosk/'
+// Rotas / caminhos públicos (prefixos)
+const PUBLIC_PREFIXES = [
+  '/api/auth',
+  '/api/kiosk',
+  '/api/reset-password',
+  '/_next',
+  '/favicon.ico',
+  '/assets',
+  '/images'
 ]
 
 export default withAuth(
-  function middleware(req) {
-    const { pathname } = req.nextUrl
+  async function middleware(req) {
     const token = req.nextauth.token
+    const { pathname } = req.nextUrl
 
-    // Se não há token, o callback authorized já tratou o redirecionamento
+    // Se não tiver token, deixa passar (withAuth já bloqueou o que não é público)
     if (!token) {
       return NextResponse.next()
     }
 
-    // ========================================
-    // VERIFICAÇÃO DE TOKEN EXPIRADO
-    // ========================================
-    const tokenExp = token.exp as number | undefined
+    const role = token?.role as string
+    const profileComplete = token?.profileComplete as boolean
+    const tokenExp = token?.exp as number
+
+    // CHECK TOKEN EXPIRATION
     if (tokenExp) {
       const now = Math.floor(Date.now() / 1000)
       if (tokenExp < now) {
         logger.security('Token expired', { userId: token.sub, exp: tokenExp })
-        const signInUrl = new URL('/auth/signin', req.url)
-        signInUrl.searchParams.set('error', 'SessionExpired')
-        signInUrl.searchParams.set('callbackUrl', pathname)
-        return NextResponse.redirect(signInUrl)
+
+        // Evitar loop infinito: só redireciona se não estiver nas rotas de auth
+        if (!pathname.startsWith('/auth/') && !pathname.startsWith('/api/auth')) {
+          const signInUrl = new URL('/auth/signin', req.url)
+          signInUrl.searchParams.set('error', 'SessionExpired')
+          return NextResponse.redirect(signInUrl)
+        }
+        return NextResponse.next()
       }
     }
 
-    // ========================================
-    // EXTRAÇÃO DE DADOS DO TOKEN
-    // ========================================
-    const profileComplete = token.profileComplete as boolean
-    const role = token.role as string
-
-    logger.debug('Middleware: User authenticated', {
-      pathname,
-      role,
-      profileComplete,
-      userId: token.sub
-    })
-
-    // ========================================
-    // VERIFICAÇÃO DE ROLE VÁLIDO
-    // ========================================
-    if (!role || !['ADMIN', 'SUPERVISOR', 'EMPLOYEE'].includes(role)) {
-      logger.security('Invalid role detected', { userId: token.sub, role })
-      const signInUrl = new URL('/auth/signin', req.url)
-      signInUrl.searchParams.set('error', 'InvalidRole')
-      return NextResponse.redirect(signInUrl)
+    // Se o usuário está autenticado e tenta acessar páginas de auth → redireciona para área logada
+    if (pathname === '/auth/signin' || pathname === '/auth/signup') {
+      if (profileComplete && (role === 'ADMIN' || role === 'SUPERVISOR')) {
+        return NextResponse.redirect(new URL('/admin', req.url))
+      } else if (profileComplete && role === 'EMPLOYEE') {
+        return NextResponse.redirect(new URL('/employee', req.url))
+      }
+      // Perfil incompleto → complete-profile
+      return NextResponse.redirect(new URL('/auth/complete-profile', req.url))
     }
 
-    // ========================================
-    // VERIFICAÇÃO DE PERFIL COMPLETO (CONSOLIDADA)
-    // ========================================
-    // Se o perfil NÃO está completo
+    // VERIFICAÇÃO DE ROLE VÁLIDO
+    if (!role || !['ADMIN', 'SUPERVISOR', 'EMPLOYEE'].includes(role)) {
+      logger.security('Invalid role detected', { userId: token.sub, role })
+      // Evita loop: não redireciona se já estiver em rota de auth
+      if (!pathname.startsWith('/auth/')) {
+        const signInUrl = new URL('/auth/signin', req.url)
+        signInUrl.searchParams.set('error', 'InvalidRole')
+        return NextResponse.redirect(signInUrl)
+      }
+      return NextResponse.next()
+    }
+
+    // VERIFICAÇÃO DE PERFIL COMPLETO
     if (profileComplete === false) {
-      // Permitir acesso apenas à página de completar perfil
-      if (pathname !== '/auth/complete-profile') {
-        logger.debug('Incomplete profile, redirecting', {
-          userId: token.sub,
-          pathname
-        })
+      // Só redireciona se não estiver já na página de completar perfil
+      const allowedWhileIncomplete = ['/auth/complete-profile', '/api/auth']
+      const isAllowed = allowedWhileIncomplete.some(p => pathname.startsWith(p))
+      if (!isAllowed) {
         const completeProfileUrl = new URL('/auth/complete-profile', req.url)
         completeProfileUrl.searchParams.set('reason', 'incomplete')
         return NextResponse.redirect(completeProfileUrl)
       }
-      // Se já está na página de completar perfil, permitir acesso
       return NextResponse.next()
     }
 
     // Se o perfil ESTÁ completo e o usuário está na página de completar perfil
     if (profileComplete === true && pathname === '/auth/complete-profile') {
-      logger.debug('Profile already complete, redirecting to dashboard', {
-        userId: token.sub,
-        role
-      })
-      // Verificar role ANTES de redirecionar para evitar loops
       if (role === 'ADMIN' || role === 'SUPERVISOR') {
         return NextResponse.redirect(new URL('/admin', req.url))
       } else if (role === 'EMPLOYEE') {
@@ -101,14 +100,8 @@ export default withAuth(
       }
     }
 
-    // ========================================
-    // REDIRECIONAMENTO DE /DASHBOARD PARA DASHBOARD ESPECÍFICO
-    // ========================================
-    if (pathname === '/dashboard') {
-      logger.debug('Redirecting from /dashboard to role-specific dashboard', {
-        userId: token.sub,
-        role
-      })
+    // Redirecionamentos da home (só redireciona de '/' para área logada)
+    if (pathname === '/') {
       if (role === 'ADMIN' || role === 'SUPERVISOR') {
         return NextResponse.redirect(new URL('/admin', req.url))
       } else if (role === 'EMPLOYEE') {
@@ -116,15 +109,11 @@ export default withAuth(
       }
     }
 
-    // ========================================
     // CONTROLE DE ACESSO BASEADO EM ROLES
-    // ========================================
-    // Definição de rotas por role
-    const adminOnlyRoutes = ['/admin']
+    const adminOnlyRoutes = ['/admin', '/dashboard']
     const employeeOnlyRoutes = ['/employee']
-    const supervisorRoutes = ['/admin'] // Supervisores também acessam /admin
 
-    // Verificar acesso a rotas de ADMIN
+    // ADMIN / SUPERVISOR
     if (adminOnlyRoutes.some(route => pathname.startsWith(route))) {
       if (!['ADMIN', 'SUPERVISOR'].includes(role)) {
         logger.security('Unauthorized access attempt to admin route', {
@@ -139,7 +128,7 @@ export default withAuth(
       }
     }
 
-    // Verificar acesso a rotas de EMPLOYEE (apenas EMPLOYEE)
+    // EMPLOYEE
     if (employeeOnlyRoutes.some(route => pathname.startsWith(route))) {
       if (role !== 'EMPLOYEE') {
         logger.security('Unauthorized access attempt to employee route', {
@@ -154,20 +143,13 @@ export default withAuth(
       }
     }
 
-    // ========================================
-    // PROTEÇÃO DE APIs ADMINISTRATIVAS
-    // ========================================
+    // APIs ADMINISTRATIVAS
     if (
       pathname.startsWith('/api/users') ||
       pathname.startsWith('/api/machines') ||
       pathname.startsWith('/api/dashboard')
     ) {
       if (!['ADMIN', 'SUPERVISOR'].includes(role)) {
-        logger.security('Unauthorized API access attempt', {
-          userId: token.sub,
-          role,
-          pathname
-        })
         return NextResponse.json(
           { error: 'Não autorizado', reason: 'insufficient_permissions' },
           { status: 401 }
@@ -175,16 +157,12 @@ export default withAuth(
       }
     }
 
-    // ========================================
-    // APLICAR HEADERS DE SEGURANÇA
-    // ========================================
+    // HEADERS DE SEGURANÇA
     const response = NextResponse.next()
     const securityHeaders = getSecurityHeaders()
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value)
     })
-
-    logger.debug('Security headers applied', { pathname })
 
     return response
   },
@@ -193,39 +171,30 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
 
-        // Permitir acesso às rotas públicas (definição centralizada)
         if (PUBLIC_ROUTES.includes(pathname)) {
           return true
         }
 
-        // Permitir acesso a rotas públicas que começam com prefixos específicos
-        if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+        if (PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
           return true
         }
 
-        // Permitir acesso a APIs públicas
-        if (PUBLIC_API_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
+        // Permite /auth/complete-profile sem token para não criar loop
+        if (pathname.startsWith('/auth/complete-profile')) {
           return true
         }
 
-        // Outras rotas requerem token
         return !!token
       },
     },
+    pages: {
+      signIn: '/auth/signin',
+    }
   }
 )
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - manifest.json (PWA manifest)
-     * - icon files (PWA icons)
-     * - public folder
-     */
     '/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-.*\\.png|.*\\.svg|public).*)',
   ],
 }
