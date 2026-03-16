@@ -205,10 +205,11 @@ export default function FrequencyPage() {
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="frequency-period" className="block text-sm font-medium text-neutral-300 mb-2">
                     Período
                   </label>
                   <select
+                    id="frequency-period"
                     className="input"
                     value={selectedPeriod}
                     onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -221,10 +222,11 @@ export default function FrequencyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="frequency-sort-by" className="block text-sm font-medium text-neutral-300 mb-2">
                     Ordenar por
                   </label>
                   <select
+                    id="frequency-sort-by"
                     className="input"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
@@ -237,10 +239,11 @@ export default function FrequencyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="frequency-sort-order" className="block text-sm font-medium text-neutral-300 mb-2">
                     Ordem
                   </label>
                   <select
+                    id="frequency-sort-order"
                     className="input"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}

@@ -88,19 +88,19 @@ export default function SecurityPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Email</label>
+                  <p className="text-sm font-medium text-slate-300">Email</p>
                   <p className="text-white">{session.user.email}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Função</label>
+                  <p className="text-sm font-medium text-slate-300">Função</p>
                   <p className="text-white">{(session.user as any).role}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">Nome</label>
+                  <p className="text-sm font-medium text-slate-300">Nome</p>
                   <p className="text-white">{session.user.name || 'Não informado'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-300">ID do Usuário</label>
+                  <p className="text-sm font-medium text-slate-300">ID do Usuário</p>
                   <p className="text-slate-400 font-mono text-sm">{session.user.id}</p>
                 </div>
               </div>

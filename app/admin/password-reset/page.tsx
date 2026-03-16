@@ -297,9 +297,10 @@ export default function PasswordResetPage() {
           <div className="space-y-4">
             {/* Tipo de Reset */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de Reset
-              </label>
+              <fieldset>
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo de Reset
+                </legend>
               <div className="flex space-x-4">
                 <label className="flex items-center">
                   <input
@@ -324,18 +325,20 @@ export default function PasswordResetPage() {
                   Em Massa
                 </label>
               </div>
+              </fieldset>
             </div>
 
             {/* Seleção de Usuários (apenas para individual) */}
             {resetType === 'individual' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="block text-sm font-medium text-gray-700 mb-2">
                   Selecionar Usuários
-                </label>
+                </div>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
                   {users.map((user) => (
-                    <label key={user.id} className="flex items-center p-2 hover:bg-gray-50">
+                    <div key={user.id} className="flex items-center p-2 hover:bg-gray-50">
                       <input
+                        id={`reset-user-${user.id}`}
                         type="checkbox"
                         checked={selectedUsers.includes(user.id)}
                         onChange={(e) => {
@@ -347,11 +350,11 @@ export default function PasswordResetPage() {
                         }}
                         className="mr-3"
                       />
-                      <div>
+                      <label htmlFor={`reset-user-${user.id}`} className="cursor-pointer">
                         <p className="font-medium">{user.name}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
-                      </div>
-                    </label>
+                      </label>
+                    </div>
                   ))}
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
@@ -362,10 +365,11 @@ export default function PasswordResetPage() {
 
             {/* Motivo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="reset-reason" className="block text-sm font-medium text-gray-700 mb-2">
                 Motivo do Reset
               </label>
               <textarea
+                id="reset-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -377,10 +381,11 @@ export default function PasswordResetPage() {
 
             {/* Expiração */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="reset-expires" className="block text-sm font-medium text-gray-700 mb-2">
                 Expira em (horas)
               </label>
               <select
+                id="reset-expires"
                 value={expiresInHours}
                 onChange={(e) => setExpiresInHours(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -512,10 +517,11 @@ export default function PasswordResetPage() {
                 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label htmlFor="reset-custom-message" className="block text-xs font-medium text-gray-700 mb-1">
                       Mensagem Personalizada (opcional)
                     </label>
                     <textarea
+                      id="reset-custom-message"
                       value={customMessage}
                       onChange={(e) => setCustomMessage(e.target.value)}
                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"

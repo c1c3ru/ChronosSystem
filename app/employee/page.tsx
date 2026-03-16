@@ -515,7 +515,12 @@ export default function EmployeePage() {
                   </div>
                 </div>
                 
-                <div className="relative group cursor-pointer" onClick={() => router.push('/employee/profile')}>
+                <button
+                  type="button"
+                  className="relative group cursor-pointer"
+                  onClick={() => router.push('/employee/profile')}
+                  aria-label="Abrir perfil"
+                >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-[2px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-lg group-hover:shadow-primary/20">
                     <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center overflow-hidden border border-white/5">
                       {session?.user?.image ? (
@@ -528,7 +533,7 @@ export default function EmployeePage() {
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-primary border-2 border-slate-950 flex items-center justify-center shadow-lg">
                     <Settings className="h-2 w-2 text-white" />
                   </div>
-                </div>
+                </button>
 
                 <Button 
                   variant="ghost" 

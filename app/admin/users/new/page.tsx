@@ -276,12 +276,13 @@ export default function NewUserPage() {
                   
                   {/* Nome */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="new-user-name" className="block text-sm font-medium text-neutral-300 mb-2">
                       Nome Completo *
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="new-user-name"
                         type="text"
                         placeholder="Nome completo do usuário"
                         className={`input pl-10 ${errors.name ? 'border-error' : ''}`}
@@ -294,12 +295,13 @@ export default function NewUserPage() {
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="new-user-email" className="block text-sm font-medium text-neutral-300 mb-2">
                       Email *
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="new-user-email"
                         type="email"
                         placeholder="email@exemplo.com"
                         className={`input pl-10 ${errors.email ? 'border-error' : ''}`}
@@ -312,12 +314,13 @@ export default function NewUserPage() {
 
                   {/* Senha */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="new-user-password" className="block text-sm font-medium text-neutral-300 mb-2">
                       Senha *
                     </label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="new-user-password"
                         type="password"
                         placeholder="Mínimo 6 caracteres"
                         className={`input pl-10 ${errors.password ? 'border-error' : ''}`}
@@ -330,14 +333,18 @@ export default function NewUserPage() {
                 </div>
 
                 {/* Role */}
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-3">
+                <fieldset>
+                  <legend className="block text-sm font-medium text-neutral-300 mb-3">
                     Nível de Acesso *
-                  </label>
+                  </legend>
                   <div className="space-y-3">
                     {['EMPLOYEE', 'SUPERVISOR', 'ADMIN'].map((role) => (
-                      <label key={role} className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors">
+                      <div
+                        key={role}
+                        className="flex items-start space-x-3 p-3 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors"
+                      >
                         <input
+                          id={`new-user-role-${role}`}
                           type="radio"
                           name="role"
                           value={role}
@@ -345,22 +352,22 @@ export default function NewUserPage() {
                           onChange={(e) => setUserData(prev => ({ ...prev, role: e.target.value as any }))}
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary mt-0.5"
                         />
-                        <div className="flex-1">
+                        <label htmlFor={`new-user-role-${role}`} className="flex-1 cursor-pointer">
                           <div className="flex items-center space-x-2">
                             <Shield className="h-4 w-4 text-neutral-400" />
                             <span className={`font-medium ${getRoleColor(role)}`}>
-                              {role === 'EMPLOYEE' ? 'Estagiário' : 
+                              {role === 'EMPLOYEE' ? 'Estagiário' :
                                role === 'SUPERVISOR' ? 'Supervisor' : 'Administrador'}
                             </span>
                           </div>
                           <p className="text-xs text-neutral-500 mt-1">
                             {getRoleDescription(role)}
                           </p>
-                        </div>
-                      </label>
+                        </label>
+                      </div>
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 {/* Informações Pessoais */}
                 <div className="space-y-4">
@@ -369,12 +376,13 @@ export default function NewUserPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Telefone */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="new-user-phone" className="block text-sm font-medium text-neutral-300 mb-2">
                         Telefone *
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                         <input
+                          id="new-user-phone"
                           type="tel"
                           placeholder="(11) 99999-9999"
                           className={`input pl-10 ${errors.phone ? 'border-error' : ''}`}
@@ -392,12 +400,13 @@ export default function NewUserPage() {
 
                     {/* Data de Nascimento */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="new-user-birthdate" className="block text-sm font-medium text-neutral-300 mb-2">
                         Data de Nascimento *
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                         <input
+                          id="new-user-birthdate"
                           type="date"
                           className={`input pl-10 ${errors.birthDate ? 'border-error' : ''}`}
                           value={userData.birthDate || ''}
@@ -410,12 +419,13 @@ export default function NewUserPage() {
 
                   {/* Endereço */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="new-user-address" className="block text-sm font-medium text-neutral-300 mb-2">
                       Endereço *
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
                       <textarea
+                        id="new-user-address"
                         placeholder="Endereço completo"
                         className={`input pl-10 min-h-[80px] resize-none ${errors.address ? 'border-error' : ''}`}
                         value={userData.address || ''}
@@ -433,10 +443,11 @@ export default function NewUserPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Nome do Contato */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="new-user-emergency-contact" className="block text-sm font-medium text-neutral-300 mb-2">
                         Nome do Contato *
                       </label>
                       <input
+                        id="new-user-emergency-contact"
                         type="text"
                         placeholder="Nome completo"
                         className={`input ${errors.emergencyContact ? 'border-error' : ''}`}
@@ -448,12 +459,13 @@ export default function NewUserPage() {
 
                     {/* Telefone de Emergência */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="new-user-emergency-phone" className="block text-sm font-medium text-neutral-300 mb-2">
                         Telefone de Emergência *
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                         <input
+                          id="new-user-emergency-phone"
                           type="tel"
                           placeholder="(11) 99999-9999"
                           className={`input pl-10 ${errors.emergencyPhone ? 'border-error' : ''}`}
@@ -503,10 +515,11 @@ export default function NewUserPage() {
                   {userData.hasSiape && (
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="new-user-siape" className="block text-sm font-medium text-neutral-300 mb-2">
                           Matrícula SIAPE *
                         </label>
                         <input
+                          id="new-user-siape"
                           type="text"
                           placeholder="1234567"
                           className={`input ${errors.siapeNumber ? 'border-error' : ''}`}
@@ -540,10 +553,11 @@ export default function NewUserPage() {
                   {/* Departamento - obrigatório para funcionários */}
                   {userData.role === 'EMPLOYEE' && (
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="new-user-department" className="block text-sm font-medium text-neutral-300 mb-2">
                         Departamento *
                       </label>
                       <select
+                        id="new-user-department"
                         className={`input ${errors.department ? 'border-error' : ''}`}
                         value={userData.department || ''}
                         onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
@@ -624,12 +638,13 @@ export default function NewUserPage() {
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Data de Início */}
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="new-user-start-date" className="block text-sm font-medium text-neutral-300 mb-2">
                           Data de Início *
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                           <input
+                            id="new-user-start-date"
                             type="date"
                             className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
                             value={userData.startDate || ''}
@@ -641,12 +656,13 @@ export default function NewUserPage() {
 
                       {/* Data de Início do Contrato */}
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="new-user-contract-start" className="block text-sm font-medium text-neutral-300 mb-2">
                           Início do Contrato *
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                           <input
+                            id="new-user-contract-start"
                             type="date"
                             className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
                             value={userData.contractStartDate || ''}
@@ -658,12 +674,13 @@ export default function NewUserPage() {
 
                       {/* Data de Fim do Contrato */}
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="new-user-contract-end" className="block text-sm font-medium text-neutral-300 mb-2">
                           Fim do Contrato *
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                           <input
+                            id="new-user-contract-end"
                             type="date"
                             className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
                             value={userData.contractEndDate || ''}
@@ -675,10 +692,11 @@ export default function NewUserPage() {
 
                       {/* Tipo de Contrato */}
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="new-user-contract-type" className="block text-sm font-medium text-neutral-300 mb-2">
                           Tipo de Contrato *
                         </label>
                         <select
+                          id="new-user-contract-type"
                           className={`input ${errors.contractType ? 'border-error' : ''}`}
                           value={userData.contractType || ''}
                           onChange={(e) => setUserData(prev => ({ ...prev, contractType: e.target.value }))}
@@ -697,11 +715,12 @@ export default function NewUserPage() {
                     {/* Carga Horária */}
                     {userData.contractType && (
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="new-user-weekly-hours" className="block text-sm font-medium text-neutral-300 mb-2">
                           Carga Horária Semanal
                         </label>
                         <div className="flex items-center space-x-4">
                           <input
+                            id="new-user-weekly-hours"
                             type="number"
                             min="1"
                             max="44"

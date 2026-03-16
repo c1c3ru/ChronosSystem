@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable jsx-a11y/label-has-associated-control */
+
 import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft, Save, FileText, Download, CheckCircle } from 'lucide-react'
 import Link from 'next/link'

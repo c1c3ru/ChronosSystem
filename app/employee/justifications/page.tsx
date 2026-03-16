@@ -302,10 +302,11 @@ export default function JustificationsPage() {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="issue-date" className="block text-sm font-medium text-neutral-300 mb-2">
                     Data da Ocorrência
                   </label>
                   <input
+                    id="issue-date"
                     type="text"
                     value={formatDate(selectedIssue.date)}
                     disabled
@@ -314,10 +315,11 @@ export default function JustificationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="issue-description" className="block text-sm font-medium text-neutral-300 mb-2">
                     Descrição
                   </label>
                   <input
+                    id="issue-description"
                     type="text"
                     value={selectedIssue.description}
                     disabled
@@ -326,16 +328,16 @@ export default function JustificationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="issue-justification" className="block text-sm font-medium text-neutral-300 mb-2">
                     Justificativa *
                   </label>
                   <textarea
+                    id="issue-justification"
                     className="input min-h-[100px] resize-none focus:ring-2 focus:ring-primary/50 transition-all"
                     placeholder="Descreva o motivo do atraso ou falta..."
                     value={justificationText}
                     onChange={(e) => setJustificationText(e.target.value)}
                     maxLength={500}
-                    autoFocus
                   />
                   <p className="text-xs text-neutral-500 mt-1">
                     {justificationText.length}/500 caracteres

@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
           let type: 'LATE' | 'ABSENCE' | 'EARLY_DEPARTURE' = 'ABSENCE'
           let description = analysis.justificationReason || 'Pendência detectada'
 
-          if (analysis.absence) {
+          if (!analysis.hasEntry && !analysis.hasExit) {
             type = 'ABSENCE'
             description = `Falta no dia ${date.toLocaleDateString('pt-BR')}`
           } else if (analysis.lateArrival?.requiresJustification) {

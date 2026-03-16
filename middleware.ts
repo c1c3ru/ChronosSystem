@@ -2,28 +2,13 @@ import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 import { getSecurityHeaders } from '@/lib/security-headers'
 import { logger } from '@/lib/logger'
-
-// Definição centralizada de rotas públicas (matches exactos)
-const PUBLIC_ROUTES = [
-  '/',
-  '/auth/signin',
-  '/auth/recover',
-  '/auth/error',
-  '/kiosk',
-  '/auth/reset-password',
-  '/unauthorized'
-]
-
-// Rotas / caminhos públicos (prefixos)
-const PUBLIC_PREFIXES = [
-  '/api/auth',
-  '/api/kiosk',
-  '/api/reset-password',
-  '/_next',
-  '/favicon.ico',
-  '/assets',
-  '/images'
-]
+import {
+  isAdminApiPath,
+  isAdminOnlyPath,
+  isEmployeeOnlyPath,
+  isPublicPath,
+  isValidRole,
+} from '@/lib/auth-policy'
 
 export default withAuth(
   async function middleware(req) {
@@ -35,7 +20,7 @@ export default withAuth(
       return NextResponse.next()
     }
 
-    const role = token?.role as string
+    const role = token?.role
     const profileComplete = token?.profileComplete as boolean
     const tokenExp = token?.exp as number
 
@@ -67,8 +52,8 @@ export default withAuth(
     }
 
     // VERIFICAÇÃO DE ROLE VÁLIDO
-    if (!role || !['ADMIN', 'SUPERVISOR', 'EMPLOYEE'].includes(role)) {
-      logger.security('Invalid role detected', { userId: token.sub, role })
+    if (!isValidRole(role)) {
+      logger.security('Invalid role detected', { userId: token.sub, role: String(role) })
       // Evita loop: não redireciona se já estiver em rota de auth
       if (!pathname.startsWith('/auth/')) {
         const signInUrl = new URL('/auth/signin', req.url)
@@ -109,12 +94,8 @@ export default withAuth(
       }
     }
 
-    // CONTROLE DE ACESSO BASEADO EM ROLES
-    const adminOnlyRoutes = ['/admin', '/dashboard']
-    const employeeOnlyRoutes = ['/employee']
-
     // ADMIN / SUPERVISOR
-    if (adminOnlyRoutes.some(route => pathname.startsWith(route))) {
+    if (isAdminOnlyPath(pathname)) {
       if (!['ADMIN', 'SUPERVISOR'].includes(role)) {
         logger.security('Unauthorized access attempt to admin route', {
           userId: token.sub,
@@ -129,7 +110,7 @@ export default withAuth(
     }
 
     // EMPLOYEE
-    if (employeeOnlyRoutes.some(route => pathname.startsWith(route))) {
+    if (isEmployeeOnlyPath(pathname)) {
       if (role !== 'EMPLOYEE') {
         logger.security('Unauthorized access attempt to employee route', {
           userId: token.sub,
@@ -144,11 +125,7 @@ export default withAuth(
     }
 
     // APIs ADMINISTRATIVAS
-    if (
-      pathname.startsWith('/api/users') ||
-      pathname.startsWith('/api/machines') ||
-      pathname.startsWith('/api/dashboard')
-    ) {
+    if (isAdminApiPath(pathname)) {
       if (!['ADMIN', 'SUPERVISOR'].includes(role)) {
         return NextResponse.json(
           { error: 'Não autorizado', reason: 'insufficient_permissions' },
@@ -171,16 +148,7 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
 
-        if (PUBLIC_ROUTES.includes(pathname)) {
-          return true
-        }
-
-        if (PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
-          return true
-        }
-
-        // Permite /auth/complete-profile sem token para não criar loop
-        if (pathname.startsWith('/auth/complete-profile')) {
+        if (isPublicPath(pathname)) {
           return true
         }
 

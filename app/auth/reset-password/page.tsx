@@ -206,12 +206,13 @@ function ResetPasswordContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* New Password */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="reset-new-password" className="block text-sm font-medium text-white mb-2">
                 Nova Senha
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
+                  id="reset-new-password"
                   type={showPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -236,12 +237,13 @@ function ResetPasswordContent() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="reset-confirm-password" className="block text-sm font-medium text-white mb-2">
                 Confirmar Nova Senha
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
+                  id="reset-confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

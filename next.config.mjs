@@ -2,14 +2,32 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
+const isProd = process.env.NODE_ENV === 'production';
+
+function buildCsp() {
+  // Mantém 'unsafe-inline' por compatibilidade; remove 'unsafe-eval' em produção.
+  const scriptSrc = ["'self'", "'unsafe-inline'"];
+  if (!isProd) scriptSrc.push("'unsafe-eval'");
+
+  return [
+    `default-src 'self'`,
+    `base-uri 'self'`,
+    `object-src 'none'`,
+    `frame-ancestors 'none'`,
+    `form-action 'self'`,
+    `script-src ${scriptSrc.join(' ')}`,
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+    `font-src 'self' https://fonts.gstatic.com data:`,
+    `img-src 'self' data: blob: https:`,
+    `media-src 'self' blob:`,
+    `connect-src 'self' https: data: blob:`,
+    `frame-src 'self' blob: data:`,
+    `upgrade-insecure-requests`,
+  ].join('; ');
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
     optimizePackageImports: ['lucide-react', 'recharts'],
@@ -24,7 +42,7 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
+    dangerouslyAllowSVG: false,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
@@ -47,19 +65,21 @@ const nextConfig = {
         headers: [
           {
             key: 'Permissions-Policy',
-            value: 'camera=*, microphone=*, geolocation=*'
-          },
-          {
-            key: 'Feature-Policy',
-            value: 'camera *; microphone *; geolocation *'
+            value: [
+              'camera=(self)',
+              'microphone=()',
+              'geolocation=(self)',
+              'payment=()',
+              'usb=()',
+            ].join(', '),
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: data: blob:; frame-src 'self' blob: data:; object-src 'self' blob:;"
+            value: buildCsp(),
           },
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'DENY',
           },
           {
             key: 'X-Content-Type-Options',
@@ -68,6 +88,10 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: isProd ? 'max-age=31536000; includeSubDomains; preload' : 'max-age=0',
           }
         ],
       },

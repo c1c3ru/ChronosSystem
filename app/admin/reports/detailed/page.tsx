@@ -159,12 +159,13 @@ export default function DetailedReportsPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-search" className="block text-sm font-medium text-neutral-300 mb-2">
                   Buscar
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="detailed-search"
                     type="text"
                     placeholder="Nome, email ou máquina..."
                     className="input pl-10"
@@ -176,12 +177,13 @@ export default function DetailedReportsPage() {
 
               {/* Date Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-date" className="block text-sm font-medium text-neutral-300 mb-2">
                   Data
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="detailed-date"
                     type="date"
                     className="input pl-10"
                     value={dateFilter}
@@ -192,10 +194,11 @@ export default function DetailedReportsPage() {
 
               {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-type" className="block text-sm font-medium text-neutral-300 mb-2">
                   Tipo
                 </label>
                 <select
+                  id="detailed-type"
                   className="input"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -208,10 +211,11 @@ export default function DetailedReportsPage() {
 
               {/* User Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-role" className="block text-sm font-medium text-neutral-300 mb-2">
                   Role
                 </label>
                 <select
+                  id="detailed-role"
                   className="input"
                   value={userFilter}
                   onChange={(e) => setUserFilter(e.target.value)}

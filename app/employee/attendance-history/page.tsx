@@ -186,10 +186,11 @@ export default function AttendanceHistoryPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Type Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="attendance-type-filter" className="block text-sm font-medium text-neutral-300 mb-2">
                     Tipo de Registro
                   </label>
                   <select
+                    id="attendance-type-filter"
                     className="input"
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
@@ -202,10 +203,11 @@ export default function AttendanceHistoryPage() {
 
                 {/* Date From */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="attendance-date-from" className="block text-sm font-medium text-neutral-300 mb-2">
                     Data Inicial
                   </label>
                   <input
+                    id="attendance-date-from"
                     type="date"
                     className="input"
                     value={dateFrom}
@@ -215,10 +217,11 @@ export default function AttendanceHistoryPage() {
 
                 {/* Date To */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="attendance-date-to" className="block text-sm font-medium text-neutral-300 mb-2">
                     Data Final
                   </label>
                   <input
+                    id="attendance-date-to"
                     type="date"
                     className="input"
                     value={dateTo}

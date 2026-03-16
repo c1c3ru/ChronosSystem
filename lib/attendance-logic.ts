@@ -174,7 +174,7 @@ export function analisarDiaParaJustificativa(
   let requiresJustification = false
   let justificationReason = ''
   let lateArrival = { isLate: false, minutesLate: 0, requiresJustification: false }
-  let earlyDeparture = { isEarly: false, minutesShort: 0, requiresJustification: false }
+  let earlyDeparture = { isEarly: false, minutesShort: 0, requiresJustification: false, hoursWorked: 0 }
 
   if (ehDiaTrabalho) {
     if (!temEntrada) {

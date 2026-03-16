@@ -203,12 +203,16 @@ export default function EditMachinePage({ params }: { params: { id: string } }) 
                   
                   {/* Nome da Máquina */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label
+                      htmlFor="machine-name"
+                      className="block text-sm font-medium text-neutral-300 mb-2"
+                    >
                       Nome da Máquina
                     </label>
                     <div className="relative">
                       <Monitor className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="machine-name"
                         type="text"
                         placeholder="Ex: Terminal Principal, Kiosk Recepção..."
                         className={`input pl-10 ${errors.name ? 'border-error' : ''}`}
@@ -221,12 +225,16 @@ export default function EditMachinePage({ params }: { params: { id: string } }) 
 
                   {/* Localização */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label
+                      htmlFor="machine-location"
+                      className="block text-sm font-medium text-neutral-300 mb-2"
+                    >
                       Localização
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
                       <textarea
+                        id="machine-location"
                         placeholder="Ex: Recepção - Térreo, Sala de Reuniões - 2º Andar..."
                         className={`input pl-10 min-h-[80px] resize-none ${errors.location ? 'border-error' : ''}`}
                         value={updateData.location || ''}
@@ -237,10 +245,10 @@ export default function EditMachinePage({ params }: { params: { id: string } }) 
                   </div>
 
                   {/* Status */}
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-3">
+                  <fieldset>
+                    <legend className="block text-sm font-medium text-neutral-300 mb-3">
                       Status da Máquina
-                    </label>
+                    </legend>
                     <div className="flex items-center space-x-4">
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
@@ -266,7 +274,7 @@ export default function EditMachinePage({ params }: { params: { id: string } }) 
                     <p className="text-neutral-500 text-xs mt-1">
                       Máquinas inativas não podem gerar QR codes
                     </p>
-                  </div>
+                  </fieldset>
                 </div>
 
                 {/* Estatísticas */}
