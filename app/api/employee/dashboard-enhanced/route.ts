@@ -76,7 +76,8 @@ export async function GET(request: NextRequest) {
     })
 
     // Analisar situação de hoje
-    const todayAnalysis = analyzeTodayRecords(todayRecords, DEFAULT_WORKING_HOURS)
+    // Analisar registros de hoje
+    const todayAnalysis = analyzeTodayRecords(todayRecords, DEFAULT_WORKING_HOURS, isWorking, lastRecord)
 
     // Buscar registros recentes (últimos 7 dias) com análise
     const sevenDaysAgo = new Date(today)
@@ -195,102 +196,99 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function analyzeTodayRecords(records: any[], workingHours: WorkingHours) {
-  if (!records || records.length === 0) {
+function analyzeTodayRecords(registros: any[], horariosTrabalho: WorkingHours, estaTrabalhando: boolean = false, ultimoRegistro: any = null) {
+  const agora = new Date()
+  const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
+
+  let minutosTotais = 0
+  const alertas: any[] = []
+  
+  const entradas = registros.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
+  const saidas = registros.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
+
+  // 1. Calcular horas de pares completos hoje
+  for (let i = 0; i < Math.min(entradas.length, saidas.length); i++) {
+    const tempoEntrada = new Date(entradas[i].timestamp)
+    const tempoSaida = new Date(saidas[i].timestamp)
+    if (!isNaN(tempoEntrada.getTime()) && !isNaN(tempoSaida.getTime())) {
+      minutosTotais += Math.max(0, (tempoSaida.getTime() - tempoEntrada.getTime()) / (1000 * 60))
+    }
+  }
+
+  // 2. Adicionar tempo do turno atual (se houver)
+  if (entradas.length > saidas.length) {
+    // Caso normal: a entrada está nos registros de hoje
+    const ultimaEntrada = entradas[entradas.length - 1]
+    const tempoUltimaEntrada = new Date(ultimaEntrada.timestamp)
+    if (!isNaN(tempoUltimaEntrada.getTime())) {
+      minutosTotais += Math.max(0, (agora.getTime() - tempoUltimaEntrada.getTime()) / (1000 * 60))
+    }
+  } else if (estaTrabalhando && ultimoRegistro && ultimoRegistro.type === 'ENTRY') {
+    // Caso especial: turno atravessado ou fuso horário
+    try {
+      const tempoUltimoRegistro = ultimoRegistro.timestamp instanceof Date
+        ? ultimoRegistro.timestamp
+        : new Date(ultimoRegistro.timestamp)
+      
+      if (!isNaN(tempoUltimoRegistro.getTime())) {
+        const tempoInicio = tempoUltimoRegistro.getTime() < hoje.getTime() ? hoje : tempoUltimoRegistro
+        minutosTotais += Math.max(0, (agora.getTime() - tempoInicio.getTime()) / (1000 * 60))
+      }
+    } catch (erro) {
+      console.error('Erro ao calcular turno aberto:', erro)
+    }
+  }
+
+  // 3. Analisar alertas de atraso (apenas se houver entrada hoje)
+  if (entradas.length > 0) {
+    const tempoPrimeiraEntrada = new Date(entradas[0].timestamp)
+    if (!isNaN(tempoPrimeiraEntrada.getTime())) {
+      const [horasEsp, minsEsp] = horariosTrabalho.start.split(':').map(Number)
+      const inicioEsperado = new Date(tempoPrimeiraEntrada)
+      inicioEsperado.setHours(horasEsp, minsEsp, 0, 0)
+      
+      const atraso = (tempoPrimeiraEntrada.getTime() - inicioEsperado.getTime()) / (1000 * 60)
+      if (atraso > 15) {
+        alertas.push({
+          type: 'late',
+          message: `Entrada com ${Math.round(atraso)} min de atraso`,
+          severity: atraso > 60 ? 'high' : 'medium'
+        })
+      }
+    }
+  } else if (!estaTrabalhando && registros.length === 0) {
+    // Sem registros e não está trabalhando -> ausente
     return {
       totalHours: '0h 00min',
       status: 'absent' as const,
       alerts: [{
-        type: 'absence' as const,
+        type: 'absence',
         message: 'Nenhum registro hoje',
-        severity: 'high' as const
+        severity: 'high'
       }]
     }
   }
 
-  const entries = records.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
-  const exits = records.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
-  const alerts: any[] = []
+  const horas = Math.floor(minutosTotais / 60)
+  const minutos = Math.floor(minutosTotais % 60)
+  const totalHorasString = `${horas}h ${minutos.toString().padStart(2, '0')}min`
 
-  // Verificar primeiro registro (entrada)
-  if (entries.length > 0) {
-    const firstEntry = entries[0]
-    if (firstEntry && firstEntry.timestamp) {
-      const entryTime = firstEntry.timestamp instanceof Date
-        ? firstEntry.timestamp
-        : new Date(firstEntry.timestamp)
-
-      if (!isNaN(entryTime.getTime())) {
-        const expectedStart = parseTime(workingHours.start)
-
-        if (entryTime.getHours() * 60 + entryTime.getMinutes() > expectedStart + 30) {
-          const delayMinutes = (entryTime.getHours() * 60 + entryTime.getMinutes()) - expectedStart
-          alerts.push({
-            type: 'late_arrival',
-            message: `Atraso de ${delayMinutes} minutos na entrada`,
-            severity: delayMinutes > 60 ? 'high' : 'medium',
-            time: entryTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            expectedTime: workingHours.start
-          })
-        }
-      }
-    }
-  }
-
-  // Calcular horas trabalhadas
-  let totalMinutes = 0
-  for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
-    try {
-      const entryTime = entries[i].timestamp instanceof Date
-        ? entries[i].timestamp
-        : new Date(entries[i].timestamp)
-      const exitTime = exits[i].timestamp instanceof Date
-        ? exits[i].timestamp
-        : new Date(exits[i].timestamp)
-
-      if (!isNaN(entryTime.getTime()) && !isNaN(exitTime.getTime())) {
-        totalMinutes += (exitTime.getTime() - entryTime.getTime()) / (1000 * 60)
-      }
-    } catch (error) {
-      apiLogger.warn('Erro ao calcular horas para par entrada/saída', { error: String(error) })
-    }
-  }
-
-  // Se ainda está trabalhando, calcular até agora
-  if (entries.length > exits.length) {
-    const lastEntry = entries[entries.length - 1]
-    if (lastEntry && lastEntry.timestamp) {
-      try {
-        const lastEntryTime = lastEntry.timestamp instanceof Date
-          ? lastEntry.timestamp
-          : new Date(lastEntry.timestamp)
-
-        if (!isNaN(lastEntryTime.getTime())) {
-          const now = new Date()
-          totalMinutes += (now.getTime() - lastEntryTime.getTime()) / (1000 * 60)
-        }
-      } catch (error) {
-        apiLogger.warn('Erro ao calcular horas em andamento', { error })
-      }
-    }
-  }
-
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = Math.floor(totalMinutes % 60)
-  const totalHours = `${hours}h ${minutes.toString().padStart(2, '0')}min`
-
-  // Determinar status
-  let status: 'working' | 'completed' | 'incomplete' | 'absent' = 'working'
-  if (entries.length === 0) {
-    status = 'absent'
-  } else if (entries.length === exits.length) {
-    status = totalMinutes >= 480 ? 'completed' : 'incomplete' // 8 horas = 480 min
+  // Determinar status final
+  let situacao: 'working' | 'completed' | 'incomplete' | 'absent' = 'incomplete'
+  if (estaTrabalhando) {
+    situacao = 'working'
+  } else if (entradas.length > 0 && entradas.length === saidas.length) {
+    // Se completou o dia, verificar se atingiu a meta (ex: 4h para estágio de 20h/sema)
+    situacao = minutosTotais >= 240 ? 'completed' : 'incomplete'
+  } else if (entradas.length === 0) {
+    situacao = 'absent'
   }
 
   return {
-    totalHours,
-    status,
-    alerts
+    totalHours: totalHorasString,
+    status: situacao,
+    alerts: alertas
   }
 }
 

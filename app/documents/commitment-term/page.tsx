@@ -120,13 +120,11 @@ export default function CommitmentTermPage() {
       e.target.value = maskedValue
     }
 
-    // Tratamento especial para checkboxes e radio buttons
     const { type } = e.target
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData(prev => ({ ...prev, [name]: checked ? value : '' }))
+      setFormData(prev => ({ ...prev, [name]: checked ? 'true' : 'false' }))
     } else if (type === 'radio') {
-      // Radio buttons: sempre salvar o value quando selecionado
       setFormData(prev => ({ ...prev, [name]: value }))
     } else {
       setFormData(prev => ({ ...prev, [name]: maskedValue }))
@@ -294,7 +292,7 @@ export default function CommitmentTermPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-2 mb-2 text-sm text-neutral-300">
-                    <input type="checkbox" checked={formData.has_grant === 'true'} onChange={(e) => setFormData(prev => ({ ...prev, has_grant: e.target.checked ? 'true' : 'false' }))} />
+                    <input type="checkbox" name="has_grant" checked={formData.has_grant === 'true'} onChange={handleInputChange} />
                     Possui Bolsa Auxílio?
                   </label>
                   {formData.has_grant === 'true' && (
@@ -303,7 +301,7 @@ export default function CommitmentTermPage() {
                 </div>
                 <div>
                   <label className="flex items-center gap-2 mb-2 text-sm text-neutral-300">
-                    <input type="checkbox" checked={formData.has_transport === 'true'} onChange={(e) => setFormData(prev => ({ ...prev, has_transport: e.target.checked ? 'true' : 'false' }))} />
+                    <input type="checkbox" name="has_transport" checked={formData.has_transport === 'true'} onChange={handleInputChange} />
                     Possui Auxílio Transporte?
                   </label>
                   {formData.has_transport === 'true' && (

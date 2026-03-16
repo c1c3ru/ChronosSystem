@@ -354,6 +354,33 @@ describe('attendance-logic', () => {
             expect(result.errors[0]).toContain('sábado')
         })
 
+        it('deve bloquear registro em feriado sem autorização', async () => {
+            const result = await validateRecord({
+                userId,
+                currentTime: new Date('2024-12-25T08:00:00'), // Natal (Feriado fixo)
+                lastRecord: null,
+                workingHours,
+                hasAuthorization: false
+            }, 'ENTRY')
+
+            expect(result.isValid).toBe(false)
+            expect(result.errors.length).toBeGreaterThan(0)
+            expect(result.errors[0]).toContain('feriado')
+            expect(result.errors[0]).toContain('Natal')
+        })
+
+        it('deve permitir registro em feriado com autorização', async () => {
+            const result = await validateRecord({
+                userId,
+                currentTime: new Date('2024-12-25T08:00:00'), // Natal
+                lastRecord: null,
+                workingHours,
+                hasAuthorization: true
+            }, 'ENTRY')
+
+            expect(result.isValid).toBe(true)
+        })
+
         it('deve permitir registro em fim de semana com autorização', async () => {
             const result = await validateRecord({
                 userId,

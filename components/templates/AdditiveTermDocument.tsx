@@ -231,6 +231,18 @@ const formatDate = (dateString: string): string => {
     return `${day}/${month}/${year}`
 }
 
+const formatCurrency = (value: string): string => {
+    if (!value) return 'R$ _____'
+    if (value.includes('R$')) return value
+    const numbers = value.replace(/\D/g, '')
+    if (!numbers) return 'R$ _____'
+    const amount = parseInt(numbers) / 100
+    return new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+    }).format(amount)
+}
+
 export const AdditiveTermDocument: React.FC<AdditiveTermDocumentProps> = ({ data }) => (
     <Document>
         <Page size="A4" style={styles.page}>
@@ -369,7 +381,7 @@ export const AdditiveTermDocument: React.FC<AdditiveTermDocumentProps> = ({ data
                     </View>
                     <View style={styles.changeContent}>
                         <Text style={styles.bold}>ALTERAÇÃO DO VALOR DA BOLSA:</Text>
-                        <Text> O valor da bolsa-auxílio passará a ser de <Text style={styles.bold}>R$ {data.new_allowance_value || '_______'}</Text>.</Text>
+                        <Text> O valor da bolsa-auxílio passará a ser de <Text style={styles.bold}>{formatCurrency(data.new_allowance_value)}</Text>.</Text>
                     </View>
                 </View>
 

@@ -270,7 +270,22 @@ const formatDate = (dateString: string): string => {
 
 const formatCurrency = (value: string): string => {
     if (!value) return 'R$ _____'
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))
+    
+    // Se o valor já contém R$, ele provavelmente já está formatado
+    if (value.includes('R$')) return value
+
+    // Tenta limpar valores numéricos puros vindos de rascunhos ou do estado
+    const numbers = value.replace(/\D/g, '')
+    if (!numbers) return 'R$ _____'
+    
+    const amount = parseInt(numbers) / 100
+    
+    return new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount)
 }
 
 export const CommitmentTermDocument: React.FC<CommitmentTermDocumentProps> = ({ data }) => {

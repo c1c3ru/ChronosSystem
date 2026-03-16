@@ -167,6 +167,7 @@ export const RealizationTermDocument: React.FC<RealizationTermDocumentProps> = (
                 <View style={commonStyles.signatureLine}>
                     <Text style={commonStyles.bold}>{data.student_name || 'ESTAGIÁRIO(A)'}</Text>
                     <Text>CPF: {data.student_cpf}</Text>
+                    <Text>Assinatura do(a) Aluno(a)</Text>
                 </View>
 
                 <View style={commonStyles.signatureLine}>

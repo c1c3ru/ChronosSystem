@@ -157,26 +157,47 @@ export async function POST(request: NextRequest) {
         DEFAULT_RADIUS.NORMAL
       )
 
-      if (!validacaoProximidade.valido) {
+      if (!validacaoProximidade.isValid) {
         logger.warn('Registro de ponto rejeitado - fora do raio permitido', {
           userId: sessao.user.id,
           machineId: maquina.id,
-          distancia: validacaoProximidade.distancia,
-          raioMaximo: validacaoProximidade.raioMaximo
+          distancia: validacaoProximidade.distance,
+          raioMaximo: validacaoProximidade.maxRadius
         })
 
         return NextResponse.json({
           error: 'Localização inválida',
-          message: validacaoProximidade.mensagem
+          message: validacaoProximidade.message
         }, { status: 400 })
       }
     }
 
+    // Verificar autorização especial para hoje (trabalho em feriado/fim de semana)
+    const hojeInicio = new Date()
+    hojeInicio.setHours(0, 0, 0, 0)
+    const hojeFim = new Date()
+    hojeFim.setHours(23, 59, 59, 999)
+
+    const autorizacaoEspecial = await prisma.justification.findFirst({
+      where: {
+        userId: sessao.user.id,
+        date: {
+          gte: hojeInicio,
+          lte: hojeFim
+        },
+        type: 'EXTRA_WORK',
+        status: 'APPROVED'
+      }
+    })
+
+    const temAutorizacao = !!autorizacaoEspecial
+
     // Validar anomalias de sequência e registros muito próximos
-    const validadorRegistro = atendimentoLogica.validateRecord(
+    const validadorRegistro = await atendimentoLogica.validateRecord(
       dadosValidados.type as AttendanceRecordType,
       ultimoRegistro ? { ...ultimoRegistro, type: ultimoRegistro.type as AttendanceRecordType } : null,
-      new Date()
+      new Date(),
+      temAutorizacao
     )
 
     if (!validadorRegistro.isValid) {

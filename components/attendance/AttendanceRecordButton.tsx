@@ -17,7 +17,7 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
   const [suggestedType, setSuggestedType] = useState<'ENTRY' | 'EXIT' | null>(null)
   const [reason, setReason] = useState('')
   const [countdown, setCountdown] = useState(10)
-  const [isPaused, setIsPaused] = useState(false)
+  const [isPaused, setIsPaused] = useState(true)
   const [isDone, setIsDone] = useState(false)
 
   // Buscar sugestão inicial

@@ -86,7 +86,7 @@ export function determinarTipoRegistro(contexto: any) {
 }
 
 // Validação
-export function validarRegistro(contexto: any, tipoSolicitado: string) {
+export async function validarRegistro(contexto: any, tipoSolicitado: string) {
   const data = contexto.horaAtual || contexto.currentTime || new Date()
   const ultimoPonto = contexto.ultimoRegistro || contexto.lastRecord
   const possuiAutorizacao = contexto.hasAuthorization || contexto.possuiAutorizacao || false
@@ -112,6 +112,13 @@ export function validarRegistro(contexto: any, tipoSolicitado: string) {
   // Fim de Semana
   if (ehFimDeSemana(data) && !possuiAutorizacao) {
     erros.push(`Registro em ${obterNomeDia(data)} exige autorização prévia.`)
+  }
+
+  // Feriados
+  const { isHoliday } = await import('./holidays')
+  const holidayCheck = await isHoliday(data)
+  if (holidayCheck.isHoliday && !possuiAutorizacao) {
+    erros.push(`Registro no feriado (${holidayCheck.holidayName}) exige autorização prévia.`)
   }
 
   return { isValid: erros.length === 0, errors: erros, warnings: avisos }
@@ -238,10 +245,11 @@ export class AttendanceLogic {
   /**
    * Valida se um registro de ponto pode ser realizado
    */
-  validateRecord(type: AttendanceRecordType, lastRecord: any, date: Date = new Date()) {
-    return validarRegistro({
+  async validateRecord(type: AttendanceRecordType, lastRecord: any, date: Date = new Date(), hasAuthorization: boolean = false) {
+    return await validarRegistro({
       ultimoRegistro: lastRecord,
-      horaAtual: date
+      horaAtual: date,
+      hasAuthorization
     }, type)
   }
 
