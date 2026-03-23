@@ -25,6 +25,7 @@ export default function KioskPage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [qrData, setQrData] = useState<QRData | null>(null)
+  const [qrError, setQrError] = useState<string | null>(null)
   const [isOnline, setIsOnline] = useState(true)
   const [timeLeft, setTimeLeft] = useState(0)
   const [recentScans, setRecentScans] = useState<any[]>([])
@@ -76,6 +77,7 @@ export default function KioskPage() {
 
   // Gerar QR code dinâmico
   const generateQRCode = async () => {
+    setQrError(null)
     try {
       const url = new URL('/api/kiosk/qr', window.location.origin)
       if (machineInfo.id) {
@@ -91,7 +93,6 @@ export default function KioskPage() {
 
       if (response.ok) {
         const text = await response.text()
-        console.log('Response text:', text)
 
         try {
           const data: QRData = JSON.parse(text)
@@ -109,46 +110,24 @@ export default function KioskPage() {
           })
 
           setQrCodeUrl(qrUrl)
+          setQrError(null)
           setTimeLeft(data.validFor)
         } catch (parseError) {
           console.error('Erro ao fazer parse do JSON:', parseError)
-          generateFallbackQR()
+          setQrCodeUrl('')
+          setQrError('Erro ao processar resposta do servidor. Contate o administrador.')
         }
       } else {
-        console.error('Erro ao gerar QR code:', response.statusText)
-        // Fallback para QR estático em caso de erro
-        generateFallbackQR()
+        const errData = await response.json().catch(() => ({}))
+        const msg = errData?.error || `Erro do servidor (${response.status})`
+        console.error('Erro ao gerar QR code:', msg)
+        setQrCodeUrl('')
+        setQrError(msg)
       }
     } catch (error) {
       console.error('Erro ao gerar QR code:', error)
-      generateFallbackQR()
-    }
-  }
-
-  // QR code de fallback em caso de erro na API
-  const generateFallbackQR = async () => {
-    try {
-      const fallbackData = {
-        machineId: machineInfo.id,
-        timestamp: Date.now(),
-        nonce: Math.random().toString(36).substring(7),
-        fallback: true
-      }
-
-      const qrString = JSON.stringify(fallbackData)
-      const qrUrl = await QRCode.toDataURL(qrString, {
-        width: 320,
-        margin: 2,
-        color: {
-          dark: '#f59e0b', // Cor diferente para indicar fallback
-          light: '#ffffff'
-        }
-      })
-
-      setQrCodeUrl(qrUrl)
-      setTimeLeft(60) // 60 segundos
-    } catch (error) {
-      console.error('Erro ao gerar QR de fallback:', error)
+      setQrCodeUrl('')
+      setQrError('Falha de conexão ao gerar QR code. Verifique a rede.')
     }
   }
 
@@ -323,7 +302,22 @@ export default function KioskPage() {
                 Registrar Ponto
               </h2>
 
-              {qrCodeUrl ? (
+              {qrError ? (
+                <div className="flex flex-col items-center justify-center h-80 gap-4">
+                  <div className="bg-red-900/40 border border-red-500/50 rounded-xl p-6 max-w-sm text-center">
+                    <div className="text-red-400 text-4xl mb-3">⚠️</div>
+                    <p className="text-red-300 font-semibold mb-1">Erro ao gerar QR Code</p>
+                    <p className="text-red-400 text-sm">{qrError}</p>
+                  </div>
+                  <button
+                    onClick={generateQRCode}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary rounded-lg text-sm transition-colors"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                    Tentar novamente
+                  </button>
+                </div>
+              ) : qrCodeUrl ? (
                 <div className="flex flex-col items-center">
                   <div className="bg-white p-6 rounded-2xl mb-4 shadow-2xl">
                     <img
