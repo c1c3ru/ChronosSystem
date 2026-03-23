@@ -6,6 +6,7 @@ interface RateLimitConfig {
   windowMs: number // Janela de tempo em milissegundos
   maxRequests: number // Máximo de requests por janela
   skipSuccessfulRequests?: boolean // Não contar requests bem-sucedidos
+  requireRedisInProduction?: boolean // Em produção, falhar fechado sem Redis
 }
 
 interface RateLimitResult {
@@ -31,9 +32,22 @@ export function rateLimit(config: RateLimitConfig) {
     const ip = getClientIP(request)
     const identifier = `${ip}:${request.nextUrl.pathname}`
 
+    const isProd = process.env.NODE_ENV === 'production'
+    const requireRedisInProduction = config.requireRedisInProduction ?? true
+
     // Tentar usar Redis primeiro
     if (isRedisConnected()) {
       return await redisRateLimit(identifier, config)
+    }
+
+    // Em produção, não permitir fallback silencioso em ambiente serverless
+    if (isProd && requireRedisInProduction) {
+      const reset = Date.now() + Math.min(config.windowMs, 60_000) // limita o "bloqueio" inicial a 60s
+      logger.error('Rate limiting sem Redis em produção (fail-closed)', {
+        path: request.nextUrl.pathname,
+        ip,
+      })
+      return { success: false, limit: config.maxRequests, remaining: 0, reset }
     }
 
     // Fallback para rate limiting em memória

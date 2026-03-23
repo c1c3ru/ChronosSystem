@@ -16,6 +16,8 @@ dist/
 # Environment
 .env
 .env.local
+.env.*.backup
+.env*.backup
 .env.development.local
 .env.test.local
 .env.production.local
@@ -44,7 +46,8 @@ Thumbs.db
 *~
 
 # Prisma
-prisma/migrations/
+# NÃO ignorar migrations: necessárias para `prisma migrate deploy` em produção
+# (mantém apenas os bancos SQLite locais ignorados)
 *.db
 *.db-journal
 
@@ -62,3 +65,7 @@ prisma/migrations/
 # Next.js build output
 .next/
 out/
+
+# AI Agents
+.agent/
+.agents/

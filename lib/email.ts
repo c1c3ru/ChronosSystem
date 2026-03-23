@@ -1,6 +1,5 @@
-// Utilitário para envio de emails usando Nodemailer
-import nodemailer from 'nodemailer'
-import type { Transporter } from 'nodemailer'
+// Utilitário para envio de emails usando Resend
+import { resend, RESEND_FROM } from './resend'
 
 interface EmailOptions {
   to: string
@@ -19,11 +18,8 @@ interface PasswordResetEmailData {
 
 export class EmailService {
   private static instance: EmailService
-  private transporter: Transporter | null = null
 
-  private constructor() {
-    this.initializeTransporter()
-  }
+  private constructor() {}
 
   static getInstance(): EmailService {
     if (!EmailService.instance) {
@@ -32,106 +28,33 @@ export class EmailService {
     return EmailService.instance
   }
 
-  private initializeTransporter() {
-    try {
-      // Configuração do transporter
-      const emailConfig = {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true', // true para 465, false para outras portas
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        },
-        tls: {
-          rejectUnauthorized: false // Para desenvolvimento
-        }
-      }
-
-      // Verificar se as credenciais estão configuradas
-      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('⚠️ [EMAIL] Credenciais SMTP não configuradas. Usando modo de desenvolvimento.')
-
-        // Usar Ethereal Email para desenvolvimento/teste
-        this.createTestAccount()
-        return
-      }
-
-      this.transporter = nodemailer.createTransport(emailConfig)
-
-      // Verificar conexão
-      this.transporter?.verify((error, success) => {
-        if (error) {
-          console.error('❌ [EMAIL] Erro na configuração SMTP:', error)
-        } else {
-          console.log('✅ [EMAIL] Servidor SMTP configurado com sucesso')
-        }
-      })
-
-    } catch (error) {
-      console.error('❌ [EMAIL] Erro ao inicializar transporter:', error)
-    }
-  }
-
-  private async createTestAccount() {
-    try {
-      // Criar conta de teste com Ethereal Email
-      const testAccount = await nodemailer.createTestAccount()
-
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
-        }
-      })
-
-      console.log('🧪 [EMAIL] Usando conta de teste Ethereal:')
-      console.log(`   User: ${testAccount.user}`)
-      console.log(`   Pass: ${testAccount.pass}`)
-      console.log('   📧 Emails serão visíveis em: https://ethereal.email')
-
-    } catch (error) {
-      console.error('❌ [EMAIL] Erro ao criar conta de teste:', error)
-    }
-  }
-
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      if (!this.transporter) {
-        console.error('❌ [EMAIL] Transporter não inicializado')
+      const from = RESEND_FROM;
+
+      console.log('📧 [EMAIL] Enviando email via Resend:', {
+        to: options.to,
+        subject: options.subject,
+        from
+      })
+
+      const { data, error } = await resend.emails.send({
+        from,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text
+      })
+
+      if (error) {
+        console.error('❌ [EMAIL] Erro ao enviar email via Resend:', error)
         return false
       }
 
-      const mailOptions = {
-        from: `"Chronos System" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-        to: options.to,
-        subject: options.subject,
-        text: options.text,
-        html: options.html
-      }
-
-      console.log('📧 [EMAIL] Enviando email:', {
-        to: options.to,
-        subject: options.subject,
-        from: mailOptions.from
-      })
-
-      const info = await this.transporter.sendMail(mailOptions)
-
-      console.log('✅ [EMAIL] Email enviado com sucesso!')
-      console.log(`   Message ID: ${info.messageId}`)
-
-      // Se usando Ethereal, mostrar URL de preview
-      if (info.previewURL) {
-        console.log(`   📧 Preview: ${info.previewURL}`)
-      }
-
+      console.log('✅ [EMAIL] Email enviado com sucesso!', { id: data?.id })
       return true
     } catch (error) {
-      console.error('❌ [EMAIL] Erro ao enviar email:', error)
+      console.error('❌ [EMAIL] Erro inesperado ao enviar email:', error)
       return false
     }
   }

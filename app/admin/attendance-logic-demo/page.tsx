@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession, signIn } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Clock, Brain, AlertTriangle, CheckCircle, Info } from 'lucide-react'
@@ -101,6 +102,7 @@ const testScenarios: TestScenario[] = [
 ]
 
 export default function AttendanceLogicDemo() {
+  const { data: session, status } = useSession()
   const [selectedScenario, setSelectedScenario] = useState<TestScenario | null>(null)
   const [showAllResults, setShowAllResults] = useState(false)
 
@@ -120,6 +122,34 @@ export default function AttendanceLogicDemo() {
       case 'low': return <AlertTriangle className="h-4 w-4" />
       default: return <Info className="h-4 w-4" />
     }
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
+      </div>
+    )
+  }
+
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+            Ir para Área do Funcionário
+          </Button>
+          <Button onClick={() => signIn()} variant="primary">
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -226,14 +256,22 @@ export default function AttendanceLogicDemo() {
             <CardContent>
               <div className="space-y-3">
                 {testScenarios.map((scenario) => (
-                  <div
+                   <div
                     key={scenario.id}
                     className={`p-4 rounded-lg border cursor-pointer transition-all ${
                       selectedScenario?.id === scenario.id
                         ? 'border-primary bg-primary/10'
                         : 'border-neutral-700 bg-neutral-800/30 hover:bg-neutral-800/50'
                     }`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedScenario(scenario)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setSelectedScenario(scenario)
+                      }
+                    }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

@@ -60,21 +60,8 @@ export default function JustificationsPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'LIST' | 'OVERVIEW'>('LIST')
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-
-    if (!session) {
-      signIn()
-    }
-  }, [status])
-
-  // Check if user is admin or supervisor
-  useEffect(() => {
-    if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      router.push('/employee')
-    }
-  }, [session])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load justifications
   useEffect(() => {
@@ -189,8 +176,24 @@ export default function JustificationsPage() {
     return <Loading />
   }
 
-  if (!session) {
-    return null
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+            Ir para Área do Funcionário
+          </Button>
+          <Button onClick={() => signIn()} variant="primary">
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -223,12 +226,13 @@ export default function JustificationsPage() {
             <div className="grid gap-4 md:grid-cols-3">
               {/* Search */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="justifications-search" className="block text-sm font-medium text-neutral-300 mb-2">
                   Buscar
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="justifications-search"
                     type="text"
                     placeholder="Nome, email ou justificativa..."
                     className="input pl-10"
@@ -240,10 +244,11 @@ export default function JustificationsPage() {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="justifications-status" className="block text-sm font-medium text-neutral-300 mb-2">
                   Status
                 </label>
                 <select
+                  id="justifications-status"
                   className="input"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -258,10 +263,11 @@ export default function JustificationsPage() {
 
               {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="justifications-type" className="block text-sm font-medium text-neutral-300 mb-2">
                   Tipo
                 </label>
                 <select
+                  id="justifications-type"
                   className="input"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -420,7 +426,9 @@ export default function JustificationsPage() {
                           <div key={idx} className="bg-neutral-900/40 p-3 rounded-lg border border-warning/20 flex items-center justify-between group">
                             <div className="min-w-0 pr-4">
                               <p className="text-white text-sm font-semibold">{formatDate(p.date)}</p>
-                              <p className="text-[11px] text-neutral-400 italic truncate italic">"{p.reason}"</p>
+                              <p className="text-[11px] text-neutral-400 italic truncate italic">
+                                &quot;{p.reason}&quot;
+                              </p>
                             </div>
                             <Button
                               size="sm"
@@ -510,7 +518,9 @@ export default function JustificationsPage() {
                       {justification.adminResponse && (
                         <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
                           <p className="text-[10px] font-bold text-primary/70 uppercase mb-1 tracking-widest">Resposta da Administração</p>
-                          <p className="text-neutral-200 text-sm italic">"{justification.adminResponse}"</p>
+                          <p className="text-neutral-200 text-sm italic">
+                            &quot;{justification.adminResponse}&quot;
+                          </p>
                         </div>
                       )}
                     </div>
@@ -573,10 +583,11 @@ export default function JustificationsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="admin-response" className="block text-sm font-medium text-neutral-300 mb-2">
                   Resposta (Opcional)
                 </label>
                 <textarea
+                  id="admin-response"
                   className="input min-h-[100px] resize-none"
                   placeholder="Adicione uma resposta ou observação..."
                   value={adminResponse}

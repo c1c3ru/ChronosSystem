@@ -45,21 +45,8 @@ export default function DetailedReportsPage() {
   const [typeFilter, setTypeFilter] = useState('ALL')
   const [userFilter, setUserFilter] = useState('ALL')
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      signIn()
-    }
-  }, [status])
-
-  // Check if user is admin or supervisor
-  useEffect(() => {
-    if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      router.push('/employee')
-    }
-  }, [session])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load detailed records
   useEffect(() => {
@@ -118,8 +105,24 @@ export default function DetailedReportsPage() {
     return <Loading />
   }
 
-  if (!session) {
-    return null
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+            Ir para Área do Funcionário
+          </Button>
+          <Button onClick={() => signIn()} variant="primary">
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -156,12 +159,13 @@ export default function DetailedReportsPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-search" className="block text-sm font-medium text-neutral-300 mb-2">
                   Buscar
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="detailed-search"
                     type="text"
                     placeholder="Nome, email ou máquina..."
                     className="input pl-10"
@@ -173,12 +177,13 @@ export default function DetailedReportsPage() {
 
               {/* Date Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-date" className="block text-sm font-medium text-neutral-300 mb-2">
                   Data
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="detailed-date"
                     type="date"
                     className="input pl-10"
                     value={dateFilter}
@@ -189,10 +194,11 @@ export default function DetailedReportsPage() {
 
               {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-type" className="block text-sm font-medium text-neutral-300 mb-2">
                   Tipo
                 </label>
                 <select
+                  id="detailed-type"
                   className="input"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -205,10 +211,11 @@ export default function DetailedReportsPage() {
 
               {/* User Filter */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="detailed-role" className="block text-sm font-medium text-neutral-300 mb-2">
                   Role
                 </label>
                 <select
+                  id="detailed-role"
                   className="input"
                   value={userFilter}
                   onChange={(e) => setUserFilter(e.target.value)}

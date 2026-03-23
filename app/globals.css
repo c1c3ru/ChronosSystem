@@ -6,30 +6,22 @@
 @layer base {
   :root {
     /* Color tokens using RGB values for better alpha support */
-    --background: 15 23 42;
-    /* neutral-900 */
-    --foreground: 241 245 249;
-    /* neutral-100 */
+    --background: 8 10 18; /* Darker navy for a more premium look */
+    --foreground: 248 250 252; /* Slate-50 */
 
-    /* Primary brand colors */
-    --primary: 34 197 94;
-    /* green-500 */
+    /* Primary brand colors - Royal Green/Emerald */
+    --primary: 16 185 129; /* Emerald-500 */
     --primary-foreground: 255 255 255;
-
-    /* Secondary colors */
-    --secondary: 30 41 59;
-    /* neutral-800 */
+    
+    /* Secondary - deep midnight */
+    --secondary: 15 23 42; /* Slate-900 */
     --secondary-foreground: 241 245 249;
 
-    /* Muted colors */
-    --muted: 30 41 59;
-    /* neutral-800 */
-    --muted-foreground: 148 163 184;
-    /* neutral-400 */
-
-    /* Accent colors */
+    /* Accent - Neon Cyan/Blue */
     --accent: 30 41 59;
     --accent-foreground: 241 245 249;
+    --glow-primary: 16 185 129;
+    --glow-accent: 14 165 233;
 
     /* Semantic colors */
     --destructive: 239 68 68;
@@ -201,19 +193,32 @@
 
   /* Glass morphism effect */
   .glass {
-    background: rgba(255, 255, 255, 0.05);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.6);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply border-primary/30 shadow-primary/5 shadow-2xl;
+    transform: translateY(-2px);
   }
 
   /* Gradient backgrounds */
-  .gradient-primary {
-    background: linear-gradient(135deg, rgb(34 197 94) 0%, rgb(22 163 74) 100%);
+  .gradient-royal {
+    background: linear-gradient(135deg, rgb(16 185 129) 0%, rgb(5 150 105) 100%);
   }
 
-  .gradient-secondary {
-    background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(37 99 235) 100%);
+  .gradient-mesh {
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(160, 84%, 39%, 0.15) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(200, 100%, 50%, 0.1) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, hsla(160, 84%, 39%, 0.15) 0, transparent 50%);
   }
 
   /* Animation utilities */

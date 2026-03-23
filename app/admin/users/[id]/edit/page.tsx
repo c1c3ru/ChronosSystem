@@ -235,12 +235,13 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                   
                   {/* Nome */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="edit-user-name" className="block text-sm font-medium text-neutral-300 mb-2">
                       Nome Completo
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="edit-user-name"
                         type="text"
                         placeholder="Nome completo do usuário"
                         className={`input pl-10 ${errors.name ? 'border-error' : ''}`}
@@ -253,12 +254,13 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="edit-user-email" className="block text-sm font-medium text-neutral-300 mb-2">
                       Email
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="edit-user-email"
                         type="email"
                         placeholder="email@exemplo.com"
                         className={`input pl-10 ${errors.email ? 'border-error' : ''}`}
@@ -271,12 +273,13 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
                   {/* Nova Senha */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="edit-user-password" className="block text-sm font-medium text-neutral-300 mb-2">
                       Nova Senha (Opcional)
                     </label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="edit-user-password"
                         type="password"
                         placeholder="Deixe em branco para manter a atual"
                         className={`input pl-10 ${errors.password ? 'border-error' : ''}`}
@@ -289,14 +292,18 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                 </div>
 
                 {/* Role */}
-                <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-3">
+                <fieldset>
+                  <legend className="block text-sm font-medium text-neutral-300 mb-3">
                     Nível de Acesso
-                  </label>
+                  </legend>
                   <div className="space-y-3">
                     {['EMPLOYEE', 'SUPERVISOR', 'ADMIN'].map((role) => (
-                      <label key={role} className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors">
+                      <div
+                        key={role}
+                        className="flex items-start space-x-3 p-3 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors"
+                      >
                         <input
+                          id={`edit-user-role-${role}`}
                           type="radio"
                           name="role"
                           value={role}
@@ -304,22 +311,22 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                           onChange={(e) => setUpdateData(prev => ({ ...prev, role: e.target.value as any }))}
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary mt-0.5"
                         />
-                        <div className="flex-1">
+                        <label htmlFor={`edit-user-role-${role}`} className="flex-1 cursor-pointer">
                           <div className="flex items-center space-x-2">
                             <Shield className="h-4 w-4 text-neutral-400" />
                             <span className={`font-medium ${getRoleColor(role)}`}>
-                              {role === 'EMPLOYEE' ? 'Estagiário' : 
+                              {role === 'EMPLOYEE' ? 'Estagiário' :
                                role === 'SUPERVISOR' ? 'Supervisor' : 'Administrador'}
                             </span>
                           </div>
                           <p className="text-xs text-neutral-500 mt-1">
                             {getRoleDescription(role)}
                           </p>
-                        </div>
-                      </label>
+                        </label>
+                      </div>
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 {/* Informações Opcionais */}
                 <div className="space-y-4">
@@ -328,10 +335,11 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Telefone */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="edit-user-phone" className="block text-sm font-medium text-neutral-300 mb-2">
                         Telefone
                       </label>
                       <input
+                        id="edit-user-phone"
                         type="tel"
                         placeholder="(11) 99999-9999"
                         className="input"
@@ -342,10 +350,11 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
                     {/* Departamento */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="edit-user-department" className="block text-sm font-medium text-neutral-300 mb-2">
                         Departamento
                       </label>
                       <select
+                        id="edit-user-department"
                         className="input"
                         value={updateData.department || ''}
                         onChange={(e) => setUpdateData(prev => ({ ...prev, department: e.target.value }))}
@@ -365,10 +374,11 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
                   {/* Endereço */}
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="edit-user-address" className="block text-sm font-medium text-neutral-300 mb-2">
                       Endereço
                     </label>
                     <textarea
+                      id="edit-user-address"
                       placeholder="Endereço completo"
                       className="input min-h-[80px] resize-none"
                       value={updateData.address || ''}

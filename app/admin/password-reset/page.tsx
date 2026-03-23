@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { 
   Shield, 
@@ -49,16 +49,13 @@ export default function PasswordResetPage() {
   const [isSendingEmails, setIsSendingEmails] = useState(false)
   const [customMessage, setCustomMessage] = useState('')
 
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
   useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
-      router.push('/auth/signin')
-      return
+    if (session && ['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+      loadUsers()
+      loadActiveTokens()
     }
-
-    loadUsers()
-    loadActiveTokens()
   }, [session, status])
 
   const loadUsers = async () => {
@@ -251,6 +248,32 @@ export default function PasswordResetPage() {
     </div>
   }
 
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4 text-center">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => window.location.href = '/employee'} 
+            className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-md transition-colors"
+          >
+            Ir para Área do Funcionário
+          </button>
+          <button 
+            onClick={() => signIn()} 
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          >
+            Fazer Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -274,9 +297,10 @@ export default function PasswordResetPage() {
           <div className="space-y-4">
             {/* Tipo de Reset */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de Reset
-              </label>
+              <fieldset>
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo de Reset
+                </legend>
               <div className="flex space-x-4">
                 <label className="flex items-center">
                   <input
@@ -301,18 +325,20 @@ export default function PasswordResetPage() {
                   Em Massa
                 </label>
               </div>
+              </fieldset>
             </div>
 
             {/* Seleção de Usuários (apenas para individual) */}
             {resetType === 'individual' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="block text-sm font-medium text-gray-700 mb-2">
                   Selecionar Usuários
-                </label>
+                </div>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
                   {users.map((user) => (
-                    <label key={user.id} className="flex items-center p-2 hover:bg-gray-50">
+                    <div key={user.id} className="flex items-center p-2 hover:bg-gray-50">
                       <input
+                        id={`reset-user-${user.id}`}
                         type="checkbox"
                         checked={selectedUsers.includes(user.id)}
                         onChange={(e) => {
@@ -324,11 +350,11 @@ export default function PasswordResetPage() {
                         }}
                         className="mr-3"
                       />
-                      <div>
+                      <label htmlFor={`reset-user-${user.id}`} className="cursor-pointer">
                         <p className="font-medium">{user.name}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
-                      </div>
-                    </label>
+                      </label>
+                    </div>
                   ))}
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
@@ -339,10 +365,11 @@ export default function PasswordResetPage() {
 
             {/* Motivo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="reset-reason" className="block text-sm font-medium text-gray-700 mb-2">
                 Motivo do Reset
               </label>
               <textarea
+                id="reset-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -354,10 +381,11 @@ export default function PasswordResetPage() {
 
             {/* Expiração */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="reset-expires" className="block text-sm font-medium text-gray-700 mb-2">
                 Expira em (horas)
               </label>
               <select
+                id="reset-expires"
                 value={expiresInHours}
                 onChange={(e) => setExpiresInHours(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -489,10 +517,11 @@ export default function PasswordResetPage() {
                 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label htmlFor="reset-custom-message" className="block text-xs font-medium text-gray-700 mb-1">
                       Mensagem Personalizada (opcional)
                     </label>
                     <textarea
+                      id="reset-custom-message"
                       value={customMessage}
                       onChange={(e) => setCustomMessage(e.target.value)}
                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"

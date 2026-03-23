@@ -55,21 +55,8 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('ALL')
   const [deleting, setDeleting] = useState<string | null>(null)
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-
-    if (!session) {
-      signIn()
-    }
-  }, [status])
-
-  // Check if user is admin or supervisor
-  useEffect(() => {
-    if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      router.push('/employee')
-    }
-  }, [session])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load users data
   useEffect(() => {
@@ -137,7 +124,15 @@ export default function UsersPage() {
   }
 
   if (!session) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+        <p className="text-slate-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <Button onClick={() => signIn()}>Fazer Login</Button>
+      </div>
+    )
   }
 
   return (
@@ -181,8 +176,10 @@ export default function UsersPage() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
+                  <label htmlFor="search-users" className="sr-only">Buscar usuários</label>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
+                    id="search-users"
                     type="text"
                     placeholder="Buscar por nome ou email..."
                     className="input pl-10 w-full"
@@ -192,8 +189,10 @@ export default function UsersPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <label htmlFor="role-filter" className="sr-only">Filtrar por papel</label>
                 <Filter className="h-4 w-4 text-neutral-400" />
                 <select
+                  id="role-filter"
                   className="input"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}

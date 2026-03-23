@@ -58,21 +58,8 @@ export default function FrequencyPage() {
   const [sortBy, setSortBy] = useState('frequency')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      signIn()
-    }
-  }, [status])
-
-  // Check if user is admin or supervisor
-  useEffect(() => {
-    if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      router.push('/employee')
-    }
-  }, [session])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load frequency data
   useEffect(() => {
@@ -168,8 +155,24 @@ export default function FrequencyPage() {
     return <Loading />
   }
 
-  if (!session) {
-    return null
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+            Ir para Área do Funcionário
+          </Button>
+          <Button onClick={() => signIn()} variant="primary">
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -202,10 +205,11 @@ export default function FrequencyPage() {
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="frequency-period" className="block text-sm font-medium text-neutral-300 mb-2">
                     Período
                   </label>
                   <select
+                    id="frequency-period"
                     className="input"
                     value={selectedPeriod}
                     onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -218,10 +222,11 @@ export default function FrequencyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="frequency-sort-by" className="block text-sm font-medium text-neutral-300 mb-2">
                     Ordenar por
                   </label>
                   <select
+                    id="frequency-sort-by"
                     className="input"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
@@ -234,10 +239,11 @@ export default function FrequencyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="frequency-sort-order" className="block text-sm font-medium text-neutral-300 mb-2">
                     Ordem
                   </label>
                   <select
+                    id="frequency-sort-order"
                     className="input"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}

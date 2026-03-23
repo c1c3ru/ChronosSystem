@@ -101,10 +101,10 @@ export async function GET(request: NextRequest) {
             const userRMap = userDateRecords.get(employee.id) || new Map()
 
             const workingHours = {
-                start: employee.shiftStartTime || "08:00",
-                end: employee.shiftEndTime || "12:00",
-                lunchStart: "12:00",
-                lunchEnd: "13:00"
+                inicio: employee.shiftStartTime || "08:00",
+                fim: employee.shiftEndTime || "12:00",
+                inicioAlmoco: "12:00",
+                fimAlmoco: "13:00"
             }
 
             // Percorrer cada dia do período

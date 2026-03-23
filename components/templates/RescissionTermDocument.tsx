@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import React from 'react'
 import { getAssetUrl } from '@/lib/pdf-generator-react'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
@@ -307,12 +308,14 @@ export const RescissionTermDocument: React.FC<RescissionTermDocumentProps> = ({ 
                 <View style={styles.signatureLine}>
                     <Text style={styles.bold}>{data.student_name || 'ESTAGIÁRIO(A)'}</Text>
                     <Text>CPF: {data.student_cpf}</Text>
+                    <Text>Assinatura do(a) Aluno(a)</Text>
                 </View>
 
                 <View style={styles.signatureLine}>
                     <Text style={styles.bold}>{data.company_name || 'EMPRESA CONCEDENTE'}</Text>
                     <Text>{data.company_representative}</Text>
                     <Text>CPF: {data.company_representative_cpf}</Text>
+                    <Text>Responsável pela Empresa</Text>
                 </View>
 
                 <View style={styles.signatureLine}>

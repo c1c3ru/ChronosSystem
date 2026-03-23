@@ -49,6 +49,7 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
         try {
             if (navigator.permissions && navigator.permissions.query) {
                 const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
+                qrLogger.debug(`[CAMERA-HOOK] Estado da permissão: ${permission.state}`)
                 if (permission.state === 'denied') {
                     const msg = '❌ Permissão da câmera negada permanentemente.'
                     setError(msg)
@@ -59,16 +60,14 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
             }
             return true
         } catch (err) {
+            qrLogger.warn('[CAMERA-HOOK] Falha ao consultar API de permissões', { error: err })
             return true
         }
     }
 
     const startCamera = useCallback(async (mode: 'environment' | 'user' = facingMode) => {
+        qrLogger.info(`[CAMERA-HOOK] Iniciando câmera (modo: ${mode})...`)
         try {
-            // Se já estiver carregando, evita nova chamada
-            // Mas permitimos se for troca de câmera (mode diferente do atual, mas facingMode state ainda não atualizou aqui dentro logicamente, 
-            // porém passamos mode explícito)
-
             setIsLoading(true)
             setError(null)
 
@@ -77,10 +76,14 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
 
             // Verificar contexto seguro
             const isSecure = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost'
-            if (!isSecure) throw new Error('🔒 Acesso à câmera requer HTTPS')
+            if (!isSecure) {
+                qrLogger.security('Tentativa de acesso à câmera em contexto não seguro')
+                throw new Error('🔒 Acesso à câmera requer HTTPS')
+            }
 
             // Parar anterior
             if (streamRef.current) {
+                qrLogger.debug('[CAMERA-HOOK] Parando stream anterior antes de reiniciar')
                 streamRef.current.getTracks().forEach(track => track.stop())
             }
 
@@ -93,16 +96,22 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
             let stream: MediaStream | null = null
             let lastErr: any = null
 
-            for (const config of constraints) {
+            for (let i = 0; i < constraints.length; i++) {
+                qrLogger.debug(`[CAMERA-HOOK] Tentando configuração de câmera ${i + 1}`)
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia(config)
+                    stream = await navigator.mediaDevices.getUserMedia(constraints[i])
+                    qrLogger.info(`[CAMERA-HOOK] Conexão com câmera estabelecida (Configuraçao ${i + 1})`)
                     break
                 } catch (e) {
                     lastErr = e
+                    qrLogger.warn(`[CAMERA-HOOK] Falha na configuração ${i + 1}`, { error: e })
                 }
             }
 
-            if (!stream) throw lastErr || new Error('Não foi possível acessar a câmera')
+            if (!stream) {
+                qrLogger.error('[CAMERA-HOOK] Todas as configurações de câmera falharam', { lastError: lastErr })
+                throw lastErr || new Error('Não foi possível acessar a câmera')
+            }
 
             streamRef.current = stream
             videoRef.current.srcObject = stream
@@ -110,19 +119,24 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
 
             try {
                 await videoRef.current.play()
+                qrLogger.debug('[CAMERA-HOOK] Playback iniciado')
             } catch (playError) {
-                console.error('Erro no play() do vídeo:', playError)
-                // Alguns navegadores mobile bloqueiam play() sem interação, mas geralmente getUserMedia já conta como interação
+                qrLogger.error('[CAMERA-HOOK] Erro no play() do vídeo', { error: playError })
             }
 
             setHasPermission(true)
             setIsLoading(false)
             setFacingMode(mode)
             onStreamStartedRef.current?.(stream)
+            qrLogger.info('[CAMERA-HOOK] Câmera pronta e ativa')
 
         } catch (err: any) {
-            console.error('Erro ao iniciar câmera:', err)
             const msg = err.message || 'Erro ao acessar câmera'
+            qrLogger.error('[CAMERA-HOOK] Erro fatal ao iniciar câmera', { 
+                name: err.name,
+                message: msg,
+                stack: err.stack 
+            })
             setError(msg)
             setIsLoading(false)
             onErrorRef.current?.(msg)

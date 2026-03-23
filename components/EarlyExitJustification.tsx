@@ -65,10 +65,11 @@ export function EarlyExitJustification({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label htmlFor="justification" className="block text-sm font-medium text-foreground mb-2">
               Justificativa Obrigatória *
             </label>
             <textarea
+              id="justification"
               value={justification}
               onChange={(e) => {
                 setJustification(e.target.value)

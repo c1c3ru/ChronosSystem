@@ -39,21 +39,8 @@ export default function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('30') // dias
   const [selectedUser, setSelectedUser] = useState('ALL')
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      signIn()
-    }
-  }, [status])
-
-  // Check if user is admin or supervisor
-  useEffect(() => {
-    if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      router.push('/employee')
-    }
-  }, [session])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load report data
   useEffect(() => {
@@ -102,8 +89,24 @@ export default function ReportsPage() {
     return <Loading />
   }
 
-  if (!session) {
-    return null
+  // Fallback visual caso o middleware falhe e o usuário não tenha permissão
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Você não tem permissão para acessar esta área ou sua sessão expirou.
+        </p>
+        <div className="flex gap-4">
+          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+            Ir para Área do Funcionário
+          </Button>
+          <Button onClick={() => signIn()} variant="primary">
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -145,10 +148,11 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="period-select" className="block text-sm font-medium text-neutral-300 mb-2">
                   Período
                 </label>
                 <select
+                  id="period-select"
                   className="input"
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -161,10 +165,11 @@ export default function ReportsPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="user-select" className="block text-sm font-medium text-neutral-300 mb-2">
                   Usuário
                 </label>
                 <select
+                  id="user-select"
                   className="input"
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}

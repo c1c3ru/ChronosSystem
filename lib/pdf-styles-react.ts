@@ -71,6 +71,16 @@ export const commonStyles = StyleSheet.create({
         borderColor: '#000',
     },
 
+    section: {
+        marginBottom: 10,
+    },
+    sectionTitle: {
+        fontSize: 9,
+        fontFamily: 'Helvetica-Bold',
+        marginBottom: 5,
+        textTransform: 'uppercase',
+    },
+
     // Tabelas
     table: {
         width: '100%',
@@ -133,6 +143,18 @@ export const commonStyles = StyleSheet.create({
         marginBottom: 10,
         textAlign: 'justify',
     },
+    textArea: {
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#000',
+        padding: 6,
+        minHeight: 80,
+    },
+    text: {
+        fontSize: 9,
+        textAlign: 'justify',
+        lineHeight: 1.4,
+    },
     textBoxSmall: {
         borderWidth: 1,
         borderStyle: 'solid',
@@ -191,6 +213,21 @@ export const commonStyles = StyleSheet.create({
     signatureBlock: {
         marginTop: 40,
         marginBottom: 20,
+    },
+    signatureSection: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 30,
+    },
+    signatureBox: {
+        width: '45%',
+        alignItems: 'center',
+    },
+    signatureLabel: {
+        fontSize: 7,
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+        marginTop: 2,
     },
 
     // Assinaturas

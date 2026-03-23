@@ -99,7 +99,11 @@ export type Env = z.infer<typeof envSchema>
  */
 function validateEnv(): Env {
     try {
-        const parsed = envSchema.parse(process.env)
+        // Compatibilidade: alguns setups usam SMTP_PASS em vez de SMTP_PASSWORD
+        const parsed = envSchema.parse({
+            ...process.env,
+            SMTP_PASSWORD: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS,
+        })
 
         // Log de sucesso em desenvolvimento
         if (process.env.NODE_ENV === 'development') {

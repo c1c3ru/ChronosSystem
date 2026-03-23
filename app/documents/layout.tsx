@@ -1,3 +1,5 @@
+import DocumentsAuthGuard from './DocumentsAuthGuard'
+
 export const metadata = {
   title: 'Documentos de Estágio - Chronos System',
   description: 'Formulários e documentos para estágio supervisionado',
@@ -8,5 +10,5 @@ export default function DocumentsLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return <DocumentsAuthGuard>{children}</DocumentsAuthGuard>
 }

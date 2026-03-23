@@ -56,12 +56,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
     }
 
-    // Validações específicas por role (usar newRole, não o role antigo da sessão)
+    // Removendo validação obrigatória de datas para permitir salvar
+    /*
     if (newRole === 'EMPLOYEE') {
       if (!startDate || !contractStartDate || !contractEndDate) {
         return NextResponse.json({ error: 'Funcionários devem preencher todas as datas' }, { status: 400 })
       }
     }
+    */
 
     console.log(`📝 [COMPLETE-PROFILE] Atualizando usuário ${session.user.id} com role: ${newRole}`)
     
@@ -113,6 +115,8 @@ export async function POST(request: NextRequest) {
         emergencyPhone,
         department: newRole === 'EMPLOYEE' ? department : 'DIRECAO_GERAL', // Padrão para ADMINs
         startDate: startDate ? new Date(startDate) : null,
+        contractStartDate: contractStartDate ? new Date(contractStartDate) : null,
+        contractEndDate: contractEndDate ? new Date(contractEndDate) : null,
         siapeNumber,
         contractType: finalContractType,
         weeklyHours: finalWeeklyHours,

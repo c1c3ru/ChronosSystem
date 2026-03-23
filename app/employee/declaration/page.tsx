@@ -1,8 +1,9 @@
 'use client'
 
 import React from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { AttendanceDeclarationForm } from '@/components/AttendanceDeclarationForm'
 
@@ -11,12 +12,24 @@ export default function DeclarationPage() {
   const router = useRouter()
 
   if (status === 'loading') {
-    return <Loading />
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
+      </div>
+    )
   }
 
+  // Fallback visual caso o middleware falhe e o usuário não tenha sessão
   if (!session) {
-    router.push('/auth/signin')
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+        <p className="text-slate-400 mb-6 text-center max-w-md font-outfit">
+          Sua sessão expirou ou você não está autenticado.
+        </p>
+        <Button onClick={() => signIn()}>Fazer Login</Button>
+      </div>
+    )
   }
 
   return (

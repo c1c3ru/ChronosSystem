@@ -104,12 +104,13 @@ export default function ChangePasswordPage() {
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="current-password" className="block text-sm font-medium text-white mb-2">
                 Senha atual
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
+                  id="current-password"
                   type={showCurrentPassword ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
@@ -133,12 +134,13 @@ export default function ChangePasswordPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="new-password" className="block text-sm font-medium text-white mb-2">
                 Nova senha
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
+                  id="new-password"
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -163,12 +165,13 @@ export default function ChangePasswordPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-white mb-2">
                 Confirmar nova senha
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
                 <input
+                  id="confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

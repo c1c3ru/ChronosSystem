@@ -50,10 +50,11 @@ export function ShiftConfigForm({
 
       {/* Tipo de Turno */}
       <div>
-        <label className="block text-sm font-medium text-white mb-2">
+        <label htmlFor="shift-type" className="block text-sm font-medium text-white mb-2">
           Tipo de Turno
         </label>
         <select
+          id="shift-type"
           value={shift}
           onChange={(e) => handleShiftChange(e.target.value)}
           className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
@@ -70,10 +71,11 @@ export function ShiftConfigForm({
 
       {/* Horário de Início */}
       <div>
-        <label className="block text-sm font-medium text-white mb-2">
+        <label htmlFor="shift-start-time" className="block text-sm font-medium text-white mb-2">
           Horário de Início
         </label>
         <input
+          id="shift-start-time"
           type="time"
           value={shiftStartTime}
           onChange={(e) => onChange('shiftStartTime', e.target.value)}
@@ -89,10 +91,11 @@ export function ShiftConfigForm({
 
       {/* Horário de Fim */}
       <div>
-        <label className="block text-sm font-medium text-white mb-2">
+        <label htmlFor="shift-end-time" className="block text-sm font-medium text-white mb-2">
           Horário de Fim
         </label>
         <input
+          id="shift-end-time"
           type="time"
           value={shiftEndTime}
           onChange={(e) => onChange('shiftEndTime', e.target.value)}
@@ -108,10 +111,11 @@ export function ShiftConfigForm({
 
       {/* Dias de Trabalho por Semana */}
       <div>
-        <label className="block text-sm font-medium text-white mb-2">
+        <label htmlFor="working-days" className="block text-sm font-medium text-white mb-2">
           Dias de Trabalho por Semana
         </label>
         <input
+          id="working-days"
           type="number"
           min="1"
           max="7"

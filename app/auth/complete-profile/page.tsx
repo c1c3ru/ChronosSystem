@@ -79,12 +79,13 @@ export default function CompleteProfilePage() {
     }
   }
 
-  // Redirect if not authenticated or profile already complete
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
   useEffect(() => {
     if (status === 'loading' || hasRedirected) return
     
     if (!session) {
-      signIn()
+      // Deixar o middleware cuidar disso, ou mostrar fallback no render
       return
     }
 
@@ -108,42 +109,6 @@ export default function CompleteProfilePage() {
   }, [])
 
   // Anexar event listener após hidratação e quando formulário estiver disponível
-  useEffect(() => {
-    if (!isHydrated) return
-    
-    // Aguardar um tick para garantir que o DOM está pronto
-    const timer = setTimeout(() => {
-      const form = formRef.current
-      if (form) {
-        console.log('📋 Anexando event listener manual ao formulário')
-        
-        const handleFormSubmit = async (e: Event) => {
-          console.log('🚀 Event listener manual chamado!')
-          e.preventDefault()
-          
-          // Chamar a mesma lógica do handleSubmit
-          const fakeReactEvent = e as unknown as React.FormEvent
-          
-          await handleSubmit(fakeReactEvent)
-        }
-        
-        // Anexar listener manual
-        form.addEventListener('submit', handleFormSubmit)
-        console.log('✅ Event listener manual anexado')
-        
-        // Cleanup
-        return () => {
-          console.log('🧹 Removendo event listener manual')
-          form.removeEventListener('submit', handleFormSubmit)
-        }
-      } else {
-        console.log('❌ Formulário ainda não está disponível no DOM')
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isHydrated, profileData])
-
   const validateForm = () => {
     console.log('🔍 [VALIDAÇÃO] Iniciando validação do formulário...')
     console.log('📝 [VALIDAÇÃO] Dados atuais:', profileData)
@@ -324,6 +289,44 @@ export default function CompleteProfilePage() {
     }
   }
 
+  // Anexar event listener após hidratação e quando formulário estiver disponível
+  useEffect(() => {
+    if (!isHydrated) return
+    
+    // Aguardar um tick para garantir que o DOM está pronto
+    const timer = setTimeout(() => {
+      const form = formRef.current
+      if (form) {
+        console.log('📋 Anexando event listener manual ao formulário')
+        
+        const handleFormSubmit = async (e: Event) => {
+          console.log('🚀 Event listener manual chamado!')
+          e.preventDefault()
+          
+          // Chamar a mesma lógica do handleSubmit
+          const fakeReactEvent = e as unknown as React.FormEvent
+          
+          await handleSubmit(fakeReactEvent)
+        }
+        
+        // Anexar listener manual
+        form.addEventListener('submit', handleFormSubmit)
+        console.log('✅ Event listener manual anexado')
+        
+        // Cleanup
+        return () => {
+          console.log('🧹 Removendo event listener manual')
+          form.removeEventListener('submit', handleFormSubmit)
+        }
+      } else {
+        console.log('❌ Formulário ainda não está disponível no DOM')
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [isHydrated, profileData, handleSubmit])
+
+
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '')
     if (numbers.length <= 10) {
@@ -343,7 +346,15 @@ export default function CompleteProfilePage() {
   }
 
   if (!session) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+        <p className="text-neutral-400 mb-6 text-center max-w-md font-outfit">
+          Para completar seu perfil, você precisa estar autenticado.
+        </p>
+        <Button onClick={() => signIn()}>Fazer Login</Button>
+      </div>
+    )
   }
 
   return (
@@ -436,12 +447,13 @@ export default function CompleteProfilePage() {
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Pessoais</h3>
                 <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-neutral-300 mb-2">
                       Email (já confirmado)
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="email"
                         type="email"
                         value={session.user.email || ''}
                         disabled
@@ -451,12 +463,13 @@ export default function CompleteProfilePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="phone" className="block text-sm font-medium text-neutral-300 mb-2">
                       Telefone *
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="phone"
                         type="tel"
                         placeholder="(11) 99999-9999"
                         className={`input pl-10 ${errors.phone ? 'border-error' : ''}`}
@@ -469,12 +482,13 @@ export default function CompleteProfilePage() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="address" className="block text-sm font-medium text-neutral-300 mb-2">
                       Endereço Completo *
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
                       <textarea
+                        id="address"
                         placeholder="Rua, número, bairro, cidade, CEP"
                         className={`input pl-10 min-h-[80px] resize-none ${errors.address ? 'border-error' : ''}`}
                         value={profileData.address || ''}
@@ -485,12 +499,13 @@ export default function CompleteProfilePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="birthDate" className="block text-sm font-medium text-neutral-300 mb-2">
                       Data de Nascimento *
                     </label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="birthDate"
                         type="date"
                         className={`input pl-10 ${errors.birthDate ? 'border-error' : ''}`}
                         value={profileData.birthDate || ''}
@@ -507,10 +522,11 @@ export default function CompleteProfilePage() {
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Contato de Emergência</h3>
                 <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="emergencyContact" className="block text-sm font-medium text-neutral-300 mb-2">
                       Nome do Contato *
                     </label>
                     <input
+                      id="emergencyContact"
                       type="text"
                       placeholder="Nome completo"
                       className={`input ${errors.emergencyContact ? 'border-error' : ''}`}
@@ -521,12 +537,13 @@ export default function CompleteProfilePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label htmlFor="emergencyPhone" className="block text-sm font-medium text-neutral-300 mb-2">
                       Telefone de Emergência *
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                       <input
+                        id="emergencyPhone"
                         type="tel"
                         placeholder="(11) 99999-9999"
                         className={`input pl-10 ${errors.emergencyPhone ? 'border-error' : ''}`}
@@ -546,8 +563,9 @@ export default function CompleteProfilePage() {
                 
                 {/* Toggle para SIAPE */}
                 <div className="mb-4">
-                  <label className="flex items-center space-x-3 cursor-pointer">
+                  <label htmlFor="hasSiape" className="flex items-center space-x-3 cursor-pointer">
                     <input
+                      id="hasSiape"
                       type="checkbox"
                       checked={profileData.hasSiape || false}
                       onChange={(e) => {
@@ -572,10 +590,11 @@ export default function CompleteProfilePage() {
                 {profileData.hasSiape && (
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="siapeNumber" className="block text-sm font-medium text-neutral-300 mb-2">
                         Matrícula SIAPE *
                       </label>
                       <input
+                        id="siapeNumber"
                         type="text"
                         placeholder="1234567"
                         className={`input ${errors.siapeNumber ? 'border-error' : ''}`}
@@ -613,10 +632,11 @@ export default function CompleteProfilePage() {
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações Profissionais</h3>
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="department" className="block text-sm font-medium text-neutral-300 mb-2">
                         Departamento *
                       </label>
                       <select
+                        id="department"
                         className={`input ${errors.department ? 'border-error' : ''}`}
                         value={profileData.department || ''}
                         onChange={(e) => setProfileData(prev => ({ ...prev, department: e.target.value }))}
@@ -687,12 +707,13 @@ export default function CompleteProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="startDate" className="block text-sm font-medium text-neutral-300 mb-2">
                         Início no IFCE/órgão *
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                         <input
+                          id="startDate"
                           type="date"
                           className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
                           value={profileData.startDate || ''}
@@ -706,10 +727,11 @@ export default function CompleteProfilePage() {
                   {effectiveRole === 'EMPLOYEE' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label htmlFor="contractType" className="block text-sm font-medium text-neutral-300 mb-2">
                           Tipo de Contrato *
                         </label>
                         <select
+                          id="contractType"
                           className={`input ${errors.contractType ? 'border-error' : ''}`}
                           value={profileData.contractType || ''}
                           onChange={(e) => {
@@ -747,12 +769,13 @@ export default function CompleteProfilePage() {
                   <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Informações do Contrato</h3>
                   <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="contractStartDate" className="block text-sm font-medium text-neutral-300 mb-2">
                         Início do Contrato *
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                         <input
+                          id="contractStartDate"
                           type="date"
                           className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
                           value={profileData.contractStartDate || ''}
@@ -764,12 +787,13 @@ export default function CompleteProfilePage() {
 
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label htmlFor="contractEndDate" className="block text-sm font-medium text-neutral-300 mb-2">
                         Fim do Contrato *
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                         <input
+                          id="contractEndDate"
                           type="date"
                           className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
                           value={profileData.contractEndDate || ''}

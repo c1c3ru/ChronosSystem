@@ -57,7 +57,13 @@ jobs:
 
       - name: Run Database Migrations (Production)
         run: |
-          npx prisma db push
+          if [ ! -f "prisma/migrations/migration_lock.toml" ] || [ -z "$(find prisma/migrations -maxdepth 2 -type f -name 'migration.sql' 2>/dev/null | head -n 1)" ]; then
+            echo "ERROR: Não encontrei migrations do Prisma em prisma/migrations (faltando migration_lock.toml e/ou migration.sql)."
+            echo "O deploy usa 'npx prisma migrate deploy', então você precisa gerar e versionar migrations."
+            echo "Sugestão (local, banco de dev): npx prisma migrate dev --name init"
+            exit 1
+          fi
+          npx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 

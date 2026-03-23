@@ -1,9 +1,14 @@
 import { Resend } from 'resend';
 
-if (!process.env.RESEND_API_KEY) {
-    console.warn('⚠️ RESEND_API_KEY is not defined in environment variables');
+const apiKey = process.env.RESEND_API_KEY;
+
+if (!apiKey) {
+    if (process.env.NODE_ENV === 'production') {
+        console.warn('⚠️ RESEND_API_KEY is not defined in environment variables');
+    }
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+// Use a dummy key during build/dev if real key is missing to prevent crash
+export const resend = new Resend(apiKey || 're_12345678');
 
 export const RESEND_FROM = process.env.RESEND_FROM || 'Chronos <notifications@resend.dev>';

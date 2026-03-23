@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  Search
+  Search,
+  Download
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -65,13 +66,8 @@ export default function AttendanceHistoryPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session) {
-      signIn()
-    }
-  }, [status])
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
   // Load records
   useEffect(() => {
@@ -113,6 +109,15 @@ export default function AttendanceHistoryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const handleExport = () => {
+    const params = new URLSearchParams()
+    if (typeFilter !== 'ALL') params.append('type', typeFilter)
+    if (dateFrom) params.append('dateFrom', dateFrom)
+    if (dateTo) params.append('dateTo', dateTo)
+
+    window.open(`/api/attendance/export?${params}`, '_blank')
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completo':
@@ -132,8 +137,17 @@ export default function AttendanceHistoryPage() {
     return <Loading />
   }
 
+  // Fallback visual caso o middleware falhe e o usuário não tenha sessão
   if (!session) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-4">
+        <h1 className="text-2xl font-bold mb-4 font-outfit">Sessão Expirada</h1>
+        <p className="text-slate-400 mb-6 text-center max-w-md font-outfit">
+          Sua sessão expirou ou você não está autenticado.
+        </p>
+        <Button onClick={() => signIn()}>Fazer Login</Button>
+      </div>
+    )
   }
 
   return (
@@ -172,10 +186,11 @@ export default function AttendanceHistoryPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Type Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="attendance-type-filter" className="block text-sm font-medium text-neutral-300 mb-2">
                     Tipo de Registro
                   </label>
                   <select
+                    id="attendance-type-filter"
                     className="input"
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
@@ -188,10 +203,11 @@ export default function AttendanceHistoryPage() {
 
                 {/* Date From */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="attendance-date-from" className="block text-sm font-medium text-neutral-300 mb-2">
                     Data Inicial
                   </label>
                   <input
+                    id="attendance-date-from"
                     type="date"
                     className="input"
                     value={dateFrom}
@@ -201,10 +217,11 @@ export default function AttendanceHistoryPage() {
 
                 {/* Date To */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label htmlFor="attendance-date-to" className="block text-sm font-medium text-neutral-300 mb-2">
                     Data Final
                   </label>
                   <input
+                    id="attendance-date-to"
                     type="date"
                     className="input"
                     value={dateTo}
@@ -212,14 +229,23 @@ export default function AttendanceHistoryPage() {
                   />
                 </div>
 
-                {/* Apply Button */}
-                <div className="flex items-end">
+                {/* Action Buttons */}
+                <div className="flex items-end gap-2 lg:col-span-1">
                   <Button
                     onClick={handleFilterChange}
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="flex-1 bg-primary hover:bg-primary/90"
                   >
                     <Search className="h-4 w-4 mr-2" />
                     Filtrar
+                  </Button>
+                  <Button
+                    onClick={handleExport}
+                    variant="outline"
+                    className="flex-1 border-neutral-700 hover:bg-neutral-800"
+                    title="Exportar para CSV"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar
                   </Button>
                 </div>
               </div>

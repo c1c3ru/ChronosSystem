@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable jsx-a11y/label-has-associated-control */
+
 import { useRef, useState, useEffect } from 'react'
 import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
@@ -35,10 +37,10 @@ export default function InternshipRegistrationRequestPage() {
         email_pessoal: '',
 
         // Cor/Raça
-        cor_raca: 'prefiro_nao_declarar' as 'amarelo' | 'branco' | 'indigena' | 'pardo' | 'preto' | 'prefiro_nao_declarar',
+        cor_raca: 'nao_declarar' as 'amarelo' | 'branco' | 'indigena' | 'pardo' | 'preto' | 'nao_declarar',
 
         // Etnia
-        etnia: 'prefiro_nao_declarar' as 'indigena' | 'quilombola' | 'outra' | 'prefiro_nao_declarar',
+        etnia: 'nao_declarar' as 'indigena' | 'quilombola' | 'outra' | 'nao_declarar',
         etnia_outra: '',
         comunidade_etnia: '',
 
@@ -284,7 +286,7 @@ export default function InternshipRegistrationRequestPage() {
                                         <option value="indigena">Indígena</option>
                                         <option value="pardo">Pardo(a)</option>
                                         <option value="preto">Preto(a)</option>
-                                        <option value="prefiro_nao_declarar">Prefiro não declarar</option>
+                                        <option value="nao_declarar">Prefiro não declarar</option>
                                     </select>
                                 </div>
                                 <div>
@@ -293,7 +295,7 @@ export default function InternshipRegistrationRequestPage() {
                                         <option value="indigena">Indígena</option>
                                         <option value="quilombola">Quilombola</option>
                                         <option value="outra">Outra</option>
-                                        <option value="prefiro_nao_declarar">Prefiro não declarar</option>
+                                        <option value="nao_declarar">Prefiro não declarar</option>
                                     </select>
                                 </div>
                             </div>
@@ -332,6 +334,148 @@ export default function InternshipRegistrationRequestPage() {
                                 <div>
                                     <label className="block text-sm text-neutral-400 mb-1">Data Final Prevista</label>
                                     <input type="date" name="data_final_prevista" value={formData.data_final_prevista} onChange={handleInputChange} className="input w-full" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    {/* Deficiências */}
+                    <Card variant="elevated">
+                        <CardHeader><CardTitle className="text-lg">Deficiências (Se houver)</CardTitle></CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { id: 'alta_habilidade', label: 'Alta habilidade/superdotação' },
+                                    { id: 'auditiva', label: 'Deficiência auditiva' },
+                                    { id: 'intelectual', label: 'Deficiência intelectual' },
+                                    { id: 'motora', label: 'Deficiência motora' },
+                                    { id: 'visual_baixa', label: 'Deficiência visual/baixa visão' },
+                                    { id: 'visual', label: 'Deficiência visual' },
+                                    { id: 'surdocegueira', label: 'Surdocegueira' }
+                                ].map(def => (
+                                    <label key={def.id} className="flex items-center gap-2 text-neutral-300">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.deficiencia.includes(def.id)}
+                                            onChange={() => handleDeficienciaChange(def.id)}
+                                            className="w-4 h-4 rounded border-neutral-600 bg-neutral-800 text-primary focus:ring-primary focus:ring-offset-neutral-900"
+                                        />
+                                        {def.label}
+                                    </label>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Unidade Concedente */}
+                    <Card variant="elevated">
+                        <CardHeader><CardTitle className="text-lg">4. Unidade Concedente / Empresa</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input name="nome_fantasia_pf" value={formData.nome_fantasia_pf} onChange={handleInputChange} placeholder="Nome Fantasia / Razão Social" className="input" />
+                                <input name="cnpj_registro_conselho" value={formData.cnpj_registro_conselho} onChange={handleInputChange} placeholder="CNPJ ou Registro no Conselho" className="input" />
+                            </div>
+                            <input name="endereco_pf" value={formData.endereco_pf} onChange={handleInputChange} placeholder="Endereço" className="input" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input name="bairro_pf" value={formData.bairro_pf} onChange={handleInputChange} placeholder="Bairro" className="input" />
+                                <input name="municipio_uf_pf" value={formData.municipio_uf_pf} onChange={handleInputChange} placeholder="Município-UF" className="input" />
+                                <input name="cep_pf" value={formData.cep_pf} onChange={handleInputChange} placeholder="CEP" className="input" />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input name="telefone_pf" value={formData.telefone_pf} onChange={handleInputChange} placeholder="Telefone" className="input" />
+                                <input name="email_pf" value={formData.email_pf} onChange={handleInputChange} placeholder="E-mail" className="input" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Responsável Legal & Supervisor */}
+                    <Card variant="elevated">
+                        <CardHeader><CardTitle className="text-lg">5. Responsável Legal e Supervisor</CardTitle></CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-neutral-400">Responsável Legal da Empresa</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input name="responsavel_legal" value={formData.responsavel_legal} onChange={handleInputChange} placeholder="Nome do Responsável Legal" className="input" />
+                                    <input name="cargo_qualificacao" value={formData.cargo_qualificacao} onChange={handleInputChange} placeholder="Cargo / Qualificação" className="input" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input name="cpf_responsavel" value={formData.cpf_responsavel} onChange={handleInputChange} placeholder="CPF do Responsável" className="input" />
+                                    <input name="telefone_responsavel" value={formData.telefone_responsavel} onChange={handleInputChange} placeholder="Telefone do Responsável" className="input" />
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-4 border-t border-neutral-800 pt-6">
+                                <h3 className="text-sm font-semibold text-neutral-400">Supervisor(a) do Estágio</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <input name="supervisor_nome" value={formData.supervisor_nome} onChange={handleInputChange} placeholder="Nome do Supervisor" className="input" />
+                                    <input name="supervisor_cargo" value={formData.supervisor_cargo} onChange={handleInputChange} placeholder="Cargo" className="input" />
+                                    <input name="setor_realizacao" value={formData.setor_realizacao} onChange={handleInputChange} placeholder="Setor de Realização" className="input" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Horários e Turnos */}
+                    <Card variant="elevated">
+                        <CardHeader><CardTitle className="text-lg">6. Horários e Escolaridade</CardTitle></CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-4 border-b border-neutral-800 pb-6">
+                                <h3 className="text-sm font-semibold text-neutral-400">Jornada de Atividade (Horários de Início e Fim)</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                                    {(['segunda_feira', 'terca_feira', 'quarta_feira', 'quinta_feira', 'sexta_feira', 'sabado', 'domingo'] as const).map(dia => (
+                                        <div key={dia} className="space-y-2">
+                                            <p className="text-xs font-semibold text-neutral-500 uppercase">{dia.replace('_feira', '')}</p>
+                                            <input
+                                                value={formData.horarios[dia].inicio}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, horarios: { ...prev.horarios, [dia]: { ...prev.horarios[dia], inicio: e.target.value } } }))}
+                                                placeholder="Início"
+                                                className="input text-center"
+                                            />
+                                            <input
+                                                value={formData.horarios[dia].final}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, horarios: { ...prev.horarios, [dia]: { ...prev.horarios[dia], final: e.target.value } } }))}
+                                                placeholder="Fim"
+                                                className="input text-center"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-4 border-b border-neutral-800 pb-6">
+                                <h3 className="text-sm font-semibold text-neutral-400">Escolaridade (Informar o Estágio do Turno das Aulas)</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <input 
+                                        value={formData.turnos.primeira.segunda || ''} 
+                                        onChange={(e) => setFormData(prev => ({ ...prev, turnos: { ...prev.turnos, primeira: { ...prev.turnos.primeira, segunda: e.target.value } } }))} 
+                                        placeholder="1ª Opção" 
+                                        className="input" 
+                                    />
+                                    <input 
+                                        value={formData.turnos.segunda.segunda || ''} 
+                                        onChange={(e) => setFormData(prev => ({ ...prev, turnos: { ...prev.turnos, segunda: { ...prev.turnos.segunda, segunda: e.target.value } } }))} 
+                                        placeholder="2ª Opção" 
+                                        className="input" 
+                                    />
+                                    <input 
+                                        value={formData.turnos.terceira.segunda || ''} 
+                                        onChange={(e) => setFormData(prev => ({ ...prev, turnos: { ...prev.turnos, terceira: { ...prev.turnos.terceira, segunda: e.target.value } } }))} 
+                                        placeholder="3ª Opção" 
+                                        className="input" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-neutral-400">Datas</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm text-neutral-400">Data de Solicitação</label>
+                                        <input type="date" name="data_solicitacao" value={formData.data_solicitacao} onChange={handleInputChange} className="input" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm text-neutral-400">Data de Autorização</label>
+                                        <input type="date" name="data_autorizacao" value={formData.data_autorizacao} onChange={handleInputChange} className="input" />
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

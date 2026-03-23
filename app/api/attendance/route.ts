@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { updateHourBalance, validateWorkingHours } from '@/lib/hour-calculator'
+import { updateHourBalance } from '@/lib/hour-calculator'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { rateLimiters, withRateLimit, addRateLimitHeaders } from '@/lib/rate-limit'
-import { validateProximity, DEFAULT_RADIUS, type Coordinates } from '@/lib/geolocation'
+import { DEFAULT_RADIUS } from '@/lib/geolocation'
 import { logger } from '@/lib/logger'
+import { AttendanceLogic, AttendanceRecordType } from '@/lib/attendance-logic'
 
 
-// Force dynamic rendering
+// Forçar renderização dinâmica
 export const dynamic = 'force-dynamic'
 const createAttendanceSchema = z.object({
   machineId: z.string().cuid(),
@@ -111,102 +112,115 @@ export async function POST(request: NextRequest) {
       if (rateLimitResponse) return rateLimitResponse
     }
 
-    const session = await getServerSession(authOptions)
+    const sessao = await getServerSession(authOptions)
 
-    if (!session) {
+    if (!sessao) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const validatedData = createAttendanceSchema.parse(body)
+    const corpo = await request.json()
+    const dadosValidados = createAttendanceSchema.parse(corpo)
 
     // Verificar se a máquina existe e está ativa
-    const machine = await prisma.machine.findUnique({
-      where: { id: validatedData.machineId }
+    const maquina = await prisma.machine.findUnique({
+      where: { id: dadosValidados.machineId }
     })
 
-    if (!machine || !machine.isActive) {
+    if (!maquina || !maquina.isActive) {
       return NextResponse.json({ error: 'Máquina não encontrada ou inativa' }, { status: 400 })
     }
 
-    // Validar geolocalização se fornecida
-    if (validatedData.latitude && validatedData.longitude) {
-      // Verificar se a máquina tem coordenadas configuradas
-      if (machine.latitude && machine.longitude) {
-        const userLocation: Coordinates = {
-          latitude: validatedData.latitude,
-          longitude: validatedData.longitude
-        }
-
-        const machineLocation: Coordinates = {
-          latitude: machine.latitude,
-          longitude: machine.longitude
-        }
-
-        const proximityValidation = validateProximity(
-          userLocation,
-          machineLocation,
-          DEFAULT_RADIUS.NORMAL // 100 metros
-        )
-
-        if (!proximityValidation.isValid) {
-          logger.warn('Registro de ponto rejeitado - fora do raio permitido', {
-            userId: session.user.id,
-            machineId: machine.id,
-            distance: proximityValidation.distance,
-            maxRadius: proximityValidation.maxRadius
-          })
-
-          return NextResponse.json({
-            error: 'Localização inválida',
-            message: proximityValidation.message,
-            distance: proximityValidation.distance,
-            maxRadius: proximityValidation.maxRadius
-          }, { status: 400 })
-        }
-
-        logger.info('Validação de geolocalização bem-sucedida', {
-          userId: session.user.id,
-          machineId: machine.id,
-          distance: proximityValidation.distance
-        })
-      } else {
-        logger.warn('Máquina sem coordenadas configuradas', {
-          machineId: machine.id
-        })
-      }
-    }
-
-    // Buscar último registro do usuário para determinar o tipo esperado
-    const lastRecord = await prisma.attendanceRecord.findFirst({
-      where: { userId: session.user.id },
+    // Buscar último registro do usuário para validações de sequência
+    const ultimoRegistro = await prisma.attendanceRecord.findFirst({
+      where: { userId: sessao.user.id },
       orderBy: { timestamp: 'desc' }
     })
 
-    // Validar sequência de entrada/saída
-    const expectedType = !lastRecord || lastRecord.type === 'EXIT' ? 'ENTRY' : 'EXIT'
-    if (validatedData.type !== expectedType) {
-      const message = expectedType === 'ENTRY'
-        ? 'Você deve registrar uma entrada primeiro'
-        : 'Você deve registrar uma saída primeiro'
-      return NextResponse.json({ error: message }, { status: 400 })
+    const registrosDoDia = await prisma.attendanceRecord.findMany({
+      where: {
+        userId: sessao.user.id,
+        timestamp: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0))
+        }
+      },
+      orderBy: { timestamp: 'asc' }
+    })
+
+    // Instanciar lógica de atendimento
+    const atendimentoLogica = new AttendanceLogic()
+
+    // Validação de proximidade se fornecida
+    if (dadosValidados.latitude && dadosValidados.longitude && maquina.latitude && maquina.longitude) {
+      const validacaoProximidade = atendimentoLogica.validarProximidade(
+        { latitude: dadosValidados.latitude, longitude: dadosValidados.longitude },
+        { latitude: maquina.latitude, longitude: maquina.longitude },
+        DEFAULT_RADIUS.NORMAL
+      )
+
+      if (!validacaoProximidade.isValid) {
+        logger.warn('Registro de ponto rejeitado - fora do raio permitido', {
+          userId: sessao.user.id,
+          machineId: maquina.id,
+          distancia: validacaoProximidade.distance,
+          raioMaximo: validacaoProximidade.maxRadius
+        })
+
+        return NextResponse.json({
+          error: 'Localização inválida',
+          message: validacaoProximidade.message
+        }, { status: 400 })
+      }
+    }
+
+    // Verificar autorização especial para hoje (trabalho em feriado/fim de semana)
+    const hojeInicio = new Date()
+    hojeInicio.setHours(0, 0, 0, 0)
+    const hojeFim = new Date()
+    hojeFim.setHours(23, 59, 59, 999)
+
+    const autorizacaoEspecial = await prisma.justification.findFirst({
+      where: {
+        userId: sessao.user.id,
+        date: {
+          gte: hojeInicio,
+          lte: hojeFim
+        },
+        type: 'EXTRA_WORK',
+        status: 'APPROVED'
+      }
+    })
+
+    const temAutorizacao = !!autorizacaoEspecial
+
+    // Validar anomalias de sequência e registros muito próximos
+    const validadorRegistro = await atendimentoLogica.validateRecord(
+      dadosValidados.type as AttendanceRecordType,
+      ultimoRegistro ? { ...ultimoRegistro, type: ultimoRegistro.type as AttendanceRecordType } : null,
+      new Date(),
+      temAutorizacao
+    )
+
+    if (!validadorRegistro.isValid) {
+      return NextResponse.json({ error: validadorRegistro.errors[0] }, { status: 400 })
     }
 
     // Gerar hash para integridade
-    const dataToHash = `${session.user.id}-${validatedData.machineId}-${validatedData.type}-${Date.now()}`
-    const hash = crypto.createHash('sha256').update(dataToHash).digest('hex')
+    const dataAtual = new Date()
+    const dadosParaHash = `${sessao.user.id}-${dadosValidados.machineId}-${dadosValidados.type}-${dataAtual.getTime()}`
+    const hash = crypto.createHash('sha256').update(dadosParaHash).digest('hex')
 
     // Criar registro
-    const record = await prisma.attendanceRecord.create({
+    const registro = await prisma.attendanceRecord.create({
       data: {
-        userId: session.user.id,
-        machineId: validatedData.machineId,
-        type: validatedData.type,
-        qrData: validatedData.qrData,
-        latitude: validatedData.latitude,
-        longitude: validatedData.longitude,
+        userId: sessao.user.id,
+        machineId: dadosValidados.machineId,
+        type: dadosValidados.type,
+        qrData: dadosValidados.qrData,
+        latitude: dadosValidados.latitude,
+        longitude: dadosValidados.longitude,
+        timestamp: dataAtual,
         hash,
-        prevHash: lastRecord?.hash
+        prevHash: ultimoRegistro?.hash
       },
       include: {
         user: {
@@ -224,57 +238,45 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Validar anomalias e avisos após o registro (opcionalmente registrar em log)
+    const anomalias = atendimentoLogica.detectSequenceAnomaly(
+      [...registrosDoDia, registro].map(r => ({ ...r, type: r.type as AttendanceRecordType }))
+    )
+
+    if (anomalias.length > 0) {
+      logger.warn('Anomalias de ponto detectadas', { userId: sessao.user.id, anomalias })
+    }
+
     // Calcular saldo de horas após registro de ponto
     try {
-      logger.info('Calculando saldo de horas', { userId: session.user.id })
-
-      // Se for saída, validar horários de trabalho
-      if (validatedData.type === 'EXIT' && lastRecord) {
-        const validation = await validateWorkingHours(
-          session.user.id,
-          lastRecord.timestamp,
-          record.timestamp
-        )
-
-        if (!validation.isValid) {
-          logger.warn('Violações de horário detectadas', { violations: validation.violations })
-        }
-
-        if (validation.warnings.length > 0) {
-          logger.warn('Avisos de horário', { warnings: validation.warnings })
-        }
-      }
-
-      // Atualizar saldo de horas
-      await updateHourBalance(session.user.id, record.timestamp)
-      logger.info('Saldo de horas atualizado', { userId: session.user.id })
+      await updateHourBalance(sessao.user.id, registro.timestamp)
+      logger.info('Saldo de horas atualizado', { userId: sessao.user.id })
     } catch (hourError) {
       logger.error('Erro ao calcular saldo de horas', { error: hourError })
-      // Não falhar o registro de ponto por erro no cálculo de horas
     }
 
     // Log de auditoria
     await prisma.auditLog.create({
       data: {
-        userId: session.user.id,
+        userId: sessao.user.id,
         action: 'CREATE_ATTENDANCE',
         resource: 'ATTENDANCE_RECORD',
-        details: `Registro de ${validatedData.type} na máquina ${machine.name}`
+        details: `Registro de ${dadosValidados.type} na máquina ${maquina.name}`
       }
     })
 
     // Adicionar headers de rate limit na resposta
-    const response = NextResponse.json(record, { status: 201 })
-    return addRateLimitHeaders(response, rateLimitResult)
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
+    const resposta = NextResponse.json(registro, { status: 201 })
+    return addRateLimitHeaders(resposta, rateLimitResult)
+  } catch (erro: unknown) {
+    if (erro instanceof z.ZodError) {
       return NextResponse.json({
         error: 'Dados inválidos',
-        details: error.errors
+        details: erro.errors
       }, { status: 400 })
     }
 
-    logger.error('Erro ao criar registro de ponto', { error: error instanceof Error ? error.message : String(error) })
+    logger.error('Erro ao criar registro de ponto', { error: erro instanceof Error ? erro.message : String(erro) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

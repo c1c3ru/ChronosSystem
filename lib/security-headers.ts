@@ -19,7 +19,6 @@ export function buildCSP(customDirectives?: Record<string, string[]>): string {
         'script-src': [
             "'self'",
             "'unsafe-inline'", // Required for Next.js
-            "'unsafe-eval'", // Required for Next.js dev mode
             'https://vercel.live', // Vercel toolbar
         ],
         'style-src': [
@@ -60,6 +59,20 @@ export function buildCSP(customDirectives?: Record<string, string[]>): string {
 
     // Merge with custom directives
     const directives = { ...defaultDirectives, ...customDirectives }
+
+    // Remover unsafe-eval em produção (mantém apenas em dev)
+    if (process.env.NODE_ENV === 'production') {
+        const scriptSrc = directives['script-src']
+        if (Array.isArray(scriptSrc)) {
+            directives['script-src'] = scriptSrc.filter(v => v !== "'unsafe-eval'")
+        }
+    } else {
+        // Em dev, permitir unsafe-eval para compatibilidade/hot reload
+        const scriptSrc = directives['script-src']
+        if (Array.isArray(scriptSrc) && !scriptSrc.includes("'unsafe-eval'")) {
+            directives['script-src'] = [...scriptSrc, "'unsafe-eval'"]
+        }
+    }
 
     // Build CSP string
     return Object.entries(directives)

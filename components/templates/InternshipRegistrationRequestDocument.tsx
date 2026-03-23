@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import React from 'react'
 import { getAssetUrl } from '@/lib/pdf-generator-react'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
@@ -18,15 +19,15 @@ interface InternshipRegistrationRequestData {
     email_pessoal: string
 
     // Cor/Raça
-    cor_raca: 'amarelo' | 'branco' | 'indigena' | 'pardo' | 'preto' | 'prefiro_nao_declarar'
+    cor_raca: 'amarelo' | 'branco' | 'indigena' | 'pardo' | 'preto' | 'nao_declarar'
 
     // Etnia
-    etnia: 'indigena' | 'quilombola' | 'outra' | 'prefiro_nao_declarar'
+    etnia: 'indigena' | 'quilombola' | 'outra' | 'nao_declarar'
     etnia_outra?: string
     comunidade_etnia?: string
 
     // Pessoa com Deficiência
-    deficiencia: string[]
+    deficiencia: string | string[]
 
     // Dados de Pessoa Física (se aplicável)
     nome_fantasia_pf?: string
@@ -407,7 +408,7 @@ export const InternshipRegistrationRequestDocument: React.FC<InternshipRegistrat
                         <View style={[styles.tableCell, { width: '50%' }]}>
                             <Text style={styles.label}>COR/RAÇA</Text>
                             <View style={styles.checkboxContainer}>
-                                {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'prefiro_nao_declarar'].map((cor) => (
+                                {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'nao_declarar'].map((cor) => (
                                     <View key={cor} style={styles.checkboxRow}>
                                         <View style={styles.checkbox}>
                                             {data.cor_raca === cor && <Text style={styles.checkboxMark}>X</Text>}
@@ -427,7 +428,7 @@ export const InternshipRegistrationRequestDocument: React.FC<InternshipRegistrat
                         <View style={[styles.tableCell, styles.tableCellLast, { width: '50%' }]}>
                             <Text style={styles.label}>ETNIA</Text>
                             <View style={styles.checkboxContainer}>
-                                {['indigena', 'quilombola', 'outra', 'prefiro_nao_declarar'].map((etnia) => (
+                                {['indigena', 'quilombola', 'outra', 'nao_declarar'].map((etnia) => (
                                     <View key={etnia} style={styles.checkboxRow}>
                                         <View style={styles.checkbox}>
                                             {data.etnia === etnia && <Text style={styles.checkboxMark}>X</Text>}
@@ -445,6 +446,33 @@ export const InternshipRegistrationRequestDocument: React.FC<InternshipRegistrat
                                         Comunidade: {data.comunidade_etnia}
                                     </Text>
                                 )}
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Pessoa com Deficiência */}
+                <View style={[styles.table, { marginTop: 0 }]}>
+                    <View style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.tableCellLast, { width: '100%' }]}>
+                            <Text style={styles.label}>PESSOA COM DEFICIÊNCIA</Text>
+                            <View style={[styles.checkboxContainer, { flexDirection: 'row', flexWrap: 'wrap' }]}>
+                                {[
+                                    { id: 'alta_habilidade', label: 'Alta habilidade/superdotação' },
+                                    { id: 'auditiva', label: 'Deficiência auditiva' },
+                                    { id: 'intelectual', label: 'Deficiência intelectual' },
+                                    { id: 'motora', label: 'Deficiência motora' },
+                                    { id: 'visual_baixa', label: 'Deficiência visual/baixa visão' },
+                                    { id: 'visual', label: 'Deficiência visual' },
+                                    { id: 'surdocegueira', label: 'Surdocegueira' }
+                                ].map((def) => (
+                                    <View key={def.id} style={[styles.checkboxRow, { width: '33%' }]}>
+                                        <View style={styles.checkbox}>
+                                            {(Array.isArray(data.deficiencia) ? data.deficiencia.includes(def.id) : data.deficiencia === def.id) && <Text style={styles.checkboxMark}>X</Text>}
+                                        </View>
+                                        <Text style={styles.checkboxLabel}>{def.label}</Text>
+                                    </View>
+                                ))}
                             </View>
                         </View>
                     </View>
