@@ -15,7 +15,8 @@ function buildCsp() {
     `object-src 'none'`,
     `frame-ancestors 'none'`,
     `form-action 'self'`,
-    `script-src ${scriptSrc.join(' ')}`,
+    `script-src ${scriptSrc.join(' ')} blob:`,
+    `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com data:`,
     `img-src 'self' data: blob: https:`,
@@ -29,7 +30,7 @@ function buildCsp() {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs', '@react-pdf/renderer'],
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
   // Otimizações de build

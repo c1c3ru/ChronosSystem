@@ -1,7 +1,7 @@
-/* eslint-disable jsx-a11y/alt-text */
+
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
-import { getAssetUrl } from '@/lib/pdf-generator-react'
+import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from '@/lib/pdf-assets'
 
 interface InternshipRegistrationDocumentProps {
     data: any
@@ -279,7 +279,7 @@ export const InternshipRegistrationDocument: React.FC<InternshipRegistrationDocu
             <Page size="A4" style={styles.page}>
                 {/* Cabeçalho */}
                 <View style={styles.header}>
-                    <Image src={getAssetUrl("/assets/logoifce.png")} style={styles.logo} />
+                    <Image src={LOGO_IFCE_BASE64} style={styles.logo} />
                     <View style={styles.headerCenter}>
                         <Text style={styles.headerTitle}>Pró-Reitoria de Extensão</Text>
                         <Text style={styles.headerTitle}>Coordenação de Estágios e Acompanhamento de Egressos</Text>
@@ -287,7 +287,7 @@ export const InternshipRegistrationDocument: React.FC<InternshipRegistrationDocu
                         <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
                         <Text style={styles.mainTitle}>Solicitação de Cadastro no Estágio</Text>
                     </View>
-                    <Image src={getAssetUrl("/assets/brasao.png")} style={styles.logo} />
+                    <Image src={BRASAO_BASE64} style={styles.logo} />
                 </View>
 
                 {/* Formulário */}

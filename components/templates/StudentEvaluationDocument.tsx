@@ -1,6 +1,6 @@
-/* eslint-disable jsx-a11y/alt-text */
+
 import React from 'react'
-import { getAssetUrl } from '@/lib/pdf-generator-react'
+import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from '@/lib/pdf-assets'
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer'
 import { commonStyles, formatDate } from '@/lib/pdf-styles-react'
 
@@ -123,14 +123,14 @@ export const StudentEvaluationDocument: React.FC<StudentEvaluationDocumentProps>
         <Page size="A4" style={commonStyles.page}>
             {/* Cabeçalho */}
             <View style={commonStyles.header}>
-                <Image src={getAssetUrl("/assets/logoifce.png")} style={commonStyles.logo} />
+                <Image src={LOGO_IFCE_BASE64} style={commonStyles.logo} />
                 <View style={commonStyles.headerCenter}>
                     <Text style={commonStyles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
                     <Text style={commonStyles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
                     <Text style={commonStyles.headerSubtitle}>IFCE Campus Maracanaú</Text>
                     <Text style={commonStyles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
                 </View>
-                <Image src={getAssetUrl("/assets/brasao.png")} style={commonStyles.logo} />
+                <Image src={BRASAO_BASE64} style={commonStyles.logo} />
             </View>
 
             <Text style={commonStyles.title}>FICHA DE AVALIAÇÃO DO DISCENTE ESTAGIÁRIO</Text>

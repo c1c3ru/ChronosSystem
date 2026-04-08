@@ -1,6 +1,6 @@
-/* eslint-disable jsx-a11y/alt-text */
+
 import React from 'react'
-import { getAssetUrl } from '@/lib/pdf-generator-react'
+import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from '@/lib/pdf-assets'
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 
 interface AdditiveTermDocumentProps {
@@ -248,14 +248,14 @@ export const AdditiveTermDocument: React.FC<AdditiveTermDocumentProps> = ({ data
         <Page size="A4" style={styles.page}>
             {/* Cabeçalho */}
             <View style={styles.header}>
-                <Image src={getAssetUrl("/assets/logoifce.png")} style={styles.logo} />
+                <Image src={LOGO_IFCE_BASE64} style={styles.logo} />
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle}>PRÓ-REITORIA DE EXTENSÃO</Text>
                     <Text style={styles.headerSubtitle}>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</Text>
                     <Text style={styles.headerSubtitle}>IFCE Campus Maracanaú</Text>
                     <Text style={styles.headerSubtitle}>Setor de Acompanhamento de Estágio</Text>
                 </View>
-                <Image src={getAssetUrl("/assets/brasao.png")} style={styles.logo} />
+                <Image src={BRASAO_BASE64} style={styles.logo} />
             </View>
 
             <Text style={styles.title}>TERMO ADITIVO AO TERMO DE COMPROMISSO DE ESTÁGIO</Text>
