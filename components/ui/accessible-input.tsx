@@ -33,6 +33,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         const errorId = `${inputId}-error`
         const helperId = `${inputId}-helper`
 
+        const isInvalid = error ? "true" : "false"
+        const isRequired = required ? "true" : "false"
+
         return (
             <div className="w-full">
                 {label && (
@@ -70,12 +73,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                             rightIcon && 'pr-10',
                             className
                         )}
-                        aria-invalid={!!error}
+                        aria-invalid={isInvalid}
                         aria-describedby={cn(
                             error && errorId,
                             helperText && helperId
                         )}
-                        aria-required={required}
+                        aria-required={isRequired}
                         disabled={disabled}
                         {...props}
                     />

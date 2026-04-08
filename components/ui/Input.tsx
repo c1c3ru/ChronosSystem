@@ -14,6 +14,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || generatedId
     const helperTextId = helperText ? `${inputId}-helper` : undefined
     const errorId = error && helperText ? `${inputId}-error` : undefined
+    const isInvalid = error ? "true" : "false"
+    const isRequired = required ? "true" : "false"
     const describedBy = error ? errorId : helperTextId
 
     return (
@@ -39,9 +41,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className
           )}
           ref={ref}
-          aria-invalid={!!error}
+          aria-invalid={isInvalid}
           aria-describedby={describedBy}
-          aria-required={required}
+          aria-required={isRequired}
           {...props}
         />
         {helperText && error && (
