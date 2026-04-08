@@ -39,7 +39,9 @@ echo "🗄️ Gerando cliente Prisma e Sincronizando Schema..."
 npx prisma generate
 npx prisma db push --accept-data-loss
 
-# 3. Executar Processo de Build se não houver build (Opcional, omitido aqui para manter velocidade)
+# 3. Build da aplicação (garante que mudanças de código entrem em produção)
+echo "🔨 Compilando aplicação Next.js..."
+npm run build
 
 # 4. Iniciar o Servidor em Produção
 echo "🖥️ Iniciando servidor Chronos na porta 5000..."
