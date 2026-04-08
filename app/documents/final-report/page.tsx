@@ -84,26 +84,28 @@ export default function FinalReportPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Adicionar data atual se não estiver presente (se aplicável)
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      const raw: any = { ...formData }
+      const { generateHTMLPDF, buildFinalReportHTML } = await import('@/lib/pdf-generator-html')
 
-      // Criar o documento React-PDF
-      const pdfDocument = <FinalReportDocument data={data as any} />
+      const htmlData = {
+        nome_estudante: raw.student_name || '',
+        curso_estudante: raw.student_course || '',
+        matricula_estudante: raw.student_enrollment || '',
+        nome_supervisor: raw.supervisor_name || '',
+        nome_orientador: raw.advisor_name || '',
+        inicio_periodo: raw.period_start || '',
+        fim_periodo: raw.period_end || '',
+        horas_total: raw.hours_total || '',
+        atividades: raw.activities || '',
+        competencias: 'Competências adquiridas durante a realização das atividades propostas.', // Mock item as it's often generic or from comments
+        avaliacao: raw.comments || '', // Mapping comments to evaluation
+        conclusao: 'Estágio concluído com aproveitamento satisfactorio.'
+      }
 
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'final-report.pdf')
+      const html = buildFinalReportHTML(htmlData)
+      await generateHTMLPDF(html, 'relatorio-final.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -185,35 +187,35 @@ export default function FinalReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Discente</label>
-                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome do Discente" placeholder="Nome Completo" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                  <input type="text" name="supervisor_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="supervisor_name" className="input w-full" onChange={handleInputChange} title="Supervisor do Estágio" placeholder="Nome do Supervisor" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Docente Orientador</label>
-                  <input type="text" name="advisor_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="advisor_name" className="input w-full" onChange={handleInputChange} title="Docente Orientador" placeholder="Nome do Orientador" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
-                  <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} />
+                  <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} title="Data Inicial" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final</label>
-                  <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} />
+                  <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} title="Data Final" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Total (Horas)</label>
-                  <input type="number" name="hours_total" className="input w-full" onChange={handleInputChange} />
+                  <input type="number" name="hours_total" className="input w-full" onChange={handleInputChange} title="Carga Horária Total" placeholder="000" />
                 </div>
               </div>
             </CardContent>
@@ -226,7 +228,7 @@ export default function FinalReportPage() {
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-1">Principais Atividades</label>
-                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
+                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange} title="Principais Atividades" placeholder="Descreva as principais atividades realizadas"></textarea>
               </div>
             </CardContent>
           </Card>
@@ -254,6 +256,7 @@ export default function FinalReportPage() {
                             name={criteria.key}
                             className="bg-neutral-800 border-none rounded px-2 py-1 text-sm w-20 text-center"
                             onChange={handleInputChange}
+                            title={`Avaliação: ${criteria.label}`}
                           >
                             <option value="">-</option>
                             <option value="1">1</option>
@@ -277,7 +280,7 @@ export default function FinalReportPage() {
             <CardContent>
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-1">Comentários e Sugestões</label>
-                <textarea name="comments" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
+                <textarea name="comments" rows={5} className="input w-full" onChange={handleInputChange} title="Comentários e Sugestões" placeholder="Observações adicionais, comentários e sugestões"></textarea>
               </div>
             </CardContent>
           </Card>

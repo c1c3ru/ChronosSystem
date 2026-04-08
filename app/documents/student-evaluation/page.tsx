@@ -84,29 +84,43 @@ export default function StudentEvaluationPage() {
 
     const handleGeneratePDF = async () => {
         try {
-            if (!formRef.current) return
-
-            // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-            const data: any = { ...formData }
-
-            // Adicionar data atual se não estiver presente (se aplicável)
-            const now = new Date()
-            if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-            if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-            if (!data.date_year) data.date_year = String(now.getFullYear())
-
-            console.log('📋 [PDF] Dados do formulário:', data)
-            console.log('📋 [PDF] Recommendation:', data.recommendation)
-
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+            const raw: any = { ...formData }
+            const { generateHTMLPDF, buildStudentEvaluationHTML } = await import('@/lib/pdf-generator-html')
 
-            // Criar o documento React-PDF
-            const pdfDocument = <StudentEvaluationDocument data={data as any} />
+            // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+            const htmlData = {
+                nome_estudante: raw.student_name || '',
+                curso_estudante: raw.student_course || '',
+                matricula_estudante: raw.student_enrollment || '',
+                empresa_nome: raw.company_name || '',
+                nome_supervisor: raw.company_supervisor || '',
+                data_inicio: raw.period_start || '',
+                data_fim: raw.period_end || '',
+                notas: {
+                    assiduidade: raw.eval_assiduity || '',
+                    pontualidade: raw.eval_punctuality || '',
+                    responsabilidade: raw.eval_responsibility || '',
+                    disciplina: raw.eval_discipline || '',
+                    cooperacao: raw.eval_cooperation || '',
+                    iniciativa: raw.eval_initiative || '',
+                    proatividade: raw.eval_proactivity || '',
+                    comunicacao: raw.eval_communication || '',
+                    relacionamento: raw.eval_relationship || '',
+                    conhecimento: raw.eval_technical_knowledge || '',
+                    aprendizagem: raw.eval_learning_capacity || '',
+                    produtividade: raw.eval_productivity || '',
+                    qualidade: raw.eval_quality || '',
+                    organizacao: raw.eval_organization || '',
+                    criatividade: raw.eval_creativity || ''
+                },
+                observacoes: raw.observations || '',
+                recomendacao: raw.recommendation === 'sim' ? 'SIM' : raw.recommendation === 'nao' ? 'NÃO' : ''
+            }
 
-            // Gerar e baixar o PDF
-            await generateAndDownloadPDF(pdfDocument, 'student-evaluation.pdf')
+            const html = buildStudentEvaluationHTML(htmlData)
+            await generateHTMLPDF(html, 'avaliacao-estudante.pdf')
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {
@@ -190,15 +204,15 @@ export default function StudentEvaluationPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Estagiário</label>
-                                    <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome do Estagiário" placeholder="Nome Completo" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                                    <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                                    <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
                                 </div>
                             </div>
                         </CardContent>
@@ -213,11 +227,11 @@ export default function StudentEvaluationPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Empresa Concedente</label>
-                                    <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Empresa Concedente" placeholder="Razão Social da Empresa" />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                                    <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} title="Supervisor do Estágio" placeholder="Nome do Supervisor" />
                                 </div>
                             </div>
                         </CardContent>
@@ -232,15 +246,15 @@ export default function StudentEvaluationPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
-                                    <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} title="Data Inicial" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final</label>
-                                    <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} title="Data Final" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data da Avaliação</label>
-                                    <input type="date" name="evaluation_date" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="evaluation_date" className="input w-full" onChange={handleInputChange} title="Data da Avaliação" />
                                 </div>
                             </div>
                         </CardContent>
@@ -273,6 +287,7 @@ export default function StudentEvaluationPage() {
                                                         name={criteria.key}
                                                         className="bg-neutral-800 border-none rounded px-2 py-1 text-sm w-20 text-center"
                                                         onChange={handleInputChange}
+                                                        title={`Nota para: ${criteria.label}`}
                                                     >
                                                         <option value="">-</option>
                                                         <option value="1">1</option>
@@ -298,7 +313,7 @@ export default function StudentEvaluationPage() {
                         <CardContent className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-neutral-300 mb-1">Observações e Comentários</label>
-                                <textarea name="observations" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
+                                <textarea name="observations" rows={5} className="input w-full" onChange={handleInputChange} title="Observações e Comentários" placeholder="Descreva observações adicionais sobre o desempenho do estagiário"></textarea>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-neutral-300 mb-2">Recomendaria este estagiário para futuras oportunidades?</label>
@@ -311,6 +326,7 @@ export default function StudentEvaluationPage() {
                                             className="radio"
                                             onChange={handleInputChange}
                                             checked={formData.recommendation === 'sim'}
+                                            title="Recomendaria para futuras oportunidades: Sim"
                                         />
                                         <span className="text-neutral-300">Sim</span>
                                     </label>
@@ -322,6 +338,7 @@ export default function StudentEvaluationPage() {
                                             className="radio"
                                             onChange={handleInputChange}
                                             checked={formData.recommendation === 'nao'}
+                                            title="Recomendaria para futuras oportunidades: Não"
                                         />
                                         <span className="text-neutral-300">Não</span>
                                     </label>

@@ -103,25 +103,32 @@ export default function InternshipRegistrationPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data = {
-        ...formData,
-        schedule: JSON.stringify(schedule)
-      }
-
-      console.log('📋 Dados do formulário:', data)
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      const raw: any = { ...formData }
+      const { generateHTMLPDF, buildInternshipRegistrationHTML } = await import('@/lib/pdf-generator-html')
 
-      // Criar o documento React-PDF
-      const pdfDocument = <InternshipRegistrationDocument data={data as any} />
+      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+      const htmlData = {
+        nome_estudante: raw.student_name || '',
+        curso_estudante: raw.student_course || '',
+        matricula_estudante: raw.student_enrollment || '',
+        cpf_estudante: raw.student_cpf || '',
+        email_estudante: raw.student_email_institutional || raw.student_email_personal || '',
+        telefone_estudante: raw.student_phone || '',
+        empresa_nome: raw.company_name || '',
+        empresa_cnpj: raw.company_cnpj || '',
+        empresa_endereco: raw.company_address || '',
+        nome_supervisor: raw.company_supervisor || '',
+        cargo_supervisor: raw.company_supervisor_role || '',
+        tipo_estagio: raw.internship_type === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
+        data_inicio: raw.start_date || '',
+        data_fim: raw.end_date || '',
+        carga_horaria: raw.weekly_hours || ''
+      }
 
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'internship-registration.pdf')
+      const html = buildInternshipRegistrationHTML(htmlData)
+      await generateHTMLPDF(html, 'cadastro-estagio.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -187,51 +194,51 @@ export default function InternshipRegistrationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
-                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome Completo" placeholder="Nome Completo" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                  <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} title="CPF" placeholder="000.000.000-00" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Social</label>
-                  <input type="text" name="student_social_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_social_name" className="input w-full" onChange={handleInputChange} title="Nome Social" placeholder="Como gostaria de ser chamado(a)" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Rua, Número, Apto" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
-                  <input type="text" name="student_neighborhood" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_neighborhood" className="input w-full" onChange={handleInputChange} title="Bairro" placeholder="Nome do Bairro" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Município/UF</label>
-                  <input type="text" name="student_city_uf" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_city_uf" className="input w-full" onChange={handleInputChange} title="Município/UF" placeholder="Cidade/Estado" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
-                  <input type="text" name="student_zip" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_zip" className="input w-full" onChange={handleInputChange} title="CEP" placeholder="00000-000" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
-                  <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="(00) 00000-0000" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Email Institucional</label>
-                  <input type="email" name="student_email_institutional" className="input w-full" onChange={handleInputChange} />
+                  <input type="email" name="student_email_institutional" className="input w-full" onChange={handleInputChange} title="Email Institucional" placeholder="aluno@ifce.edu.br" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Email Pessoal</label>
-                  <input type="email" name="student_email_personal" className="input w-full" onChange={handleInputChange} />
+                  <input type="email" name="student_email_personal" className="input w-full" onChange={handleInputChange} title="Email Pessoal" placeholder="email@exemplo.com" />
                 </div>
               </div>
             </CardContent>
@@ -248,7 +255,7 @@ export default function InternshipRegistrationPage() {
                 <div className="flex flex-wrap gap-4">
                   {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'nao_declarar'].map(opt => (
                     <label key={opt} className="flex items-center gap-2">
-                      <input type="radio" name="student_race" value={opt} onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="student_race" value={opt} onChange={handleInputChange} className="checkbox" title={`Cor/Raça: ${opt}`} />
                       <span className="capitalize">{opt.replace('_', ' ')}</span>
                     </label>
                   ))}
@@ -260,12 +267,12 @@ export default function InternshipRegistrationPage() {
                 <div className="flex flex-wrap gap-4 mb-2">
                   {['indigena', 'quilombola', 'outra', 'nao_declarar'].map(opt => (
                     <label key={opt} className="flex items-center gap-2">
-                      <input type="radio" name="student_ethnicity" value={opt} onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="student_ethnicity" value={opt} onChange={handleInputChange} className="checkbox" title={`Etnia: ${opt}`} />
                       <span className="capitalize">{opt.replace('_', ' ')}</span>
                     </label>
                   ))}
                 </div>
-                <input type="text" name="student_ethnicity_community" placeholder="Comunidade (se aplicável)" className="input w-full" onChange={handleInputChange} />
+                <input type="text" name="student_ethnicity_community" placeholder="Comunidade (se aplicável)" title="Comunidade" className="input w-full" onChange={handleInputChange} />
               </div>
 
               <div>
@@ -281,7 +288,7 @@ export default function InternshipRegistrationPage() {
                     { val: 'surdocegueira', label: 'Surdocegueira' }
                   ].map(opt => (
                     <label key={opt.val} className="flex items-center gap-2">
-                      <input type="radio" name="student_disability" value={opt.val} onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="student_disability" value={opt.val} onChange={handleInputChange} className="checkbox" title={`Deficiência: ${opt.label}`} />
                       <span>{opt.label}</span>
                     </label>
                   ))}
@@ -299,75 +306,75 @@ export default function InternshipRegistrationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
-                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Razão Social" placeholder="Razão Social da Empresa" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Fantasia</label>
-                  <input type="text" name="company_fantasy_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_fantasy_name" className="input w-full" onChange={handleInputChange} title="Nome Fantasia" placeholder="Nome Fantasia" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
-                  <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="(00) 0000-0000" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço da Empresa" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
-                  <input type="text" name="company_neighborhood" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_neighborhood" className="input w-full" onChange={handleInputChange} title="Bairro" placeholder="Bairro" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Município/UF</label>
-                  <input type="text" name="company_city_uf" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_city_uf" className="input w-full" onChange={handleInputChange} title="Município/UF" placeholder="Cidade/Estado" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
-                  <input type="text" name="company_zip" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_zip" className="input w-full" onChange={handleInputChange} title="CEP" placeholder="00000-000" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
-                  <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} />
+                  <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} title="Email" placeholder="empresa@exemplo.com" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Responsável Legal</label>
-                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} title="Responsável Legal" placeholder="Nome do Responsável Legal" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Responsável</label>
-                  <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} title="Cargo do Responsável" placeholder="Cargo/Função" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Responsável</label>
-                  <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} title="CPF do Responsável" placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone do Responsável</label>
-                  <input type="text" name="company_representative_phone" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_representative_phone" className="input w-full" onChange={handleInputChange} title="Telefone do Responsável" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                  <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} title="Supervisor do Estágio" placeholder="Nome do Supervisor" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Supervisor</label>
-                  <input type="text" name="company_supervisor_role" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_supervisor_role" className="input w-full" onChange={handleInputChange} title="Cargo do Supervisor" placeholder="Cargo/Função" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Supervisor</label>
-                  <input type="text" name="company_supervisor_cpf" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_supervisor_cpf" className="input w-full" onChange={handleInputChange} title="CPF do Supervisor" placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone do Supervisor</label>
-                  <input type="text" name="company_supervisor_phone" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_supervisor_phone" className="input w-full" onChange={handleInputChange} title="Telefone do Supervisor" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Setor de Realização</label>
-                  <input type="text" name="company_sector" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_sector" className="input w-full" onChange={handleInputChange} title="Setor de Realização" placeholder="Nome do Setor/Departamento" />
                 </div>
               </div>
             </CardContent>
@@ -384,11 +391,11 @@ export default function InternshipRegistrationPage() {
                   <label className="block text-sm font-medium text-neutral-300 mb-2">Tipo de Estágio</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="internship_type" value="obrigatorio" onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="internship_type" value="obrigatorio" onChange={handleInputChange} className="checkbox" title="Estágio Obrigatório" />
                       <span>Obrigatório</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="internship_type" value="nao_obrigatorio" onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="internship_type" value="nao_obrigatorio" onChange={handleInputChange} className="checkbox" title="Estágio Não Obrigatório" />
                       <span>Não Obrigatório</span>
                     </label>
                   </div>
@@ -397,26 +404,26 @@ export default function InternshipRegistrationPage() {
                   <label className="block text-sm font-medium text-neutral-300 mb-2">Forma de Estágio</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="internship_mode" value="presencial" onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="internship_mode" value="presencial" onChange={handleInputChange} className="checkbox" title="Modalidade Presencial" />
                       <span>Presencial</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="internship_mode" value="remoto" onChange={handleInputChange} className="checkbox" />
+                      <input type="radio" name="internship_mode" value="remoto" onChange={handleInputChange} className="checkbox" title="Modalidade Remota" />
                       <span>Remoto</span>
                     </label>
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
-                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
+                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} title="Data Inicial" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Prevista</label>
-                  <input type="date" name="end_date" className="input w-full" onChange={handleInputChange} />
+                  <input type="date" name="end_date" className="input w-full" onChange={handleInputChange} title="Data Final Prevista" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal</label>
-                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
+                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} title="Carga Horária Semanal" placeholder="00" />
                 </div>
               </div>
 
@@ -445,6 +452,7 @@ export default function InternshipRegistrationPage() {
                                   className="bg-neutral-800 border-none rounded px-1 py-0.5 w-16 text-xs"
                                   value={schedule[`${day}_start_${idx + 1}`] || ''}
                                   onChange={(e) => handleScheduleChange(`${day}_start_${idx + 1}`, e.target.value)}
+                                  title={`Entrada ${day} - Turno ${idx + 1}`}
                                 />
                               </td>
                               <td className="px-1 py-1">
@@ -453,6 +461,7 @@ export default function InternshipRegistrationPage() {
                                   className="bg-neutral-800 border-none rounded px-1 py-0.5 w-16 text-xs"
                                   value={schedule[`${day}_end_${idx + 1}`] || ''}
                                   onChange={(e) => handleScheduleChange(`${day}_end_${idx + 1}`, e.target.value)}
+                                  title={`Saída ${day} - Turno ${idx + 1}`}
                                 />
                               </td>
                             </React.Fragment>

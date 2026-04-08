@@ -148,26 +148,36 @@ export default function CommitmentTermPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Adicionar data atual se não estiver presente (se aplicável)
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      const raw: any = { ...formData }
+      const { generateHTMLPDF, buildCommitmentTermHTML } = await import('@/lib/pdf-generator-html')
 
-      // Criar o documento React-PDF
-      const pdfDocument = <CommitmentTermDocument data={data as any} />
+      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+      const htmlData = {
+        nome_estudante: raw.student_name || '',
+        curso_estudante: raw.student_course || '',
+        matricula_estudante: raw.student_id || '',
+        cpf_estudante: raw.student_cpf || '',
+        rg_estudante: '', // RG não está no estado original mas o builder aceita se houver
+        data_nascimento: '', // Opcional
+        empresa_nome: raw.company_name || '',
+        empresa_cnpj: raw.company_cnpj || '',
+        empresa_endereco: raw.company_address || '',
+        empresa_setor: '', // Opcional
+        area_atuacao: '', // Opcional
+        nome_supervisor: raw.supervisor_name || '',
+        cargo_supervisor: raw.supervisor_education || '',
+        nome_orientador: raw.advisor_name || '',
+        inicio_estagio: raw.start_date || '',
+        fim_estagio: raw.end_date || '',
+        horas_semanais: raw.weekly_hours || '',
+        valor_bolsa: raw.has_grant === 'true' ? raw.grant_value : 'Inexistente',
+        valor_transporte: raw.has_transport === 'true' ? raw.transport_value : 'Inexistente'
+      }
 
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'commitment-term.pdf')
+      const html = buildCommitmentTermHTML(htmlData)
+      await generateHTMLPDF(html, 'termo-compromisso.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -216,24 +226,24 @@ export default function CommitmentTermPage() {
             <CardHeader><CardTitle className="text-lg">1. Instituição Concedente</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="company_name" value={formData.company_name} onChange={handleInputChange} placeholder="Razão Social" className="input w-full" />
-                <input name="company_fantasy_name" value={formData.company_fantasy_name} onChange={handleInputChange} placeholder="Nome Fantasia" className="input w-full" />
-                <input name="company_cnpj" value={formData.company_cnpj} onChange={handleInputChange} placeholder="CNPJ" className="input w-full" />
-                <input name="company_phone" value={formData.company_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
-                <input name="company_email" value={formData.company_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" />
+                <input name="company_name" value={formData.company_name} onChange={handleInputChange} placeholder="Razão Social" className="input w-full" title="Razão Social" />
+                <input name="company_fantasy_name" value={formData.company_fantasy_name} onChange={handleInputChange} placeholder="Nome Fantasia" className="input w-full" title="Nome Fantasia" />
+                <input name="company_cnpj" value={formData.company_cnpj} onChange={handleInputChange} placeholder="CNPJ" className="input w-full" title="CNPJ" />
+                <input name="company_phone" value={formData.company_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" title="Telefone da Empresa" />
+                <input name="company_email" value={formData.company_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" title="E-mail da Empresa" />
               </div>
-              <input name="company_address" value={formData.company_address} onChange={handleInputChange} placeholder="Endereço Completo" className="input w-full" />
+              <input name="company_address" value={formData.company_address} onChange={handleInputChange} placeholder="Endereço Completo" className="input w-full" title="Endereço Completo" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input name="company_neighborhood" value={formData.company_neighborhood} onChange={handleInputChange} placeholder="Bairro" className="input w-full" />
-                <input name="company_city_state" value={formData.company_city_state} onChange={handleInputChange} placeholder="Município-UF" className="input w-full" />
-                <input name="company_zip" value={formData.company_zip} onChange={handleInputChange} placeholder="CEP" className="input w-full" />
+                <input name="company_neighborhood" value={formData.company_neighborhood} onChange={handleInputChange} placeholder="Bairro" className="input w-full" title="Bairro" />
+                <input name="company_city_state" value={formData.company_city_state} onChange={handleInputChange} placeholder="Município-UF" className="input w-full" title="Município-UF" />
+                <input name="company_zip" value={formData.company_zip} onChange={handleInputChange} placeholder="CEP" className="input w-full" title="CEP" />
               </div>
               <h4 className="text-sm font-semibold text-neutral-300 mt-4">Representante Legal</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="company_representative" value={formData.company_representative} onChange={handleInputChange} placeholder="Nome do Representante" className="input w-full" />
-                <input name="company_representative_role" value={formData.company_representative_role} onChange={handleInputChange} placeholder="Cargo" className="input w-full" />
-                <input name="company_representative_cpf" value={formData.company_representative_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" />
-                <input name="company_representative_phone" value={formData.company_representative_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
+                <input name="company_representative" value={formData.company_representative} onChange={handleInputChange} placeholder="Nome do Representante" className="input w-full" title="Nome do Representante" />
+                <input name="company_representative_role" value={formData.company_representative_role} onChange={handleInputChange} placeholder="Cargo" className="input w-full" title="Cargo do Representante" />
+                <input name="company_representative_cpf" value={formData.company_representative_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" title="CPF do Representante" />
+                <input name="company_representative_phone" value={formData.company_representative_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" title="Telefone do Representante" />
               </div>
             </CardContent>
           </Card>
@@ -243,22 +253,22 @@ export default function CommitmentTermPage() {
             <CardHeader><CardTitle className="text-lg">2. Discente Estagiário(a)</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="student_name" value={formData.student_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" />
-                <input name="student_cpf" value={formData.student_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" />
-                <input name="student_social_name" value={formData.student_social_name} onChange={handleInputChange} placeholder="Nome Social (Opcional)" className="input w-full" />
-                <input name="student_id" value={formData.student_id} onChange={handleInputChange} placeholder="Matrícula" className="input w-full" />
-                <input name="student_course" value={formData.student_course} onChange={handleInputChange} placeholder="Curso" className="input w-full" />
+                <input name="student_name" value={formData.student_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" title="Nome Completo" />
+                <input name="student_cpf" value={formData.student_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" title="CPF" />
+                <input name="student_social_name" value={formData.student_social_name} onChange={handleInputChange} placeholder="Nome Social (Opcional)" className="input w-full" title="Nome Social" />
+                <input name="student_id" value={formData.student_id} onChange={handleInputChange} placeholder="Matrícula" className="input w-full" title="Matrícula" />
+                <input name="student_course" value={formData.student_course} onChange={handleInputChange} placeholder="Curso" className="input w-full" title="Curso" />
               </div>
-              <input name="student_address" value={formData.student_address} onChange={handleInputChange} placeholder="Endereço Completo" className="input w-full" />
+              <input name="student_address" value={formData.student_address} onChange={handleInputChange} placeholder="Endereço Completo" className="input w-full" title="Endereço do Aluno" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input name="student_neighborhood" value={formData.student_neighborhood} onChange={handleInputChange} placeholder="Bairro" className="input w-full" />
-                <input name="student_city_state" value={formData.student_city_state} onChange={handleInputChange} placeholder="Município-UF" className="input w-full" />
-                <input name="student_zip" value={formData.student_zip} onChange={handleInputChange} placeholder="CEP" className="input w-full" />
+                <input name="student_neighborhood" value={formData.student_neighborhood} onChange={handleInputChange} placeholder="Bairro" className="input w-full" title="Bairro do Aluno" />
+                <input name="student_city_state" value={formData.student_city_state} onChange={handleInputChange} placeholder="Município-UF" className="input w-full" title="Município-UF do Aluno" />
+                <input name="student_zip" value={formData.student_zip} onChange={handleInputChange} placeholder="CEP" className="input w-full" title="CEP do Aluno" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input name="student_phone" value={formData.student_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
-                <input name="student_email_institutional" value={formData.student_email_institutional} onChange={handleInputChange} placeholder="E-mail Institucional" className="input w-full" />
-                <input name="student_email_personal" value={formData.student_email_personal} onChange={handleInputChange} placeholder="E-mail Pessoal" className="input w-full" />
+                <input name="student_phone" value={formData.student_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" title="Telefone do Aluno" />
+                <input name="student_email_institutional" value={formData.student_email_institutional} onChange={handleInputChange} placeholder="E-mail Institucional" className="input w-full" title="E-mail Institucional" />
+                <input name="student_email_personal" value={formData.student_email_personal} onChange={handleInputChange} placeholder="E-mail Pessoal" className="input w-full" title="E-mail Pessoal" />
               </div>
             </CardContent>
           </Card>
@@ -270,7 +280,7 @@ export default function CommitmentTermPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Modalidade</label>
-                  <select name="modality" value={formData.modality} onChange={handleInputChange} className="input w-full">
+                  <select name="modality" value={formData.modality} onChange={handleInputChange} className="input w-full" title="Modalidade">
                     <option value="presencial">Presencial</option>
                     <option value="remota">Remota</option>
                     <option value="hibrida">Híbrida</option>
@@ -278,36 +288,36 @@ export default function CommitmentTermPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Data Início</label>
-                  <input type="date" name="start_date" value={formData.start_date} onChange={handleInputChange} className="input w-full" />
+                  <input type="date" name="start_date" value={formData.start_date} onChange={handleInputChange} className="input w-full" title="Data Início" />
                 </div>
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Data Fim</label>
-                  <input type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="input w-full" />
+                  <input type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="input w-full" title="Data Fim" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="insurance_policy" value={formData.insurance_policy} onChange={handleInputChange} placeholder="Nº Apólice de Seguro" className="input w-full" />
-                <input name="insurance_company" value={formData.insurance_company} onChange={handleInputChange} placeholder="Nome da Seguradora" className="input w-full" />
+                <input name="insurance_policy" value={formData.insurance_policy} onChange={handleInputChange} placeholder="Nº Apólice de Seguro" className="input w-full" title="Nº Apólice de Seguro" />
+                <input name="insurance_company" value={formData.insurance_company} onChange={handleInputChange} placeholder="Nome da Seguradora" className="input w-full" title="Nome da Seguradora" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-2 mb-2 text-sm text-neutral-300">
-                    <input type="checkbox" name="has_grant" checked={formData.has_grant === 'true'} onChange={handleInputChange} />
+                    <input type="checkbox" name="has_grant" checked={formData.has_grant === 'true'} onChange={handleInputChange} title="Possui Bolsa Auxílio?" />
                     Possui Bolsa Auxílio?
                   </label>
                   {formData.has_grant === 'true' && (
-                    <input name="grant_value" value={formData.grant_value} onChange={handleInputChange} placeholder="Valor da Bolsa (R$)" className="input w-full" />
+                    <input name="grant_value" value={formData.grant_value} onChange={handleInputChange} placeholder="Valor da Bolsa (R$)" className="input w-full" title="Valor da Bolsa" />
                   )}
                 </div>
                 <div>
                   <label className="flex items-center gap-2 mb-2 text-sm text-neutral-300">
-                    <input type="checkbox" name="has_transport" checked={formData.has_transport === 'true'} onChange={handleInputChange} />
+                    <input type="checkbox" name="has_transport" checked={formData.has_transport === 'true'} onChange={handleInputChange} title="Possui Auxílio Transporte?" />
                     Possui Auxílio Transporte?
                   </label>
                   {formData.has_transport === 'true' && (
-                    <input name="transport_value" value={formData.transport_value} onChange={handleInputChange} placeholder="Valor do Transporte (R$)" className="input w-full" />
+                    <input name="transport_value" value={formData.transport_value} onChange={handleInputChange} placeholder="Valor do Transporte (R$)" className="input w-full" title="Valor do Transporte" />
                   )}
                 </div>
               </div>
@@ -321,20 +331,20 @@ export default function CommitmentTermPage() {
               <div>
                 <h4 className="text-sm font-semibold text-neutral-300 mb-2">Docente Orientador (IFCE)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input name="advisor_name" value={formData.advisor_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" />
-                  <input name="advisor_siape" value={formData.advisor_siape} onChange={handleInputChange} placeholder="SIAPE" className="input w-full" />
-                  <input name="advisor_phone" value={formData.advisor_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
-                  <input name="advisor_email" value={formData.advisor_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" />
+                  <input name="advisor_name" value={formData.advisor_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" title="Nome do Orientador" />
+                  <input name="advisor_siape" value={formData.advisor_siape} onChange={handleInputChange} placeholder="SIAPE" className="input w-full" title="SIAPE do Orientador" />
+                  <input name="advisor_phone" value={formData.advisor_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" title="Telefone do Orientador" />
+                  <input name="advisor_email" value={formData.advisor_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" title="E-mail do Orientador" />
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-neutral-300 mb-2">Supervisor do Estágio (Empresa)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input name="supervisor_name" value={formData.supervisor_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" />
-                  <input name="supervisor_education" value={formData.supervisor_education} onChange={handleInputChange} placeholder="Formação/Experiência" className="input w-full" />
-                  <input name="supervisor_cpf" value={formData.supervisor_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" />
-                  <input name="supervisor_phone" value={formData.supervisor_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" />
-                  <input name="supervisor_email" value={formData.supervisor_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" />
+                  <input name="supervisor_name" value={formData.supervisor_name} onChange={handleInputChange} placeholder="Nome Completo" className="input w-full" title="Nome do Supervisor" />
+                  <input name="supervisor_education" value={formData.supervisor_education} onChange={handleInputChange} placeholder="Formação/Experiência" className="input w-full" title="Formação do Supervisor" />
+                  <input name="supervisor_cpf" value={formData.supervisor_cpf} onChange={handleInputChange} placeholder="CPF" className="input w-full" title="CPF do Supervisor" />
+                  <input name="supervisor_phone" value={formData.supervisor_phone} onChange={handleInputChange} placeholder="Telefone" className="input w-full" title="Telefone do Supervisor" />
+                  <input name="supervisor_email" value={formData.supervisor_email} onChange={handleInputChange} placeholder="E-mail" className="input w-full" title="E-mail do Supervisor" />
                 </div>
               </div>
             </CardContent>
@@ -344,12 +354,12 @@ export default function CommitmentTermPage() {
           <Card variant="elevated">
             <CardHeader><CardTitle className="text-lg">5. Plano de Atividades</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <textarea name="activities_description" value={formData.activities_description} onChange={handleInputChange} rows={5} placeholder="Atividades a serem desenvolvidas (liste uma por linha)" className="input w-full" />
-              <textarea name="expected_results" value={formData.expected_results} onChange={handleInputChange} rows={5} placeholder="Resultados esperados (liste um por linha)" className="input w-full" />
+              <textarea name="activities_description" value={formData.activities_description} onChange={handleInputChange} rows={5} placeholder="Atividades a serem desenvolvidas (liste uma por linha)" className="input w-full" title="Descrição das Atividades" />
+              <textarea name="expected_results" value={formData.expected_results} onChange={handleInputChange} rows={5} placeholder="Resultados esperados (liste um por linha)" className="input w-full" title="Resultados Esperados" />
 
               <div>
                 <label className="block text-sm text-neutral-400 mb-2">Carga Horária Semanal (Horas)</label>
-                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleInputChange} className="input w-full md:w-1/3" />
+                <input type="number" name="weekly_hours" value={formData.weekly_hours} onChange={handleInputChange} className="input w-full md:w-1/3" title="Carga Horária Semanal" placeholder="00" />
               </div>
 
               <div className="overflow-x-auto">
@@ -366,12 +376,13 @@ export default function CommitmentTermPage() {
                         <td className="px-4 py-2 font-medium capitalize">{shift === 'morning' ? 'Manhã' : shift === 'afternoon' ? 'Tarde' : 'Noite'}</td>
                         {['mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((day) => (
                           <td key={day} className="px-2 py-1">
-                            <input
-                              className="bg-transparent border border-neutral-700 rounded px-1 py-0.5 w-20 text-center text-xs"
-                              placeholder="00:00-00:00"
-                              value={JSON.parse(formData.schedule)[shift][day]}
-                              onChange={(e) => handleScheduleChange(shift, day, e.target.value)}
-                            />
+                              <input
+                                className="bg-transparent border border-neutral-700 rounded px-1 py-0.5 w-20 text-center text-xs"
+                                placeholder="00:00-00:00"
+                                value={JSON.parse(formData.schedule)[shift][day]}
+                                onChange={(e) => handleScheduleChange(shift, day, e.target.value)}
+                                title={`Horário ${shift} - ${day}`}
+                              />
                           </td>
                         ))}
                       </tr>

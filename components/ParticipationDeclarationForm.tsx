@@ -50,8 +50,8 @@ export function ParticipationDeclarationForm({
     }
 
     return (
-        <div className="w-full max-w-[210mm] mx-auto p-4 bg-neutral-50">
-            <div className="mb-6 flex justify-end no-print">
+        <div className="w-full max-w-[210mm] mx-auto bg-white">
+            <div className="mb-4 flex justify-end no-print">
                 <FormPDFExport
                     formId="participation-declaration-form"
                     fileName="declaracao-participacao-experiencia"
@@ -65,7 +65,7 @@ export function ParticipationDeclarationForm({
                 campus="Morada Nova"
                 sector="Coordenação de Extensão"
             >
-                <div className="mb-4 text-[9pt] text-justify px-1">
+                <div className="mb-3 text-[9pt] text-justify px-1">
                     <p>
                         Para fins de <strong>EQUIPARAÇÃO</strong> a atividades de estágio supervisionado obrigatório,
                         declaro os fatos a seguir descritos, para que surjam efeitos legais.
@@ -161,8 +161,8 @@ export function ParticipationDeclarationForm({
                     </tbody>
                 </FormTable>
 
-                <div className="mt-4 mb-1 px-1">
-                    <div className="text-[9px] font-bold uppercase">
+                <div className="mt-3 mb-1">
+                    <div className="text-[8pt] font-bold uppercase bg-gray-200 border border-black px-1 py-1">
                         DETALHES DA EXPERIÊNCIA
                     </div>
                 </div>
@@ -171,16 +171,16 @@ export function ParticipationDeclarationForm({
                     <tbody>
                         <tr>
                             <FormField label="TIPO DE EXPERIÊNCIA" colSpan={3}>
-                                <div className="flex gap-8 pt-1">
+                                <div className="flex gap-6 pt-0.5">
                                     {['EXTENSÃO', 'INICIAÇÃO CIENTÍFICA', 'MONITORIA'].map((type) => (
-                                        <label key={type} className="flex items-center gap-1 text-[8px] uppercase cursor-pointer">
+                                        <label key={type} className="flex items-center gap-1 text-[7pt] uppercase cursor-pointer">
                                             <input
                                                 type="radio"
                                                 name="experienceType"
                                                 value={type}
                                                 checked={formData.experienceType === type}
                                                 onChange={handleChange}
-                                                className="h-3 w-3"
+                                                className="h-2.5 w-2.5 flex-shrink-0"
                                             />
                                             {type}
                                         </label>
@@ -216,7 +216,7 @@ export function ParticipationDeclarationForm({
                                     name="activities"
                                     value={formData.activities}
                                     onChange={handleChange}
-                                    rows={6}
+                                    rows={5}
                                     placeholder="Descreva as atividades desenvolvidas"
                                 />
                             </FormField>
@@ -238,16 +238,16 @@ export function ParticipationDeclarationForm({
                                         value={formData.weeklyHours}
                                         onChange={handleChange}
                                         placeholder="0"
-                                        className="w-20"
+                                        className="w-16 rounded-none"
                                     />
-                                    <span className="text-[8px]">HORAS</span>
+                                    <span className="text-[7pt]">HORAS</span>
                                 </div>
                             </FormField>
                         </tr>
                     </tbody>
                 </FormTable>
 
-                <div className="mt-8 border border-black p-4">
+                <div className="mt-6 border border-black p-3">
                     <SignatureSection
                         label="ASSINATURA DO (A) DECLARANTE"
                         date={true}

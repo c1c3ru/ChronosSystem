@@ -39,20 +39,27 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className
           )}
           ref={ref}
-          aria-invalid={error}
+          aria-invalid={!!error}
           aria-describedby={describedBy}
           aria-required={required}
           {...props}
         />
-        {helperText && (
+        {helperText && error && (
           <p
-            id={error ? errorId : helperTextId}
-            className={cn(
-              'mt-1 text-xs',
-              error ? 'text-destructive' : 'text-muted-foreground'
-            )}
-            role={error ? 'alert' : 'status'}
-            aria-live={error ? 'assertive' : 'polite'}
+            id={errorId}
+            className={cn('mt-1 text-xs text-destructive')}
+            role="alert"
+            aria-live="assertive"
+          >
+            {helperText}
+          </p>
+        )}
+        {helperText && !error && (
+          <p
+            id={helperTextId}
+            className={cn('mt-1 text-xs text-muted-foreground')}
+            role="status"
+            aria-live="polite"
           >
             {helperText}
           </p>

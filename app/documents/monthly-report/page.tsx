@@ -86,23 +86,24 @@ export default function MonthlyReportPage() {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
       const raw: any = { ...formData }
+      const { generateHTMLPDF, buildMonthlyReportHTML } = await import('@/lib/pdf-generator-html')
 
-      const data: Record<string, string> = {
-        nome_estudante:      raw.student_name       || '',
-        curso_estudante:     raw.student_course     || '',
+      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+      const htmlData = {
+        nome_estudante: raw.student_name || '',
+        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
-        nome_supervisor:     raw.supervisor_name    || '',
-        nome_orientador:     raw.advisor_name       || '',
-        inicio_periodo:      raw.period_start       || '',
-        fim_periodo:         raw.period_end         || '',
-        horas_mes:           raw.hours_month        || '',
-        atividades:          raw.activities         || '',
-        dificuldades:        raw.difficulties       || '',
-        solucoes:            raw.solutions          || '',
+        nome_supervisor: raw.supervisor_name || '',
+        nome_orientador: raw.advisor_name || '',
+        inicio_periodo: raw.period_start || '',
+        fim_periodo: raw.period_end || '',
+        horas_mes: raw.hours_month || '',
+        atividades: raw.activities || '',
+        dificuldades: raw.difficulties || '',
+        solucoes: raw.solutions || ''
       }
 
-      const { buildMonthlyReportHTML, generateHTMLPDF } = await import('@/lib/pdf-generator-html')
-      const html = buildMonthlyReportHTML(data)
+      const html = buildMonthlyReportHTML(htmlData)
       await generateHTMLPDF(html, 'relatorio-mensal.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })

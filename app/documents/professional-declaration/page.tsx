@@ -84,26 +84,29 @@ export default function ProfessionalDeclarationPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Adicionar data atual se não estiver presente (se aplicável)
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      const raw: any = { ...formData }
+      const { generateHTMLPDF, buildProfessionalDeclarationHTML } = await import('@/lib/pdf-generator-html')
       
-      // Criar o documento React-PDF
-      const pdfDocument = <ProfessionalDeclarationDocument data={data as any} />
+      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+      const htmlData = {
+        nome_empresa: raw.company_name || '',
+        cnpj_empresa: raw.company_cnpj || '',
+        endereco_empresa: raw.company_address || '',
+        cidade: raw.city || 'Fortaleza',
+        nome_funcionario: raw.employee_name || '',
+        cpf_funcionario: raw.employee_cpf || '',
+        ctps_funcionario: raw.employee_ctps || '',
+        serie_ctps: raw.employee_ctps_series || '',
+        data_inicio: raw.start_date || '',
+        cargo: raw.role || '',
+        horas_semanais: raw.weekly_hours || '',
+        atividades: raw.activities || ''
+      }
       
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'professional-declaration.pdf')
+      const html = buildProfessionalDeclarationHTML(htmlData)
+      await generateHTMLPDF(html, 'declaracao-profissional.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -168,19 +171,19 @@ export default function ProfessionalDeclarationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
-                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                   <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Razão Social" placeholder="Razão Social da Empresa" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
+                   <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
-                  <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} />
+                   <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} title="Cidade" placeholder="Fortaleza" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço Completo</label>
-                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                   <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço Completo" placeholder="Rua, Número, Bairro, CEP" />
                 </div>
               </div>
             </CardContent>
@@ -195,20 +198,20 @@ export default function ProfessionalDeclarationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
-                  <input type="text" name="employee_name" className="input w-full" onChange={handleInputChange} />
+                   <input type="text" name="employee_name" className="input w-full" onChange={handleInputChange} title="Nome Completo" placeholder="Nome do Funcionário" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                  <input type="text" name="employee_cpf" className="input w-full" onChange={handleInputChange} />
+                   <input type="text" name="employee_cpf" className="input w-full" onChange={handleInputChange} title="CPF" placeholder="000.000.000-00" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-1">CTPS Nº</label>
-                    <input type="text" name="employee_ctps" className="input w-full" onChange={handleInputChange} />
+                     <input type="text" name="employee_ctps" className="input w-full" onChange={handleInputChange} title="CTPS Nº" placeholder="0000000" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-1">Série</label>
-                    <input type="text" name="employee_ctps_series" className="input w-full" onChange={handleInputChange} />
+                     <input type="text" name="employee_ctps_series" className="input w-full" onChange={handleInputChange} title="Série" placeholder="000-0" />
                   </div>
                 </div>
               </div>
@@ -224,20 +227,20 @@ export default function ProfessionalDeclarationPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Início</label>
-                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
+                   <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} title="Data de Início" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Função</label>
-                  <input type="text" name="role" className="input w-full" onChange={handleInputChange} />
+                   <input type="text" name="role" className="input w-full" onChange={handleInputChange} title="Função" placeholder="Cargo/Função" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal</label>
-                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
+                   <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} title="Carga Horária Semanal" placeholder="00" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-1">Descrição das Atividades</label>
-                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
+                 <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange} title="Descrição das Atividades" placeholder="Descreva as principais atividades desempenhadas"></textarea>
               </div>
             </CardContent>
           </Card>

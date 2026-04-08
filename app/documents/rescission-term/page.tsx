@@ -84,26 +84,28 @@ export default function RescissionTermPage() {
 
     const handleGeneratePDF = async () => {
         try {
-            if (!formRef.current) return
-
-            // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-            // Adicionar data atual se não estiver presente
-            const now = new Date()
-            if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-            if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-            if (!data.date_year) data.date_year = String(now.getFullYear())
-
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+            const raw: any = { ...formData }
+            const { generateHTMLPDF, buildRescissionTermHTML } = await import('@/lib/pdf-generator-html')
 
-            // Criar o documento React-PDF
-            const pdfDocument = <RescissionTermDocument data={data as any} />
+            // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+            const htmlData = {
+                nome_estudante: raw.student_name || '',
+                curso_estudante: raw.student_course || '',
+                matricula_estudante: raw.student_enrollment || '',
+                cpf_estudante: raw.student_cpf || '',
+                rg_estudante: raw.student_rg || '',
+                empresa_nome: raw.company_name || '',
+                empresa_cnpj: raw.company_cnpj || '',
+                data_inicio_original: raw.internship_start_date || '',
+                data_fim_original: raw.internship_end_date || '',
+                data_rescisao: raw.rescission_date || '',
+                motivo_rescisao: raw.rescission_reason || 'Encerramento por interesse das partes.'
+            }
 
-            // Gerar e baixar o PDF
-            await generateAndDownloadPDF(pdfDocument, 'termo-rescisao-estagio.pdf')
+            const html = buildRescissionTermHTML(htmlData)
+            await generateHTMLPDF(html, 'termo-rescisao.pdf')
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {
@@ -168,35 +170,35 @@ export default function RescissionTermPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
-                                    <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome Completo" placeholder="Nome Completo" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                                    <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} title="CPF" placeholder="000.000.000-00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">RG</label>
-                                    <input type="text" name="student_rg" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_rg" className="input w-full" onChange={handleInputChange} title="RG" placeholder="Órgão Emissor/UF" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                                    <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                                    <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                                    <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço Completo" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
-                                    <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="Ex: (85) 99999-9999" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">E-mail</label>
-                                    <input type="email" name="student_email" className="input w-full" onChange={handleInputChange} />
+                                    <input type="email" name="student_email" className="input w-full" onChange={handleInputChange} title="E-mail" placeholder="email@exemplo.com" />
                                 </div>
                             </div>
                         </CardContent>
@@ -211,27 +213,27 @@ export default function RescissionTermPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
-                                    <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Razão Social" placeholder="Razão Social da Empresa" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                                    <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
-                                    <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="Ex: (85) 3333-3333" />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                                    <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço Completo da Empresa" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Representante Legal</label>
-                                    <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} title="Representante Legal" placeholder="Nome do Representante Legal" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Representante</label>
-                                    <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} title="CPF do Representante" placeholder="000.000.000-00" />
                                 </div>
                             </div>
                         </CardContent>
@@ -246,27 +248,27 @@ export default function RescissionTermPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Início do Estágio</label>
-                                    <input type="date" name="internship_start_date" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="internship_start_date" className="input w-full" onChange={handleInputChange} title="Data de Início do Estágio" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data Prevista de Término</label>
-                                    <input type="date" name="internship_end_date" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="internship_end_date" className="input w-full" onChange={handleInputChange} title="Data Prevista de Término" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data do Termo Original</label>
-                                    <input type="date" name="original_term_date" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="original_term_date" className="input w-full" onChange={handleInputChange} title="Data do Termo Original" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-primary font-bold mb-1">Data da Rescisão</label>
-                                    <input type="date" name="rescission_date" className="input w-full border-primary" onChange={handleInputChange} />
+                                    <input type="date" name="rescission_date" className="input w-full border-primary" onChange={handleInputChange} title="Data da Rescisão" />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Motivo da Rescisão</label>
-                                    <textarea name="rescission_reason" rows={6} className="input w-full" onChange={handleInputChange}></textarea>
+                                    <textarea name="rescission_reason" rows={6} className="input w-full" onChange={handleInputChange} title="Motivo da Rescisão" placeholder="Descreva o motivo da rescisão do estágio"></textarea>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
-                                    <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} />
+                                    <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} title="Cidade" placeholder="Fortaleza" />
                                 </div>
                             </div>
                         </CardContent>

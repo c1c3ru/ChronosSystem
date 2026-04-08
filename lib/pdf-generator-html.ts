@@ -1,178 +1,335 @@
 /**
- * Gerador de PDF usando html2pdf.js
- * NÃO usa WebAssembly — compatível com qualquer CSP
+ * Gerador de PDF com layout fiel ao padrão IFCE
+ * Usa html2pdf.js — sem WebAssembly
  */
 
 import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from './pdf-assets'
 
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return '___/___/_____'
-  const [y, m, d] = dateStr.split('-')
-  return `${d}/${m}/${y}`
+function fmt(d?: string): string {
+  if (!d) return '___/___/_____'
+  const [y, m, day] = d.split('-')
+  return `${day}/${m}/${y}`
 }
 
-// ─── CSS base compartilhado entre todos os templates ────────────────────────
-const BASE_CSS = `
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 10px; color: #000; background: #fff; padding: 25px; }
-  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-  .header img { width: 55px; height: 55px; object-fit: contain; }
-  .header-text { text-align: center; flex: 1; padding: 0 10px; }
-  .header-text p { font-size: 8px; line-height: 1.6; }
-  .header-text strong { font-size: 9px; display: block; margin-bottom: 2px; }
-  h1.doc-title { font-size: 11px; text-align: center; text-transform: uppercase; font-weight: bold; margin: 12px 0; border: 1px solid #000; padding: 5px; background: #f0f0f0; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-  table td { border: 1px solid #000; padding: 5px 7px; font-size: 9px; vertical-align: top; }
-  .field-label { font-size: 7px; font-weight: bold; text-transform: uppercase; color: #555; margin-bottom: 2px; }
-  .field-value { font-size: 9px; min-height: 13px; }
-  .section-title { font-size: 9px; font-weight: bold; text-transform: uppercase; background: #e0e0e0; border: 1px solid #000; padding: 4px 7px; }
-  .section-content { border: 1px solid #000; border-top: none; padding: 8px; min-height: 65px; font-size: 9px; line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
-  .signatures { display: flex; justify-content: space-around; margin-top: 45px; }
-  .sig-box { text-align: center; width: 38%; }
-  .sig-line { border-top: 1px solid #000; padding-top: 5px; font-size: 8px; font-weight: bold; text-transform: uppercase; margin-top: 35px; }
+// ─── CSS PADRÃO IFCE ─────────────────────────────────────────────────────────
+const CSS = `
+  html, body { margin:0; padding:0; background:#fff; }
+  * { box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; font-size:8.5px; color:#000; }
+  body { padding:15px 18px; background:#fff; }
+
+  /* Cabeçalho institucional */
+  .hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .hdr img { width:48px; height:48px; object-fit:contain; }
+  .hdr-txt { text-align:center; flex:1; padding:0 8px; line-height:1.5; }
+  .hdr-txt .inst { font-size:9.5px; font-weight:bold; text-transform:uppercase; color:#c00; }
+  .hdr-txt .sub  { font-size:7.5px; }
+  .hdr-txt .sub2 { font-size:7px; color:#c00; }
+  .hdr-txt .campus { font-size:7.5px; font-weight:bold; }
+  hr.hdr-line { border:none; border-top:1.5px solid #000; margin:4px 0 6px 0; }
+
+  /* Título do documento */
+  .doc-title { text-align:center; font-size:9.5px; font-weight:bold; text-transform:uppercase;
+    border:1px solid #000; padding:4px; background:#efefef; margin-bottom:8px; letter-spacing:0.5px; }
+
+  /* Tabelas de campos */
+  table { width:100%; border-collapse:collapse; margin-bottom:0; }
+  td, th { border:1px solid #555; padding:2px 4px; vertical-align:top; }
+  .lbl { font-size:6.5px; font-weight:bold; text-transform:uppercase; color:#333; display:block; margin-bottom:1px; }
+  .val { font-size:8.5px; min-height:11px; display:block; }
+
+  /* Seções */
+  .sec-bar { background:#d0d0d0; font-weight:bold; font-size:7.5px; text-transform:uppercase;
+    border:1px solid #555; border-bottom:none; padding:2px 4px; margin-top:6px; }
+  .sec-body { border:1px solid #555; padding:6px; min-height:55px; font-size:8.5px;
+    line-height:1.5; white-space:pre-wrap; margin-bottom:6px; background:#fff; }
+
+  /* Assinaturas */
+  .sigs { display:flex; justify-content:space-around; margin-top:35px; }
+  .sig { text-align:center; width:32%; }
+  .sig-line { border-top:1px solid #000; padding-top:3px; font-size:7.5px;
+    font-weight:bold; text-transform:uppercase; margin-top:28px; }
+
+  /* Parágrafos de texto corrido */
+  .para { font-size:9px; text-align:justify; line-height:1.6; margin-bottom:8px; }
+  .bold { font-weight:bold; }
+  .right { text-align:right; }
 `
 
-function header(): string {
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function hdr(): string {
   return `
-    <div class="header">
-      <img src="${LOGO_IFCE_BASE64}" alt="Logo IFCE" />
-      <div class="header-text">
-        <strong>PRÓ-REITORIA DE EXTENSÃO</strong>
-        <p>COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</p>
-        <p>IFCE Campus Maracanaú</p>
-        <p>Setor de Acompanhamento de Estágio</p>
-      </div>
-      <img src="${BRASAO_BASE64}" alt="Brasão IFCE" />
-    </div>`
+  <div class="hdr">
+    <img src="${LOGO_IFCE_BASE64}" width="48" height="48" alt=""/>
+    <div class="hdr-txt">
+      <div class="inst">Instituto Federal de Educação, Ciência e Tecnologia do Ceará</div>
+      <div class="sub">Pró-Reitoria de Extensão</div>
+      <div class="sub2">Diretoria de Extensão e Relações Empresariais</div>
+      <div class="sub2">Coordenadoria de Estágios e Acompanhamento de Egressos de <strong>Maracanaú</strong></div>
+      <div class="campus">Campus Maracanaú</div>
+    </div>
+    <img src="${BRASAO_BASE64}" width="48" height="48" alt=""/>
+  </div>
+  <hr class="hdr-line"/>`
 }
 
-function field(label: string, value?: string, colSpan?: number): string {
-  const tdAttr = colSpan ? ` colspan="${colSpan}"` : ''
-  return `<td${tdAttr}><div class="field-label">${label}</div><div class="field-value">${value || ''}</div></td>`
+function f(label: string, value?: string, pct?: string): string {
+  const w = pct ? ` style="width:${pct}"` : ''
+  return `<td${w}><span class="lbl">${label}</span><span class="val">${value || ''}</span></td>`
 }
 
-function section(title: string, content?: string): string {
-  return `
-    <div class="section-title">${title}</div>
-    <div class="section-content">${content || ''}</div>`
+function row(...cells: string[]): string { return `<tr>${cells.join('')}</tr>` }
+
+function sec(title: string, content?: string): string {
+  return `<div class="sec-bar">${title}</div>
+  <div class="sec-body">${content || ''}</div>`
 }
 
-function signatures(...labels: string[]): string {
-  return `<div class="signatures">${labels.map(l => `<div class="sig-box"><div class="sig-line">${l}</div></div>`).join('')}</div>`
+function sigs(...labels: string[]): string {
+  return `<div class="sigs">${labels.map(l =>
+    `<div class="sig"><div class="sig-line">${l}</div></div>`).join('')}</div>`
 }
 
-function wrapHTML(title: string, body: string): string {
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><style>${BASE_CSS}</style></head><body>${header()}<h1 class="doc-title">${title}</h1>${body}</body></html>`
+function wrap(title: string, body: string): string {
+  return `<!DOCTYPE html><html lang="pt-BR">
+  <head><meta charset="UTF-8"><style>${CSS}</style></head>
+  <body>${hdr()}<div class="doc-title">${title}</div>${body}</body></html>`
 }
 
-// ─── RELATÓRIO MENSAL ────────────────────────────────────────────────────────
-export function buildMonthlyReportHTML(data: Record<string, string>): string {
-  return wrapHTML('Relatório Mensal de Atividades', `
+// ═══════════════════════════════════════════════════════════════════════════════
+// BUILDERS DE CADA DOCUMENTO
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// 1. Relatório Mensal
+export function buildMonthlyReportHTML(d: Record<string, string>): string {
+  return wrap('Relatório Mensal de Atividades', `
     <table>
-      <tr>${field('Nome do Discente', data.nome_estudante, 2)}</tr>
-      <tr>
-        ${field('Curso', data.curso_estudante)}
-        ${field('Matrícula', data.matricula_estudante)}
-      </tr>
-      <tr>
-        ${field('Supervisor do Estágio', data.nome_supervisor)}
-        ${field('Docente Orientador (IFCE)', data.nome_orientador)}
-      </tr>
-      <tr>
-        ${field('Data Inicial Parcial', formatDate(data.inicio_periodo))}
-        ${field('Data Final Parcial', formatDate(data.fim_periodo))}
-        ${field('Carga Horária no Período', data.horas_mes ? data.horas_mes + ' horas' : '')}
-      </tr>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Supervisor do Estágio', d.nome_supervisor, '50%'), f('Docente Orientador (IFCE)', d.nome_orientador, '50%'))}
+      ${row(f('Data Inicial', fmt(d.inicio_periodo), '33%'), f('Data Final', fmt(d.fim_periodo), '33%'), f('Carga Horária no Período', (d.horas_mes || '') + ' h', '34%'))}
     </table>
-    ${section('1. Principais Atividades Desenvolvidas no Período', data.atividades)}
-    ${section('2. Dificuldades Encontradas', data.dificuldades)}
-    ${section('3. Soluções Adotadas', data.solucoes)}
-    ${signatures('Supervisor do Estágio', 'Discente Estagiário')}
-  `)
+    ${sec('1. Principais Atividades Desenvolvidas no Período', d.atividades)}
+    ${sec('2. Dificuldades Encontradas', d.dificuldades)}
+    ${sec('3. Soluções Adotadas', d.solucoes)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`)
 }
 
-// ─── RELATÓRIO FINAL ─────────────────────────────────────────────────────────
-export function buildFinalReportHTML(data: Record<string, string>): string {
-  return wrapHTML('Relatório Final de Estágio', `
+// 2. Relatório Final
+export function buildFinalReportHTML(d: Record<string, string>): string {
+  return wrap('Relatório Final de Estágio', `
     <table>
-      <tr>${field('Nome do Discente', data.nome_estudante, 2)}</tr>
-      <tr>
-        ${field('Curso', data.curso_estudante)}
-        ${field('Matrícula', data.matricula_estudante)}
-      </tr>
-      <tr>
-        ${field('Supervisor do Estágio', data.nome_supervisor)}
-        ${field('Docente Orientador (IFCE)', data.nome_orientador)}
-      </tr>
-      <tr>
-        ${field('Período Total de Estágio', formatDate(data.inicio_periodo) + ' a ' + formatDate(data.fim_periodo), 2)}
-      </tr>
-      <tr>${field('Carga Horária Total', data.horas_total ? data.horas_total + ' horas' : '', 2)}</tr>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Supervisor do Estágio', d.nome_supervisor, '50%'), f('Docente Orientador (IFCE)', d.nome_orientador, '50%'))}
+      ${row(f('Período de Estágio', fmt(d.inicio_periodo) + ' a ' + fmt(d.fim_periodo), '70%'), f('C.H. Total', (d.horas_total || '') + ' h', '30%'))}
     </table>
-    ${section('1. Resumo das Atividades Desenvolvidas', data.atividades)}
-    ${section('2. Competências Adquiridas', data.competencias)}
-    ${section('3. Avaliação do Estágio', data.avaliacao)}
-    ${section('4. Conclusão', data.conclusao)}
-    ${signatures('Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador')}
-  `)
+    ${sec('1. Resumo das Atividades Desenvolvidas', d.atividades)}
+    ${sec('2. Competências Adquiridas', d.competencias)}
+    ${sec('3. Avaliação do Estágio', d.avaliacao)}
+    ${sec('4. Conclusão', d.conclusao)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador')}`)
 }
 
-// ─── RELATÓRIO SEMESTRAL ─────────────────────────────────────────────────────
-export function buildSemesterReportHTML(data: Record<string, string>): string {
-  return wrapHTML('Relatório Semestral de Estágio', `
+// 3. Relatório Semestral
+export function buildSemesterReportHTML(d: Record<string, string>): string {
+  return wrap('Relatório Semestral de Estágio', `
     <table>
-      <tr>${field('Nome do Discente', data.nome_estudante, 2)}</tr>
-      <tr>
-        ${field('Curso', data.curso_estudante)}
-        ${field('Matrícula', data.matricula_estudante)}
-      </tr>
-      <tr>
-        ${field('Supervisor do Estágio', data.nome_supervisor)}
-        ${field('Docente Orientador (IFCE)', data.nome_orientador)}
-      </tr>
-      <tr>
-        ${field('Período', formatDate(data.inicio_periodo) + ' a ' + formatDate(data.fim_periodo))}
-        ${field('Carga Horária Semestral', data.horas_semestre ? data.horas_semestre + ' horas' : '')}
-      </tr>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Supervisor do Estágio', d.nome_supervisor, '50%'), f('Docente Orientador (IFCE)', d.nome_orientador, '50%'))}
+      ${row(f('Período', fmt(d.inicio_periodo) + ' a ' + fmt(d.fim_periodo), '70%'), f('C.H. Semestral', (d.horas_semestre || '') + ' h', '30%'))}
     </table>
-    ${section('1. Atividades Desenvolvidas no Semestre', data.atividades)}
-    ${section('2. Dificuldades e Soluções', data.dificuldades)}
-    ${section('3. Resultados Alcançados', data.resultados)}
-    ${signatures('Supervisor do Estágio', 'Discente Estagiário')}
-  `)
+    ${sec('1. Atividades Desenvolvidas no Semestre', d.atividades)}
+    ${sec('2. Dificuldades e Soluções', d.dificuldades)}
+    ${sec('3. Resultados Alcançados', d.resultados)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`)
 }
 
-// ─── FUNÇÃO GERADORA PRINCIPAL ───────────────────────────────────────────────
+// 4. Termo de Compromisso
+export function buildCommitmentTermHTML(d: Record<string, string>): string {
+  return wrap('Termo de Compromisso de Estágio', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('CPF', d.cpf_estudante, '40%'), f('RG', d.rg_estudante, '30%'), f('Data de Nascimento', fmt(d.data_nascimento), '30%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '70%'), f('CNPJ', d.empresa_cnpj, '30%'))}
+      ${row(f('Endereço da Empresa', d.empresa_endereco, '100%'))}
+      ${row(f('Setor de Estágio', d.empresa_setor, '50%'), f('Área de Atuação', d.area_atuacao, '50%'))}
+      ${row(f('Supervisor do Estágio', d.nome_supervisor, '65%'), f('Cargo', d.cargo_supervisor, '35%'))}
+      ${row(f('Docente Orientador (IFCE)', d.nome_orientador, '100%'))}
+      ${row(f('Início do Estágio', fmt(d.inicio_estagio), '33%'), f('Término do Estágio', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
+      ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Auxílio Transporte (R$)', d.valor_transporte, '50%'))}
+    </table>
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+}
+
+// 5. Termo Aditivo
+export function buildAdditiveTermHTML(d: Record<string, string>): string {
+  return wrap('Termo Aditivo ao Contrato de Estágio', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
+      ${row(f('Motivo do Aditivo', d.motivo_aditivo, '100%'))}
+      ${row(f('Nova Data de Término', fmt(d.nova_data_fim), '40%'), f('Nova C.H. Semanal', (d.nova_carga_horaria || '') + ' h', '30%'), f('', '', '30%'))}
+      ${row(f('Novo Valor da Bolsa (R$)', d.novo_valor_bolsa, '50%'), f('Novo Aux. Transporte (R$)', d.novo_valor_transporte, '50%'))}
+    </table>
+    ${sec('Justificativa', d.justificativa)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+}
+
+// 6. Declaração de Extensão / Prorrogação
+export function buildExtensionDeclarationHTML(d: Record<string, string>): string {
+  return wrap('Declaração de Prorrogação de Estágio', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
+      ${row(f('Início Original', fmt(d.inicio_original), '33%'), f('Término Original', fmt(d.fim_original), '33%'), f('Nova Data de Término', fmt(d.nova_data_fim), '34%'))}
+    </table>
+    ${sec('Justificativa da Prorrogação', d.justificativa)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+}
+
+// 7. Declaração Profissional
+export function buildProfessionalDeclarationHTML(d: Record<string, string>): string {
+  return wrap('Declaração de Estágio', `
+    <br/>
+    <p class="para">
+      Declaramos que <strong>${d.nome_estudante || '________________________________'}</strong>,
+      matriculado(a) no curso de <strong>${d.curso_estudante || '________________________________'}</strong>
+      sob o número de matrícula <strong>${d.matricula_estudante || '__________'}</strong>,
+      realizou estágio supervisionado nesta instituição no período de
+      <strong>${fmt(d.inicio_estagio)}</strong> a <strong>${fmt(d.fim_estagio)}</strong>,
+      totalizando <strong>${d.horas_total || '____'} horas</strong>.
+    </p>
+    <p class="para">
+      O(A) estagiário(a) desempenhou suas atividades no setor de
+      <strong>${d.setor || '________________________________'}</strong>,
+      sob supervisão de <strong>${d.nome_supervisor || '________________________________'}</strong>.
+    </p>
+    <p class="para">Por ser expressão da verdade, firmamos a presente declaração.</p>
+    <p class="para right">Maracanaú — CE, ${d.data_declaracao || fmt(new Date().toISOString().slice(0, 10))}</p>
+    <br/>
+    ${sigs('Supervisor do Estágio', 'Coordenador de Estágios IFCE')}`)
+}
+
+// 8. Solicitação de Matrícula em Estágio
+export function buildInternshipRegistrationHTML(d: Record<string, string>): string {
+  return wrap('Solicitação de Matrícula em Estágio Curricular', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('CPF', d.cpf_estudante, '40%'), f('E-mail', d.email_estudante, '60%'))}
+      ${row(f('Telefone', d.telefone_estudante, '40%'), f('Semestre Atual', d.semestre_atual, '30%'), f('Turno', d.turno, '30%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
+      ${row(f('Endereço da Empresa', d.empresa_endereco, '70%'), f('Cidade', d.empresa_cidade, '30%'))}
+      ${row(f('Início Pretendido', fmt(d.inicio_estagio), '33%'), f('Fim Pretendido', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
+    </table>
+    ${sigs('Discente', 'Coordenador de Estágios')}`)
+}
+
+// 9. Requerimento de Estágio
+export function buildInternshipRegistrationRequestHTML(d: Record<string, string>): string {
+  return wrap('Requerimento de Estágio Supervisionado', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('CPF', d.cpf_estudante, '45%'), f('Telefone', d.telefone_estudante, '55%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
+      ${row(f('Supervisor do Estágio', d.nome_supervisor, '65%'), f('Cargo', d.cargo_supervisor, '35%'))}
+      ${row(f('Início', fmt(d.inicio_estagio), '33%'), f('Término', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
+      ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Aux. Transporte (R$)', d.valor_transporte, '50%'))}
+    </table>
+    ${sec('Atividades Previstas', d.atividades_previstas)}
+    ${sigs('Discente', 'Supervisor do Estágio', 'Coordenador de Estágios')}`)
+}
+
+// 10. Termo de Realização
+export function buildRealizationTermHTML(d: Record<string, string>): string {
+  return wrap('Termo de Realização de Estágio', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
+      ${row(f('Supervisor do Estágio', d.nome_supervisor, '100%'))}
+      ${row(f('Início', fmt(d.inicio_estagio), '33%'), f('Término', fmt(d.fim_estagio), '33%'), f('C.H. Total', (d.horas_total || '') + ' h', '34%'))}
+    </table>
+    ${sec('Atividades Realizadas', d.atividades)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`)
+}
+
+// 11. Termo de Rescisão
+export function buildRescissionTermHTML(d: Record<string, string>): string {
+  return wrap('Termo de Rescisão de Estágio', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
+      ${row(f('Data de Início do Estágio', fmt(d.inicio_estagio), '50%'), f('Data da Rescisão', fmt(d.data_rescisao), '50%'))}
+    </table>
+    ${sec('Motivo da Rescisão', d.motivo_rescisao)}
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+}
+
+// 12. Pedido de Equivalência
+export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
+  return wrap('Pedido de Aproveitamento / Equivalência de Estágio', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Empresa / Instituição', d.empresa_nome, '100%'))}
+      ${row(f('Período', fmt(d.inicio_estagio) + ' a ' + fmt(d.fim_estagio), '70%'), f('C.H. Total', (d.horas_total || '') + ' h', '30%'))}
+    </table>
+    ${sec('Justificativa do Pedido', d.justificativa)}
+    ${sec('Componentes Curriculares Requeridos', d.componentes_curriculares)}
+    ${sigs('Discente', 'Coordenador de Estágios')}`)
+}
+
+// 13. Avaliação do Estudante
+export function buildStudentEvaluationHTML(d: Record<string, any>): string {
+  return wrap('Ficha de Avaliação do Estagiário', `
+    <table>
+      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
+      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
+      ${row(f('Empresa / Instituição', d.empresa_nome, '100%'))}
+      ${row(f('Supervisor Avaliador', d.nome_supervisor, '70%'), f('Cargo', d.cargo_supervisor, '30%'))}
+      ${row(f('Período Avaliado', fmt(d.inicio_periodo) + ' a ' + fmt(d.fim_periodo), '100%'))}
+    </table>
+    ${sec('1. Pontualidade e Assiduidade', d.avaliacao_pontualidade)}
+    ${sec('2. Postura Profissional', d.avaliacao_postura)}
+    ${sec('3. Conhecimento Técnico', d.avaliacao_tecnico)}
+    ${sec('4. Relacionamento Interpessoal', d.avaliacao_relacionamento)}
+    ${sec('5. Considerações Gerais', d.consideracoes)}
+    ${sigs('Supervisor Avaliador', 'Coordenador de Estágios')}`)
+}
+
+// ─── GERADOR PRINCIPAL ────────────────────────────────────────────────────────
 export async function generateHTMLPDF(html: string, filename: string): Promise<void> {
   const { default: html2pdf } = await import('html2pdf.js')
 
-  // Usar iframe para renderizar o HTML completo com estilos aplicados corretamente
   const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden;'
+  iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;background:#fff;'
   document.body.appendChild(iframe)
 
   const doc = iframe.contentDocument || iframe.contentWindow?.document
-  if (!doc) {
-    document.body.removeChild(iframe)
-    throw new Error('Não foi possível criar o iframe para o PDF')
-  }
+  if (!doc) { document.body.removeChild(iframe); throw new Error('iframe falhou') }
 
-  doc.open()
-  doc.write(html)
-  doc.close()
+  doc.open(); doc.write(html); doc.close()
 
-  // Aguardar imagens carregarem (base64 é imediato, mas o layout precisa estabilizar)
-  await new Promise(resolve => setTimeout(resolve, 800))
+  await new Promise(resolve => setTimeout(resolve, 1200))
 
   const opt = {
-    margin: [10, 10, 10, 10] as [number, number, number, number],
+    margin: [6, 6, 6, 6] as [number, number, number, number],
     filename,
-    image: { type: 'jpeg' as const, quality: 0.98 },
+    image: { type: 'jpeg' as const, quality: 0.97 },
     html2canvas: {
       scale: 2,
       useCORS: true,
       logging: false,
-      windowWidth: 794, // largura A4 em px a 96dpi
+      backgroundColor: '#ffffff',
+      windowWidth: 794,
+      windowHeight: 1123,
     },
     jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
   }

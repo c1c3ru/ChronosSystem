@@ -84,26 +84,29 @@ export default function RealizationTermPage() {
 
     const handleGeneratePDF = async () => {
         try {
-            if (!formRef.current) return
-
-            // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-            // Adicionar data atual se não estiver presente (se aplicável)
-            const now = new Date()
-            if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-            if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-            if (!data.date_year) data.date_year = String(now.getFullYear())
-
             toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-            const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+            const raw: any = { ...formData }
+            const { generateHTMLPDF, buildRealizationTermHTML } = await import('@/lib/pdf-generator-html')
 
-            // Criar o documento React-PDF
-            const pdfDocument = <RealizationTermDocument data={data as any} />
+            // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+            const htmlData = {
+                nome_estudante: raw.student_name || '',
+                curso_estudante: raw.student_course || '',
+                matricula_estudante: raw.student_enrollment || '',
+                cpf_estudante: raw.student_cpf || '',
+                rg_estudante: raw.student_rg || '',
+                empresa_nome: raw.company_name || '',
+                empresa_cnpj: raw.company_cnpj || '',
+                inicio_estagio: raw.internship_start_date || '',
+                fim_estagio: raw.internship_end_date || '',
+                horas_total: raw.total_hours || '',
+                atividades: raw.activities || '',
+                avaliacao: raw.performance_evaluation || ''
+            }
 
-            // Gerar e baixar o PDF
-            await generateAndDownloadPDF(pdfDocument, 'realization-term.pdf')
+            const html = buildRealizationTermHTML(htmlData)
+            await generateHTMLPDF(html, 'termo-realizacao.pdf')
 
             toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
         } catch (error) {
@@ -168,23 +171,23 @@ export default function RealizationTermPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
-                                    <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome Completo" placeholder="Nome Completo" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                                    <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} title="CPF" placeholder="000.000.000-00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">RG</label>
-                                    <input type="text" name="student_rg" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_rg" className="input w-full" onChange={handleInputChange} title="RG" placeholder="Órgão Emissor/UF" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                                    <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                                    <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
                                 </div>
                             </div>
                         </CardContent>
@@ -199,19 +202,19 @@ export default function RealizationTermPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
-                                    <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Razão Social" placeholder="Razão Social da Empresa" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                                    <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                                    <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} title="Supervisor do Estágio" placeholder="Nome do Supervisor" />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                                    <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                                    <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço Completo da Empresa" />
                                 </div>
                             </div>
                         </CardContent>
@@ -226,31 +229,31 @@ export default function RealizationTermPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Início</label>
-                                    <input type="date" name="internship_start_date" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="internship_start_date" className="input w-full" onChange={handleInputChange} title="Data de Início" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Término</label>
-                                    <input type="date" name="internship_end_date" className="input w-full" onChange={handleInputChange} />
+                                    <input type="date" name="internship_end_date" className="input w-full" onChange={handleInputChange} title="Data de Término" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Total (horas)</label>
-                                    <input type="number" name="total_hours" className="input w-full" onChange={handleInputChange} />
+                                    <input type="number" name="total_hours" className="input w-full" onChange={handleInputChange} title="Carga Horária Total (horas)" placeholder="000" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal (horas)</label>
-                                    <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
+                                    <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} title="Carga Horária Semanal (horas)" placeholder="00" />
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Atividades Desenvolvidas</label>
-                                    <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
+                                    <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange} title="Atividades Desenvolvidas" placeholder="Descreva as atividades realizadas"></textarea>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Avaliação do Desempenho</label>
-                                    <textarea name="performance_evaluation" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
+                                    <textarea name="performance_evaluation" rows={5} className="input w-full" onChange={handleInputChange} title="Avaliação do Desempenho" placeholder="Descreva o desempenho do estagiário"></textarea>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
-                                    <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} />
+                                    <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} title="Cidade" placeholder="Fortaleza" />
                                 </div>
                             </div>
                         </CardContent>

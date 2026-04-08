@@ -181,26 +181,33 @@ export default function InternshipRegistrationRequestPage() {
 
     const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Adicionar data atual se não estiver presente (se aplicável)
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      const raw: any = { ...formData }
+      const { generateHTMLPDF, buildInternshipRegistrationRequestHTML } = await import('@/lib/pdf-generator-html')
       
-      // Criar o documento React-PDF
-      const pdfDocument = <InternshipRegistrationRequestDocument data={data as any} />
+      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
+      const htmlData = {
+        nome_estudante: raw.nome || '',
+        curso_estudante: raw.curso || '',
+        matricula_estudante: raw.matricula || '',
+        cpf_estudante: raw.cpf || '',
+        email_estudante: raw.email_institucional || raw.email_pessoal || '',
+        telefone_estudante: raw.telefone || '',
+        empresa_nome: raw.nome_fantasia_pf || '',
+        empresa_cnpj: raw.cnpj_registro_conselho || '',
+        empresa_endereco: raw.endereco_pf || '',
+        nome_supervisor: raw.supervisor_nome || '',
+        cargo_supervisor: raw.supervisor_cargo || '',
+        setor_supervisor: raw.setor_realizacao || '',
+        tipo_estagio: raw.tipo_estagio === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
+        data_inicio: raw.data_inicial || '',
+        data_fim: raw.data_final_prevista || '',
+        carga_horaria: raw.carga_horaria_semanal || ''
+      }
       
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'internship-registration-request.pdf')
+      const html = buildInternshipRegistrationRequestHTML(htmlData)
+      await generateHTMLPDF(html, 'solicitacao-cadastro-estagio.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -251,24 +258,24 @@ export default function InternshipRegistrationRequestPage() {
                         <CardHeader><CardTitle className="text-lg">1. Dados Pessoais</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input name="nome" value={formData.nome} onChange={handleInputChange} placeholder="Nome Completo" className="input col-span-2" />
-                                <input name="cpf" value={formData.cpf} onChange={handleInputChange} placeholder="CPF" className="input" />
+                                <input name="nome" value={formData.nome} onChange={handleInputChange} placeholder="Nome Completo" className="input col-span-2" title="Nome Completo" />
+                                <input name="cpf" value={formData.cpf} onChange={handleInputChange} placeholder="CPF" className="input" title="CPF" />
                             </div>
-                            <input name="nome_social" value={formData.nome_social} onChange={handleInputChange} placeholder="Nome Social (Opcional)" className="input" />
+                            <input name="nome_social" value={formData.nome_social} onChange={handleInputChange} placeholder="Nome Social (Opcional)" className="input" title="Nome Social" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input name="curso" value={formData.curso} onChange={handleInputChange} placeholder="Curso" className="input" />
-                                <input name="matricula" value={formData.matricula} onChange={handleInputChange} placeholder="Matrícula" className="input" />
+                                <input name="curso" value={formData.curso} onChange={handleInputChange} placeholder="Curso" className="input" title="Curso" />
+                                <input name="matricula" value={formData.matricula} onChange={handleInputChange} placeholder="Matrícula" className="input" title="Matrícula" />
                             </div>
-                            <input name="endereco" value={formData.endereco} onChange={handleInputChange} placeholder="Endereço Completo" className="input" />
+                            <input name="endereco" value={formData.endereco} onChange={handleInputChange} placeholder="Endereço Completo" className="input" title="Endereço" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input name="bairro" value={formData.bairro} onChange={handleInputChange} placeholder="Bairro" className="input" />
-                                <input name="municipio_uf" value={formData.municipio_uf} onChange={handleInputChange} placeholder="Município-UF" className="input" />
-                                <input name="cep" value={formData.cep} onChange={handleInputChange} placeholder="CEP" className="input" />
+                                <input name="bairro" value={formData.bairro} onChange={handleInputChange} placeholder="Bairro" className="input" title="Bairro" />
+                                <input name="municipio_uf" value={formData.municipio_uf} onChange={handleInputChange} placeholder="Município-UF" className="input" title="Município-UF" />
+                                <input name="cep" value={formData.cep} onChange={handleInputChange} placeholder="CEP" className="input" title="CEP" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input name="telefone" value={formData.telefone} onChange={handleInputChange} placeholder="Telefone" className="input" />
-                                <input name="email_institucional" value={formData.email_institucional} onChange={handleInputChange} placeholder="E-mail Institucional" className="input" />
-                                <input name="email_pessoal" value={formData.email_pessoal} onChange={handleInputChange} placeholder="E-mail Pessoal" className="input" />
+                                <input name="telefone" value={formData.telefone} onChange={handleInputChange} placeholder="Telefone" className="input" title="Telefone" />
+                                <input name="email_institucional" value={formData.email_institucional} onChange={handleInputChange} placeholder="E-mail Institucional" className="input" title="E-mail Institucional" />
+                                <input name="email_pessoal" value={formData.email_pessoal} onChange={handleInputChange} placeholder="E-mail Pessoal" className="input" title="E-mail Pessoal" />
                             </div>
                         </CardContent>
                     </Card>
@@ -280,7 +287,7 @@ export default function InternshipRegistrationRequestPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-semibold text-neutral-300 mb-2">Cor/Raça</label>
-                                    <select name="cor_raca" value={formData.cor_raca} onChange={handleInputChange} className="input w-full">
+                                    <select name="cor_raca" value={formData.cor_raca} onChange={handleInputChange} className="input w-full" title="Cor/Raça">
                                         <option value="amarelo">Amarelo(a)</option>
                                         <option value="branco">Branco(a)</option>
                                         <option value="indigena">Indígena</option>
@@ -291,7 +298,7 @@ export default function InternshipRegistrationRequestPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-neutral-300 mb-2">Etnia</label>
-                                    <select name="etnia" value={formData.etnia} onChange={handleInputChange} className="input w-full">
+                                    <select name="etnia" value={formData.etnia} onChange={handleInputChange} className="input w-full" title="Etnia">
                                         <option value="indigena">Indígena</option>
                                         <option value="quilombola">Quilombola</option>
                                         <option value="outra">Outra</option>
@@ -309,14 +316,14 @@ export default function InternshipRegistrationRequestPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm text-neutral-400 mb-1">Tipo de Estágio</label>
-                                    <select name="tipo_estagio" value={formData.tipo_estagio} onChange={handleInputChange} className="input w-full">
+                                    <select name="tipo_estagio" value={formData.tipo_estagio} onChange={handleInputChange} className="input w-full" title="Tipo de Estágio">
                                         <option value="obrigatorio">Obrigatório</option>
                                         <option value="nao_obrigatorio">Não Obrigatório</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-neutral-400 mb-1">Forma de Estágio</label>
-                                    <select name="forma_estagio" value={formData.forma_estagio} onChange={handleInputChange} className="input w-full">
+                                    <select name="forma_estagio" value={formData.forma_estagio} onChange={handleInputChange} className="input w-full" title="Forma de Estágio">
                                         <option value="presencial">Presencial</option>
                                         <option value="remoto">Remoto</option>
                                     </select>
@@ -325,15 +332,15 @@ export default function InternshipRegistrationRequestPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm text-neutral-400 mb-1">Data Inicial</label>
-                                    <input type="date" name="data_inicial" value={formData.data_inicial} onChange={handleInputChange} className="input w-full" />
+                                    <input type="date" name="data_inicial" value={formData.data_inicial} onChange={handleInputChange} className="input w-full" title="Data Inicial" />
                                 </div>
                                 <div>
                                     <label className="block text-sm text-neutral-400 mb-1">Carga Horária Semanal</label>
-                                    <input type="number" name="carga_horaria_semanal" value={formData.carga_horaria_semanal} onChange={handleInputChange} placeholder="Horas" className="input w-full" />
+                                    <input type="number" name="carga_horaria_semanal" value={formData.carga_horaria_semanal} onChange={handleInputChange} placeholder="Horas" className="input w-full" title="Carga Horária Semanal" />
                                 </div>
                                 <div>
                                     <label className="block text-sm text-neutral-400 mb-1">Data Final Prevista</label>
-                                    <input type="date" name="data_final_prevista" value={formData.data_final_prevista} onChange={handleInputChange} className="input w-full" />
+                                    <input type="date" name="data_final_prevista" value={formData.data_final_prevista} onChange={handleInputChange} className="input w-full" title="Data Final Prevista" />
                                 </div>
                             </div>
                         </CardContent>
@@ -358,6 +365,7 @@ export default function InternshipRegistrationRequestPage() {
                                             checked={formData.deficiencia.includes(def.id)}
                                             onChange={() => handleDeficienciaChange(def.id)}
                                             className="w-4 h-4 rounded border-neutral-600 bg-neutral-800 text-primary focus:ring-primary focus:ring-offset-neutral-900"
+                                            title={`Deficiência: ${def.label}`}
                                         />
                                         {def.label}
                                     </label>
@@ -371,18 +379,18 @@ export default function InternshipRegistrationRequestPage() {
                         <CardHeader><CardTitle className="text-lg">4. Unidade Concedente / Empresa</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input name="nome_fantasia_pf" value={formData.nome_fantasia_pf} onChange={handleInputChange} placeholder="Nome Fantasia / Razão Social" className="input" />
-                                <input name="cnpj_registro_conselho" value={formData.cnpj_registro_conselho} onChange={handleInputChange} placeholder="CNPJ ou Registro no Conselho" className="input" />
+                                <input name="nome_fantasia_pf" value={formData.nome_fantasia_pf} onChange={handleInputChange} placeholder="Nome Fantasia / Razão Social" className="input" title="Nome Fantasia / Razão Social" />
+                                <input name="cnpj_registro_conselho" value={formData.cnpj_registro_conselho} onChange={handleInputChange} placeholder="CNPJ ou Registro no Conselho" className="input" title="CNPJ ou Registro" />
                             </div>
-                            <input name="endereco_pf" value={formData.endereco_pf} onChange={handleInputChange} placeholder="Endereço" className="input" />
+                            <input name="endereco_pf" value={formData.endereco_pf} onChange={handleInputChange} placeholder="Endereço" className="input" title="Endereço da Empresa" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input name="bairro_pf" value={formData.bairro_pf} onChange={handleInputChange} placeholder="Bairro" className="input" />
-                                <input name="municipio_uf_pf" value={formData.municipio_uf_pf} onChange={handleInputChange} placeholder="Município-UF" className="input" />
-                                <input name="cep_pf" value={formData.cep_pf} onChange={handleInputChange} placeholder="CEP" className="input" />
+                                <input name="bairro_pf" value={formData.bairro_pf} onChange={handleInputChange} placeholder="Bairro" className="input" title="Bairro da Empresa" />
+                                <input name="municipio_uf_pf" value={formData.municipio_uf_pf} onChange={handleInputChange} placeholder="Município-UF" className="input" title="Município-UF da Empresa" />
+                                <input name="cep_pf" value={formData.cep_pf} onChange={handleInputChange} placeholder="CEP" className="input" title="CEP da Empresa" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input name="telefone_pf" value={formData.telefone_pf} onChange={handleInputChange} placeholder="Telefone" className="input" />
-                                <input name="email_pf" value={formData.email_pf} onChange={handleInputChange} placeholder="E-mail" className="input" />
+                                <input name="telefone_pf" value={formData.telefone_pf} onChange={handleInputChange} placeholder="Telefone" className="input" title="Telefone da Empresa" />
+                                <input name="email_pf" value={formData.email_pf} onChange={handleInputChange} placeholder="E-mail" className="input" title="E-mail da Empresa" />
                             </div>
                         </CardContent>
                     </Card>
@@ -394,21 +402,21 @@ export default function InternshipRegistrationRequestPage() {
                             <div className="space-y-4">
                                 <h3 className="text-sm font-semibold text-neutral-400">Responsável Legal da Empresa</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input name="responsavel_legal" value={formData.responsavel_legal} onChange={handleInputChange} placeholder="Nome do Responsável Legal" className="input" />
-                                    <input name="cargo_qualificacao" value={formData.cargo_qualificacao} onChange={handleInputChange} placeholder="Cargo / Qualificação" className="input" />
+                                    <input name="responsavel_legal" value={formData.responsavel_legal} onChange={handleInputChange} placeholder="Nome do Responsável Legal" className="input" title="Nome do Responsável Legal" />
+                                    <input name="cargo_qualificacao" value={formData.cargo_qualificacao} onChange={handleInputChange} placeholder="Cargo / Qualificação" className="input" title="Cargo do Responsável" />
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input name="cpf_responsavel" value={formData.cpf_responsavel} onChange={handleInputChange} placeholder="CPF do Responsável" className="input" />
-                                    <input name="telefone_responsavel" value={formData.telefone_responsavel} onChange={handleInputChange} placeholder="Telefone do Responsável" className="input" />
+                                    <input name="cpf_responsavel" value={formData.cpf_responsavel} onChange={handleInputChange} placeholder="CPF do Responsável" className="input" title="CPF do Responsável" />
+                                    <input name="telefone_responsavel" value={formData.telefone_responsavel} onChange={handleInputChange} placeholder="Telefone do Responsável" className="input" title="Telefone do Responsável" />
                                 </div>
                             </div>
                             
                             <div className="space-y-4 border-t border-neutral-800 pt-6">
                                 <h3 className="text-sm font-semibold text-neutral-400">Supervisor(a) do Estágio</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <input name="supervisor_nome" value={formData.supervisor_nome} onChange={handleInputChange} placeholder="Nome do Supervisor" className="input" />
-                                    <input name="supervisor_cargo" value={formData.supervisor_cargo} onChange={handleInputChange} placeholder="Cargo" className="input" />
-                                    <input name="setor_realizacao" value={formData.setor_realizacao} onChange={handleInputChange} placeholder="Setor de Realização" className="input" />
+                                    <input name="supervisor_nome" value={formData.supervisor_nome} onChange={handleInputChange} placeholder="Nome do Supervisor" className="input" title="Nome do Supervisor" />
+                                    <input name="supervisor_cargo" value={formData.supervisor_cargo} onChange={handleInputChange} placeholder="Cargo" className="input" title="Cargo do Supervisor" />
+                                    <input name="setor_realizacao" value={formData.setor_realizacao} onChange={handleInputChange} placeholder="Setor de Realização" className="input" title="Setor de Realização" />
                                 </div>
                             </div>
                         </CardContent>
@@ -429,12 +437,14 @@ export default function InternshipRegistrationRequestPage() {
                                                 onChange={(e) => setFormData(prev => ({ ...prev, horarios: { ...prev.horarios, [dia]: { ...prev.horarios[dia], inicio: e.target.value } } }))}
                                                 placeholder="Início"
                                                 className="input text-center"
+                                                title={`Início ${dia}`}
                                             />
                                             <input
                                                 value={formData.horarios[dia].final}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, horarios: { ...prev.horarios, [dia]: { ...prev.horarios[dia], final: e.target.value } } }))}
                                                 placeholder="Fim"
                                                 className="input text-center"
+                                                title={`Fim ${dia}`}
                                             />
                                         </div>
                                     ))}
@@ -449,18 +459,21 @@ export default function InternshipRegistrationRequestPage() {
                                         onChange={(e) => setFormData(prev => ({ ...prev, turnos: { ...prev.turnos, primeira: { ...prev.turnos.primeira, segunda: e.target.value } } }))} 
                                         placeholder="1ª Opção" 
                                         className="input" 
+                                        title="1ª Opção de Turno"
                                     />
                                     <input 
                                         value={formData.turnos.segunda.segunda || ''} 
                                         onChange={(e) => setFormData(prev => ({ ...prev, turnos: { ...prev.turnos, segunda: { ...prev.turnos.segunda, segunda: e.target.value } } }))} 
                                         placeholder="2ª Opção" 
                                         className="input" 
+                                        title="2ª Opção de Turno"
                                     />
                                     <input 
                                         value={formData.turnos.terceira.segunda || ''} 
                                         onChange={(e) => setFormData(prev => ({ ...prev, turnos: { ...prev.turnos, terceira: { ...prev.turnos.terceira, segunda: e.target.value } } }))} 
                                         placeholder="3ª Opção" 
                                         className="input" 
+                                        title="3ª Opção de Turno"
                                     />
                                 </div>
                             </div>
@@ -470,11 +483,11 @@ export default function InternshipRegistrationRequestPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-2">
                                         <label className="text-sm text-neutral-400">Data de Solicitação</label>
-                                        <input type="date" name="data_solicitacao" value={formData.data_solicitacao} onChange={handleInputChange} className="input" />
+                                        <input type="date" name="data_solicitacao" value={formData.data_solicitacao} onChange={handleInputChange} className="input" title="Data de Solicitação" />
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <label className="text-sm text-neutral-400">Data de Autorização</label>
-                                        <input type="date" name="data_autorizacao" value={formData.data_autorizacao} onChange={handleInputChange} className="input" />
+                                        <input type="date" name="data_autorizacao" value={formData.data_autorizacao} onChange={handleInputChange} className="input" title="Data de Autorização" />
                                     </div>
                                 </div>
                             </div>

@@ -95,33 +95,33 @@ export default function AdditiveTermPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Processar checkboxes
-      const checkboxes = ['additive_type_prorogation', 'additive_type_allowance', 'additive_type_supervisor', 'additive_type_schedule', 'additive_type_other']
-      checkboxes.forEach(cb => {
-        if (!data[cb]) data[cb] = 'false'
-        else data[cb] = 'true'
-      })
-
-      // Adicionar data atual se não estiver presente
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      const raw: any = { ...formData }
+      const { generateHTMLPDF, buildAdditiveTermHTML } = await import('@/lib/pdf-generator-html')
 
-      // Criar o documento React-PDF
-      const pdfDocument = <AdditiveTermDocument data={data as any} />
+      // Mapear campos para o gerador HTML
+      const htmlData = {
+        nome_estudante: raw.student_name || '',
+        curso_estudante: raw.student_course || '',
+        matricula_estudante: raw.student_enrollment || '',
+        empresa_nome: raw.company_name || '',
+        motivo_aditivo: [
+          raw.additive_type_prorogation === 'true' ? 'Prorrogação' : '',
+          raw.additive_type_allowance === 'true' ? 'Valor da Bolsa' : '',
+          raw.additive_type_supervisor === 'true' ? 'Supervisor' : '',
+          raw.additive_type_schedule === 'true' ? 'Horário' : '',
+          raw.additive_type_other === 'true' ? 'Outros' : ''
+        ].filter(Boolean).join(', '),
+        nova_data_fim: raw.new_end_date || '',
+        nova_carga_horaria: raw.new_schedule || '',
+        novo_valor_bolsa: raw.new_allowance_value || '',
+        novo_valor_transporte: '', // Campo opcional
+        justificativa: raw.other_changes || 'Alteração solicitada pelas partes.'
+      }
 
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'additive-term.pdf')
+      const html = buildAdditiveTermHTML(htmlData)
+      await generateHTMLPDF(html, 'termo-aditivo.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
@@ -189,23 +189,23 @@ export default function AdditiveTermPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
-                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Razão Social" placeholder="Razão Social" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Representante Legal</label>
-                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} title="Representante Legal" placeholder="Nome Completo" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Representante</label>
-                  <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} title="Cargo do Representante" placeholder="Ex: Diretor" />
                 </div>
 
                 <div className="md:col-span-2 mt-4">
@@ -213,23 +213,23 @@ export default function AdditiveTermPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
-                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome Completo" placeholder="Nome do Aluno" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                  <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} title="CPF" placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} />
+                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} title="Endereço do Aluno" placeholder="Endereço Completo" />
                 </div>
               </div>
             </CardContent>
@@ -258,7 +258,7 @@ export default function AdditiveTermPage() {
                 {formData.additive_type_prorogation === 'true' && (
                   <div className="ml-6 mt-2">
                     <label className="block text-sm font-medium text-neutral-300 mb-1">Nova Data Final</label>
-                    <input type="date" name="new_end_date" className="input w-full md:w-1/2" onChange={handleInputChange} />
+                    <input type="date" name="new_end_date" className="input w-full md:w-1/2" onChange={handleInputChange} title="Nova Data Final" />
                   </div>
                 )}
               </div>
@@ -278,7 +278,7 @@ export default function AdditiveTermPage() {
                 {formData.additive_type_allowance === 'true' && (
                   <div className="ml-6 mt-2">
                     <label className="block text-sm font-medium text-neutral-300 mb-1">Novo Valor (R$)</label>
-                    <input type="text" name="new_allowance_value" className="input w-full md:w-1/2" placeholder="0,00" onChange={handleInputChange} />
+                    <input type="text" name="new_allowance_value" className="input w-full md:w-1/2" placeholder="0,00" onChange={handleInputChange} title="Novo Valor da Bolsa" />
                   </div>
                 )}
               </div>
@@ -299,15 +299,15 @@ export default function AdditiveTermPage() {
                   <div className="ml-6 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-neutral-300 mb-1">Novo Supervisor</label>
-                      <input type="text" name="new_supervisor_name" className="input w-full" onChange={handleInputChange} />
+                      <input type="text" name="new_supervisor_name" className="input w-full" onChange={handleInputChange} title="Novo Supervisor" placeholder="Nome do Supervisor" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo</label>
-                      <input type="text" name="new_supervisor_role" className="input w-full" onChange={handleInputChange} />
+                      <input type="text" name="new_supervisor_role" className="input w-full" onChange={handleInputChange} title="Cargo" placeholder="Cargo" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-neutral-300 mb-1">Registro Profissional (Conselho)</label>
-                      <input type="text" name="new_supervisor_council" className="input w-full" onChange={handleInputChange} />
+                      <input type="text" name="new_supervisor_council" className="input w-full" onChange={handleInputChange} title="Registro Profissional" placeholder="Ex: CRM-CE 1234" />
                     </div>
                   </div>
                 )}
@@ -328,7 +328,7 @@ export default function AdditiveTermPage() {
                 {formData.additive_type_schedule === 'true' && (
                   <div className="ml-6 mt-2">
                     <label className="block text-sm font-medium text-neutral-300 mb-1">Novo Horário (Descrição)</label>
-                    <textarea name="new_schedule" rows={3} className="input w-full" placeholder="Ex: Segunda a Sexta, das 08:00 às 12:00" onChange={handleInputChange}></textarea>
+                    <textarea name="new_schedule" rows={3} className="input w-full" placeholder="Ex: Segunda a Sexta, das 08:00 às 12:00" onChange={handleInputChange} title="Novo Horário"></textarea>
                   </div>
                 )}
               </div>
@@ -348,7 +348,7 @@ export default function AdditiveTermPage() {
                 {formData.additive_type_other === 'true' && (
                   <div className="ml-6 mt-2">
                     <label className="block text-sm font-medium text-neutral-300 mb-1">Descrição</label>
-                    <textarea name="other_changes" rows={3} className="input w-full" onChange={handleInputChange}></textarea>
+                    <textarea name="other_changes" rows={3} className="input w-full" onChange={handleInputChange} title="Descrição das Alterações" placeholder="Descreva as demais alterações"></textarea>
                   </div>
                 )}
               </div>
@@ -364,11 +364,11 @@ export default function AdditiveTermPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade do Campus</label>
-                  <input type="text" name="campus_city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} />
+                  <input type="text" name="campus_city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} title="Cidade do Campus" placeholder="Fortaleza" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Diretor Geral (Representante IFCE)</label>
-                  <input type="text" name="campus_director" className="input w-full" placeholder="Nome do Diretor" onChange={handleInputChange} />
+                  <input type="text" name="campus_director" className="input w-full" placeholder="Nome do Diretor" onChange={handleInputChange} title="Diretor Geral" />
                 </div>
               </div>
             </CardContent>
