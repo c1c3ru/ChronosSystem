@@ -146,22 +146,40 @@ export function buildSemesterReportHTML(data: Record<string, string>): string {
 export async function generateHTMLPDF(html: string, filename: string): Promise<void> {
   const { default: html2pdf } = await import('html2pdf.js')
 
-  const container = document.createElement('div')
-  container.innerHTML = html
-  container.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;'
-  document.body.appendChild(container)
+  // Usar iframe para renderizar o HTML completo com estilos aplicados corretamente
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden;'
+  document.body.appendChild(iframe)
+
+  const doc = iframe.contentDocument || iframe.contentWindow?.document
+  if (!doc) {
+    document.body.removeChild(iframe)
+    throw new Error('Não foi possível criar o iframe para o PDF')
+  }
+
+  doc.open()
+  doc.write(html)
+  doc.close()
+
+  // Aguardar imagens carregarem (base64 é imediato, mas o layout precisa estabilizar)
+  await new Promise(resolve => setTimeout(resolve, 800))
 
   const opt = {
     margin: [10, 10, 10, 10] as [number, number, number, number],
     filename,
     image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: 794, // largura A4 em px a 96dpi
+    },
     jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
   }
 
   try {
-    await html2pdf().set(opt).from(container).save()
+    await html2pdf().set(opt).from(doc.body).save()
   } finally {
-    document.body.removeChild(container)
+    document.body.removeChild(iframe)
   }
 }

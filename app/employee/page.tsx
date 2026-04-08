@@ -585,8 +585,7 @@ export default function EmployeePage() {
             </div>
           )}
 
-          {/* Notificação de Feriados Próximos */}
-          <HolidayNotification />
+
 
           {/* Status Card */}
           <Card className="glass-card overflow-hidden border-white/5 ring-1 ring-white/10 hover:ring-primary/20">
