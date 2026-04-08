@@ -33,8 +33,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         const errorId = `${inputId}-error`
         const helperId = `${inputId}-helper`
 
-        const isInvalid = error ? "true" : "false"
-        const isRequired = required ? "true" : "false"
+        const inputProps = {
+            ...props,
+            'aria-invalid': (error ? "true" : "false") as "true" | "false",
+            'aria-required': (required ? "true" : "false") as boolean | "true" | "false",
+            disabled: disabled,
+            id: inputId,
+            ref: ref,
+            className: cn(
+                'w-full h-10 px-3 rounded-md border bg-white text-gray-900 transition-colors',
+                'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                'disabled:cursor-not-allowed disabled:opacity-50',
+                error
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-blue-500',
+                leftIcon && 'pl-10',
+                rightIcon && 'pr-10',
+                className
+            ),
+            'aria-describedby': cn(
+                error && errorId,
+                helperText && helperId
+            )
+        }
 
         return (
             <div className="w-full">
@@ -59,29 +80,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         </div>
                     )}
 
-                    <input
-                        ref={ref}
-                        id={inputId}
-                        className={cn(
-                            'w-full h-10 px-3 rounded-md border bg-white text-gray-900 transition-colors',
-                            'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                            'disabled:cursor-not-allowed disabled:opacity-50',
-                            error
-                                ? 'border-red-500 focus:ring-red-500'
-                                : 'border-gray-300 focus:ring-blue-500',
-                            leftIcon && 'pl-10',
-                            rightIcon && 'pr-10',
-                            className
-                        )}
-                        aria-invalid={isInvalid}
-                        aria-describedby={cn(
-                            error && errorId,
-                            helperText && helperId
-                        )}
-                        aria-required={isRequired}
-                        disabled={disabled}
-                        {...props}
-                    />
+                    <input {...inputProps} />
 
                     {rightIcon && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">

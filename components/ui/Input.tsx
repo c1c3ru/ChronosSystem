@@ -14,9 +14,22 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || generatedId
     const helperTextId = helperText ? `${inputId}-helper` : undefined
     const errorId = error && helperText ? `${inputId}-error` : undefined
-    const isInvalid = error ? "true" : "false"
-    const isRequired = required ? "true" : "false"
     const describedBy = error ? errorId : helperTextId
+
+    const inputProps = {
+      ...props,
+      id: inputId,
+      type: type,
+      className: cn(
+        'input',
+        error && 'border-destructive focus-visible:ring-destructive',
+        className
+      ),
+      ref: ref,
+      'aria-invalid': (error ? "true" : "false") as "true" | "false",
+      'aria-describedby': describedBy,
+      'aria-required': (required ? "true" : "false") as boolean | "true" | "false",
+    }
 
     return (
       <div className="w-full">
@@ -32,20 +45,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {required && <span className="text-destructive ml-1" aria-label="obrigatório">*</span>}
           </label>
         )}
-        <input
-          id={inputId}
-          type={type}
-          className={cn(
-            'input',
-            error && 'border-destructive focus-visible:ring-destructive',
-            className
-          )}
-          ref={ref}
-          aria-invalid={isInvalid}
-          aria-describedby={describedBy}
-          aria-required={isRequired}
-          {...props}
-        />
+        <input {...inputProps} />
         {helperText && error && (
           <p
             id={errorId}
