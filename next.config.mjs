@@ -15,7 +15,7 @@ function buildCsp() {
     `object-src 'none'`,
     `frame-ancestors 'none'`,
     `form-action 'self'`,
-    `script-src ${scriptSrc.join(' ')} blob:`,
+    `script-src ${scriptSrc.join(' ')} blob: 'wasm-unsafe-eval'`,
     `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com data:`,
