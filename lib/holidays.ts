@@ -14,6 +14,7 @@ interface HolidayDef {
 // Feriados fixos nacionais, estaduais (CE) e municipais (Fortaleza)
 const FIXED_HOLIDAYS: HolidayDef[] = [
     { name: 'Confraternização Universal', date: '01-01', type: 'fixed' },
+    { name: 'Dia de São José', date: '03-19', type: 'fixed' }, // Estadual CE
     { name: 'Data Magna do Ceará', date: '03-25', type: 'fixed' }, // Estadual CE
     { name: 'Tiradentes', date: '04-21', type: 'fixed' },
     { name: 'Dia do Trabalho', date: '05-01', type: 'fixed' },
@@ -55,9 +56,21 @@ function getMobileHolidays(year: number): { name: string; date: Date }[] {
     const easter = calculateEaster(year)
     const holidays: { name: string; date: Date }[] = []
 
+    const carnivalSegunda = new Date(easter)
+    carnivalSegunda.setDate(easter.getDate() - 48)
+    holidays.push({ name: 'Carnaval (Recesso)', date: carnivalSegunda })
+    
     const carnival = new Date(easter)
     carnival.setDate(easter.getDate() - 47)
     holidays.push({ name: 'Carnaval', date: carnival })
+    
+    const carnivalQuarta = new Date(easter)
+    carnivalQuarta.setDate(easter.getDate() - 46)
+    holidays.push({ name: 'Quarta-feira de Cinzas (Recesso)', date: carnivalQuarta })
+
+    const quintaSanta = new Date(easter)
+    quintaSanta.setDate(easter.getDate() - 3)
+    holidays.push({ name: 'Quinta-feira Santa (Recesso)', date: quintaSanta })
 
     const goodFriday = new Date(easter)
     goodFriday.setDate(easter.getDate() - 2)
