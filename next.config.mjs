@@ -5,9 +5,8 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 const isProd = process.env.NODE_ENV === 'production';
 
 function buildCsp() {
-  // Mantém 'unsafe-inline' por compatibilidade; remove 'unsafe-eval' em produção.
-  const scriptSrc = ["'self'", "'unsafe-inline'"];
-  if (!isProd) scriptSrc.push("'unsafe-eval'");
+  // 'unsafe-eval' é necessário para o WebAssembly do @react-pdf/renderer
+  const scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'wasm-unsafe-eval'"];
 
   return [
     `default-src 'self'`,
@@ -61,16 +60,6 @@ const nextConfig = {
   // Headers de segurança
   async headers() {
     return [
-      {
-        // Rota de documentos/PDF precisa de unsafe-eval para o WebAssembly do react-pdf
-        source: '/documents/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: data: blob:; frame-src 'self' blob: data:;",
-          },
-        ],
-      },
       {
         source: '/(.*)',
         headers: [
