@@ -184,11 +184,16 @@ export function buildExtensionDeclarationHTML(d: Record<string, string>): string
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
-      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
-      ${row(f('Início Original', fmt(d.inicio_original), '33%'), f('Término Original', fmt(d.fim_original), '33%'), f('Nova Data de Término', fmt(d.nova_data_fim), '34%'))}
+      ${row(f('Empresa / Instituição Concedente', d.nome_empresa, '100%'))}
+      ${row(f('Data Término Atual', fmt(d.data_final_atual), '50%'), f('Nova Data de Término', fmt(d.nova_data_final), '50%'))}
     </table>
-    ${sec('Justificativa da Prorrogação', d.justificativa)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+    <br/>
+    <p class="para">
+      A empresa <strong>${d.nome_empresa}</strong> declara para os devidos fins que o estágio do(a) discente 
+      <strong>${d.nome_estudante}</strong> será prorrogado até a data de <strong>${fmt(d.nova_data_final)}</strong>.
+    </p>
+    <p class="para right">${d.cidade || 'Maracanaú'} — CE, ${fmt(new Date().toISOString().slice(0, 10))}</p>
+    ${sigs('Representante da Empresa', 'Discente Estagiário', 'Coordenador de Estágios')}`)
 }
 
 // 7. Declaração Profissional
@@ -279,10 +284,9 @@ export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
       ${row(f('Empresa / Instituição', d.empresa_nome, '100%'))}
-      ${row(f('Período', fmt(d.inicio_estagio) + ' a ' + fmt(d.fim_estagio), '70%'), f('C.H. Total', (d.horas_total || '') + ' h', '30%'))}
+      ${row(f('Período Atividades', fmt(d.inicio_atividades) + ' a ' + fmt(d.fim_atividades), '70%'), f('C.H. Total', (d.total_hours || '') + ' h', '30%'))}
     </table>
-    ${sec('Justificativa do Pedido', d.justificativa)}
-    ${sec('Componentes Curriculares Requeridos', d.componentes_curriculares)}
+    ${sec('Justificativa / Descrição das Atividades', d.justificativa)}
     ${sigs('Discente', 'Coordenador de Estágios')}`)
 }
 

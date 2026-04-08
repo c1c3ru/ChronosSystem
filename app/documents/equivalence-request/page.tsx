@@ -107,8 +107,8 @@ export default function EquivalenceRequestPage() {
         empresa_nome: raw.company_name || '',
         inicio_atividades: raw.start_date || '',
         fim_atividades: raw.end_date || '',
-        horas_semanais: raw.weekly_hours || '', // Se houver no form, senão calculamos ou deixamos vazio
-        justificativa: raw.activities || 'Solicitação de equivalência de atividades profissionais.'
+        total_hours: raw.total_hours || '',
+        justificativa: raw.activities || ''
       }
 
       const html = buildEquivalenceRequestHTML(htmlData)

@@ -97,7 +97,7 @@ export default function ExtensionDeclarationPage() {
         matricula_estudante: raw.student_enrollment || '',
         data_final_atual: raw.current_end_date || '',
         nova_data_final: raw.new_end_date || '',
-        cidade: raw.city || 'Fortaleza'
+        cidade: raw.city || 'Maracanaú'
       }
 
       const html = buildExtensionDeclarationHTML(htmlData)

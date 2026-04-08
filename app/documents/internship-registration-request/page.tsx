@@ -201,9 +201,9 @@ export default function InternshipRegistrationRequestPage() {
         cargo_supervisor: raw.supervisor_cargo || '',
         setor_supervisor: raw.setor_realizacao || '',
         tipo_estagio: raw.tipo_estagio === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
-        data_inicio: raw.data_inicial || '',
-        data_fim: raw.data_final_prevista || '',
-        carga_horaria: raw.carga_horaria_semanal || ''
+        inicio_estagio: raw.data_inicial || '',
+        fim_estagio: raw.data_final_prevista || '',
+        horas_semanais: raw.carga_horaria_semanal || ''
       }
       
       const html = buildInternshipRegistrationRequestHTML(htmlData)
