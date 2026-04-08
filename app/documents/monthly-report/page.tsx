@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { MonthlyReportDocument } from '@/components/templates/MonthlyReportDocument'
 import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function MonthlyReportPage() {
@@ -84,34 +83,27 @@ export default function MonthlyReportPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
+      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
       const raw: any = { ...formData }
 
-      // Remapear campos do formulário para os nomes esperados pelo template
-      const data: any = {
-        nome_estudante:    raw.student_name       || '',
-        curso_estudante:   raw.student_course     || '',
+      const data: Record<string, string> = {
+        nome_estudante:      raw.student_name       || '',
+        curso_estudante:     raw.student_course     || '',
         matricula_estudante: raw.student_enrollment || '',
-        nome_supervisor:   raw.supervisor_name    || '',
-        nome_orientador:   raw.advisor_name       || '',
-        inicio_periodo:    raw.period_start       || '',
-        fim_periodo:       raw.period_end         || '',
-        horas_mes:         raw.hours_month        || '',
-        atividades:        raw.activities         || '',
-        dificuldades:      raw.difficulties       || '',
-        solucoes:          raw.solutions          || '',
+        nome_supervisor:     raw.supervisor_name    || '',
+        nome_orientador:     raw.advisor_name       || '',
+        inicio_periodo:      raw.period_start       || '',
+        fim_periodo:         raw.period_end         || '',
+        horas_mes:           raw.hours_month        || '',
+        atividades:          raw.activities         || '',
+        dificuldades:        raw.difficulties       || '',
+        solucoes:            raw.solutions          || '',
       }
 
-      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
-
-      // Criar o documento React-PDF
-      const pdfDocument = <MonthlyReportDocument data={data as any} />
-
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'relatorio-mensal.pdf')
+      const { buildMonthlyReportHTML, generateHTMLPDF } = await import('@/lib/pdf-generator-html')
+      const html = buildMonthlyReportHTML(data)
+      await generateHTMLPDF(html, 'relatorio-mensal.pdf')
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
