@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 
 import React from 'react'
 import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from '@/lib/pdf-assets'

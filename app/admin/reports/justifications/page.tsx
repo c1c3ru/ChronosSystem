@@ -394,7 +394,13 @@ export default function JustificationsPage() {
               const isExpanded = expandedUsers[user.userId] || false;
               return (
               <Card key={user.userId} className={`border-l-4 border-l-error bg-neutral-800/20 transition-all ${isExpanded ? 'ring-1 ring-primary/20' : ''}`}>
-                <div onClick={() => setExpandedUsers(prev => ({...prev, [user.userId]: !isExpanded}))} className="cursor-pointer hover:bg-neutral-700/20 rounded-t-xl transition-colors">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setExpandedUsers(prev => ({...prev, [user.userId]: !isExpanded}))}
+                  onKeyDown={(e) => e.key === 'Enter' && setExpandedUsers(prev => ({...prev, [user.userId]: !isExpanded}))}
+                  className="cursor-pointer hover:bg-neutral-700/20 rounded-t-xl transition-colors"
+                >
                   <CardHeader className="pb-2">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
