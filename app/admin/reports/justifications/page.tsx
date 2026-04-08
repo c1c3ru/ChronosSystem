@@ -15,7 +15,11 @@ import {
   Clock,
   Calendar,
   User,
-  MessageSquare
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -59,6 +63,9 @@ export default function JustificationsPage() {
   const [adminResponse, setAdminResponse] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'LIST' | 'OVERVIEW'>('LIST')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({})
+  const itemsPerPage = 10
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -133,6 +140,10 @@ export default function JustificationsPage() {
 
     return matchesSearch && matchesStatus && matchesType
   })
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredJustifications.length / itemsPerPage)
+  const currentJustifications = filteredJustifications.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -237,7 +248,10 @@ export default function JustificationsPage() {
                     placeholder="Nome, email ou justificativa..."
                     className="input pl-10"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value)
+                      setCurrentPage(1)
+                    }}
                   />
                 </div>
               </div>
@@ -251,7 +265,10 @@ export default function JustificationsPage() {
                   id="justifications-status"
                   className="input"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value)
+                    setCurrentPage(1)
+                  }}
                   title="Filtrar por status"
                 >
                   <option value="ALL">Todos</option>
@@ -270,7 +287,10 @@ export default function JustificationsPage() {
                   id="justifications-type"
                   className="input"
                   value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
+                  onChange={(e) => {
+                    setTypeFilter(e.target.value)
+                    setCurrentPage(1)
+                  }}
                   title="Filtrar por tipo"
                 >
                   <option value="ALL">Todos</option>
@@ -370,33 +390,39 @@ export default function JustificationsPage() {
 
         {activeTab === 'OVERVIEW' ? (
           <div className="space-y-6">
-            {overview.map((user) => (
-              <Card key={user.userId} className="border-l-4 border-l-error bg-neutral-800/20">
-                <CardHeader className="pb-2">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <div className="text-white font-bold text-lg flex items-center">
-                        <User className="h-5 w-5 mr-2 text-primary" />
-                        {user.name}
+            {overview.map((user) => {
+              const isExpanded = expandedUsers[user.userId] || false;
+              return (
+              <Card key={user.userId} className={`border-l-4 border-l-error bg-neutral-800/20 transition-all ${isExpanded ? 'ring-1 ring-primary/20' : ''}`}>
+                <div onClick={() => setExpandedUsers(prev => ({...prev, [user.userId]: !isExpanded}))} className="cursor-pointer hover:bg-neutral-700/20 rounded-t-xl transition-colors">
+                  <CardHeader className="pb-2">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="text-white font-bold text-lg flex items-center">
+                          {isExpanded ? <ChevronUp className="h-5 w-5 mr-2 text-primary" /> : <ChevronDown className="h-5 w-5 mr-2 text-primary" />}
+                          <User className="h-5 w-5 mr-2 text-primary" />
+                          {user.name}
+                        </div>
+                        <p className="text-sm text-neutral-400 ml-14">{user.email}</p>
                       </div>
-                      <p className="text-sm text-neutral-400 ml-7">{user.email}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {user.missingCount > 0 && (
+                          <div className="bg-error/10 text-error px-3 py-1 rounded-full text-xs font-bold border border-error/20 flex items-center">
+                            <X className="h-3 w-3 mr-1" />
+                            {user.missingCount} Faltas sem Justificativa
+                          </div>
+                        )}
+                        {user.pendingCount > 0 && (
+                          <div className="bg-warning/10 text-warning px-3 py-1 rounded-full text-xs font-bold border border-warning/20 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {user.pendingCount} Justificativas Pendentes
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {user.missingCount > 0 && (
-                        <div className="bg-error/10 text-error px-3 py-1 rounded-full text-xs font-bold border border-error/20 flex items-center">
-                          <X className="h-3 w-3 mr-1" />
-                          {user.missingCount} Faltas sem Justificativa
-                        </div>
-                      )}
-                      {user.pendingCount > 0 && (
-                        <div className="bg-warning/10 text-warning px-3 py-1 rounded-full text-xs font-bold border border-warning/20 flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {user.pendingCount} Justificativas Pendentes
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
+                </div>
+                {isExpanded && (
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-6 mt-4">
                     {/* Missing Justifications */}
@@ -461,8 +487,9 @@ export default function JustificationsPage() {
                     </div>
                   </div>
                 </CardContent>
+                )}
               </Card>
-            ))}
+            )})}
             {overview.length === 0 && (
               <div className="text-center py-20 bg-neutral-800/10 rounded-2xl border border-dashed border-neutral-700">
                 <div className="bg-success/20 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -476,7 +503,7 @@ export default function JustificationsPage() {
         ) : (
           /* Justifications List */
           <div className="space-y-4">
-            {filteredJustifications.map((justification) => (
+            {currentJustifications.map((justification) => (
               <Card key={justification.id} className="hover:border-primary/20 transition-colors">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -555,6 +582,38 @@ export default function JustificationsPage() {
                   </p>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-neutral-700/50">
+                <p className="text-sm text-neutral-400">
+                  Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, filteredJustifications.length)} de {filteredJustifications.length} resultados
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="border-neutral-700 text-neutral-300 hover:text-white"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                  </Button>
+                  <div className="text-sm font-medium text-white px-4">
+                    Página {currentPage} de {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="border-neutral-700 text-neutral-300 hover:text-white"
+                  >
+                    Próxima <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         )}
