@@ -62,6 +62,16 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Rota de documentos/PDF precisa de unsafe-eval para o WebAssembly do react-pdf
+        source: '/documents/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: data: blob:; frame-src 'self' blob: data:;",
+          },
+        ],
+      },
+      {
         source: '/(.*)',
         headers: [
           {
