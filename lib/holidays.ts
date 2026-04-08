@@ -16,6 +16,7 @@ const FIXED_HOLIDAYS: HolidayDef[] = [
     { name: 'Confraternização Universal', date: '01-01', type: 'fixed' },
     { name: 'Dia de São José', date: '03-19', type: 'fixed' }, // Estadual CE
     { name: 'Data Magna do Ceará', date: '03-25', type: 'fixed' }, // Estadual CE
+    { name: 'Aniversário de Fortaleza', date: '04-13', type: 'fixed' }, // Municipal Fortaleza
     { name: 'Tiradentes', date: '04-21', type: 'fixed' },
     { name: 'Dia do Trabalho', date: '05-01', type: 'fixed' },
     { name: 'Nossa Senhora da Assunção', date: '08-15', type: 'fixed' }, // Municipal Fortaleza
