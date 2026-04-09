@@ -3,7 +3,8 @@
  * Testa os endpoints GET e POST
  */
 
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+
 
 // Mock do generatePDFFromSchema
 jest.mock('@/lib/pdf-server-generator', () => ({

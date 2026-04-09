@@ -438,8 +438,10 @@ describe('pdf-server-generator - generatePDFFromSchema', () => {
   it('deve gerar PDF em modo landscape quando especificado', async () => {
     await generatePDFFromSchema(mockSchema, mockData, { landscape: true })
 
-    const mockPage = (puppeteer.launch as jest.Mock).mock.results[0].value.newPage()
-    expect((await mockPage).setViewport).toHaveBeenCalledWith(
+    const browser = await (puppeteer.launch as jest.Mock).mock.results[0].value
+    const page = await browser.newPage.mock.results[0].value
+    
+    expect(page.setViewport).toHaveBeenCalledWith(
       expect.objectContaining({
         width: 1122,
         height: 794,
@@ -450,8 +452,10 @@ describe('pdf-server-generator - generatePDFFromSchema', () => {
   it('deve gerar PDF em modo portrait por padrão', async () => {
     await generatePDFFromSchema(mockSchema, mockData, { landscape: false })
 
-    const mockPage = (puppeteer.launch as jest.Mock).mock.results[0].value.newPage()
-    expect((await mockPage).setViewport).toHaveBeenCalledWith(
+    const browser = await (puppeteer.launch as jest.Mock).mock.results[0].value
+    const page = await browser.newPage.mock.results[0].value
+
+    expect(page.setViewport).toHaveBeenCalledWith(
       expect.objectContaining({
         width: 794,
         height: 1123,
@@ -462,8 +466,8 @@ describe('pdf-server-generator - generatePDFFromSchema', () => {
   it('deve fechar browser após geração', async () => {
     await generatePDFFromSchema(mockSchema, mockData)
 
-    const mockBrowser = (puppeteer.launch as jest.Mock).mock.results[0].value
-    expect((await mockBrowser).close).toHaveBeenCalled()
+    const browser = await (puppeteer.launch as jest.Mock).mock.results[0].value
+    expect(browser.close).toHaveBeenCalled()
   })
 })
 

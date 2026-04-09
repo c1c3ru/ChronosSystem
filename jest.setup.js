@@ -135,3 +135,15 @@ Object.defineProperty(window, 'matchMedia', {
 const { TextEncoder, TextDecoder } = require('util')
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
+
+// Polyfill for Web API Request/Response (needed for Next.js API route tests)
+if (typeof global.Request === 'undefined') {
+  // In Node 18+, these are available in the global scope but might be missing in Jest environment
+  if (typeof Request !== 'undefined') {
+    global.Request = Request;
+    global.Response = Response;
+    global.Headers = Headers;
+    global.ReadableStream = ReadableStream;
+    global.FormData = FormData;
+  }
+}

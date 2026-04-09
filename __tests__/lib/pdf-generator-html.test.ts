@@ -12,9 +12,8 @@ const mockHtml2Pdf = {
 }
 
 jest.mock('html2pdf.js', () => ({
-  get default() {
-    return () => mockHtml2Pdf
-  },
+  __esModule: true,
+  default: jest.fn(() => mockHtml2Pdf),
 }))
 
 // Mock dos assets base64
