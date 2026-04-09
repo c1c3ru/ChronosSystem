@@ -32,9 +32,9 @@ export default function KioskPage() {
   const [machines, setMachines] = useState<Machine[]>([])
   const [selectedMachineId, setSelectedMachineId] = useState<string>('')
   const [machineInfo, setMachineInfo] = useState({
-    name: 'Terminal Principal',
-    location: 'Recepção - Térreo',
-    id: 'cm123456789' // ID real da máquina
+    name: 'Carregando...',
+    location: 'Aguarde...',
+    id: '' 
   })
 
   // Carregar máquinas disponíveis
