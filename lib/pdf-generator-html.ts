@@ -1,9 +1,14 @@
 /**
  * Gerador de PDF com layout fiel ao padrão IFCE
  * Usa html2pdf.js — sem WebAssembly
+ *
+ * CONTÉM: 13 builders HTML para documentos IFCE
+ * EXPORTA: generateHTMLPDF da engine unificada
  */
 
 import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from './pdf-assets'
+// Re-exportar generateHTMLPDF da engine unificada
+export { generateHTMLPDF } from './pdf-engine'
 
 function fmt(d?: string): string {
   if (!d) return '___/___/_____'
@@ -308,39 +313,4 @@ export function buildStudentEvaluationHTML(d: Record<string, any>): string {
     ${sigs('Supervisor Avaliador', 'Coordenador de Estágios')}`)
 }
 
-// ─── GERADOR PRINCIPAL ────────────────────────────────────────────────────────
-export async function generateHTMLPDF(html: string, filename: string): Promise<void> {
-  const { default: html2pdf } = await import('html2pdf.js')
-
-  const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;background:#fff;'
-  document.body.appendChild(iframe)
-
-  const doc = iframe.contentDocument || iframe.contentWindow?.document
-  if (!doc) { document.body.removeChild(iframe); throw new Error('iframe falhou') }
-
-  doc.open(); doc.write(html); doc.close()
-
-  await new Promise(resolve => setTimeout(resolve, 1200))
-
-  const opt = {
-    margin: [6, 6, 6, 6] as [number, number, number, number],
-    filename,
-    image: { type: 'jpeg' as const, quality: 0.97 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      windowWidth: 794,
-      windowHeight: 1123,
-    },
-    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-  }
-
-  try {
-    await html2pdf().set(opt).from(doc.body).save()
-  } finally {
-    document.body.removeChild(iframe)
-  }
-}
+// generateHTMLPDF é exportado da engine unificada (pdf-engine.ts)
