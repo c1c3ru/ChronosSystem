@@ -10,23 +10,23 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     // Buscar justificativas reais do banco de dados
-    const justifications = await (prisma as any).justification.findMany({
+    const justifications = await prisma.justification.findMany({
       include: {
         user: {
           select: {
             name: true,
             email: true,
-            role: true
-          }
-        }
+            role: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json(justifications)

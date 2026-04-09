@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
       }
 
-      const user = await (prisma as any).user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
@@ -37,14 +37,14 @@ export async function GET(request: NextRequest) {
           contractStartDate: true,
           contractType: true,
           department: true,
-          role: true
-        }
+          role: true,
+        },
       })
 
       if (!user || !user.contractEndDate) {
-        return NextResponse.json({ 
+        return NextResponse.json({
           hasExpiringContract: false,
-          message: 'Usuário não encontrado ou sem data de fim de contrato'
+          message: 'Usuário não encontrado ou sem data de fim de contrato',
         })
       }
 
@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
           contractType: user.contractType,
           department: user.department,
           role: user.role,
-          daysUntilExpiration
-        }
+          daysUntilExpiration,
+        },
       })
     }
 
@@ -73,13 +73,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
-    const expiringContracts = await (prisma as any).user.findMany({
+    const expiringContracts = await prisma.user.findMany({
       where: {
         contractEndDate: {
           lte: limitDate,
-          gt: new Date() // Apenas contratos que ainda não expiraram
+          gt: new Date(), // Apenas contratos que ainda não expiraram
         },
-        role: 'EMPLOYEE' // Apenas funcionários têm contratos
+        role: 'EMPLOYEE', // Apenas funcionários têm contratos
       },
       select: {
         id: true,
@@ -90,11 +90,11 @@ export async function GET(request: NextRequest) {
         contractType: true,
         department: true,
         phone: true,
-        weeklyHours: true
+        weeklyHours: true,
       },
       orderBy: {
-        contractEndDate: 'asc'
-      }
+        contractEndDate: 'asc',
+      },
     })
 
     // Calcular dias até expiração para cada contrato
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       return {
         ...user,
         daysUntilExpiration,
-        urgencyLevel
+        urgencyLevel,
       }
     })
 
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       total: contractsWithDays.length,
       critical: contractsWithDays.filter((c: any) => c.urgencyLevel === 'critical').length,
       urgent: contractsWithDays.filter((c: any) => c.urgencyLevel === 'urgent').length,
-      warning: contractsWithDays.filter((c: any) => c.urgencyLevel === 'warning').length
+      warning: contractsWithDays.filter((c: any) => c.urgencyLevel === 'warning').length,
     }
 
     return NextResponse.json({
@@ -130,10 +130,9 @@ export async function GET(request: NextRequest) {
       stats,
       searchParams: {
         daysAhead,
-        limitDate
-      }
+        limitDate,
+      },
     })
-
   } catch (error) {
     console.error('Erro ao verificar contratos expirando:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
@@ -144,7 +143,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -156,18 +155,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Atualizar data de fim do contrato
-    const updatedUser = await (prisma as any).user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         contractEndDate: new Date(newEndDate),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       select: {
         id: true,
         name: true,
         email: true,
-        contractEndDate: true
-      }
+        contractEndDate: true,
+      },
     })
 
     // Log de auditoria
@@ -176,16 +175,15 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'CONTRACT_RENEWAL',
         resource: 'USER_CONTRACT',
-        details: `Contrato renovado para ${updatedUser.name} (${updatedUser.email}). Nova data: ${newEndDate}${notes ? `. Observações: ${notes}` : ''}`
-      }
+        details: `Contrato renovado para ${updatedUser.name} (${updatedUser.email}). Nova data: ${newEndDate}${notes ? `. Observações: ${notes}` : ''}`,
+      },
     })
 
     return NextResponse.json({
       success: true,
       message: 'Contrato renovado com sucesso',
-      user: updatedUser
+      user: updatedUser,
     })
-
   } catch (error) {
     console.error('Erro ao renovar contrato:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

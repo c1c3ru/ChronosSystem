@@ -1,5 +1,6 @@
 // Utilitário para envio de emails usando Resend
 import { resend, RESEND_FROM } from './resend'
+import { logger } from './logger'
 
 interface EmailOptions {
   to: string
@@ -16,6 +17,16 @@ interface PasswordResetEmailData {
   reason?: string
 }
 
+function escapeHtml(unsafe: string | null | undefined): string {
+  if (!unsafe) return ''
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 export class EmailService {
   private static instance: EmailService
 
@@ -30,12 +41,11 @@ export class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      const from = RESEND_FROM;
+      const from = RESEND_FROM
 
-      console.log('📧 [EMAIL] Enviando email via Resend:', {
+      logger.debug('Sending email via Resend', {
         to: options.to,
         subject: options.subject,
-        from
       })
 
       const { data, error } = await resend.emails.send({
@@ -43,18 +53,18 @@ export class EmailService {
         to: options.to,
         subject: options.subject,
         html: options.html,
-        text: options.text
+        text: options.text,
       })
 
       if (error) {
-        console.error('❌ [EMAIL] Erro ao enviar email via Resend:', error)
+        logger.error('Failed to send email via Resend', { error: error.message })
         return false
       }
 
-      console.log('✅ [EMAIL] Email enviado com sucesso!', { id: data?.id })
+      logger.info('Email sent successfully', { id: data?.id })
       return true
-    } catch (error) {
-      console.error('❌ [EMAIL] Erro inesperado ao enviar email:', error)
+    } catch (error: any) {
+      logger.error('Unexpected error sending email', { error: error.message })
       return false
     }
   }
@@ -69,7 +79,7 @@ export class EmailService {
       to: data.userEmail,
       subject,
       html,
-      text
+      text,
     })
   }
 
@@ -79,6 +89,7 @@ export class EmailService {
     reason: string
   ): Promise<boolean> {
     const subject = `Reset de Senha em Massa - ${resetCount} usuários`
+    const safeReason = escapeHtml(reason)
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -87,7 +98,7 @@ export class EmailService {
         
         <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <p><strong>Usuários afetados:</strong> ${resetCount}</p>
-          <p><strong>Motivo:</strong> ${reason}</p>
+          <p><strong>Motivo:</strong> ${safeReason}</p>
           <p><strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</p>
         </div>
         
@@ -116,12 +127,14 @@ export class EmailService {
       to: adminEmail,
       subject,
       html,
-      text
+      text,
     })
   }
 
   private generatePasswordResetHTML(data: PasswordResetEmailData): string {
     const expiresIn = Math.ceil((data.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60))
+    const safeUserName = escapeHtml(data.userName)
+    const safeReason = escapeHtml(data.reason)
 
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -132,15 +145,19 @@ export class EmailService {
         <div style="padding: 32px 20px;">
           <h2 style="color: #1f2937;">Reset de Senha Solicitado</h2>
           
-          <p>Olá <strong>${data.userName}</strong>,</p>
+          <p>Olá <strong>${safeUserName}</strong>,</p>
           
           <p>Foi solicitado um reset de senha para sua conta no sistema Chronos.</p>
           
-          ${data.reason ? `
+          ${
+            data.reason
+              ? `
             <div style="background-color: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #f59e0b;">
-              <p style="margin: 0; color: #92400e;"><strong>Motivo:</strong> ${data.reason}</p>
+              <p style="margin: 0; color: #92400e;"><strong>Motivo:</strong> ${safeReason}</p>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
           
           <div style="text-align: center; margin: 32px 0;">
             <a href="${data.resetUrl}" 
@@ -215,19 +232,22 @@ export class EmailService {
     }>
   ): Promise<boolean> {
     const subject = `⚠️ Justificativa Obrigatória - Chronos System`
+    const safeUserName = escapeHtml(userName)
 
-    const issuesList = pendingIssues.map(issue => {
-      const typeText = issue.type === 'LATE' ? 'Atraso' :
-        issue.type === 'ABSENCE' ? 'Falta' :
-          'Saída Antecipada'
-      const date = new Date(issue.date).toLocaleDateString('pt-BR')
-      return `
+    const issuesList = pendingIssues
+      .map((issue) => {
+        const typeText =
+          issue.type === 'LATE' ? 'Atraso' : issue.type === 'ABSENCE' ? 'Falta' : 'Saída Antecipada'
+        const date = new Date(issue.date).toLocaleDateString('pt-BR')
+        const safeDescription = escapeHtml(issue.description)
+        return `
         <li style="margin-bottom: 12px;">
           <strong>${typeText}</strong> - ${date}<br>
-          <span style="color: #6b7280; font-size: 14px;">${issue.description}</span>
+          <span style="color: #6b7280; font-size: 14px;">${safeDescription}</span>
         </li>
       `
-    }).join('')
+      })
+      .join('')
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -238,7 +258,7 @@ export class EmailService {
         <div style="padding: 32px 20px;">
           <h2 style="color: #1f2937;">Justificativa Obrigatória</h2>
           
-          <p>Olá <strong>${userName}</strong>,</p>
+          <p>Olá <strong>${safeUserName}</strong>,</p>
           
           <p>Detectamos ${pendingIssues.length} situação(ões) que requer(em) justificativa obrigatória:</p>
           
@@ -280,13 +300,18 @@ export class EmailService {
       
       Detectamos ${pendingIssues.length} situação(ões) que requer(em) justificativa obrigatória:
       
-      ${pendingIssues.map(issue => {
-      const typeText = issue.type === 'LATE' ? 'Atraso' :
-        issue.type === 'ABSENCE' ? 'Falta' :
-          'Saída Antecipada'
-      const date = new Date(issue.date).toLocaleDateString('pt-BR')
-      return `- ${typeText} - ${date}: ${issue.description}`
-    }).join('\n      ')}
+      ${pendingIssues
+        .map((issue) => {
+          const typeText =
+            issue.type === 'LATE'
+              ? 'Atraso'
+              : issue.type === 'ABSENCE'
+                ? 'Falta'
+                : 'Saída Antecipada'
+          const date = new Date(issue.date).toLocaleDateString('pt-BR')
+          return `- ${typeText} - ${date}: ${issue.description}`
+        })
+        .join('\n      ')}
       
       ⏰ Ação Necessária:
       Por favor, acesse o sistema e envie suas justificativas o mais breve possível.
@@ -303,7 +328,7 @@ export class EmailService {
       to: userEmail,
       subject,
       html,
-      text
+      text,
     })
   }
 
@@ -321,11 +346,18 @@ export class EmailService {
       reason: string
     }
   ): Promise<boolean> {
+    const safeSupervisorName = escapeHtml(supervisorName)
+    const safeEmployeeName = escapeHtml(employeeName)
+    const safeReason = escapeHtml(justification.reason)
+
     const subject = `📋 Nova Justificativa para Aprovação - ${employeeName}`
 
-    const typeText = justification.type === 'LATE' ? 'Atraso' :
-      justification.type === 'ABSENCE' ? 'Falta' :
-        'Saída Antecipada'
+    const typeText =
+      justification.type === 'LATE'
+        ? 'Atraso'
+        : justification.type === 'ABSENCE'
+          ? 'Falta'
+          : 'Saída Antecipada'
     const date = new Date(justification.date).toLocaleDateString('pt-BR')
 
     const html = `
@@ -337,17 +369,17 @@ export class EmailService {
         <div style="padding: 32px 20px;">
           <h2 style="color: #1f2937;">Nova Justificativa para Aprovação</h2>
           
-          <p>Olá <strong>${supervisorName}</strong>,</p>
+          <p>Olá <strong>${safeSupervisorName}</strong>,</p>
           
           <p>Uma nova justificativa foi enviada e aguarda sua aprovação:</p>
           
           <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
-            <p><strong>Funcionário:</strong> ${employeeName} (${employeeEmail})</p>
+            <p><strong>Funcionário:</strong> ${safeEmployeeName} (${employeeEmail})</p>
             <p><strong>Tipo:</strong> ${typeText}</p>
             <p><strong>Data:</strong> ${date}</p>
             <p><strong>Motivo:</strong></p>
             <p style="background-color: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
-              ${justification.reason}
+              ${safeReason}
             </p>
           </div>
           
@@ -390,7 +422,7 @@ export class EmailService {
       to: supervisorEmail,
       subject,
       html,
-      text
+      text,
     })
   }
 
@@ -404,6 +436,7 @@ export class EmailService {
     oldestPendingDate: string
   ): Promise<boolean> {
     const subject = `🔔 Lembrete: ${pendingCount} Justificativa(s) Pendente(s)`
+    const safeUserName = escapeHtml(userName)
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -414,7 +447,7 @@ export class EmailService {
         <div style="padding: 32px 20px;">
           <h2 style="color: #1f2937;">Lembrete de Justificativas Pendentes</h2>
           
-          <p>Olá <strong>${userName}</strong>,</p>
+          <p>Olá <strong>${safeUserName}</strong>,</p>
           
           <p>Você possui <strong>${pendingCount} justificativa(s) pendente(s)</strong> que precisa(m) ser enviada(s).</p>
           
@@ -463,7 +496,7 @@ export class EmailService {
       to: userEmail,
       subject,
       html,
-      text
+      text,
     })
   }
 }

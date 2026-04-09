@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { determineRoleFromSiape } from '@/lib/admin-siape'
 import { getContractTypeConfig } from '@/lib/contract-types'
 import { getShiftStartTime } from '@/lib/shift-validation'
+import { authLogger } from '@/lib/logger'
 
 // POST /api/auth/complete-profile - Completar perfil após login com Google
 
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -32,78 +33,68 @@ export async function POST(request: NextRequest) {
       contractType,
       shift,
       workingDaysPerWeek,
-      allowFlexibleHours
+      allowFlexibleHours,
     } = await request.json()
 
     // Validações básicas
     if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone) {
-      return NextResponse.json({ error: 'Todos os campos básicos são obrigatórios' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Todos os campos básicos são obrigatórios' },
+        { status: 400 }
+      )
     }
 
     // Determinar role baseado na matrícula SIAPE (se fornecida)
     const newRole = siapeNumber ? determineRoleFromSiape(siapeNumber) : 'EMPLOYEE'
-    console.log(`🔍 [COMPLETE-PROFILE] SIAPE ${siapeNumber || 'N/A'} -> Role: ${newRole}`)
+    authLogger.debug('SIAPE validation', { siape: siapeNumber || 'N/A', role: newRole })
 
     // Validações específicas para funcionários (não para ADMIN/SUPERVISOR)
     if (newRole === 'EMPLOYEE') {
       if (!department) {
-        return NextResponse.json({ error: 'Departamento é obrigatório para funcionários' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Departamento é obrigatório para funcionários' },
+          { status: 400 }
+        )
       }
     }
 
     // Validar formato da matrícula SIAPE (apenas se fornecida)
     if (siapeNumber && !/^\d{7}$/.test(siapeNumber)) {
-      return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' },
+        { status: 400 }
+      )
     }
 
-    // Removendo validação obrigatória de datas para permitir salvar
-    /*
-    if (newRole === 'EMPLOYEE') {
-      if (!startDate || !contractStartDate || !contractEndDate) {
-        return NextResponse.json({ error: 'Funcionários devem preencher todas as datas' }, { status: 400 })
-      }
-    }
-    */
+    authLogger.debug('Updating user profile', { userId: session.user.id, role: newRole })
 
-    console.log(`📝 [COMPLETE-PROFILE] Atualizando usuário ${session.user.id} com role: ${newRole}`)
-    
     // Verificar se o usuário existe
     const existingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, email: true, name: true }
+      select: { id: true, email: true, name: true },
     })
-    
+
     if (!existingUser) {
-      console.error(`❌ [COMPLETE-PROFILE] Usuário ${session.user.id} não encontrado no banco`)
-      return NextResponse.json({ 
-        error: 'Usuário não encontrado',
-        message: 'Usuário não encontrado no banco de dados'
-      }, { status: 404 })
+      authLogger.error('User not found', { userId: session.user.id })
+      return NextResponse.json(
+        {
+          error: 'Usuário não encontrado',
+          message: 'Usuário não encontrado no banco de dados',
+        },
+        { status: 404 }
+      )
     }
-    
-    console.log(`✅ [COMPLETE-PROFILE] Usuário encontrado:`, existingUser)
-    
+
     // Determinar carga horária e horários de turno baseado no tipo de contrato e turno
-    const finalContractType = newRole === 'EMPLOYEE' ? (contractType || 'ESTAGIO_20H') : 'EMPREGO_40H'
+    const finalContractType = newRole === 'EMPLOYEE' ? contractType || 'ESTAGIO_20H' : 'EMPREGO_40H'
     const contractConfig = getContractTypeConfig(finalContractType)
     const finalWeeklyHours = contractConfig?.weeklyHours || 20
     const finalDailyHours = contractConfig?.dailyHours || 4
-    
+
     // Obter horários padrão do turno
     const finalShift = shift || 'MORNING'
     const shiftTimes = getShiftStartTime(finalShift as any)
-    
-    console.log(`📝 [COMPLETE-PROFILE] Dados a atualizar:`, {
-      phone,
-      address,
-      birthDate,
-      emergencyContact,
-      emergencyPhone,
-      department,
-      contractType: finalContractType,
-      weeklyHours: finalWeeklyHours
-    })
-    
+
     // Atualizar usuário
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -129,16 +120,13 @@ export async function POST(request: NextRequest) {
         allowFlexibleHours: allowFlexibleHours || false,
         role: newRole, // Atualizar role baseado no SIAPE
         profileComplete: true,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     })
-    
-    console.log(`✅ [COMPLETE-PROFILE] Usuário atualizado:`, {
-      id: updatedUser.id,
-      email: updatedUser.email,
+
+    authLogger.info('User profile updated successfully', {
+      userId: updatedUser.id,
       role: updatedUser.role,
-      profileComplete: updatedUser.profileComplete,
-      siapeNumber: updatedUser.siapeNumber
     })
 
     // Log de auditoria
@@ -147,34 +135,34 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'COMPLETE_PROFILE',
         resource: 'USER_PROFILE',
-        details: `Perfil completado para usuário ${updatedUser.email}`
-      }
+        details: `Perfil completado para usuário ${updatedUser.email}`,
+      },
     })
 
     // Determinar URL de redirecionamento baseado no role
     const redirectUrl = ['ADMIN', 'SUPERVISOR'].includes(updatedUser.role) ? '/admin' : '/employee'
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: 'Perfil completado com sucesso',
       redirectUrl: redirectUrl,
-      forceReload: true // Flag para forçar reload completo
+      forceReload: true, // Flag para forçar reload completo
     })
-  } catch (error) {
-    console.error('❌ Erro ao completar perfil:', error)
-    
-    // Log detalhado do erro
-    if (error instanceof Error) {
-      console.error('Mensagem de erro:', error.message)
-      console.error('Stack:', error.stack)
-    }
-    
-    // Retornar erro mais detalhado para debug
+  } catch (error: any) {
+    authLogger.error('Error completing profile', {
+      userId: 'unknown',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    })
+
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-    return NextResponse.json({ 
-      error: 'Erro ao salvar perfil',
-      details: errorMessage,
-      message: errorMessage
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Erro ao salvar perfil',
+        details: errorMessage,
+        message: errorMessage,
+      },
+      { status: 500 }
+    )
   }
 }

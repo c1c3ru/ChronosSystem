@@ -6,7 +6,6 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
 
-
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 const createUserSchema = z.object({
@@ -26,7 +25,7 @@ const createUserSchema = z.object({
   contractStartDate: z.string().optional(),
   contractEndDate: z.string().optional(),
   contractType: z.string().optional(),
-  weeklyHours: z.number().optional()
+  weeklyHours: z.number().optional(),
 })
 
 // GET /api/users - Listar usuários
@@ -55,14 +54,16 @@ export async function GET(request: NextRequest) {
 
     const where = {
       AND: [
-        search ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { email: { contains: search, mode: 'insensitive' as const } }
-          ]
-        } : {},
-        role ? { role } : {}
-      ]
+        search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' as const } },
+                { email: { contains: search, mode: 'insensitive' as const } },
+              ],
+            }
+          : {},
+        role ? { role } : {},
+      ],
     }
 
     const [users, total] = await Promise.all([
@@ -85,15 +86,15 @@ export async function GET(request: NextRequest) {
           updatedAt: true,
           _count: {
             select: {
-              attendanceRecords: true
-            }
-          }
+              attendanceRecords: true,
+            },
+          },
         },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       }),
-      prisma.user.count({ where })
+      prisma.user.count({ where }),
     ])
 
     const response = {
@@ -102,8 +103,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     }
 
     // Cache the result
@@ -131,33 +132,52 @@ export async function POST(request: NextRequest) {
     // Validações específicas para SIAPE
     if (validatedData.hasSiape && validatedData.siapeNumber) {
       if (!/^\d{7}$/.test(validatedData.siapeNumber)) {
-        return NextResponse.json({ error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' },
+          { status: 400 }
+        )
       }
     }
 
     // Validações específicas para funcionários
     if (validatedData.role === 'EMPLOYEE') {
       if (!validatedData.department) {
-        return NextResponse.json({ error: 'Departamento é obrigatório para funcionários' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Departamento é obrigatório para funcionários' },
+          { status: 400 }
+        )
       }
-      if (!validatedData.startDate || !validatedData.contractStartDate || !validatedData.contractEndDate) {
-        return NextResponse.json({ error: 'Datas são obrigatórias para funcionários' }, { status: 400 })
+      if (
+        !validatedData.startDate ||
+        !validatedData.contractStartDate ||
+        !validatedData.contractEndDate
+      ) {
+        return NextResponse.json(
+          { error: 'Datas são obrigatórias para funcionários' },
+          { status: 400 }
+        )
       }
       if (!validatedData.contractType) {
-        return NextResponse.json({ error: 'Tipo de contrato é obrigatório para funcionários' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Tipo de contrato é obrigatório para funcionários' },
+          { status: 400 }
+        )
       }
 
       // Validar se data de fim é posterior à data de início
       if (validatedData.contractStartDate && validatedData.contractEndDate) {
         if (new Date(validatedData.contractEndDate) <= new Date(validatedData.contractStartDate)) {
-          return NextResponse.json({ error: 'Data de fim deve ser posterior à data de início' }, { status: 400 })
+          return NextResponse.json(
+            { error: 'Data de fim deve ser posterior à data de início' },
+            { status: 400 }
+          )
         }
       }
     }
 
     // Verificar se email já existe
     const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email }
+      where: { email: validatedData.email },
     })
 
     if (existingUser) {
@@ -167,7 +187,7 @@ export async function POST(request: NextRequest) {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(validatedData.password, 10)
 
-    const user = await (prisma as any).user.create({
+    const user = await prisma.user.create({
       data: {
         name: validatedData.name,
         email: validatedData.email,
@@ -181,19 +201,23 @@ export async function POST(request: NextRequest) {
         department: validatedData.department,
         siapeNumber: validatedData.siapeNumber,
         startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
-        contractStartDate: validatedData.contractStartDate ? new Date(validatedData.contractStartDate) : null,
-        contractEndDate: validatedData.contractEndDate ? new Date(validatedData.contractEndDate) : null,
+        contractStartDate: validatedData.contractStartDate
+          ? new Date(validatedData.contractStartDate)
+          : null,
+        contractEndDate: validatedData.contractEndDate
+          ? new Date(validatedData.contractEndDate)
+          : null,
         contractType: validatedData.contractType,
         weeklyHours: validatedData.weeklyHours,
-        profileComplete: true // Admin já preenche tudo
+        profileComplete: true, // Admin já preenche tudo
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     })
 
     // Log de auditoria
@@ -202,8 +226,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'CREATE_USER',
         resource: 'USER',
-        details: `Usuário criado: ${user.email} (${user.role})`
-      }
+        details: `Usuário criado: ${user.email} (${user.role})`,
+      },
     })
 
     // Invalidate user cache
@@ -212,10 +236,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(user, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        error: 'Dados inválidos',
-        details: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao criar usuário:', error)

@@ -7,13 +7,10 @@ import { prisma } from '@/lib/prisma'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -26,14 +23,14 @@ export async function PATCH(
     }
 
     // Atualizar justificativa no banco de dados
-    const justification = await (prisma as any).justification.update({
+    const justification = await prisma.justification.update({
       where: { id: justificationId },
       data: {
         status,
         adminResponse: adminResponse || null,
         reviewedAt: new Date(),
-        reviewedBy: session.user.id
-      }
+        reviewedBy: session.user.id,
+      },
     })
 
     // Log de auditoria
@@ -42,13 +39,13 @@ export async function PATCH(
         userId: session.user.id,
         action: 'UPDATE_JUSTIFICATION',
         resource: 'JUSTIFICATION',
-        details: `Justificativa ${justificationId} ${status.toLowerCase()} por ${session.user.name}`
-      }
+        details: `Justificativa ${justificationId} ${status.toLowerCase()} por ${session.user.name}`,
+      },
     })
 
-    return NextResponse.json({ 
-      success: true, 
-      message: `Justificativa ${status.toLowerCase()} com sucesso` 
+    return NextResponse.json({
+      success: true,
+      message: `Justificativa ${status.toLowerCase()} com sucesso`,
     })
   } catch (error) {
     console.error('Erro ao atualizar justificativa:', error)

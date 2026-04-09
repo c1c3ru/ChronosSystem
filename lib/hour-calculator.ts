@@ -5,7 +5,7 @@ const CONTRACT_CONFIGS = {
   FUNDAMENTAL_20H: { dailyHours: 4, weeklyHours: 20 },
   SUPERIOR_30H: { dailyHours: 6, weeklyHours: 30 },
   ALTERNANCIA_40H: { dailyHours: 8, weeklyHours: 40 },
-  CUSTOM: { dailyHours: 6, weeklyHours: 30 } // Será sobrescrito pelos campos do usuário
+  CUSTOM: { dailyHours: 6, weeklyHours: 30 }, // Será sobrescrito pelos campos do usuário
 }
 
 export interface HourCalculationResult {
@@ -20,16 +20,19 @@ export interface HourCalculationResult {
 /**
  * Calcula o saldo de horas para um usuário em uma data específica
  */
-export async function calculateHourBalance(userId: string, date: Date = new Date()): Promise<HourCalculationResult> {
+export async function calculateHourBalance(
+  userId: string,
+  date: Date = new Date()
+): Promise<HourCalculationResult> {
   try {
     // Buscar dados do usuário
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         contractType: true,
         weeklyHours: true,
-        dailyHours: true
-      }
+        dailyHours: true,
+      },
     })
 
     if (!user) {
@@ -48,10 +51,10 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
         userId,
         timestamp: {
           gte: startOfDay,
-          lte: endOfDay
-        }
+          lte: endOfDay,
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Calcular horas trabalhadas
@@ -62,7 +65,7 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
     for (let i = 0; i < attendanceRecords.length - 1; i += 2) {
       const entry = attendanceRecords[i]
       const exit = attendanceRecords[i + 1]
-      
+
       if (entry.type === 'ENTRY' && exit && exit.type === 'EXIT') {
         const diffMs = exit.timestamp.getTime() - entry.timestamp.getTime()
         workedHours += diffMs / (1000 * 60 * 60) // Converter para horas
@@ -71,10 +74,13 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
     }
 
     // Se há uma entrada sem saída, calcular até agora (se for hoje)
-    if (attendanceRecords.length % 2 === 1 && attendanceRecords[attendanceRecords.length - 1].type === 'ENTRY') {
+    if (
+      attendanceRecords.length % 2 === 1 &&
+      attendanceRecords[attendanceRecords.length - 1].type === 'ENTRY'
+    ) {
       const lastEntry = attendanceRecords[attendanceRecords.length - 1]
       const now = new Date()
-      
+
       // Só calcular se for hoje
       if (date.toDateString() === now.toDateString()) {
         const diffMs = now.getTime() - lastEntry.timestamp.getTime()
@@ -84,8 +90,11 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
     }
 
     // Obter configuração do contrato
-    const contractConfig = CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS] || CONTRACT_CONFIGS.CUSTOM
-    const expectedHours = (user as any).contractType === 'CUSTOM' ? (user as any).dailyHours : contractConfig.dailyHours
+    const contractConfig =
+      CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS] ||
+      CONTRACT_CONFIGS.CUSTOM
+    const expectedHours =
+      (user as any).contractType === 'CUSTOM' ? (user as any).dailyHours : contractConfig.dailyHours
 
     // Calcular saldo do dia
     const dailyBalance = workedHours - expectedHours
@@ -98,33 +107,35 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
     endOfWeek.setDate(startOfWeek.getDate() + 6)
     endOfWeek.setHours(23, 59, 59, 999)
 
-    const weeklyRecords = await (prisma as any).hourBalance.findMany({
+    const weeklyRecords = await prisma.hourBalance.findMany({
       where: {
         userId,
         date: {
           gte: startOfWeek,
-          lte: endOfWeek
-        }
-      }
+          lte: endOfWeek,
+        },
+      },
     })
 
-    const weeklyBalance = weeklyRecords.reduce((sum: number, record: any) => sum + record.balance, 0) + dailyBalance
+    const weeklyBalance =
+      weeklyRecords.reduce((sum: number, record: any) => sum + record.balance, 0) + dailyBalance
 
     // Calcular saldo mensal
     const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
     const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999)
 
-    const monthlyRecords = await (prisma as any).hourBalance.findMany({
+    const monthlyRecords = await prisma.hourBalance.findMany({
       where: {
         userId,
         date: {
           gte: startOfMonth,
-          lte: endOfMonth
-        }
-      }
+          lte: endOfMonth,
+        },
+      },
     })
 
-    const monthlyBalance = monthlyRecords.reduce((sum: number, record: any) => sum + record.balance, 0) + dailyBalance
+    const monthlyBalance =
+      monthlyRecords.reduce((sum: number, record: any) => sum + record.balance, 0) + dailyBalance
 
     return {
       workedHours,
@@ -132,7 +143,7 @@ export async function calculateHourBalance(userId: string, date: Date = new Date
       dailyBalance,
       weeklyBalance,
       monthlyBalance,
-      isComplete
+      isComplete,
     }
   } catch (error) {
     console.error('❌ [HOUR-CALCULATOR] Erro ao calcular saldo:', error)
@@ -153,14 +164,14 @@ export async function updateHourBalance(userId: string, date: Date = new Date())
     endOfDay.setHours(23, 59, 59, 999)
 
     // Verificar se já existe registro para o dia
-    const existingRecord = await (prisma as any).hourBalance.findFirst({
+    const existingRecord = await prisma.hourBalance.findFirst({
       where: {
         userId,
         date: {
           gte: startOfDay,
-          lte: endOfDay
-        }
-      }
+          lte: endOfDay,
+        },
+      },
     })
 
     const data = {
@@ -169,38 +180,40 @@ export async function updateHourBalance(userId: string, date: Date = new Date())
       balance: calculation.dailyBalance,
       weeklyBalance: calculation.weeklyBalance,
       monthlyBalance: calculation.monthlyBalance,
-      description: calculation.isComplete ? 'Dia completo' : 'Em andamento'
+      description: calculation.isComplete ? 'Dia completo' : 'Em andamento',
     }
 
     if (existingRecord) {
       // Atualizar registro existente
-      await (prisma as any).hourBalance.update({
+      await prisma.hourBalance.update({
         where: { id: existingRecord.id },
-        data
+        data,
       })
     } else {
       // Criar novo registro
-      await (prisma as any).hourBalance.create({
+      await prisma.hourBalance.create({
         data: {
           userId,
           date,
-          ...data
-        }
+          ...data,
+        },
       })
     }
 
     // Atualizar saldo total do usuário
-    const totalBalance = await (prisma as any).hourBalance.aggregate({
+    const totalBalance = await prisma.hourBalance.aggregate({
       where: { userId },
-      _sum: { balance: true }
+      _sum: { balance: true },
     })
 
-    await (prisma.user as any).update({
+    await prisma.user.update({
       where: { id: userId },
-      data: { hourBalance: totalBalance._sum.balance || 0 }
+      data: { hourBalance: totalBalance._sum.balance || 0 },
     })
 
-    console.log(`✅ [HOUR-CALCULATOR] Saldo atualizado para usuário ${userId}: ${calculation.dailyBalance.toFixed(2)}h`)
+    console.log(
+      `✅ [HOUR-CALCULATOR] Saldo atualizado para usuário ${userId}: ${calculation.dailyBalance.toFixed(2)}h`
+    )
   } catch (error) {
     console.error('❌ [HOUR-CALCULATOR] Erro ao atualizar saldo:', error)
     throw error
@@ -212,47 +225,50 @@ export async function updateHourBalance(userId: string, date: Date = new Date())
  */
 export async function calculateHourStatistics(userId: string, startDate: Date, endDate: Date) {
   try {
-    const records = await (prisma as any).hourBalance.findMany({
+    const records = await prisma.hourBalance.findMany({
       where: {
         userId,
         date: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
-      orderBy: { date: 'asc' }
+      orderBy: { date: 'asc' },
     })
 
     const totalWorked = records.reduce((sum: number, record: any) => sum + record.workedHours, 0)
-    const totalExpected = records.reduce((sum: number, record: any) => sum + record.expectedHours, 0)
+    const totalExpected = records.reduce(
+      (sum: number, record: any) => sum + record.expectedHours,
+      0
+    )
     const totalBalance = records.reduce((sum: number, record: any) => sum + record.balance, 0)
-    
+
     const daysWorked = records.filter((record: any) => record.workedHours > 0).length
     const averageDaily = daysWorked > 0 ? totalWorked / daysWorked : 0
-    
+
     const positiveBalanceDays = records.filter((record: any) => record.balance > 0).length
     const negativeBalanceDays = records.filter((record: any) => record.balance < 0).length
-    
+
     return {
       period: {
         startDate,
         endDate,
         totalDays: records.length,
-        daysWorked
+        daysWorked,
       },
       hours: {
         totalWorked,
         totalExpected,
         totalBalance,
         averageDaily,
-        efficiency: totalExpected > 0 ? (totalWorked / totalExpected) * 100 : 0
+        efficiency: totalExpected > 0 ? (totalWorked / totalExpected) * 100 : 0,
       },
       balance: {
         positive: positiveBalanceDays,
         negative: negativeBalanceDays,
-        neutral: records.length - positiveBalanceDays - negativeBalanceDays
+        neutral: records.length - positiveBalanceDays - negativeBalanceDays,
       },
-      records
+      records,
     }
   } catch (error) {
     console.error('❌ [HOUR-CALCULATOR] Erro ao calcular estatísticas:', error)
@@ -263,19 +279,23 @@ export async function calculateHourStatistics(userId: string, startDate: Date, e
 /**
  * Valida se um registro de ponto está dentro dos limites legais
  */
-export async function validateWorkingHours(userId: string, entryTime: Date, exitTime?: Date): Promise<{
+export async function validateWorkingHours(
+  userId: string,
+  entryTime: Date,
+  exitTime?: Date
+): Promise<{
   isValid: boolean
   violations: string[]
   warnings: string[]
 }> {
   try {
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         contractType: true,
         dailyHours: true,
-        weeklyHours: true
-      }
+        weeklyHours: true,
+      },
     })
 
     if (!user) {
@@ -290,8 +310,9 @@ export async function validateWorkingHours(userId: string, entryTime: Date, exit
       const diffMs = exitTime.getTime() - entryTime.getTime()
       const workedHours = diffMs / (1000 * 60 * 60)
 
-      const contractConfig = CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS]
-      const maxDailyHours = (user as any).contractType === 'CUSTOM' ? (user as any).dailyHours : contractConfig.dailyHours
+      const contractConfig = CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS]
+      const maxDailyHours =
+        user.contractType === 'CUSTOM' ? user.dailyHours : contractConfig.dailyHours
 
       if (workedHours > maxDailyHours) {
         violations.push(`Excede limite diário: ${workedHours.toFixed(2)}h > ${maxDailyHours}h`)
@@ -317,7 +338,7 @@ export async function validateWorkingHours(userId: string, entryTime: Date, exit
     return {
       isValid: violations.length === 0,
       violations,
-      warnings
+      warnings,
     }
   } catch (error) {
     console.error('❌ [HOUR-CALCULATOR] Erro ao validar horários:', error)
