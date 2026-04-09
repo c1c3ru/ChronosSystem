@@ -3,5 +3,6 @@
     "allow": [
       "Bash(npm run *)"
     ]
-  }
+  },
+  "$version": 3
 }
