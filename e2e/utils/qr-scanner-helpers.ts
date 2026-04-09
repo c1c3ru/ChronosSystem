@@ -7,9 +7,9 @@ import { Page, expect } from '@playwright/test'
 // Declarações TypeScript para objetos globais do teste
 declare global {
   interface Window {
-    BarcodeDetector?: any;
-    onScan?: (data: string) => void;
-    processQrCode?: (data: string) => void;
+    BarcodeDetector?: any
+    onScan?: (data: string) => void
+    processQrCode?: (data: string) => void
   }
 }
 
@@ -29,12 +29,12 @@ export class QRScannerTestHelper {
           canvas.height = 720
           const stream = canvas.captureStream()
           return stream
-        }
+        },
       })
 
       // Mock do BarcodeDetector se não existir
       if (!window.BarcodeDetector) {
-        (window as any).BarcodeDetector = class {
+        ;(window as any).BarcodeDetector = class {
           constructor() {}
           async detect() {
             return []
@@ -47,14 +47,16 @@ export class QRScannerTestHelper {
   /**
    * Configura mock que simula erro de câmera
    */
-  async setupCameraErrorMock(errorType: 'NotAllowedError' | 'NotFoundError' | 'NotReadableError' = 'NotAllowedError') {
+  async setupCameraErrorMock(
+    errorType: 'NotAllowedError' | 'NotFoundError' | 'NotReadableError' = 'NotAllowedError'
+  ) {
     await this.page.addInitScript((error) => {
       Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
         value: async () => {
           const err = new Error(`${error}: Camera access denied`)
           err.name = error
           throw err
-        }
+        },
       })
     }, errorType)
   }
@@ -75,9 +77,11 @@ export class QRScannerTestHelper {
    */
   async openScanner() {
     await this.page.click('button:has-text("Abrir Scanner QR")')
-    
+
     // Verificar se o componente está visível
-    const scanner = this.page.locator('[data-testid="qr-scanner"], .qr-scanner, div:has-text("Scanner QR Code")')
+    const scanner = this.page.locator(
+      '[data-testid="qr-scanner"], .qr-scanner, div:has-text("Scanner QR Code")'
+    )
     await expect(scanner).toBeVisible()
   }
 
@@ -99,7 +103,9 @@ export class QRScannerTestHelper {
     await expect(video).toBeVisible({ timeout })
 
     // Aguardar que o overlay de scanning esteja visível
-    const scanningOverlay = this.page.locator('div:has(div[class*="border"]):has(div[class*="animate"])')
+    const scanningOverlay = this.page.locator(
+      'div:has(div[class*="border"]):has(div[class*="animate"])'
+    )
     await expect(scanningOverlay).toBeVisible({ timeout })
 
     // Aguardar status ativo
@@ -113,24 +119,23 @@ export class QRScannerTestHelper {
   async simulateQRDetection(qrCode: string) {
     await this.page.evaluate((code) => {
       // Tentar múltiplas formas de simular a detecção
-      
+
       // 1. Evento customizado
       const event = new CustomEvent('qr-detected', { detail: code })
       document.dispatchEvent(event)
-      
+
       // 2. Tentar chamar função global se existir
       if ((window as any).onScan) {
-        (window as any).onScan(code)
+        ;(window as any).onScan(code)
       }
-      
+
       // 3. Tentar chamar processQrCode se existir
       if ((window as any).processQrCode) {
-        (window as any).processQrCode(code)
+        ;(window as any).processQrCode(code)
       }
-      
+
       // 4. Log para debug
       console.log('🔍 [TEST] Simulando detecção de QR code:', code)
-      
     }, qrCode)
   }
 
@@ -138,10 +143,10 @@ export class QRScannerTestHelper {
    * Verifica se há mensagem de erro
    */
   async expectError(errorText?: string) {
-    const errorMessage = errorText 
+    const errorMessage = errorText
       ? this.page.locator(`text=${errorText}`)
       : this.page.locator('text=/Erro|Error|Permissão.*negada|Permission.*denied/i')
-    
+
     await expect(errorMessage).toBeVisible()
   }
 
@@ -157,18 +162,20 @@ export class QRScannerTestHelper {
    * Fecha o scanner
    */
   async closeScanner() {
-    const closeButton = this.page.locator('button:has(svg), button:has-text("×"), button:has-text("X")').first()
-    
+    const closeButton = this.page
+      .locator('button:has(svg), button:has-text("×"), button:has-text("X")')
+      .first()
+
     if (await closeButton.isVisible()) {
       await closeButton.click()
-      
+
       // Verificar se o vídeo não está mais visível
       const video = this.page.locator('video')
       await expect(video).not.toBeVisible()
-      
+
       return true
     }
-    
+
     return false
   }
 
@@ -177,15 +184,17 @@ export class QRScannerTestHelper {
    */
   async captureConsoleLogs(): Promise<string[]> {
     const logs: string[] = []
-    
-    this.page.on('console', msg => {
-      if (msg.text().includes('[CAMERA]') || 
-          msg.text().includes('[QR]') || 
-          msg.text().includes('[TEST]')) {
+
+    this.page.on('console', (msg) => {
+      if (
+        msg.text().includes('[CAMERA]') ||
+        msg.text().includes('[QR]') ||
+        msg.text().includes('[TEST]')
+      ) {
         logs.push(msg.text())
       }
     })
-    
+
     return logs
   }
 
@@ -193,14 +202,14 @@ export class QRScannerTestHelper {
    * Verifica se há logs de inicialização
    */
   async expectInitializationLogs(logs: string[]) {
-    const hasCameraLogs = logs.some(log => 
-      log.includes('[CAMERA]') && 
-      (log.includes('Iniciando') || log.includes('Stream obtido'))
+    const hasCameraLogs = logs.some(
+      (log) =>
+        log.includes('[CAMERA]') && (log.includes('Iniciando') || log.includes('Stream obtido'))
     )
 
-    const hasQRLogs = logs.some(log => 
-      log.includes('[QR]') && 
-      (log.includes('Iniciando') || log.includes('Canvas configurado'))
+    const hasQRLogs = logs.some(
+      (log) =>
+        log.includes('[QR]') && (log.includes('Iniciando') || log.includes('Canvas configurado'))
     )
 
     expect(hasCameraLogs).toBeTruthy()
@@ -212,8 +221,8 @@ export class QRScannerTestHelper {
    */
   async setupAPIInterception() {
     let apiCalled = false
-    
-    await this.page.route('**/api/attendance/**', route => {
+
+    await this.page.route('**/api/attendance/**', (route) => {
       apiCalled = true
       route.fulfill({
         status: 200,
@@ -224,12 +233,12 @@ export class QRScannerTestHelper {
           record: {
             id: '123',
             type: 'ENTRY',
-            timestamp: new Date().toISOString()
-          }
-        })
+            timestamp: new Date().toISOString(),
+          },
+        }),
       })
     })
-    
+
     return () => apiCalled
   }
 
@@ -249,7 +258,7 @@ export const QR_TEST_DATA = {
   VALID_QR_CODE: 'EMP123456789',
   MACHINE_QR_CODE: 'MACHINE_001_VALID_QR',
   INVALID_QR_CODE: 'INVALID_CODE_123',
-  MALFORMED_QR_CODE: '###INVALID###'
+  MALFORMED_QR_CODE: '###INVALID###',
 }
 
 /**
@@ -264,5 +273,5 @@ export const QR_SELECTORS = {
   ERROR_MESSAGE: 'text=/Erro|Error|Permissão.*negada|Permission.*denied/i',
   RETRY_BUTTON: 'button:has-text("Tentar Novamente")',
   CLOSE_BUTTON: 'button:has(svg), button:has-text("×"), button:has-text("X")',
-  SUCCESS_MESSAGE: 'text=/Ponto registrado|Sucesso|Success/i'
+  SUCCESS_MESSAGE: 'text=/Ponto registrado|Sucesso|Success/i',
 }

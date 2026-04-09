@@ -14,27 +14,27 @@ export async function GET() {
     const recentActivity = await prisma.attendanceRecord.findMany({
       where: {
         timestamp: {
-          gte: twentyFourHoursAgo
-        }
+          gte: twentyFourHoursAgo,
+        },
       },
       include: {
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: {
-        timestamp: 'desc'
+        timestamp: 'desc',
       },
-      take: 10
+      take: 10,
     })
 
     // Formatar dados para o frontend
@@ -45,24 +45,23 @@ export async function GET() {
       // timestamp cru em ISO; formatação fica no frontend para respeitar o timezone do dispositivo
       timestamp: record.timestamp.toISOString(),
       machine: record.machine.name,
-      location: record.machine.location
+      location: record.machine.location,
     }))
 
     return NextResponse.json({
       success: true,
       activity: formattedActivity,
-      count: formattedActivity.length
+      count: formattedActivity.length,
     })
-
   } catch (error) {
     console.error('Erro ao buscar atividade recente:', error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Erro interno do servidor',
         activity: [],
-        count: 0
-      }, 
+        count: 0,
+      },
       { status: 500 }
     )
   }

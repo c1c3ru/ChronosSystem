@@ -7,6 +7,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 ## 🎯 Módulos Desenvolvidos
 
 ### 1. Backend API (NestJS)
+
 - ✅ Autenticação JWT + Google OAuth + 2FA
 - ✅ Geração de QR codes com HMAC-SHA256
 - ✅ Validação de QR com anti-replay (nonce único)
@@ -22,6 +23,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 **Localização:** `/backend`
 
 ### 2. Frontend Admin (React + Tailwind)
+
 - ✅ Dashboard com estatísticas
 - ✅ Gerenciamento de usuários
 - ✅ Gerenciamento de máquinas
@@ -35,6 +37,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 **Localização:** `/frontend-admin`
 
 ### 3. PWA Estagiário (React PWA)
+
 - ✅ Login com email/senha
 - ✅ Escaneamento de QR code (html5-qrcode)
 - ✅ Registro de entrada/saída
@@ -47,6 +50,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 **Localização:** `/pwa-estagiario`
 
 ### 4. Kiosk (React)
+
 - ✅ QR code rotativo (60 segundos)
 - ✅ Relógio em tempo real
 - ✅ Status de conectividade
@@ -60,6 +64,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 ## 🔐 Segurança Implementada
 
 ### QR Code Security
+
 - ✅ Assinatura HMAC-SHA256
 - ✅ Nonce único (anti-replay)
 - ✅ Expiração de 60 segundos
@@ -67,6 +72,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 - ✅ Validação completa no backend
 
 ### Autenticação
+
 - ✅ JWT com access + refresh tokens
 - ✅ Google OAuth 2.0
 - ✅ 2FA com TOTP
@@ -74,12 +80,14 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 - ✅ Token rotation
 
 ### Auditoria
+
 - ✅ Hash chain imutável (SHA-256)
 - ✅ Logs de todas as ações
 - ✅ Verificação de integridade
 - ✅ Previne alterações retroativas
 
 ### Proteções
+
 - ✅ Rate limiting
 - ✅ CORS configurado
 - ✅ Helmet (security headers)
@@ -90,6 +98,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 ## 📊 Banco de Dados
 
 ### Tabelas Principais
+
 - `users` - Usuários do sistema
 - `machines` - Máquinas de ponto
 - `attendance_records` - Registros de ponto
@@ -100,6 +109,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 - `attendance_corrections` - Correções solicitadas
 
 ### Relacionamentos
+
 - User → AttendanceRecords (1:N)
 - Machine → AttendanceRecords (1:N)
 - AttendanceRecord → AttendanceCorrection (1:1)
@@ -108,12 +118,14 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 ## 🎨 Design System
 
 ### Cores
+
 - **Primary:** #10B981 (Verde)
 - **Background:** #0F172A (Azul escuro)
 - **Surface:** #0B1220 (Azul mais escuro)
 - **Muted:** #9CA3AF (Cinza)
 
 ### Componentes
+
 - Buttons com hover/tap animations
 - Cards com glass effect
 - Inputs com focus states
@@ -122,6 +134,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 - Toast notifications
 
 ### Animações
+
 - Framer Motion para transições
 - Micro-interações
 - Page transitions
@@ -130,6 +143,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 ## 🛠️ Stack Tecnológica
 
 ### Backend
+
 - Node.js 20
 - NestJS
 - TypeScript
@@ -141,6 +155,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 - speakeasy (2FA)
 
 ### Frontend
+
 - React 18
 - TypeScript
 - Vite
@@ -152,6 +167,7 @@ Um **sistema completo de registro de ponto eletrônico** para estagiários, com 
 - Zod
 
 ### DevOps
+
 - Docker + Docker Compose
 - GitHub Actions (CI/CD)
 - Vitest + Jest (testes)
@@ -232,6 +248,7 @@ personal-website/
 ## 🚀 Como Iniciar
 
 ### Opção 1: Docker (Recomendado)
+
 ```bash
 docker-compose up -d
 docker exec -it ponto-backend npm run prisma:migrate
@@ -239,6 +256,7 @@ docker exec -it ponto-backend npm run prisma:seed
 ```
 
 ### Opção 2: Manual
+
 ```bash
 # Backend
 cd backend && npm install && npm run start:dev
@@ -255,28 +273,29 @@ cd kiosk && npm install && npm run dev
 
 ## 🔗 URLs de Acesso
 
-| Aplicação | URL | Porta |
-|-----------|-----|-------|
-| Admin Dashboard | http://localhost:3000 | 3000 |
-| PWA Estagiário | http://localhost:3001 | 3001 |
-| Kiosk | http://localhost:3002 | 3002 |
-| API Backend | http://localhost:4000 | 4000 |
-| PostgreSQL | localhost:5432 | 5432 |
-| Redis | localhost:6379 | 6379 |
+| Aplicação       | URL                   | Porta |
+| --------------- | --------------------- | ----- |
+| Admin Dashboard | http://localhost:3000 | 3000  |
+| PWA Estagiário  | http://localhost:3001 | 3001  |
+| Kiosk           | http://localhost:3002 | 3002  |
+| API Backend     | http://localhost:4000 | 4000  |
+| PostgreSQL      | localhost:5432        | 5432  |
+| Redis           | localhost:6379        | 6379  |
 
 ## 👥 Usuários de Teste
 
 Após executar o seed:
 
-| Tipo | Email | Senha | Função |
-|------|-------|-------|--------|
-| Admin | admin@ponto.com | admin123 | ADMIN |
+| Tipo  | Email           | Senha    | Função |
+| ----- | --------------- | -------- | ------ |
+| Admin | admin@ponto.com | admin123 | ADMIN  |
 
 **Nota:** Os estagiários agora fazem login exclusivamente via Google OAuth e completam seu cadastro através de um modal com informações do contrato de estágio.
 
 ## ✨ Funcionalidades Principais
 
 ### Para Estagiários
+
 - Login exclusivo via Google OAuth
 - Modal de cadastro para completar informações do contrato
 - Escanear QR code para registrar ponto
@@ -285,6 +304,7 @@ Após executar o seed:
 - PWA funciona offline
 
 ### Para Administradores
+
 - Dashboard com estatísticas em tempo real
 - Gerenciar usuários (CRUD completo)
 - Gerenciar máquinas de ponto
@@ -296,6 +316,7 @@ Após executar o seed:
 - Verificar integridade da cadeia de hashes
 
 ### Para Máquinas (Kiosk)
+
 - Exibir QR code rotativo (60s)
 - Relógio em tempo real
 - Status de conectividade
@@ -333,16 +354,19 @@ Após executar o seed:
 ## 🧪 Testes
 
 ### Backend
+
 - Unit tests (Jest)
 - Integration tests
 - E2E tests
 - Coverage configurado
 
 ### Frontend
+
 - Component tests (Vitest)
 - E2E tests (Playwright)
 
 ### CI/CD
+
 - GitHub Actions configurado
 - Testes automáticos
 - Build validation
@@ -351,6 +375,7 @@ Após executar o seed:
 ## 📦 Pronto para Produção
 
 ### Checklist
+
 - ✅ Código limpo e documentado
 - ✅ TypeScript em todo o projeto
 - ✅ Validação de inputs
@@ -363,6 +388,7 @@ Após executar o seed:
 - ✅ Segurança implementada
 
 ### Para Deploy
+
 1. Configure variáveis de ambiente de produção
 2. Use HTTPS/TLS
 3. Configure banco de dados gerenciado

@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -15,12 +15,12 @@ export async function GET(request: NextRequest) {
     // Buscar logs de tentativas não autorizadas
     const unauthorizedAttempts = await prisma.auditLog.findMany({
       where: {
-        action: 'UNAUTHORIZED_GOOGLE_LOGIN_ATTEMPT'
+        action: 'UNAUTHORIZED_GOOGLE_LOGIN_ATTEMPT',
       },
       orderBy: {
-        timestamp: 'desc'
+        timestamp: 'desc',
       },
-      take: 50 // Últimas 50 tentativas
+      take: 50, // Últimas 50 tentativas
     })
 
     // Extrair emails únicos das tentativas
@@ -34,16 +34,16 @@ export async function GET(request: NextRequest) {
 
     // Remover duplicatas e emails que já existem no sistema
     const uniqueEmails = Array.from(new Set(emailsFromLogs))
-    
+
     const existingUsers = await prisma.user.findMany({
       where: {
         email: {
-          in: uniqueEmails
-        }
+          in: uniqueEmails,
+        },
       },
       select: {
-        email: true
-      }
+        email: true,
+      },
     })
 
     const existingEmails = existingUsers.map((user: any) => user.email)
@@ -51,23 +51,23 @@ export async function GET(request: NextRequest) {
 
     // Agrupar tentativas por email
     const pendingUsers = pendingEmails.map((email: any) => {
-      const attempts = unauthorizedAttempts.filter((log: any) => 
-        log.details && log.details.includes(email)
+      const attempts = unauthorizedAttempts.filter(
+        (log: any) => log.details && log.details.includes(email)
       )
-      
+
       return {
         email,
         attemptCount: attempts.length,
         lastAttempt: attempts[0]?.timestamp,
-        firstAttempt: attempts[attempts.length - 1]?.timestamp
+        firstAttempt: attempts[attempts.length - 1]?.timestamp,
       }
     })
 
     return NextResponse.json({
-      pendingUsers: pendingUsers.sort((a, b) => 
-        new Date(b.lastAttempt || 0).getTime() - new Date(a.lastAttempt || 0).getTime()
+      pendingUsers: pendingUsers.sort(
+        (a, b) => new Date(b.lastAttempt || 0).getTime() - new Date(a.lastAttempt || 0).getTime()
       ),
-      totalAttempts: unauthorizedAttempts.length
+      totalAttempts: unauthorizedAttempts.length,
     })
   } catch (error) {
     console.error('Erro ao buscar usuários pendentes:', error)
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     // Verificar se usuário já existe
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     })
 
     if (existingUser) {
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         role,
         department: department || null,
         profileComplete: false, // Usuário precisará completar perfil no primeiro login
-      }
+      },
     })
 
     // Log de auditoria
@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'USER_PRE_AUTHORIZED',
         resource: 'USER',
-        details: `Usuário ${email} pré-autorizado com role ${role} por ${session.user.email}`
-      }
+        details: `Usuário ${email} pré-autorizado com role ${role} por ${session.user.email}`,
+      },
     })
 
     return NextResponse.json({
@@ -131,8 +131,8 @@ export async function POST(request: NextRequest) {
         email: newUser.email,
         name: newUser.name,
         role: newUser.role,
-        department: newUser.department
-      }
+        department: newUser.department,
+      },
     })
   } catch (error) {
     console.error('Erro ao autorizar usuário:', error)

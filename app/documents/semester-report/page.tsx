@@ -9,7 +9,15 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import {
+  maskCPF,
+  maskRG,
+  maskCTPS,
+  maskCNPJ,
+  maskCEP,
+  maskPhone,
+  maskCurrency,
+} from '@/lib/input-masks'
 
 export default function SemesterReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -30,7 +38,9 @@ export default function SemesterReportPage() {
     loadDraft()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target
     let maskedValue = value
 
@@ -74,7 +84,7 @@ export default function SemesterReportPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: any = { ...formData }
 
     await saveDraft('semester-report', data)
     toast.success('Rascunho salvo com sucesso!')
@@ -99,7 +109,7 @@ export default function SemesterReportPage() {
         horas_semestre: raw.hours_semester || '',
         atividades: raw.activities || '',
         dificuldades: raw.difficulties || '', // Semester report usually has these from the builder
-        resultados: raw.comments || '' // Mapping comments to results if needed
+        resultados: raw.comments || '', // Mapping comments to results if needed
       }
 
       const html = buildSemesterReportHTML(htmlData)
@@ -164,12 +174,16 @@ export default function SemesterReportPage() {
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6" onChange={() => {
-          if (formRef.current) {
-            const data = new FormData(formRef.current)
-            setFormData(Object.fromEntries(data.entries()))
-          }
-        }}>
+        <form
+          ref={formRef}
+          className="space-y-6"
+          onChange={() => {
+            if (formRef.current) {
+              const data = new FormData(formRef.current)
+              setFormData(Object.fromEntries(data.entries()))
+            }
+          }}
+        >
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Identificação e Período</CardTitle>
@@ -177,40 +191,117 @@ export default function SemesterReportPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Discente</label>
-                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome do Discente" placeholder="Nome Completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome do Discente
+                  </label>
+                  <input
+                    type="text"
+                    name="student_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome do Discente"
+                    placeholder="Nome Completo"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
+                  <input
+                    type="text"
+                    name="student_course"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Curso"
+                    placeholder="Nome do Curso"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Matrícula
+                  </label>
+                  <input
+                    type="text"
+                    name="student_enrollment"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Matrícula"
+                    placeholder="Número da Matrícula"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                  <input type="text" name="supervisor_name" className="input w-full" onChange={handleInputChange} title="Supervisor do Estágio" placeholder="Nome do Supervisor" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Supervisor do Estágio
+                  </label>
+                  <input
+                    type="text"
+                    name="supervisor_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Supervisor do Estágio"
+                    placeholder="Nome do Supervisor"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Docente Orientador</label>
-                  <input type="text" name="advisor_name" className="input w-full" onChange={handleInputChange} title="Docente Orientador" placeholder="Nome do Orientador" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Docente Orientador
+                  </label>
+                  <input
+                    type="text"
+                    name="advisor_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Docente Orientador"
+                    placeholder="Nome do Orientador"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial Parcial</label>
-                  <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} title="Data Inicial Parcial" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Inicial Parcial
+                  </label>
+                  <input
+                    type="date"
+                    name="period_start"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Inicial Parcial"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Parcial</label>
-                  <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} title="Data Final Parcial" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Final Parcial
+                  </label>
+                  <input
+                    type="date"
+                    name="period_end"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Final Parcial"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Estagiada no Período (Horas)</label>
-                  <input type="number" name="hours_semester" className="input w-full" onChange={handleInputChange} title="Estagiada no Período (Horas)" placeholder="000" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Estagiada no Período (Horas)
+                  </label>
+                  <input
+                    type="number"
+                    name="hours_semester"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Estagiada no Período (Horas)"
+                    placeholder="000"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Acumulada no Período (Horas)</label>
-                  <input type="number" name="hours_total" className="input w-full" onChange={handleInputChange} title="Acumulada no Período (Horas)" placeholder="000" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Acumulada no Período (Horas)
+                  </label>
+                  <input
+                    type="number"
+                    name="hours_total"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Acumulada no Período (Horas)"
+                    placeholder="000"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -222,8 +313,17 @@ export default function SemesterReportPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Principais Atividades</label>
-                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange} title="Principais Atividades" placeholder="Descreva as principais atividades realizadas"></textarea>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Principais Atividades
+                </label>
+                <textarea
+                  name="activities"
+                  rows={8}
+                  className="input w-full"
+                  onChange={handleInputChange}
+                  title="Principais Atividades"
+                  placeholder="Descreva as principais atividades realizadas"
+                ></textarea>
               </div>
             </CardContent>
           </Card>
@@ -231,7 +331,9 @@ export default function SemesterReportPage() {
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Avaliação do Discente</CardTitle>
-              <p className="text-sm text-neutral-400">Atribua valores de 1 (Insuficiente) a 4 (Muito Satisfatório)</p>
+              <p className="text-sm text-neutral-400">
+                Atribua valores de 1 (Insuficiente) a 4 (Muito Satisfatório)
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="overflow-x-auto">
@@ -274,8 +376,17 @@ export default function SemesterReportPage() {
             </CardHeader>
             <CardContent>
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Comentários e Sugestões</label>
-                <textarea name="comments" rows={5} className="input w-full" onChange={handleInputChange} title="Comentários e Sugestões" placeholder="Observações adicionais, comentários e sugestões"></textarea>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Comentários e Sugestões
+                </label>
+                <textarea
+                  name="comments"
+                  rows={5}
+                  className="input w-full"
+                  onChange={handleInputChange}
+                  title="Comentários e Sugestões"
+                  placeholder="Observações adicionais, comentários e sugestões"
+                ></textarea>
               </div>
             </CardContent>
           </Card>

@@ -112,9 +112,7 @@ export async function saveDraftToServer(
 /**
  * Recupera um rascunho do servidor
  */
-export async function getDraftFromServer(
-  formType: FormType
-): Promise<Record<string, any> | null> {
+export async function getDraftFromServer(formType: FormType): Promise<Record<string, any> | null> {
   try {
     const response = await fetch(`/api/forms/drafts?formType=${formType}`)
 
@@ -136,10 +134,7 @@ export async function getDraftFromServer(
 /**
  * Salva rascunho localmente e no servidor
  */
-export async function saveDraft(
-  formType: FormType,
-  formData: Record<string, any>
-): Promise<void> {
+export async function saveDraft(formType: FormType, formData: Record<string, any>): Promise<void> {
   // Salva localmente primeiro (mais rápido)
   saveDraftLocally(formType, formData)
 
@@ -218,9 +213,11 @@ export function populateFormWithData(
   data: Record<string, any>
 ): void {
   Object.entries(data).forEach(([key, value]) => {
-    const inputs = formElement.querySelectorAll(`[name="${key}"]`) as NodeListOf<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    const inputs = formElement.querySelectorAll(`[name="${key}"]`) as NodeListOf<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
 
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       if (input.type === 'checkbox' || input.type === 'radio') {
         const checkbox = input as HTMLInputElement
         checkbox.checked = value === 'on' || value === true || value === checkbox.value

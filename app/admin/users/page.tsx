@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Building
+  Building,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -82,14 +82,19 @@ export default function UsersPage() {
   }
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o usuário "${userName}"?\n\nEsta ação não pode ser desfeita.`)) return
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir o usuário "${userName}"?\n\nEsta ação não pode ser desfeita.`
+      )
+    )
+      return
 
     try {
       setDeleting(userId)
       toast.loading('Excluindo usuário...', { id: 'delete-user' })
 
       const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
@@ -112,8 +117,9 @@ export default function UsersPage() {
     toast.success('Lista de usuários atualizada!')
   }
 
-  const filteredUsers = (users || []).filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredUsers = (users || []).filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
@@ -176,7 +182,9 @@ export default function UsersPage() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <label htmlFor="search-users" className="sr-only">Buscar usuários</label>
+                  <label htmlFor="search-users" className="sr-only">
+                    Buscar usuários
+                  </label>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
                     id="search-users"
@@ -189,7 +197,9 @@ export default function UsersPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <label htmlFor="role-filter" className="sr-only">Filtrar por papel</label>
+                <label htmlFor="role-filter" className="sr-only">
+                  Filtrar por papel
+                </label>
                 <Filter className="h-4 w-4 text-neutral-400" />
                 <select
                   id="role-filter"
@@ -221,10 +231,15 @@ export default function UsersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-white">{user.name}</h3>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
-                          user.role === 'SUPERVISOR' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-blue-500/20 text-blue-400'
-                          }`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            user.role === 'ADMIN'
+                              ? 'bg-red-500/20 text-red-400'
+                              : user.role === 'SUPERVISOR'
+                                ? 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-blue-500/20 text-blue-400'
+                          }`}
+                        >
                           {user.role}
                         </span>
                         {user.profileComplete ? (
@@ -319,10 +334,9 @@ export default function UsersPage() {
               <p className="text-neutral-400 mb-4">
                 {searchTerm || roleFilter !== 'ALL'
                   ? 'Tente ajustar os filtros de busca'
-                  : 'Comece criando o primeiro usuário'
-                }
+                  : 'Comece criando o primeiro usuário'}
               </p>
-              {(!searchTerm && roleFilter === 'ALL') && (
+              {!searchTerm && roleFilter === 'ALL' && (
                 <Button asChild>
                   <Link href="/admin/users/new">
                     <UserPlus className="h-4 w-4 mr-2" />

@@ -5,15 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  FileText, 
-  Download, 
-  Calendar, 
+import {
+  FileText,
+  Download,
+  Calendar,
   ArrowLeft,
   Users,
   Clock,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -53,7 +53,7 @@ export default function ReportsPage() {
     try {
       setLoading(true)
       const response = await fetch(`/api/reports?period=${selectedPeriod}&user=${selectedUser}`)
-      
+
       if (response.ok) {
         const data = await response.json()
         setReportData(data)
@@ -67,8 +67,10 @@ export default function ReportsPage() {
 
   const downloadReport = async (format: 'pdf' | 'csv') => {
     try {
-      const response = await fetch(`/api/reports/download?format=${format}&period=${selectedPeriod}&user=${selectedUser}`)
-      
+      const response = await fetch(
+        `/api/reports/download?format=${format}&period=${selectedPeriod}&user=${selectedUser}`
+      )
+
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -98,7 +100,7 @@ export default function ReportsPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -148,7 +150,10 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div>
-                <label htmlFor="period-select" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="period-select"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Período
                 </label>
                 <select
@@ -163,9 +168,12 @@ export default function ReportsPage() {
                   <option value="365">Último ano</option>
                 </select>
               </div>
-              
+
               <div>
-                <label htmlFor="user-select" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="user-select"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Usuário
                 </label>
                 <select
@@ -252,17 +260,15 @@ export default function ReportsPage() {
                         <span className="text-sm text-neutral-400">{month.records} registros</span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ 
-                            width: `${Math.min((month.records / Math.max(...reportData.monthlyData.map(m => m.records))) * 100, 100)}%` 
+                        <div
+                          className="bg-primary h-2 rounded-full"
+                          style={{
+                            width: `${Math.min((month.records / Math.max(...reportData.monthlyData.map((m) => m.records))) * 100, 100)}%`,
                           }}
                         />
                       </div>
                       {month.lateRecords > 0 && (
-                        <div className="text-xs text-warning mt-1">
-                          {month.lateRecords} atrasos
-                        </div>
+                        <div className="text-xs text-warning mt-1">{month.lateRecords} atrasos</div>
                       )}
                     </div>
                   </div>
@@ -284,9 +290,7 @@ export default function ReportsPage() {
                 </div>
               </div>
               <Button asChild className="w-full mt-4" variant="ghost">
-                <Link href="/admin/reports/detailed">
-                  Ver Detalhes
-                </Link>
+                <Link href="/admin/reports/detailed">Ver Detalhes</Link>
               </Button>
             </CardContent>
           </Card>
@@ -301,9 +305,7 @@ export default function ReportsPage() {
                 </div>
               </div>
               <Button asChild className="w-full mt-4" variant="ghost">
-                <Link href="/admin/reports/justifications">
-                  Ver Justificativas
-                </Link>
+                <Link href="/admin/reports/justifications">Ver Justificativas</Link>
               </Button>
             </CardContent>
           </Card>
@@ -318,9 +320,7 @@ export default function ReportsPage() {
                 </div>
               </div>
               <Button asChild className="w-full mt-4" variant="ghost">
-                <Link href="/admin/reports/frequency">
-                  Ver Frequência
-                </Link>
+                <Link href="/admin/reports/frequency">Ver Frequência</Link>
               </Button>
             </CardContent>
           </Card>

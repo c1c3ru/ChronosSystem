@@ -21,11 +21,11 @@ interface UserExistsAlertProps {
   showActions?: boolean
 }
 
-export function UserExistsAlert({ 
-  userData, 
-  onContinue, 
-  onCancel, 
-  showActions = true 
+export function UserExistsAlert({
+  userData,
+  onContinue,
+  onCancel,
+  showActions = true,
 }: UserExistsAlertProps) {
   const [isVisible, setIsVisible] = useState(true)
 
@@ -37,25 +37,33 @@ export function UserExistsAlert({
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'Administrador'
-      case 'SUPERVISOR': return 'Supervisor'
-      case 'EMPLOYEE': return 'Funcionário'
-      default: return role
+      case 'ADMIN':
+        return 'Administrador'
+      case 'SUPERVISOR':
+        return 'Supervisor'
+      case 'EMPLOYEE':
+        return 'Funcionário'
+      default:
+        return role
     }
   }
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'text-error-400'
-      case 'SUPERVISOR': return 'text-warning-400'
-      case 'EMPLOYEE': return 'text-info-400'
-      default: return 'text-neutral-400'
+      case 'ADMIN':
+        return 'text-error-400'
+      case 'SUPERVISOR':
+        return 'text-warning-400'
+      case 'EMPLOYEE':
+        return 'text-info-400'
+      default:
+        return 'text-neutral-400'
     }
   }
 
@@ -77,10 +85,9 @@ export function UserExistsAlert({
         {/* Message */}
         <div className="mb-4">
           <p className="text-muted-foreground text-sm mb-3">
-            {userData.profileComplete 
+            {userData.profileComplete
               ? 'Este usuário já possui cadastro completo no sistema.'
-              : 'Este usuário já existe mas precisa completar o cadastro.'
-            }
+              : 'Este usuário já existe mas precisa completar o cadastro.'}
           </p>
         </div>
 
@@ -125,11 +132,13 @@ export function UserExistsAlert({
 
         {/* Status Badge */}
         <div className="mb-4">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-            userData.profileComplete 
-              ? 'bg-success-900/30 text-success-400 border border-success-500/30'
-              : 'bg-warning-900/30 text-warning-400 border border-warning-500/30'
-          }`}>
+          <span
+            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+              userData.profileComplete
+                ? 'bg-success-900/30 text-success-400 border border-success-500/30'
+                : 'bg-warning-900/30 text-warning-400 border border-warning-500/30'
+            }`}
+          >
             {userData.profileComplete ? '✅ Perfil Completo' : '⚠️ Perfil Incompleto'}
           </span>
         </div>
@@ -188,11 +197,7 @@ export function UserExistsAlert({
         {/* Close button if no actions */}
         {!showActions && (
           <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              onClick={() => setIsVisible(false)}
-              size="sm"
-            >
+            <Button variant="secondary" onClick={() => setIsVisible(false)} size="sm">
               Fechar
             </Button>
           </div>

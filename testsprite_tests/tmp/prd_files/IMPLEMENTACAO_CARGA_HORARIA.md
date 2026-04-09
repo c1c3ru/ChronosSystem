@@ -9,7 +9,6 @@ Acabei de implementar um **sistema completo de controle de carga horária** para
 1. **Schema Prisma Atualizado** (`backend/prisma/schema.prisma`)
    - Adicionados campos de contrato ao modelo `User`
    - Criado modelo `WorkSummary` para resumos diários
-   
 2. **Serviço de Carga Horária** (`backend/src/work-hours/work-hours.service.ts`)
    - Cálculo automático de horas trabalhadas
    - Validações de jornada e intervalos
@@ -32,12 +31,14 @@ Acabei de implementar um **sistema completo de controle de carga horária** para
 ## 📋 Funcionalidades
 
 ### Controle de Contrato
+
 - ✅ Data de início e fim do estágio
 - ✅ Carga horária total (ex: 800h)
 - ✅ Horas semanais (padrão: 30h)
 - ✅ Horas diárias (padrão: 6h)
 
 ### Cálculos Automáticos
+
 - ✅ Horas trabalhadas por dia/semana/mês
 - ✅ Total de horas cumpridas
 - ✅ Horas restantes
@@ -46,6 +47,7 @@ Acabei de implementar um **sistema completo de controle de carga horária** para
 - ✅ Média de horas por dia
 
 ### Validações
+
 - ✅ Sequência ENTRADA → SAÍDA
 - ✅ Jornada máxima (6h/dia)
 - ✅ Horário permitido (06:00-22:00)
@@ -53,6 +55,7 @@ Acabei de implementar um **sistema completo de controle de carga horária** para
 - ✅ Detecção de registros incompletos
 
 ### Resumos
+
 - ✅ Resumo diário com todas as métricas
 - ✅ Resumo semanal
 - ✅ Resumo mensal
@@ -72,11 +75,13 @@ Isso vai atualizar o Prisma Client com os novos campos e modelos.
 ### Passo 2: Aplicar Migração
 
 **Opção A: Usar a migração criada**
+
 ```bash
 npx prisma migrate deploy
 ```
 
 **Opção B: Criar nova migração**
+
 ```bash
 npx prisma migrate dev --name add_work_hours
 ```
@@ -142,6 +147,7 @@ Authorization: Bearer <token>
 ```
 
 O sistema automaticamente:
+
 - Valida se pode registrar
 - Calcula as horas
 - Atualiza o resumo diário
@@ -163,6 +169,7 @@ Agora você precisa criar as interfaces no frontend para exibir:
 ### Dashboard do Estagiário
 
 1. **Card "Horas de Hoje"**
+
    ```tsx
    - Horas trabalhadas: 5h 30min
    - Meta: 6h
@@ -171,6 +178,7 @@ Agora você precisa criar as interfaces no frontend para exibir:
    ```
 
 2. **Card "Meu Contrato"**
+
    ```tsx
    - Horas cumpridas: 450h
    - Total: 800h
@@ -207,6 +215,7 @@ Agora você precisa criar as interfaces no frontend para exibir:
 **Causa:** Prisma Client não foi regenerado.
 
 **Solução:**
+
 ```bash
 cd backend
 npx prisma generate
@@ -217,6 +226,7 @@ npx prisma generate
 **Causa:** Prisma Client não foi regenerado.
 
 **Solução:**
+
 ```bash
 npx prisma generate
 ```
@@ -226,6 +236,7 @@ npx prisma generate
 **Causa:** Banco de dados pode ter dados conflitantes.
 
 **Solução:**
+
 ```bash
 # Resetar banco (CUIDADO: apaga dados!)
 npx prisma migrate reset
@@ -243,6 +254,7 @@ psql -U user -d database -f prisma/migrations/20250115_add_work_hours/migration.
 ## ✅ Checklist de Implementação
 
 ### Backend
+
 - [x] Atualizar schema Prisma
 - [x] Criar WorkHoursService
 - [x] Criar WorkHoursController
@@ -255,6 +267,7 @@ psql -U user -d database -f prisma/migrations/20250115_add_work_hours/migration.
 - [ ] Testar endpoints
 
 ### Frontend (TODO)
+
 - [ ] Criar componente HoursCard
 - [ ] Criar componente ContractProgress
 - [ ] Criar componente WeeklyChart
@@ -264,6 +277,7 @@ psql -U user -d database -f prisma/migrations/20250115_add_work_hours/migration.
 - [ ] Adicionar alertas de violações
 
 ### Testes (TODO)
+
 - [ ] Testes unitários do WorkHoursService
 - [ ] Testes de integração dos endpoints
 - [ ] Testes E2E do fluxo completo

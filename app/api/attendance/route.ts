@@ -10,7 +10,6 @@ import { DEFAULT_RADIUS } from '@/lib/geolocation'
 import { logger } from '@/lib/logger'
 import { AttendanceLogic, AttendanceRecordType } from '@/lib/attendance-logic'
 
-
 // Forçar renderização dinâmica
 export const dynamic = 'force-dynamic'
 const createAttendanceSchema = z.object({
@@ -18,7 +17,7 @@ const createAttendanceSchema = z.object({
   type: z.enum(['ENTRY', 'EXIT']),
   qrData: z.string(),
   latitude: z.number().optional(),
-  longitude: z.number().optional()
+  longitude: z.number().optional(),
 })
 
 // GET /api/attendance - Listar registros de ponto
@@ -70,21 +69,21 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               name: true,
-              email: true
-            }
+              email: true,
+            },
           },
           machine: {
             select: {
               name: true,
-              location: true
-            }
-          }
+              location: true,
+            },
+          },
         },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { timestamp: 'desc' }
+        orderBy: { timestamp: 'desc' },
       }),
-      prisma.attendanceRecord.count({ where })
+      prisma.attendanceRecord.count({ where }),
     ])
 
     return NextResponse.json({
@@ -93,8 +92,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     logger.error('Erro ao buscar registros de ponto', { error })
@@ -123,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // Verificar se a máquina existe e está ativa
     const maquina = await prisma.machine.findUnique({
-      where: { id: dadosValidados.machineId }
+      where: { id: dadosValidados.machineId },
     })
 
     if (!maquina || !maquina.isActive) {
@@ -133,24 +132,29 @@ export async function POST(request: NextRequest) {
     // Buscar último registro do usuário para validações de sequência
     const ultimoRegistro = await prisma.attendanceRecord.findFirst({
       where: { userId: sessao.user.id },
-      orderBy: { timestamp: 'desc' }
+      orderBy: { timestamp: 'desc' },
     })
 
     const registrosDoDia = await prisma.attendanceRecord.findMany({
       where: {
         userId: sessao.user.id,
         timestamp: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0))
-        }
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Instanciar lógica de atendimento
     const atendimentoLogica = new AttendanceLogic()
 
     // Validação de proximidade se fornecida
-    if (dadosValidados.latitude && dadosValidados.longitude && maquina.latitude && maquina.longitude) {
+    if (
+      dadosValidados.latitude &&
+      dadosValidados.longitude &&
+      maquina.latitude &&
+      maquina.longitude
+    ) {
       const validacaoProximidade = atendimentoLogica.validarProximidade(
         { latitude: dadosValidados.latitude, longitude: dadosValidados.longitude },
         { latitude: maquina.latitude, longitude: maquina.longitude },
@@ -162,13 +166,16 @@ export async function POST(request: NextRequest) {
           userId: sessao.user.id,
           machineId: maquina.id,
           distancia: validacaoProximidade.distance,
-          raioMaximo: validacaoProximidade.maxRadius
+          raioMaximo: validacaoProximidade.maxRadius,
         })
 
-        return NextResponse.json({
-          error: 'Localização inválida',
-          message: validacaoProximidade.message
-        }, { status: 400 })
+        return NextResponse.json(
+          {
+            error: 'Localização inválida',
+            message: validacaoProximidade.message,
+          },
+          { status: 400 }
+        )
       }
     }
 
@@ -183,11 +190,11 @@ export async function POST(request: NextRequest) {
         userId: sessao.user.id,
         date: {
           gte: hojeInicio,
-          lte: hojeFim
+          lte: hojeFim,
         },
         type: 'EXTRA_WORK',
-        status: 'APPROVED'
-      }
+        status: 'APPROVED',
+      },
     })
 
     const temAutorizacao = !!autorizacaoEspecial
@@ -195,7 +202,9 @@ export async function POST(request: NextRequest) {
     // Validar anomalias de sequência e registros muito próximos
     const validadorRegistro = await atendimentoLogica.validateRecord(
       dadosValidados.type as AttendanceRecordType,
-      ultimoRegistro ? { ...ultimoRegistro, type: ultimoRegistro.type as AttendanceRecordType } : null,
+      ultimoRegistro
+        ? { ...ultimoRegistro, type: ultimoRegistro.type as AttendanceRecordType }
+        : null,
       new Date(),
       temAutorizacao
     )
@@ -220,27 +229,27 @@ export async function POST(request: NextRequest) {
         longitude: dadosValidados.longitude,
         timestamp: dataAtual,
         hash,
-        prevHash: ultimoRegistro?.hash
+        prevHash: ultimoRegistro?.hash,
       },
       include: {
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     // Validar anomalias e avisos após o registro (opcionalmente registrar em log)
     const anomalias = atendimentoLogica.detectSequenceAnomaly(
-      [...registrosDoDia, registro].map(r => ({ ...r, type: r.type as AttendanceRecordType }))
+      [...registrosDoDia, registro].map((r) => ({ ...r, type: r.type as AttendanceRecordType }))
     )
 
     if (anomalias.length > 0) {
@@ -261,8 +270,8 @@ export async function POST(request: NextRequest) {
         userId: sessao.user.id,
         action: 'CREATE_ATTENDANCE',
         resource: 'ATTENDANCE_RECORD',
-        details: `Registro de ${dadosValidados.type} na máquina ${maquina.name}`
-      }
+        details: `Registro de ${dadosValidados.type} na máquina ${maquina.name}`,
+      },
     })
 
     // Adicionar headers de rate limit na resposta
@@ -270,13 +279,18 @@ export async function POST(request: NextRequest) {
     return addRateLimitHeaders(resposta, rateLimitResult)
   } catch (erro: unknown) {
     if (erro instanceof z.ZodError) {
-      return NextResponse.json({
-        error: 'Dados inválidos',
-        details: erro.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: erro.errors,
+        },
+        { status: 400 }
+      )
     }
 
-    logger.error('Erro ao criar registro de ponto', { error: erro instanceof Error ? erro.message : String(erro) })
+    logger.error('Erro ao criar registro de ponto', {
+      error: erro instanceof Error ? erro.message : String(erro),
+    })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

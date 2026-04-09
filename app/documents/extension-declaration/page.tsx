@@ -9,7 +9,15 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import {
+  maskCPF,
+  maskRG,
+  maskCTPS,
+  maskCNPJ,
+  maskCEP,
+  maskPhone,
+  maskCurrency,
+} from '@/lib/input-masks'
 
 export default function ExtensionDeclarationPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -74,7 +82,7 @@ export default function ExtensionDeclarationPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: any = { ...formData }
 
     await saveDraft('extension-declaration', data)
     toast.success('Rascunho salvo com sucesso!')
@@ -86,7 +94,8 @@ export default function ExtensionDeclarationPage() {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
       const raw: any = { ...formData }
-      const { generateHTMLPDF, buildExtensionDeclarationHTML } = await import('@/lib/pdf-generator-html')
+      const { generateHTMLPDF, buildExtensionDeclarationHTML } =
+        await import('@/lib/pdf-generator-html')
 
       // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
@@ -96,7 +105,7 @@ export default function ExtensionDeclarationPage() {
         matricula_estudante: raw.student_enrollment || '',
         data_final_atual: raw.current_end_date || '',
         nova_data_final: raw.new_end_date || '',
-        cidade: raw.city || 'Maracanaú'
+        cidade: raw.city || 'Maracanaú',
       }
 
       const html = buildExtensionDeclarationHTML(htmlData)
@@ -150,12 +159,16 @@ export default function ExtensionDeclarationPage() {
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6" onChange={() => {
-          if (formRef.current) {
-            const data = new FormData(formRef.current)
-            setFormData(Object.fromEntries(data.entries()))
-          }
-        }}>
+        <form
+          ref={formRef}
+          className="space-y-6"
+          onChange={() => {
+            if (formRef.current) {
+              const data = new FormData(formRef.current)
+              setFormData(Object.fromEntries(data.entries()))
+            }
+          }}
+        >
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Dados da Prorrogação</CardTitle>
@@ -163,36 +176,102 @@ export default function ExtensionDeclarationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome da Empresa</label>
-                   <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Nome da Empresa" placeholder="Razão Social" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome da Empresa
+                  </label>
+                  <input
+                    type="text"
+                    name="company_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome da Empresa"
+                    placeholder="Razão Social"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Estagiário</label>
-                   <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome do Estagiário" placeholder="Nome Completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome do Estagiário
+                  </label>
+                  <input
+                    type="text"
+                    name="student_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome do Estagiário"
+                    placeholder="Nome Completo"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                   <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
+                  <input
+                    type="text"
+                    name="student_course"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Curso"
+                    placeholder="Nome do Curso"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                   <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Matrícula
+                  </label>
+                  <input
+                    type="text"
+                    name="student_enrollment"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Matrícula"
+                    placeholder="Número da Matrícula"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial Atual</label>
-                   <input type="date" name="current_start_date" className="input w-full" onChange={handleInputChange} title="Data Inicial Atual" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Inicial Atual
+                  </label>
+                  <input
+                    type="date"
+                    name="current_start_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Inicial Atual"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Atual</label>
-                   <input type="date" name="current_end_date" className="input w-full" onChange={handleInputChange} title="Data Final Atual" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Final Atual
+                  </label>
+                  <input
+                    type="date"
+                    name="current_end_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Final Atual"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-primary font-bold mb-1">Nova Data Final (Prorrogação)</label>
-                   <input type="date" name="new_end_date" className="input w-full border-primary" onChange={handleInputChange} title="Nova Data Final" />
+                  <label className="block text-sm font-medium text-primary font-bold mb-1">
+                    Nova Data Final (Prorrogação)
+                  </label>
+                  <input
+                    type="date"
+                    name="new_end_date"
+                    className="input w-full border-primary"
+                    onChange={handleInputChange}
+                    title="Nova Data Final"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
-                   <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} title="Cidade" placeholder="Fortaleza" />
+                  <input
+                    type="text"
+                    name="city"
+                    className="input w-full"
+                    defaultValue="Fortaleza"
+                    onChange={handleInputChange}
+                    title="Cidade"
+                    placeholder="Fortaleza"
+                  />
                 </div>
               </div>
             </CardContent>

@@ -7,13 +7,15 @@
 Para que o CI/CD funcione corretamente, configure os seguintes secrets no GitHub:
 
 #### **Vercel Deployment**
+
 ```bash
 VERCEL_TOKEN=your_vercel_token_here
-VERCEL_ORG_ID=your_vercel_org_id_here  
+VERCEL_ORG_ID=your_vercel_org_id_here
 VERCEL_PROJECT_ID=your_vercel_project_id_here
 ```
 
 #### **Database (Produção)**
+
 ```bash
 DATABASE_URL=your_production_database_url_here
 ```
@@ -21,6 +23,7 @@ DATABASE_URL=your_production_database_url_here
 ### Como Obter as Variáveis
 
 #### 1. **VERCEL_TOKEN**
+
 ```bash
 # Instalar Vercel CLI
 npm i -g vercel
@@ -31,6 +34,7 @@ vercel --token  # Mostra o token atual
 ```
 
 #### 1c. Environment Pull
+
 ```yaml
 # deploy.yml:38
 - name: Pull Vercel Environment Information
@@ -38,6 +42,7 @@ vercel --token  # Mostra o token atual
 ```
 
 #### 1d. Production Build
+
 ```yaml
 # deploy.yml:45
 - name: Build Project Artifacts
@@ -45,6 +50,7 @@ vercel --token  # Mostra o token atual
 ```
 
 #### 1e. Production Deployment
+
 ```yaml
 # deploy.yml:51
 - name: Deploy Project Artifacts to Vercel
@@ -52,6 +58,7 @@ vercel --token  # Mostra o token atual
 ```
 
 #### 1f. Post-Deploy Database Operations
+
 ```yaml
 # deploy.yml:58
 - name: Run Database Migrations (Production)
@@ -63,6 +70,7 @@ vercel --token  # Mostra o token atual
 ### 2. Preview Deployment System
 
 #### 2a. GitHub Actions Workflow Trigger
+
 ```yaml
 # deploy.yml:65
 deploy-preview:
@@ -72,6 +80,7 @@ deploy-preview:
 ```
 
 #### 2b. Preview Environment Setup
+
 ```yaml
 # deploy.yml:87
 - name: Pull Vercel Environment Information
@@ -79,6 +88,7 @@ deploy-preview:
 ```
 
 #### 2c. Preview Deployment Process
+
 ```yaml
 # deploy.yml:101
 - name: Deploy Project Artifacts to Vercel (Preview)
@@ -89,12 +99,14 @@ deploy-preview:
 ```
 
 #### 2d. URL Output
+
 ```yaml
 # deploy.yml:102
 echo "preview-url=$url" >> $GITHUB_OUTPUT
 ```
 
 #### 2e. Pull Request Integration - PR Comment
+
 ```yaml
 # deploy.yml:124
 - name: Comment PR with Preview URL
@@ -112,6 +124,7 @@ echo "preview-url=$url" >> $GITHUB_OUTPUT
 ### 3. Environment Management System
 
 #### 3a. Required GitHub Secrets
+
 ```bash
 # VERCEL_SETUP.md:35
 VERCEL_TOKEN: vercel_xxx...     # Token gerado no Vercel
@@ -121,6 +134,7 @@ DATABASE_URL: postgresql://...  # URL do banco PostgreSQL
 ```
 
 #### 3b. Secret Injection
+
 ```yaml
 # deploy.yml:39
 env:
@@ -129,6 +143,7 @@ env:
 ```
 
 #### 3c. Vercel Environment Configuration
+
 ```json
 # vercel.json:13
 "env": {
@@ -138,6 +153,7 @@ env:
 ```
 
 #### 3d. Next.js Configuration
+
 ```javascript
 # next.config.js:22
 env: {
@@ -146,6 +162,7 @@ env: {
 ```
 
 #### 3e. Auth Secret Usage
+
 ```typescript
 # auth.ts:231
 secret: process.env.NEXTAUTH_SECRET,
@@ -154,6 +171,7 @@ secret: process.env.NEXTAUTH_SECRET,
 ### 4. CI/CD Testing Pipeline
 
 #### 4a. Workflow Trigger Setup
+
 ```yaml
 # ci.yml:3
 on:
@@ -164,6 +182,7 @@ on:
 ```
 
 #### 4b. Type Checking
+
 ```yaml
 # ci.yml:31
 - name: Type check
@@ -171,6 +190,7 @@ on:
 ```
 
 #### 4c. Test Database Setup
+
 ```yaml
 # ci.yml:41
 - name: Setup test database
@@ -180,6 +200,7 @@ on:
 ```
 
 #### 4d. Unit Tests
+
 ```yaml
 # ci.yml:47
 - name: Run unit tests
@@ -187,6 +208,7 @@ on:
 ```
 
 #### 4e. E2E Tests
+
 ```yaml
 # ci.yml:91
 - name: Run E2E tests
@@ -194,6 +216,7 @@ on:
 ```
 
 #### 4f. Build Validation
+
 ```yaml
 # ci.yml:127
 - name: Build application
@@ -203,6 +226,7 @@ on:
 ## 🔧 Configuration Files
 
 ### Vercel Configuration (vercel.json)
+
 ```json
 {
   "buildCommand": "npm run build",
@@ -238,6 +262,7 @@ on:
 ```
 
 ### Package.json Scripts
+
 ```json
 {
   "scripts": {
@@ -259,6 +284,7 @@ on:
 ## 🚀 Deployment Process
 
 ### Production Deployment Flow
+
 1. **Push to main** → Triggers production deployment
 2. **Environment pull** → Gets production config from Vercel
 3. **Build artifacts** → Creates optimized production build
@@ -266,6 +292,7 @@ on:
 5. **Database migrations** → Updates production database schema
 
 ### Preview Deployment Flow
+
 1. **Create PR** → Triggers preview deployment
 2. **Environment pull** → Gets preview config from Vercel
 3. **Build artifacts** → Creates preview build
@@ -275,6 +302,7 @@ on:
 ## 🔐 Security Configuration
 
 ### Environment Variables
+
 ```bash
 # Production (Vercel Dashboard)
 DATABASE_URL=postgresql://...
@@ -291,6 +319,7 @@ VERCEL_PROJECT_ID=prj_xxx...
 ```
 
 ### Security Headers
+
 ```json
 {
   "headers": [
@@ -317,12 +346,14 @@ VERCEL_PROJECT_ID=prj_xxx...
 ## 📊 Monitoring & Analytics
 
 ### Build Monitoring
+
 - GitHub Actions logs
 - Vercel deployment logs
 - Build time metrics
 - Bundle size analysis
 
 ### Runtime Monitoring
+
 - Vercel Analytics
 - Error tracking
 - Performance metrics
@@ -331,12 +362,14 @@ VERCEL_PROJECT_ID=prj_xxx...
 ## 🔄 Rollback Strategy
 
 ### Automatic Rollback
+
 ```bash
 # Vercel CLI
 vercel rollback [deployment-url] --token=$VERCEL_TOKEN
 ```
 
 ### Manual Rollback
+
 1. Access Vercel Dashboard
 2. Navigate to Deployments
 3. Select previous stable deployment
@@ -345,6 +378,7 @@ vercel rollback [deployment-url] --token=$VERCEL_TOKEN
 ## 🧪 Testing Strategy
 
 ### Pre-deployment Tests
+
 - Unit tests with Jest
 - Integration tests
 - E2E tests with Playwright
@@ -352,6 +386,7 @@ vercel rollback [deployment-url] --token=$VERCEL_TOKEN
 - Linting with ESLint
 
 ### Post-deployment Tests
+
 - Health check endpoints
 - Database connectivity
 - Authentication flow
@@ -361,6 +396,7 @@ vercel rollback [deployment-url] --token=$VERCEL_TOKEN
 ## 📈 Performance Optimization
 
 ### Build Optimizations
+
 ```javascript
 // next.config.js
 {
@@ -375,6 +411,7 @@ vercel rollback [deployment-url] --token=$VERCEL_TOKEN
 ```
 
 ### Caching Strategy
+
 ```json
 {
   "headers": [
@@ -394,12 +431,14 @@ vercel rollback [deployment-url] --token=$VERCEL_TOKEN
 ## 🚨 Troubleshooting
 
 ### Common Issues
+
 1. **Build failures** → Check dependencies and environment variables
 2. **Database connection** → Verify DATABASE_URL and network access
 3. **Authentication issues** → Check NEXTAUTH_SECRET and OAuth config
 4. **Preview deployment fails** → Verify PR permissions and secrets
 
 ### Debug Commands
+
 ```bash
 # Local debugging
 npm run build
@@ -422,6 +461,7 @@ vercel domains ls
 ## Deploy Manual
 
 ### 1. **Deploy para Vercel**
+
 ```bash
 # Instalar Vercel CLI
 npm i -g vercel
@@ -431,6 +471,7 @@ vercel --prod
 ```
 
 ### 2. **Configurar Database**
+
 ```bash
 # Gerar Prisma Client
 npx prisma generate
@@ -445,19 +486,23 @@ npm run db:seed
 ## Deploy Automático
 
 ### **Push para Main Branch**
+
 ```bash
 git push origin main
 ```
+
 - ✅ Executa todos os testes
 - ✅ Build de produção
 - ✅ Deploy automático para Vercel
 - ✅ Aplica migrações do banco
 
 ### **Pull Request**
+
 ```bash
 git push origin feature-branch
 # Criar PR no GitHub
 ```
+
 - ✅ Executa testes
 - ✅ Deploy preview
 - ✅ Comentário automático com URL
@@ -466,11 +511,13 @@ git push origin feature-branch
 ## Monitoramento
 
 ### **Health Check**
+
 ```bash
 curl https://your-domain.vercel.app/health
 ```
 
 ### **Logs**
+
 ```bash
 # Vercel logs
 vercel logs
@@ -482,16 +529,19 @@ vercel logs
 ## Troubleshooting
 
 ### **Build Failures**
+
 1. Verificar variáveis de ambiente
 2. Verificar dependências no package.json
 3. Verificar logs do GitHub Actions
 
 ### **Database Issues**
+
 1. Verificar DATABASE_URL
 2. Verificar conexão de rede
 3. Executar `npx prisma db push`
 
 ### **Deploy Issues**
+
 1. Verificar VERCEL_TOKEN
 2. Verificar permissões do projeto
 3. Verificar logs do Vercel
@@ -499,6 +549,7 @@ vercel logs
 ## Performance
 
 ### **Otimizações Aplicadas**
+
 - ✅ Static Site Generation (SSG)
 - ✅ Image Optimization
 - ✅ Bundle Splitting
@@ -506,20 +557,23 @@ vercel logs
 - ✅ Compression
 
 ### **Lighthouse Scores Target**
+
 - **Performance**: > 80
-- **Accessibility**: > 90  
+- **Accessibility**: > 90
 - **Best Practices**: > 90
 - **SEO**: > 80
 
 ## Security
 
 ### **Headers de Segurança**
+
 - ✅ X-Frame-Options: DENY
 - ✅ X-Content-Type-Options: nosniff
 - ✅ Referrer-Policy: strict-origin-when-cross-origin
 - ✅ Permissions-Policy configurado
 
 ### **Environment Variables**
+
 - ✅ Secrets seguros no GitHub
 - ✅ Variáveis de ambiente na Vercel
 - ✅ Não exposição de chaves privadas

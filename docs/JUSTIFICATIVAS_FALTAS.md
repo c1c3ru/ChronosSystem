@@ -23,6 +23,7 @@ O sistema agora permite que alunos/estagiários justifiquem suas faltas de forma
 ```
 
 ### **Tipos de Justificativa:**
+
 - `ATESTADO_MEDICO` - Atestado médico
 - `COMPROMISSO_PESSOAL` - Compromisso pessoal
 - `PROBLEMA_FAMILIAR` - Problema familiar
@@ -30,6 +31,7 @@ O sistema agora permite que alunos/estagiários justifiquem suas faltas de forma
 - `OUTROS` - Outros motivos
 
 ### **Status da Justificativa:**
+
 - `PENDENTE` - Aguardando análise
 - `APROVADO` - Justificativa aprovada
 - `REJEITADO` - Justificativa rejeitada
@@ -39,6 +41,7 @@ O sistema agora permite que alunos/estagiários justifiquem suas faltas de forma
 ### **Para Estagiários:**
 
 #### **1. Criar Justificativa**
+
 ```http
 POST /api/justifications
 Authorization: Bearer <token>
@@ -55,12 +58,14 @@ Authorization: Bearer <token>
 ```
 
 #### **2. Ver Minhas Justificativas**
+
 ```http
 GET /api/justifications/my
 Authorization: Bearer <token>
 ```
 
 #### **3. Editar Justificativa (apenas se PENDENTE)**
+
 ```http
 PATCH /api/justifications/:id
 Authorization: Bearer <token>
@@ -72,6 +77,7 @@ Authorization: Bearer <token>
 ```
 
 #### **4. Deletar Justificativa (apenas se PENDENTE)**
+
 ```http
 DELETE /api/justifications/:id
 Authorization: Bearer <token>
@@ -80,12 +86,14 @@ Authorization: Bearer <token>
 ### **Para Supervisores/Admins:**
 
 #### **5. Listar Todas as Justificativas**
+
 ```http
 GET /api/justifications?status=PENDENTE&userId=abc123
 Authorization: Bearer <token>
 ```
 
 #### **6. Analisar Justificativa**
+
 ```http
 PATCH /api/justifications/:id/review
 Authorization: Bearer <token>
@@ -99,12 +107,14 @@ Authorization: Bearer <token>
 ## 💡 **Como Funciona**
 
 ### **Fluxo do Estagiário:**
+
 1. **Criar Justificativa:** Aluno acessa o sistema e cria uma justificativa para uma data específica
 2. **Adicionar Links:** Pode adicionar links do Google Drive, Dropbox, OneDrive, etc.
 3. **Aguardar Análise:** Status fica como "PENDENTE"
 4. **Receber Feedback:** Supervisor aprova/rejeita com observações
 
 ### **Fluxo do Supervisor:**
+
 1. **Ver Pendências:** Lista todas as justificativas pendentes
 2. **Analisar:** Visualiza motivo e documentos anexados
 3. **Decidir:** Aprova ou rejeita com observações
@@ -121,12 +131,14 @@ Authorization: Bearer <token>
 ## 📱 **Integração com Links Externos**
 
 ### **Serviços Suportados:**
+
 - **Google Drive:** `https://drive.google.com/file/d/ID/view`
 - **Dropbox:** `https://www.dropbox.com/s/ID/arquivo.pdf`
 - **OneDrive:** `https://onedrive.live.com/...`
 - **Qualquer URL válida**
 
 ### **Validação:**
+
 - Links são validados como URLs válidas
 - Armazenados como JSON array no banco
 - Podem ser múltiplos links por justificativa
@@ -134,6 +146,7 @@ Authorization: Bearer <token>
 ## 🎨 **Interface Sugerida**
 
 ### **Tela do Estagiário:**
+
 ```
 ┌─────────────────────────────────────┐
 │ 📋 Minhas Justificativas            │
@@ -154,6 +167,7 @@ Authorization: Bearer <token>
 ```
 
 ### **Formulário de Nova Justificativa:**
+
 ```
 ┌─────────────────────────────────────┐
 │ ➕ Nova Justificativa de Falta      │

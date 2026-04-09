@@ -10,7 +10,7 @@ async function testEmailSystem() {
     // 1. Criar conta de teste Ethereal
     console.log('1. Criando conta de teste Ethereal...')
     const testAccount = await nodemailer.createTestAccount()
-    
+
     console.log(`   ✅ Conta criada:`)
     console.log(`   📧 User: ${testAccount.user}`)
     console.log(`   🔑 Pass: ${testAccount.pass}`)
@@ -23,15 +23,15 @@ async function testEmailSystem() {
       secure: false,
       auth: {
         user: testAccount.user,
-        pass: testAccount.pass
-      }
+        pass: testAccount.pass,
+      },
     })
 
     console.log('   ✅ Transporter configurado')
 
     // 3. Testar email simples
     console.log('\n3. Enviando email de teste...')
-    
+
     const mailOptions = {
       from: '"Chronos System" <noreply@chronos.com>',
       to: 'teste@example.com',
@@ -94,21 +94,21 @@ async function testEmailSystem() {
         
         ---
         Este é um email automático do sistema Chronos. Não responda a este email.
-      `
+      `,
     }
 
     const info = await transporter.sendMail(mailOptions)
-    
+
     console.log('   ✅ Email enviado com sucesso!')
     console.log(`   📨 Message ID: ${info.messageId}`)
     console.log(`   🔗 Preview URL: ${info.previewURL}`)
 
     // 4. Testar email de reset de senha
     console.log('\n4. Enviando email de reset de senha...')
-    
+
     const resetToken = 'abc123def456ghi789'
     const resetUrl = `http://localhost:5000/auth/reset-password?token=${resetToken}`
-    
+
     const resetMailOptions = {
       from: '"Chronos System" <noreply@chronos.com>',
       to: 'usuario@example.com',
@@ -182,11 +182,11 @@ async function testEmailSystem() {
         
         ---
         Este é um email automático do sistema Chronos. Não responda a este email.
-      `
+      `,
     }
 
     const resetInfo = await transporter.sendMail(resetMailOptions)
-    
+
     console.log('   ✅ Email de reset enviado com sucesso!')
     console.log(`   📨 Message ID: ${resetInfo.messageId}`)
     console.log(`   🔗 Preview URL: ${resetInfo.previewURL}`)
@@ -199,16 +199,15 @@ async function testEmailSystem() {
     console.log('   ✅ Email simples enviado')
     console.log('   ✅ Email de reset de senha enviado')
     console.log('   ✅ Templates HTML funcionando')
-    
+
     console.log('\n🔗 Links para visualizar os emails:')
     console.log(`   📧 Email simples: ${info.previewURL}`)
     console.log(`   🔐 Email de reset: ${resetInfo.previewURL}`)
-    
+
     console.log('\n💡 Para usar em produção:')
     console.log('   1. Configure as variáveis SMTP no .env')
     console.log('   2. Para Gmail, use uma senha de app')
     console.log('   3. Teste sempre em desenvolvimento primeiro')
-
   } catch (error) {
     console.error('❌ Erro durante o teste de email:', error)
   }

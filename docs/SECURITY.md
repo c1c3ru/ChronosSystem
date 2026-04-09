@@ -9,12 +9,14 @@ Este documento descreve as medidas de segurança implementadas no sistema de reg
 ### JWT (JSON Web Tokens)
 
 **Access Token:**
+
 - Duração: 15 minutos
 - Armazenamento: localStorage (frontend)
 - Payload: `{ sub: userId, email, role }`
 - Algoritmo: HS256
 
 **Refresh Token:**
+
 - Duração: 7 dias
 - Armazenamento: localStorage + banco de dados
 - Rotação: novo token a cada refresh
@@ -41,15 +43,15 @@ Este documento descreve as medidas de segurança implementadas no sistema de reg
 
 ```typescript
 payload = {
-  machine_id: "MACHINE_001",
-  ts: "2025-10-15T12:00:00Z",
+  machine_id: 'MACHINE_001',
+  ts: '2025-10-15T12:00:00Z',
   exp: 60,
   nonce: randomBytes(16).toString('hex'),
-  version: "v1"
+  version: 'v1',
 }
 
-signature = HMAC-SHA256(HMAC_SECRET, JSON.stringify(payload))
-qrData = base64url(payload) + "." + base64url(signature)
+signature = HMAC - SHA256(HMAC_SECRET, JSON.stringify(payload))
+qrData = base64url(payload) + '.' + base64url(signature)
 ```
 
 ### Validação
@@ -86,6 +88,7 @@ qrData = base64url(payload) + "." + base64url(signature)
 ### Conceito
 
 Cada registro de ponto contém:
+
 - `prevHash`: hash do registro anterior
 - `recordHash`: hash do registro atual
 
@@ -97,10 +100,10 @@ Isso cria uma cadeia imutável onde qualquer alteração é detectável.
 // Buscar último registro
 const lastRecord = await prisma.attendanceRecord.findFirst({
   where: { userId },
-  orderBy: { tsServer: 'desc' }
-});
+  orderBy: { tsServer: 'desc' },
+})
 
-const prevHash = lastRecord?.recordHash || null;
+const prevHash = lastRecord?.recordHash || null
 
 // Criar registro
 const record = await prisma.attendanceRecord.create({
@@ -111,9 +114,9 @@ const record = await prisma.attendanceRecord.create({
     tsClient,
     nonce,
     prevHash,
-    recordHash: '' // Será calculado
-  }
-});
+    recordHash: '', // Será calculado
+  },
+})
 
 // Calcular hash
 const data = {
@@ -124,16 +127,16 @@ const data = {
   tsClient: record.tsClient.toISOString(),
   tsServer: record.tsServer.toISOString(),
   nonce: record.nonce,
-  prevHash: record.prevHash
-};
+  prevHash: record.prevHash,
+}
 
-const recordHash = SHA256(JSON.stringify(data));
+const recordHash = SHA256(JSON.stringify(data))
 
 // Atualizar registro
 await prisma.attendanceRecord.update({
   where: { id: record.id },
-  data: { recordHash }
-});
+  data: { recordHash },
+})
 ```
 
 ### Verificação de Integridade
@@ -153,10 +156,12 @@ GET /api/attendance/verify-chain/:userId
 ### Configuração
 
 ```typescript
-ThrottlerModule.forRoot([{
-  ttl: 60000,  // 60 segundos
-  limit: 100   // 100 requisições
-}])
+ThrottlerModule.forRoot([
+  {
+    ttl: 60000, // 60 segundos
+    limit: 100, // 100 requisições
+  },
+])
 ```
 
 ### Endpoints Protegidos
@@ -170,17 +175,18 @@ ThrottlerModule.forRoot([{
 ```typescript
 app.enableCors({
   origin: process.env.FRONTEND_URL,
-  credentials: true
-});
+  credentials: true,
+})
 ```
 
 ## Helmet (Security Headers)
 
 ```typescript
-app.use(helmet());
+app.use(helmet())
 ```
 
 Headers configurados:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
@@ -194,9 +200,9 @@ helmet.contentSecurityPolicy({
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
     styleSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "data:", "https:"],
-  }
-});
+    imgSrc: ["'self'", 'data:', 'https:'],
+  },
+})
 ```
 
 ## Input Validation
@@ -206,14 +212,14 @@ helmet.contentSecurityPolicy({
 ```typescript
 class CreateUserDto {
   @IsEmail()
-  email: string;
+  email: string
 
   @IsString()
   @MinLength(8)
-  password: string;
+  password: string
 
   @IsEnum(UserRole)
-  role: UserRole;
+  role: UserRole
 }
 ```
 
@@ -223,7 +229,7 @@ class CreateUserDto {
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-});
+})
 ```
 
 ## SQL Injection Protection
@@ -250,13 +256,13 @@ const schema = z.object({
 ### Hashing
 
 ```typescript
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt'
 
 // Hash
-const hash = await bcrypt.hash(password, 10);
+const hash = await bcrypt.hash(password, 10)
 
 // Verify
-const isValid = await bcrypt.compare(password, hash);
+const isValid = await bcrypt.compare(password, hash)
 ```
 
 ### Requisitos
@@ -300,6 +306,7 @@ HMAC_SECRET=your-hmac-secret-here
 ```
 
 **Arquivos que contêm informações sensíveis:**
+
 - `.env.vercel` - Tokens de banco, OAuth, JWT do Vercel
 - `.env.local` - Credenciais locais de desenvolvimento
 - `.vercel/project.json` - IDs de projeto e organização
@@ -311,26 +318,23 @@ HMAC_SECRET=your-hmac-secret-here
 ```typescript
 navigator.geolocation.getCurrentPosition(
   (position) => {
-    const { latitude, longitude } = position.coords;
+    const { latitude, longitude } = position.coords
     // Enviar para backend
   },
   (error) => {
     // Opcional: permitir registro sem geo
   }
-);
+)
 ```
 
 ### Validação (Opcional)
 
 ```typescript
 // Verificar se está dentro do raio permitido
-const distance = calculateDistance(
-  userLat, userLng,
-  machineLat, machineLng
-);
+const distance = calculateDistance(userLat, userLng, machineLat, machineLng)
 
 if (distance > MAX_DISTANCE_METERS) {
-  throw new Error('Muito longe da máquina');
+  throw new Error('Muito longe da máquina')
 }
 ```
 
@@ -348,8 +352,8 @@ await prisma.auditLog.create({
     details: JSON.stringify({ email: newUser.email }),
     ipAddress: req.ip,
     userAgent: req.headers['user-agent'],
-  }
-});
+  },
+})
 ```
 
 ### Eventos Auditados
@@ -380,7 +384,7 @@ await prisma.auditLog.create({
 ### Conexão
 
 ```typescript
-DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require"
+DATABASE_URL = 'postgresql://user:password@host:5432/db?sslmode=require'
 ```
 
 ### Backup

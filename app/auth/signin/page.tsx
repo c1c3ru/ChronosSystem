@@ -82,9 +82,9 @@ export default function SignInPage() {
       const response = await fetch('/api/auth/request-password-reset', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       })
 
       const data = await response.json()
@@ -92,7 +92,7 @@ export default function SignInPage() {
       if (response.ok) {
         toast.success(
           data.message ||
-          'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.'
+            'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.'
         )
       } else {
         toast.error(data.error || 'Erro ao solicitar redefinição de senha')
@@ -125,12 +125,11 @@ export default function SignInPage() {
       // Deixar NextAuth gerenciar o redirecionamento automaticamente
       // O middleware irá redirecionar conforme role e profileComplete
       await signIn('google', {
-        callbackUrl: '/' // Middleware redirecionará para dashboard apropriado
+        callbackUrl: '/', // Middleware redirecionará para dashboard apropriado
       })
 
       // NextAuth redireciona automaticamente - não precisa de código aqui
       // Se chegou aqui, houve algum erro (mas o NextAuth já tratou)
-
     } catch (error) {
       console.error('Google login error:', error)
       toast.error('❌ Erro inesperado ao fazer login com Google', { id: 'google-login' })
@@ -184,7 +183,10 @@ export default function SignInPage() {
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
+                <Mail
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none"
+                  style={{ color: '#1e3a8a' }}
+                />
                 <input
                   id="email"
                   type="email"
@@ -204,7 +206,10 @@ export default function SignInPage() {
                 Senha
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
+                <Lock
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none"
+                  style={{ color: '#1e3a8a' }}
+                />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -219,12 +224,13 @@ export default function SignInPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-gray-200 hover:bg-gray-300 rounded-full shadow-lg border-2 border-gray-400"
-                  aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
+                  aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
                 >
-                  {showPassword ?
-                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} /> :
+                  {showPassword ? (
+                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
+                  ) : (
                     <Eye className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
-                  }
+                  )}
                 </button>
               </div>
             </div>
@@ -245,11 +251,7 @@ export default function SignInPage() {
               onClick={() => console.log('🖱️ BOTÃO ENTRAR CLICADO!')}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {isLoading ? (
-                <div className="spinner" />
-              ) : (
-                'Entrar'
-              )}
+              {isLoading ? <div className="spinner" /> : 'Entrar'}
             </button>
           </form>
 
@@ -300,16 +302,16 @@ export default function SignInPage() {
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-red-400">
-                    Erro no Login Google
-                  </h3>
-                  <p className="mt-1 text-sm text-red-300">
-                    {googleError}
-                  </p>
+                  <h3 className="text-sm font-medium text-red-400">Erro no Login Google</h3>
+                  <p className="mt-1 text-sm text-red-300">{googleError}</p>
                   <div className="mt-3">
                     <button
                       onClick={() => setGoogleError(null)}

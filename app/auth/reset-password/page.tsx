@@ -17,7 +17,7 @@ function ResetPasswordContent() {
   const [tokenError, setTokenError] = useState('')
   const [userInfo, setUserInfo] = useState<any>(null)
   const [resetComplete, setResetComplete] = useState(false)
-  
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams?.get('token')
@@ -53,7 +53,7 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (newPassword !== confirmPassword) {
       toast.error('As senhas não coincidem')
       return
@@ -74,8 +74,8 @@ function ResetPasswordContent() {
         },
         body: JSON.stringify({
           token,
-          newPassword
-        })
+          newPassword,
+        }),
       })
 
       const data = await response.json()
@@ -105,7 +105,7 @@ function ResetPasswordContent() {
             </div>
             <p className="text-slate-400">Validando token...</p>
           </div>
-          
+
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700 p-6">
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -127,14 +127,14 @@ function ResetPasswordContent() {
             </div>
             <p className="text-slate-400">Reset de Senha</p>
           </div>
-          
+
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700 p-6">
             <div className="text-center">
               <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2">Token Inválido</h2>
               <p className="text-slate-400 mb-6">{tokenError}</p>
-              
-              <Link 
+
+              <Link
                 href="/auth/signin"
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
@@ -158,14 +158,16 @@ function ResetPasswordContent() {
             </div>
             <p className="text-slate-400">Reset de Senha</p>
           </div>
-          
+
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700 p-6">
             <div className="text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2">Senha Alterada!</h2>
-              <p className="text-slate-400 mb-6">Sua senha foi alterada com sucesso. Agora você pode fazer login com a nova senha.</p>
-              
-              <Link 
+              <p className="text-slate-400 mb-6">
+                Sua senha foi alterada com sucesso. Agora você pode fazer login com a nova senha.
+              </p>
+
+              <Link
                 href="/auth/signin"
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
@@ -206,11 +208,17 @@ function ResetPasswordContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* New Password */}
             <div>
-              <label htmlFor="reset-new-password" className="block text-sm font-medium text-white mb-2">
+              <label
+                htmlFor="reset-new-password"
+                className="block text-sm font-medium text-white mb-2"
+              >
                 Nova Senha
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
+                <Lock
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none"
+                  style={{ color: '#1e3a8a' }}
+                />
                 <input
                   id="reset-new-password"
                   type={showPassword ? 'text' : 'password'}
@@ -227,21 +235,28 @@ function ResetPasswordContent() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-gray-200 hover:bg-gray-300 rounded-full shadow-lg border-2 border-gray-400"
                 >
-                  {showPassword ? 
-                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} /> : 
+                  {showPassword ? (
+                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
+                  ) : (
                     <Eye className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
-                  }
+                  )}
                 </button>
               </div>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="reset-confirm-password" className="block text-sm font-medium text-white mb-2">
+              <label
+                htmlFor="reset-confirm-password"
+                className="block text-sm font-medium text-white mb-2"
+              >
                 Confirmar Nova Senha
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none" style={{ color: '#1e3a8a' }} />
+                <Lock
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-900 z-5 pointer-events-none"
+                  style={{ color: '#1e3a8a' }}
+                />
                 <input
                   id="reset-confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -258,10 +273,11 @@ function ResetPasswordContent() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-gray-200 hover:bg-gray-300 rounded-full shadow-lg border-2 border-gray-400"
                 >
-                  {showConfirmPassword ? 
-                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} /> : 
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
+                  ) : (
                     <Eye className="h-6 w-6 text-blue-900" style={{ color: '#1e3a8a' }} />
-                  }
+                  )}
                 </button>
               </div>
             </div>
@@ -303,7 +319,7 @@ function ResetPasswordContent() {
 
         {/* Back to Login */}
         <div className="text-center mt-6">
-          <Link 
+          <Link
             href="/auth/signin"
             className="text-slate-400 hover:text-slate-300 text-sm transition-colors"
           >
@@ -341,4 +357,3 @@ export default function ResetPasswordPage() {
     </Suspense>
   )
 }
-

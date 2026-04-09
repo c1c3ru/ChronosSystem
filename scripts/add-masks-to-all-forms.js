@@ -1,13 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const documentsDir = path.join(process.cwd(), 'app/documents');
-const folders = fs.readdirSync(documentsDir).filter(file => {
-    const fullPath = path.join(documentsDir, file);
-    return fs.statSync(fullPath).isDirectory();
-});
+const documentsDir = path.join(process.cwd(), 'app/documents')
+const folders = fs.readdirSync(documentsDir).filter((file) => {
+  const fullPath = path.join(documentsDir, file)
+  return fs.statSync(fullPath).isDirectory()
+})
 
-const importLine = "import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'";
+const importLine = "import { maskCPF, maskCNPJ, maskCEP, maskPhone } from '@/lib/input-masks'"
 
 const maskLogic = `    let maskedValue = value
 
@@ -26,58 +26,59 @@ const maskLogic = `    let maskedValue = value
     if (maskedValue !== value && e.target instanceof HTMLInputElement) {
       e.target.value = maskedValue
     }
-`;
+`
 
-folders.forEach(folder => {
-    const pagePath = path.join(documentsDir, folder, 'page.tsx');
+folders.forEach((folder) => {
+  const pagePath = path.join(documentsDir, folder, 'page.tsx')
 
-    if (!fs.existsSync(pagePath)) {
-        console.log(`⏭️  Pulando ${folder} (sem page.tsx)`);
-        return;
-    }
+  if (!fs.existsSync(pagePath)) {
+    console.log(`⏭️  Pulando ${folder} (sem page.tsx)`)
+    return
+  }
 
-    let content = fs.readFileSync(pagePath, 'utf8');
+  let content = fs.readFileSync(pagePath, 'utf8')
 
-    // Verificar se já tem o import
-    if (content.includes('input-masks')) {
-        console.log(`✅ ${folder} já tem máscaras`);
-        return;
-    }
+  // Verificar se já tem o import
+  if (content.includes('input-masks')) {
+    console.log(`✅ ${folder} já tem máscaras`)
+    return
+  }
 
-    // Adicionar import após outros imports
-    const lastImportMatch = content.match(/import .+ from .+\n(?!import)/);
-    if (lastImportMatch) {
-        const insertPos = lastImportMatch.index + lastImportMatch[0].length;
-        content = content.slice(0, insertPos) + importLine + '\n' + content.slice(insertPos);
-    }
+  // Adicionar import após outros imports
+  const lastImportMatch = content.match(/import .+ from .+\n(?!import)/)
+  if (lastImportMatch) {
+    const insertPos = lastImportMatch.index + lastImportMatch[0].length
+    content = content.slice(0, insertPos) + importLine + '\n' + content.slice(insertPos)
+  }
 
-    // Procurar handleInputChange ou handleChange
-    const handleInputChangeRegex = /const (handleInputChange|handleChange) = \(e: React\.ChangeEvent<[^>]+>\) => \{\s*const \{ name, value[^}]*\} = e\.target/;
-    const match = content.match(handleInputChangeRegex);
+  // Procurar handleInputChange ou handleChange
+  const handleInputChangeRegex =
+    /const (handleInputChange|handleChange) = \(e: React\.ChangeEvent<[^>]+>\) => \{\s*const \{ name, value[^}]*\} = e\.target/
+  const match = content.match(handleInputChangeRegex)
 
-    if (match) {
-        const handlerName = match[1];
-        const insertPos = match.index + match[0].length;
-        content = content.slice(0, insertPos) + '\n' + maskLogic + content.slice(insertPos);
+  if (match) {
+    const handlerName = match[1]
+    const insertPos = match.index + match[0].length
+    content = content.slice(0, insertPos) + '\n' + maskLogic + content.slice(insertPos)
 
-        // Substituir setFormData para usar maskedValue
-        // Padrão 1: setFormData((prev: any) => ({ ...prev, [name]: value }))
-        content = content.replace(
-            /setFormData\(\(prev: any\) => \(\{ \.\.\.prev, \[name\]: value \}\)\)/g,
-            'setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))'
-        );
+    // Substituir setFormData para usar maskedValue
+    // Padrão 1: setFormData((prev: any) => ({ ...prev, [name]: value }))
+    content = content.replace(
+      /setFormData\(\(prev: any\) => \(\{ \.\.\.prev, \[name\]: value \}\)\)/g,
+      'setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))'
+    )
 
-        // Padrão 2: setFormData(prev => ({ ...prev, [name]: value }))
-        content = content.replace(
-            /setFormData\(prev => \(\{ \.\.\.prev, \[name\]: value \}\)\)/g,
-            'setFormData(prev => ({ ...prev, [name]: maskedValue }))'
-        );
+    // Padrão 2: setFormData(prev => ({ ...prev, [name]: value }))
+    content = content.replace(
+      /setFormData\(prev => \(\{ \.\.\.prev, \[name\]: value \}\)\)/g,
+      'setFormData(prev => ({ ...prev, [name]: maskedValue }))'
+    )
 
-        fs.writeFileSync(pagePath, content);
-        console.log(`✅ Máscaras adicionadas em ${folder} (${handlerName})`);
-    } else {
-        console.log(`⚠️  ${folder}: handler não encontrado`);
-    }
-});
+    fs.writeFileSync(pagePath, content)
+    console.log(`✅ Máscaras adicionadas em ${folder} (${handlerName})`)
+  } else {
+    console.log(`⚠️  ${folder}: handler não encontrado`)
+  }
+})
 
-console.log('\n✨ Processo concluído!');
+console.log('\n✨ Processo concluído!')

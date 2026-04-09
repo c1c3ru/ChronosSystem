@@ -4,13 +4,13 @@
 
 Tínhamos **4 abordagens diferentes** coexistindo:
 
-| # | Abordagem | Arquivo | Status |
-|---|---|---|---|
-| 1 | html2pdf (DOM) | `pdf-generator.ts` | ⚠️ Duplicado |
-| 2 | html2pdf (HTML) | `pdf-generator-html.ts` | ✅ Principal |
-| 3 | @react-pdf/renderer | `pdf-generator-react.ts` | ❌ Morto |
-| 4 | Unificado | `pdf-client-generator.ts` | ❌ Morto |
-| 5 | Puppeteer | `pdf-server-generator.ts` | ✅ API only |
+| #   | Abordagem           | Arquivo                   | Status       |
+| --- | ------------------- | ------------------------- | ------------ |
+| 1   | html2pdf (DOM)      | `pdf-generator.ts`        | ⚠️ Duplicado |
+| 2   | html2pdf (HTML)     | `pdf-generator-html.ts`   | ✅ Principal |
+| 3   | @react-pdf/renderer | `pdf-generator-react.ts`  | ❌ Morto     |
+| 4   | Unificado           | `pdf-client-generator.ts` | ❌ Morto     |
+| 5   | Puppeteer           | `pdf-server-generator.ts` | ✅ API only  |
 
 **Problemas**: Duplicação, inconsistências, custo de manutenção 4x maior.
 
@@ -105,13 +105,13 @@ await generatePDF(html, 'doc.pdf', { preferServer: true })
 
 Estes arquivos **não são usados em produção** e podem ser removidos:
 
-| Arquivo | Motivo |
-|---|---|
-| `pdf-generator-react.ts` | Zero imports em produção |
-| `pdf-client-generator.ts` | Zero imports em produção |
-| `components/templates/*Document.tsx` (13 arquivos) | React-PDF não usado |
-| `pdf-styles-react.ts` | Estilos React-PDF não usados |
-| `components/FormExportButtons.tsx` | Componente não importado |
+| Arquivo                                            | Motivo                       |
+| -------------------------------------------------- | ---------------------------- |
+| `pdf-generator-react.ts`                           | Zero imports em produção     |
+| `pdf-client-generator.ts`                          | Zero imports em produção     |
+| `components/templates/*Document.tsx` (13 arquivos) | React-PDF não usado          |
+| `pdf-styles-react.ts`                              | Estilos React-PDF não usados |
+| `components/FormExportButtons.tsx`                 | Componente não importado     |
 
 ---
 
@@ -130,34 +130,38 @@ import { printElementAsPDF, generateFormPDF } from '@/lib/pdf-generator'
 
 ## 📊 Benefícios da Unificação
 
-| Métrica | Antes | Depois | Melhoria |
-|---|---|---|---|
-| Arquivos de engine | 4 | 1 | -75% |
-| Lógica duplicada | ~800 linhas | ~400 linhas | -50% |
-| Abordagens diferentes | 4 | 1 | Unificado |
-| Código morto | 3 arquivos | 0 (após limpeza) | Limpo |
-| Testes | 164 | 176 | +12 testes |
+| Métrica               | Antes       | Depois           | Melhoria   |
+| --------------------- | ----------- | ---------------- | ---------- |
+| Arquivos de engine    | 4           | 1                | -75%       |
+| Lógica duplicada      | ~800 linhas | ~400 linhas      | -50%       |
+| Abordagens diferentes | 4           | 1                | Unificado  |
+| Código morto          | 3 arquivos  | 0 (após limpeza) | Limpo      |
+| Testes                | 164         | 176              | +12 testes |
 
 ---
 
 ## ✅ Checklist de Migração
 
 ### Fase 1: ✅ COMPLETA
+
 - [x] Criar `pdf-engine.ts` unificada
 - [x] Manter compatibilidade retroativa
 - [x] Testes da engine
 
 ### Fase 2: ✅ COMPLETA
+
 - [x] 13 páginas `app/documents/*/page.tsx` já usam `pdf-generator-html.ts`
 - [x] `generateHTMLPDF` agora vem da engine unificada
 - [x] Testes passando (117/117)
 
-### Fase 3: ✅ COMPLETA  
+### Fase 3: ✅ COMPLETA
+
 - [x] `FormPDFExport.tsx` usa `pdf-generator.ts` (wrapper da engine)
 - [x] `PDFPreviewModal.tsx` usa `downloadPDFBlob` da engine
 - [x] Compatibilidade mantida
 
 ### Fase 4: ⏳ PENDENTE (Opcional)
+
 - [ ] Remover `pdf-generator-react.ts`
 - [ ] Remover `pdf-client-generator.ts`
 - [ ] Remover 13 templates React-PDF
@@ -166,11 +170,13 @@ import { printElementAsPDF, generateFormPDF } from '@/lib/pdf-generator'
 - [ ] Remover dependência `@react-pdf/renderer` do package.json
 
 ### Fase 5: ✅ COMPLETA
+
 - [x] Criar testes para `pdf-engine.ts`
 - [x] Adaptar testes existentes
 - [x] 159/176 testes passando (90%)
 
 ### Fase 6: 🔄 EM PROGRESSO
+
 - [x] Documentar nova arquitetura
 - [ ] Atualizar guias de desenvolvedor
 - [ ] Adicionar exemplos na documentação

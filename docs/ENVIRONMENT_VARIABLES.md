@@ -9,6 +9,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 🗄️ Banco de Dados
 
 #### `DATABASE_URL`
+
 - **Descrição**: URL de conexão com o PostgreSQL
 - **Formato**: `postgresql://user:password@host:port/database`
 - **Exemplo**: `postgresql://postgres:senha123@localhost:5432/chronos`
@@ -19,6 +20,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 🔐 Autenticação (NextAuth.js)
 
 #### `NEXTAUTH_SECRET`
+
 - **Descrição**: Secret para criptografia de tokens JWT
 - **Formato**: String aleatória de no mínimo 32 caracteres
 - **Geração**: `openssl rand -base64 32`
@@ -27,6 +29,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 - **⚠️ IMPORTANTE**: Nunca compartilhe este secret!
 
 #### `NEXTAUTH_URL`
+
 - **Descrição**: URL base da aplicação
 - **Formato**: URL completa incluindo protocolo
 - **Exemplo Desenvolvimento**: `http://localhost:5000`
@@ -38,12 +41,14 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 🔑 OAuth - Google
 
 #### `GOOGLE_CLIENT_ID`
+
 - **Descrição**: Client ID do Google OAuth
 - **Onde obter**: [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 - **Exemplo**: `123456789-abc123def456.apps.googleusercontent.com`
 - **Validação**: Não pode ser vazio
 
 #### `GOOGLE_CLIENT_SECRET`
+
 - **Descrição**: Client Secret do Google OAuth
 - **Onde obter**: Google Cloud Console (mesmo local do Client ID)
 - **Exemplo**: `GOCSPX-abc123def456ghi789jkl012`
@@ -51,6 +56,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 - **⚠️ IMPORTANTE**: Mantenha este secret seguro!
 
 **Como configurar Google OAuth**:
+
 1. Acesse [Google Cloud Console](https://console.cloud.google.com)
 2. Crie um novo projeto ou selecione existente
 3. Ative a API "Google+ API"
@@ -64,6 +70,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 🔒 Segurança - QR Codes
 
 #### `QR_SECRET`
+
 - **Descrição**: Secret para assinatura HMAC-SHA256 dos QR codes
 - **Formato**: String aleatória de no mínimo 32 caracteres
 - **Geração**: `openssl rand -base64 32`
@@ -76,6 +83,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 📧 Email - SMTP
 
 #### `SMTP_HOST`
+
 - **Descrição**: Servidor SMTP para envio de emails
 - **Exemplos**:
   - Gmail: `smtp.gmail.com`
@@ -85,6 +93,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 - **Validação**: Não pode ser vazio
 
 #### `SMTP_PORT`
+
 - **Descrição**: Porta do servidor SMTP
 - **Valores comuns**:
   - `587` - TLS/STARTTLS (recomendado)
@@ -93,24 +102,28 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 - **Validação**: Número entre 1 e 65535
 
 #### `SMTP_USER`
+
 - **Descrição**: Usuário para autenticação SMTP
 - **Formato**: Geralmente o email completo
 - **Exemplo**: `noreply@chronos.com`
 - **Validação**: Não pode ser vazio
 
 #### `SMTP_PASSWORD`
+
 - **Descrição**: Senha para autenticação SMTP
 - **Nota Gmail**: Use "App Password" em vez da senha normal
 - **Validação**: Não pode ser vazio
 - **⚠️ IMPORTANTE**: Mantenha seguro!
 
 #### `SMTP_FROM`
+
 - **Descrição**: Email remetente dos emails enviados
 - **Formato**: Email válido
 - **Exemplo**: `ChronosSystem <noreply@chronos.com>`
 - **Validação**: Deve ser um email válido
 
 **Configuração Gmail**:
+
 1. Ative a verificação em duas etapas
 2. Gere uma "App Password" em [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 3. Use a senha gerada em `SMTP_PASSWORD`
@@ -120,6 +133,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### ⚙️ Aplicação
 
 #### `NODE_ENV`
+
 - **Descrição**: Ambiente de execução
 - **Valores permitidos**: `development`, `production`, `test`
 - **Padrão**: `development`
@@ -132,6 +146,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 🔴 Redis (Cache e Rate Limiting)
 
 #### `REDIS_URL`
+
 - **Descrição**: URL de conexão com Redis
 - **Formato**: `redis://user:password@host:port`
 - **Exemplo**: `redis://localhost:6379`
@@ -145,6 +160,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 📊 Sentry (Error Tracking)
 
 #### `NEXT_PUBLIC_SENTRY_DSN`
+
 - **Descrição**: DSN do Sentry para rastreamento de erros
 - **Onde obter**: [sentry.io](https://sentry.io)
 - **Formato**: URL do Sentry
@@ -156,6 +172,7 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 📈 Google Analytics
 
 #### `NEXT_PUBLIC_GA_ID`
+
 - **Descrição**: ID do Google Analytics
 - **Formato**: `G-XXXXXXXXXX` (GA4) ou `UA-XXXXXXXXX-X` (Universal)
 - **Exemplo**: `G-ABC123DEF4`
@@ -166,16 +183,19 @@ Este documento lista todas as variáveis de ambiente necessárias para executar 
 ### 🎛️ Feature Flags
 
 #### `ENABLE_2FA`
+
 - **Descrição**: Habilita autenticação de dois fatores
 - **Valores**: `true` ou `false`
 - **Padrão**: `true`
 
 #### `ENABLE_PWA`
+
 - **Descrição**: Habilita funcionalidades de PWA
 - **Valores**: `true` ou `false`
 - **Padrão**: `true`
 
 #### `ENABLE_OFFLINE_MODE`
+
 - **Descrição**: Habilita modo offline completo
 - **Valores**: `true` ou `false`
 - **Padrão**: `true`
@@ -266,6 +286,7 @@ Verifique o arquivo .env e corrija as variáveis acima.
 ### ⚠️ NUNCA faça commit de arquivos .env
 
 Adicione ao `.gitignore`:
+
 ```
 .env
 .env.local
@@ -276,6 +297,7 @@ Adicione ao `.gitignore`:
 ### ✅ Use .env.example para documentação
 
 Crie um arquivo `.env.example` com valores de exemplo (sem secrets reais):
+
 ```bash
 DATABASE_URL="postgresql://user:password@localhost:5432/database"
 NEXTAUTH_SECRET="gere-com-openssl-rand-base64-32"
@@ -285,6 +307,7 @@ NEXTAUTH_SECRET="gere-com-openssl-rand-base64-32"
 ### 🔐 Rotação de Secrets
 
 Recomenda-se rotacionar secrets periodicamente:
+
 - `NEXTAUTH_SECRET`: A cada 6 meses
 - `QR_SECRET`: A cada 3 meses
 - `SMTP_PASSWORD`: Conforme política da empresa
@@ -294,19 +317,25 @@ Recomenda-se rotacionar secrets periodicamente:
 ## Troubleshooting
 
 ### Erro: "QR_SECRET environment variable is required"
+
 **Solução**: Adicione `QR_SECRET` ao arquivo `.env` com no mínimo 32 caracteres.
 
 ### Erro: "NEXTAUTH_URL deve ser uma URL válida"
+
 **Solução**: Certifique-se de incluir o protocolo (`http://` ou `https://`).
 
 ### Erro: "SMTP connection failed"
-**Solução**: 
+
+**Solução**:
+
 1. Verifique se `SMTP_HOST` e `SMTP_PORT` estão corretos
 2. Para Gmail, use App Password em vez da senha normal
 3. Verifique se o firewall permite conexões na porta SMTP
 
 ### Erro: "Google OAuth redirect_uri_mismatch"
-**Solução**: 
+
+**Solução**:
+
 1. Acesse Google Cloud Console
 2. Verifique se a URL de redirect está correta: `{NEXTAUTH_URL}/api/auth/callback/google`
 3. Certifique-se de que `NEXTAUTH_URL` não tem barra final

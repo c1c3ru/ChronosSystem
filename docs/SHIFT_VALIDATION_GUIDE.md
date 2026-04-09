@@ -3,6 +3,7 @@
 ## 📋 Visão Geral
 
 Sistema inteligente de validação de registros de ponto baseado em:
+
 - **Carga horária semanal** (20h, 30h, 40h, etc)
 - **Turno do usuário** (manhã, tarde, noite, híbrido)
 - **Horários de funcionamento do setor** (8h-17h principal, até 22h extensível)
@@ -36,12 +37,12 @@ allowFlexibleHours Boolean     @default(false)
 
 ### Tipos de Turno
 
-| Turno | Descrição | Janela de Entrada | Janela de Saída |
-|-------|-----------|-------------------|-----------------|
-| **MORNING** | Período da Manhã | ±30min do início | ±15min do fim |
-| **AFTERNOON** | Período da Tarde | ±30min do início | ±15min do fim |
-| **NIGHT** | Período Noturno | ±1h do início | ±30min do fim |
-| **HYBRID** | Período Híbrido | ±1h do início | ±1h do fim |
+| Turno         | Descrição        | Janela de Entrada | Janela de Saída |
+| ------------- | ---------------- | ----------------- | --------------- |
+| **MORNING**   | Período da Manhã | ±30min do início  | ±15min do fim   |
+| **AFTERNOON** | Período da Tarde | ±30min do início  | ±15min do fim   |
+| **NIGHT**     | Período Noturno  | ±1h do início     | ±30min do fim   |
+| **HYBRID**    | Período Híbrido  | ±1h do início     | ±1h do fim      |
 
 ## 📊 Exemplo de Configuração
 
@@ -130,11 +131,11 @@ const validation = validateMultipleClocks(lastRecordTime, currentTime, recordTyp
 ### Integração com `/api/attendance/qr-unified`
 
 ```typescript
-import { 
-  validateEntryTime, 
+import {
+  validateEntryTime,
   validateExitTime,
   validateMultipleClocks,
-  calculateExpectedDailyHours
+  calculateExpectedDailyHours,
 } from '@/lib/shift-validation'
 
 // 1. Buscar configuração do usuário
@@ -146,8 +147,8 @@ const user = await prisma.user.findUnique({
     shiftStartTime: true,
     shiftEndTime: true,
     workingDaysPerWeek: true,
-    allowFlexibleHours: true
-  }
+    allowFlexibleHours: true,
+  },
 })
 
 // 2. Validar entrada/saída
@@ -158,15 +159,18 @@ if (recordType === 'ENTRY') {
     shiftStartTime: user.shiftStartTime,
     shiftEndTime: user.shiftEndTime,
     workingDaysPerWeek: user.workingDaysPerWeek,
-    allowFlexibleHours: user.allowFlexibleHours
+    allowFlexibleHours: user.allowFlexibleHours,
   })
-  
+
   if (!validation.isValid && !user.allowFlexibleHours) {
-    return NextResponse.json({
-      error: validation.reason,
-      warnings: validation.warnings,
-      suggestions: validation.suggestions
-    }, { status: 400 })
+    return NextResponse.json(
+      {
+        error: validation.reason,
+        warnings: validation.warnings,
+        suggestions: validation.suggestions,
+      },
+      { status: 400 }
+    )
   }
 } else {
   const validation = validateExitTime(lastEntryTime, currentTime, userConfig)
@@ -182,10 +186,13 @@ const multipleClockValidation = validateMultipleClocks(
 )
 
 if (!multipleClockValidation.isValid) {
-  return NextResponse.json({
-    error: multipleClockValidation.reason,
-    code: 'DUPLICATE_RECORD'
-  }, { status: 400 })
+  return NextResponse.json(
+    {
+      error: multipleClockValidation.reason,
+      code: 'DUPLICATE_RECORD',
+    },
+    { status: 400 }
+  )
 }
 ```
 
@@ -230,7 +237,7 @@ Adicionar em `/app/auth/complete-profile/page.tsx` ou `/app/employee/page.tsx`:
 ```tsx
 <div className="space-y-4">
   <h3 className="text-lg font-semibold">Configuração de Turno</h3>
-  
+
   <div>
     <label>Tipo de Turno</label>
     <select value={shift} onChange={(e) => setShift(e.target.value)}>
@@ -240,25 +247,35 @@ Adicionar em `/app/auth/complete-profile/page.tsx` ou `/app/employee/page.tsx`:
       <option value="HYBRID">Período Híbrido</option>
     </select>
   </div>
-  
+
   <div>
     <label>Horário de Início</label>
     <input type="time" value={shiftStartTime} onChange={(e) => setShiftStartTime(e.target.value)} />
   </div>
-  
+
   <div>
     <label>Horário de Fim</label>
     <input type="time" value={shiftEndTime} onChange={(e) => setShiftEndTime(e.target.value)} />
   </div>
-  
+
   <div>
     <label>Dias de Trabalho por Semana</label>
-    <input type="number" min="1" max="7" value={workingDaysPerWeek} onChange={(e) => setWorkingDaysPerWeek(Number(e.target.value))} />
+    <input
+      type="number"
+      min="1"
+      max="7"
+      value={workingDaysPerWeek}
+      onChange={(e) => setWorkingDaysPerWeek(Number(e.target.value))}
+    />
   </div>
-  
+
   <div>
     <label>
-      <input type="checkbox" checked={allowFlexibleHours} onChange={(e) => setAllowFlexibleHours(e.target.checked)} />
+      <input
+        type="checkbox"
+        checked={allowFlexibleHours}
+        onChange={(e) => setAllowFlexibleHours(e.target.checked)}
+      />
       Permitir horas flexíveis?
     </label>
   </div>
@@ -270,17 +287,14 @@ Adicionar em `/app/auth/complete-profile/page.tsx` ou `/app/employee/page.tsx`:
 ### Teste 1: Entrada Válida
 
 ```typescript
-const result = validateEntryTime(
-  new Date('2025-11-18T08:15:00'),
-  {
-    weeklyHours: 20,
-    shift: 'MORNING',
-    shiftStartTime: '08:00',
-    shiftEndTime: '12:00',
-    workingDaysPerWeek: 5,
-    allowFlexibleHours: false
-  }
-)
+const result = validateEntryTime(new Date('2025-11-18T08:15:00'), {
+  weeklyHours: 20,
+  shift: 'MORNING',
+  shiftStartTime: '08:00',
+  shiftEndTime: '12:00',
+  workingDaysPerWeek: 5,
+  allowFlexibleHours: false,
+})
 
 expect(result.isValid).toBe(true)
 expect(result.expectedDailyHours).toBe(4)

@@ -15,9 +15,10 @@ const STATIC_CACHE_URLS = [
 // Instalar Service Worker
 self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker: Instalando...')
-  
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches
+      .open(CACHE_NAME)
       .then((cache) => {
         console.log('📦 Service Worker: Cache aberto')
         return cache.addAll(STATIC_CACHE_URLS)
@@ -32,21 +33,24 @@ self.addEventListener('install', (event) => {
 // Ativar Service Worker
 self.addEventListener('activate', (event) => {
   console.log('🚀 Service Worker: Ativando...')
-  
+
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Service Worker: Removendo cache antigo:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    }).then(() => {
-      console.log('✅ Service Worker: Ativado')
-      return self.clients.claim()
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('🗑️ Service Worker: Removendo cache antigo:', cacheName)
+              return caches.delete(cacheName)
+            }
+          })
+        )
+      })
+      .then(() => {
+        console.log('✅ Service Worker: Ativado')
+        return self.clients.claim()
+      })
   )
 })
 
@@ -76,23 +80,22 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => {
         // Se falhar, tentar buscar no cache
-        return caches.match(event.request)
-          .then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse
-            }
-            
-            // Se não encontrar no cache, retornar página offline para navegação
-            if (event.request.mode === 'navigate') {
-              return caches.match(OFFLINE_URL)
-            }
-            
-            // Para outros recursos, retornar erro
-            return new Response('Recurso não disponível offline', {
-              status: 404,
-              statusText: 'Not Found'
-            })
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse
+          }
+
+          // Se não encontrar no cache, retornar página offline para navegação
+          if (event.request.mode === 'navigate') {
+            return caches.match(OFFLINE_URL)
+          }
+
+          // Para outros recursos, retornar erro
+          return new Response('Recurso não disponível offline', {
+            status: 404,
+            statusText: 'Not Found',
           })
+        })
       })
   )
 })
@@ -100,7 +103,7 @@ self.addEventListener('fetch', (event) => {
 // Sincronização em background (para quando voltar online)
 self.addEventListener('sync', (event) => {
   console.log('🔄 Service Worker: Sincronização em background')
-  
+
   if (event.tag === 'background-sync') {
     event.waitUntil(
       // Aqui você pode implementar lógica para sincronizar dados
@@ -113,7 +116,7 @@ self.addEventListener('sync', (event) => {
 // Notificações push (futuro)
 self.addEventListener('push', (event) => {
   console.log('📱 Service Worker: Notificação push recebida')
-  
+
   const options = {
     body: event.data ? event.data.text() : 'Nova notificação do Chronos',
     icon: '/icon-192x192.png',
@@ -121,25 +124,23 @@ self.addEventListener('push', (event) => {
     vibrate: [200, 100, 200],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      primaryKey: 1,
     },
     actions: [
       {
         action: 'explore',
         title: 'Abrir App',
-        icon: '/icon-192x192.png'
+        icon: '/icon-192x192.png',
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/icon-192x192.png'
-      }
-    ]
+        icon: '/icon-192x192.png',
+      },
+    ],
   }
-  
-  event.waitUntil(
-    self.registration.showNotification('Chronos System', options)
-  )
+
+  event.waitUntil(self.registration.showNotification('Chronos System', options))
 })
 
 // Função para sincronizar dados offline (placeholder)
@@ -147,27 +148,27 @@ async function syncOfflineData() {
   try {
     // Implementar lógica de sincronização aqui
     console.log('📡 Sincronizando dados offline...')
-    
+
     // Exemplo: enviar registros de ponto salvos offline
     const offlineRecords = await getOfflineRecords()
-    
+
     for (const record of offlineRecords) {
       try {
         await fetch('/api/attendance/qr-unified', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(record)
+          body: JSON.stringify(record),
         })
-        
+
         // Remover do armazenamento local após sincronizar
         await removeOfflineRecord(record.id)
       } catch (error) {
         console.error('Erro ao sincronizar registro:', error)
       }
     }
-    
+
     console.log('✅ Sincronização concluída')
   } catch (error) {
     console.error('❌ Erro na sincronização:', error)

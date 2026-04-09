@@ -32,7 +32,7 @@ import {
   MapPin,
   Play,
   Square,
-  Calendar
+  Calendar,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -81,7 +81,9 @@ export default function EmployeePage() {
   const [lastRegistration, setLastRegistration] = useState<string | null>(null)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [isCheckingCamera, setIsCheckingCamera] = useState(false)
-  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('prompt')
+  const [cameraPermission, setCameraPermission] = useState<
+    'granted' | 'denied' | 'prompt' | 'checking'
+  >('prompt')
   const [scanning, setScanning] = useState(false)
   const qrReaderRef = useRef<HTMLDivElement>(null)
   const [userProfile, setUserProfile] = useState<{
@@ -119,7 +121,11 @@ export default function EmployeePage() {
       }
 
       // Verificar se está em HTTPS (necessário para câmera)
-      if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      if (
+        typeof window !== 'undefined' &&
+        window.location.protocol !== 'https:' &&
+        window.location.hostname !== 'localhost'
+      ) {
         setCameraPermission('denied')
         setCameraError('HTTPS é necessário para acessar a câmera. Acesse via https://')
         return
@@ -152,15 +158,15 @@ export default function EmployeePage() {
           video: {
             facingMode: 'environment', // Preferir câmera traseira
             width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
+            height: { ideal: 720 },
+          },
         })
 
         console.log('✅ [CAMERA] Acesso à câmera concedido!')
         console.log('📹 [CAMERA] Stream obtido:', stream.getTracks().length, 'tracks')
 
         // Parar o stream imediatamente (só estamos testando permissão)
-        stream.getTracks().forEach(track => {
+        stream.getTracks().forEach((track) => {
           track.stop()
           console.log('🛑 [CAMERA] Track parado:', track.kind)
         })
@@ -168,14 +174,15 @@ export default function EmployeePage() {
         setCameraPermission('granted')
         console.log('✅ [CAMERA] Permissão definida como granted')
         return
-
       } catch (directError: any) {
         console.log('⚠️ [CAMERA] Erro no acesso direto:', directError.name, directError.message)
 
         // Tratar erros específicos
         if (directError.name === 'NotAllowedError') {
           setCameraPermission('denied')
-          setCameraError('Permissão da câmera negada. Clique no ícone da câmera na barra de endereços e permita o acesso.')
+          setCameraError(
+            'Permissão da câmera negada. Clique no ícone da câmera na barra de endereços e permita o acesso.'
+          )
           return
         } else if (directError.name === 'NotFoundError') {
           setCameraPermission('denied')
@@ -270,12 +277,17 @@ export default function EmployeePage() {
             entry: day.entry,
             exit: day.exit,
             hours: day.totalHours,
-            status: day.status === 'completed' ? 'Completo' :
-              day.status === 'incomplete' ? 'Incompleto' :
-                day.status === 'absent' ? 'Ausente' : 'Em andamento',
+            status:
+              day.status === 'completed'
+                ? 'Completo'
+                : day.status === 'incomplete'
+                  ? 'Incompleto'
+                  : day.status === 'absent'
+                    ? 'Ausente'
+                    : 'Em andamento',
             location: day.location,
             alerts: day.alerts,
-            hasJustification: day.hasJustification
+            hasJustification: day.hasJustification,
           }))
 
           setRecentRecords(formattedRecords)
@@ -286,7 +298,7 @@ export default function EmployeePage() {
               startDate: data.userProfile.startDate,
               weeklyHours: data.userProfile.weeklyHours,
               contractType: data.userProfile.contractType,
-              completedHours: data.userProfile.completedHours || 0
+              completedHours: data.userProfile.completedHours || 0,
             })
           }
         } else {
@@ -302,7 +314,7 @@ export default function EmployeePage() {
       setWorkStatus({
         isWorking: false,
         lastRecord: null,
-        todayHours: '0h 00min'
+        todayHours: '0h 00min',
       })
     } finally {
       setLoading(false)
@@ -327,11 +339,11 @@ export default function EmployeePage() {
       const response = await fetch('/api/attendance/qr-unified', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          qrData: qrData
-        })
+          qrData: qrData,
+        }),
       })
 
       const result = await response.json()
@@ -353,7 +365,7 @@ export default function EmployeePage() {
             if (Number.isNaN(date.getTime())) return '--:--'
             return date.toLocaleTimeString('pt-BR', {
               hour: '2-digit',
-              minute: '2-digit'
+              minute: '2-digit',
             })
           } catch {
             return '--:--'
@@ -371,14 +383,18 @@ export default function EmployeePage() {
         setCooldownSeconds(60)
 
         // Mostrar informação inteligente se disponível
-        const confidenceText = result.analysis?.confidence === 'high' ? 'Alta confiança' :
-          result.analysis?.confidence === 'medium' ? 'Média confiança' : 'Baixa confiança'
+        const confidenceText =
+          result.analysis?.confidence === 'high'
+            ? 'Alta confiança'
+            : result.analysis?.confidence === 'medium'
+              ? 'Média confiança'
+              : 'Baixa confiança'
 
         // Criar mensagem com destaque visual claro
         const displayMessage = `${recordType}\n${recordTime}\n${result.record.machineName}`
-        const smartInfo = result.analysis ?
-          `${result.smartMessage} (${confidenceText})` :
-          `${recordType} registrada às ${recordTime}`
+        const smartInfo = result.analysis
+          ? `${result.smartMessage} (${confidenceText})`
+          : `${recordType} registrada às ${recordTime}`
 
         setQrResult(`✅ ${displayMessage}`)
         setLastRegistration(displayMessage)
@@ -389,7 +405,7 @@ export default function EmployeePage() {
             reason: result.analysis.reason,
             confidence: result.analysis.confidence,
             suggestions: result.analysis.suggestions,
-            warnings: result.analysis.warnings
+            warnings: result.analysis.warnings,
           })
 
           // Mostrar avisos se houver
@@ -415,9 +431,7 @@ export default function EmployeePage() {
               setLastRegistration(null)
             }, 5000)
           }, 500)
-
         }, 3000) // Aumentar tempo para 3 segundos
-
       } else {
         console.error('❌ [QR] Erro no registro:', result.error)
 
@@ -444,7 +458,6 @@ export default function EmployeePage() {
         setCameraError(userFriendlyError)
         setQrResult('')
       }
-
     } catch (error: any) {
       console.error('❌ [QR] Erro ao processar registro:', error)
       setCameraError(`Erro ao registrar ponto: ${error.message}`)
@@ -462,7 +475,6 @@ export default function EmployeePage() {
     setCameraError(null)
     setQrResult(null)
   }
-
 
   if (status === 'loading') {
     return <Loading size="lg" text="Aguarde um momento..." />
@@ -498,8 +510,12 @@ export default function EmployeePage() {
                 <Shield className="h-7 w-7 text-primary animate-pulse-slow" />
               </div>
               <div className="hidden xs:block">
-                <h1 className="text-xl font-black text-white tracking-tighter italic leading-none">CHRONOS</h1>
-                <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-80">Security Suite</span>
+                <h1 className="text-xl font-black text-white tracking-tighter italic leading-none">
+                  CHRONOS
+                </h1>
+                <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-80">
+                  Security Suite
+                </span>
               </div>
             </div>
 
@@ -508,13 +524,17 @@ export default function EmployeePage() {
               <div className="h-8 w-px bg-white/10 hidden sm:block" />
               <div className="flex items-center gap-4 pl-2">
                 <div className="hidden lg:block text-right">
-                  <p className="text-sm font-bold text-slate-100 leading-none mb-1">{session?.user?.name}</p>
+                  <p className="text-sm font-bold text-slate-100 leading-none mb-1">
+                    {session?.user?.name}
+                  </p>
                   <div className="flex items-center justify-end gap-1.5 opacity-60">
                     <div className="w-1.5 h-1.5 rounded-full bg-success-500 animate-pulse" />
-                    <span className="text-[9px] text-slate-300 uppercase font-black tracking-widest leading-none">Status: Online</span>
+                    <span className="text-[9px] text-slate-300 uppercase font-black tracking-widest leading-none">
+                      Status: Online
+                    </span>
                   </div>
                 </div>
-                
+
                 <button
                   type="button"
                   className="relative group cursor-pointer"
@@ -524,7 +544,13 @@ export default function EmployeePage() {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-[2px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-lg group-hover:shadow-primary/20">
                     <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center overflow-hidden border border-white/5">
                       {session?.user?.image ? (
-                        <Image src={session.user.image} alt="Foto de perfil" width={40} height={40} className="object-cover" />
+                        <Image
+                          src={session.user.image}
+                          alt="Foto de perfil"
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
                       ) : (
                         <User className="h-5 w-5 text-slate-400" />
                       )}
@@ -535,9 +561,9 @@ export default function EmployeePage() {
                   </div>
                 </button>
 
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleCompleteLogout}
                   aria-label="Sair da conta"
                   className="w-10 h-10 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/10 transition-all border border-transparent hover:border-danger/20"
@@ -552,32 +578,38 @@ export default function EmployeePage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="space-y-6 sm:space-y-8">
-
-
-
-
           {/* 🎯 Notificação de Feriado Integrada */}
           <HolidayNotification />
 
           {/* 🎯 Notificação de Último Registro com Cores Dinâmicas */}
           {lastRegistration && (
-            <div className={`
+            <div
+              className={`
               ${lastRecordType === 'ENTRY' ? 'bg-success-500/20 border-success-500/30' : 'bg-warning/20 border-warning/30'}
               border rounded-lg p-4 
               ${showSuccessAnimation ? 'animate-in slide-in-from-top-2 scale-in-95' : 'animate-in fade-in'}
               duration-300
-            `}>
+            `}
+            >
               <div className="flex items-center space-x-3">
                 {lastRecordType === 'ENTRY' ? (
-                  <LogIn className={`h-6 w-6 flex-shrink-0 ${showSuccessAnimation ? 'animate-bounce' : ''} text-success-400`} />
+                  <LogIn
+                    className={`h-6 w-6 flex-shrink-0 ${showSuccessAnimation ? 'animate-bounce' : ''} text-success-400`}
+                  />
                 ) : (
-                  <LogOut className={`h-6 w-6 flex-shrink-0 ${showSuccessAnimation ? 'animate-bounce' : ''} text-warning`} />
+                  <LogOut
+                    className={`h-6 w-6 flex-shrink-0 ${showSuccessAnimation ? 'animate-bounce' : ''} text-warning`}
+                  />
                 )}
                 <div>
-                  <p className={`font-bold text-lg ${lastRecordType === 'ENTRY' ? 'text-success-400' : 'text-warning'}`}>
+                  <p
+                    className={`font-bold text-lg ${lastRecordType === 'ENTRY' ? 'text-success-400' : 'text-warning'}`}
+                  >
                     ✅ {lastRecordType === 'ENTRY' ? 'ENTRADA' : 'SAÍDA'} Registrada!
                   </p>
-                  <p className={`text-sm ${lastRecordType === 'ENTRY' ? 'text-success-300' : 'text-warning/80'}`}>
+                  <p
+                    className={`text-sm ${lastRecordType === 'ENTRY' ? 'text-success-300' : 'text-warning/80'}`}
+                  >
                     {lastRegistration}
                   </p>
                 </div>
@@ -585,16 +617,17 @@ export default function EmployeePage() {
             </div>
           )}
 
-
-
           {/* Status Card */}
           <Card className="glass-card overflow-hidden border-white/5 ring-1 ring-white/10 hover:ring-primary/20">
             <CardContent className="p-6">
               {/* 🎯 Banner de Próximo Registro */}
-              <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${workStatus?.isWorking
-                ? 'bg-warning/20 border-l-4 border-warning'
-                : 'bg-success-500/20 border-l-4 border-success-500'
-                }`}>
+              <div
+                className={`mb-4 p-3 rounded-lg flex items-center justify-between ${
+                  workStatus?.isWorking
+                    ? 'bg-warning/20 border-l-4 border-warning'
+                    : 'bg-success-500/20 border-l-4 border-success-500'
+                }`}
+              >
                 <div className="flex items-center space-x-3">
                   {workStatus?.isWorking ? (
                     <LogOut className="h-5 w-5 text-warning flex-shrink-0" />
@@ -602,8 +635,11 @@ export default function EmployeePage() {
                     <LogIn className="h-5 w-5 text-success-400 flex-shrink-0" />
                   )}
                   <div>
-                    <p className={`font-bold text-sm ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
-                      }`}>
+                    <p
+                      className={`font-bold text-sm ${
+                        workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                      }`}
+                    >
                       Próximo registro: {workStatus?.isWorking ? 'SAÍDA' : 'ENTRADA'}
                     </p>
                     <p className="text-xs text-neutral-400">
@@ -613,16 +649,22 @@ export default function EmployeePage() {
                     </p>
                   </div>
                 </div>
-                <div className={`text-2xl ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
-                  }`}>
+                <div
+                  className={`text-2xl ${
+                    workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                  }`}
+                >
                   {workStatus?.isWorking ? '🔴' : '🟢'}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-4 h-4 rounded-full ${workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
-                    }`}></div>
+                  <div
+                    className={`w-4 h-4 rounded-full ${
+                      workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
+                    }`}
+                  ></div>
                   <div>
                     <h2 className="text-xl font-semibold text-white">
                       {workStatus?.isWorking ? 'Trabalhando' : 'Fora do expediente'}
@@ -630,7 +672,9 @@ export default function EmployeePage() {
                     {workStatus?.lastRecord && (
                       <p className="text-neutral-400 flex items-center mt-1">
                         <MapPin className="h-4 w-4 mr-1" />
-                        Último registro: {workStatus.lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'} às {(() => {
+                        Último registro:{' '}
+                        {workStatus.lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'} às{' '}
+                        {(() => {
                           try {
                             const date = new Date(workStatus.lastRecord.timestamp)
                             if (Number.isNaN(date.getTime())) return '--:--'
@@ -641,7 +685,8 @@ export default function EmployeePage() {
                           } catch {
                             return '--:--'
                           }
-                        })()} - {workStatus.lastRecord.location}
+                        })()}{' '}
+                        - {workStatus.lastRecord.location}
                       </p>
                     )}
                   </div>
@@ -658,14 +703,16 @@ export default function EmployeePage() {
           </Card>
 
           {/* Linha do Tempo do Estágio - Apenas para estagiários */}
-          {userProfile && userProfile.contractType?.startsWith('ESTAGIO') && userProfile.startDate && (
-            <InternshipTimeline
-              startDate={userProfile.startDate}
-              weeklyHours={userProfile.weeklyHours || 20}
-              completedHours={userProfile.completedHours || 0}
-              contractType={userProfile.contractType}
-            />
-          )}
+          {userProfile &&
+            userProfile.contractType?.startsWith('ESTAGIO') &&
+            userProfile.startDate && (
+              <InternshipTimeline
+                startDate={userProfile.startDate}
+                weeklyHours={userProfile.weeklyHours || 20}
+                completedHours={userProfile.completedHours || 0}
+                contractType={userProfile.contractType}
+              />
+            )}
 
           {/* Scanner Modal - Mobile First */}
           {scanning && (
@@ -698,7 +745,9 @@ export default function EmployeePage() {
                       <div className="bg-info-500/20 border border-info-500/30 rounded-lg p-4">
                         <div className="flex items-center justify-center space-x-3">
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-info-400"></div>
-                          <p className="text-info-400 text-base font-medium">Registrando ponto...</p>
+                          <p className="text-info-400 text-base font-medium">
+                            Registrando ponto...
+                          </p>
                         </div>
                       </div>
                     )}
@@ -727,9 +776,10 @@ export default function EmployeePage() {
                           📱 Aponte a câmera para o código QR da máquina
                         </p>
                         <p className="text-success-300 text-center text-xs">
-                          • Mantenha o QR dentro do quadrado verde<br />
-                          • Certifique-se de que há boa iluminação<br />
-                          • Mantenha a câmera estável
+                          • Mantenha o QR dentro do quadrado verde
+                          <br />
+                          • Certifique-se de que há boa iluminação
+                          <br />• Mantenha a câmera estável
                         </p>
                       </div>
                     )}
@@ -754,29 +804,37 @@ export default function EmployeePage() {
           {/* Main Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start">
             {/* QR Code Scanner */}
-            <Card 
-              className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${workStatus?.isWorking
-                ? 'border-warning/30 hover:border-warning/50 focus:border-warning/50'
-                : 'border-primary/30 hover:border-primary/50 focus:border-primary/50'
+            <Card
+              className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${
+                workStatus?.isWorking
+                  ? 'border-warning/30 hover:border-warning/50 focus:border-warning/50'
+                  : 'border-primary/30 hover:border-primary/50 focus:border-primary/50'
               }`}
               onClick={handleRegisterClick}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleRegisterClick();
+                  e.preventDefault()
+                  handleRegisterClick()
                 }
               }}
-              aria-label={workStatus?.isWorking ? 'Registrar ponto de saída' : 'Registrar ponto de entrada'}
+              aria-label={
+                workStatus?.isWorking ? 'Registrar ponto de saída' : 'Registrar ponto de entrada'
+              }
             >
-              <div className={`absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-b ${workStatus?.isWorking ? 'from-warning/20 to-transparent' : 'from-primary/20 to-transparent'}`} />
+              <div
+                className={`absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-b ${workStatus?.isWorking ? 'from-warning/20 to-transparent' : 'from-primary/20 to-transparent'}`}
+              />
               <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
                 {/* 🎯 INDICADOR VISUAL GRANDE E CLARO */}
-                <div className={`rounded-2xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 transition-all ${workStatus?.isWorking
-                  ? 'bg-warning/30 ring-4 ring-warning/40'
-                  : 'bg-success-500/30 ring-4 ring-success-500/40'
-                  }`}>
+                <div
+                  className={`rounded-2xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 transition-all ${
+                    workStatus?.isWorking
+                      ? 'bg-warning/30 ring-4 ring-warning/40'
+                      : 'bg-success-500/30 ring-4 ring-success-500/40'
+                  }`}
+                >
                   {workStatus?.isWorking ? (
                     <LogOut className="h-12 w-12 sm:h-14 sm:w-14 text-warning animate-pulse" />
                   ) : (
@@ -785,16 +843,25 @@ export default function EmployeePage() {
                 </div>
 
                 {/* 🎯 TÍTULO GRANDE E COLORIDO */}
-                <div className={`mb-3 p-3 rounded-lg ${workStatus?.isWorking
-                  ? 'bg-warning/20 border-2 border-warning/40'
-                  : 'bg-success-500/20 border-2 border-success-500/40'
-                  }`}>
-                  <h3 className={`text-xl sm:text-2xl font-bold mb-1 ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
-                    }`}>
+                <div
+                  className={`mb-3 p-3 rounded-lg ${
+                    workStatus?.isWorking
+                      ? 'bg-warning/20 border-2 border-warning/40'
+                      : 'bg-success-500/20 border-2 border-success-500/40'
+                  }`}
+                >
+                  <h3
+                    className={`text-xl sm:text-2xl font-bold mb-1 ${
+                      workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                    }`}
+                  >
                     {workStatus?.isWorking ? '🔴 REGISTRAR SAÍDA' : '🟢 REGISTRAR ENTRADA'}
                   </h3>
-                  <p className={`text-sm font-medium ${workStatus?.isWorking ? 'text-warning/80' : 'text-success-300'
-                    }`}>
+                  <p
+                    className={`text-sm font-medium ${
+                      workStatus?.isWorking ? 'text-warning/80' : 'text-success-300'
+                    }`}
+                  >
                     {workStatus?.isWorking
                       ? 'Você está trabalhando agora'
                       : 'Você está fora do expediente'}
@@ -840,19 +907,20 @@ export default function EmployeePage() {
                                   video: {
                                     facingMode: 'environment',
                                     width: { ideal: 640 },
-                                    height: { ideal: 480 }
-                                  }
+                                    height: { ideal: 480 },
+                                  },
                                 })
 
                                 console.log('✅ [CAMERA] Permissão concedida!')
-                                stream.getTracks().forEach(track => track.stop())
+                                stream.getTracks().forEach((track) => track.stop())
                                 setCameraPermission('granted')
                                 setCameraError(null)
-
                               } catch (error: any) {
                                 console.error('❌ [CAMERA] Permissão negada:', error)
                                 setCameraPermission('denied')
-                                setCameraError('Permissão da câmera é necessária para escanear QR codes')
+                                setCameraError(
+                                  'Permissão da câmera é necessária para escanear QR codes'
+                                )
                               }
 
                               setIsCheckingCamera(false)
@@ -905,9 +973,10 @@ export default function EmployeePage() {
                   onClick={handleRegisterClick}
                   className={`
                     w-full mt-auto py-8 rounded-2xl relative overflow-hidden transition-all duration-500 group shadow-2xl
-                    ${workStatus?.isWorking
-                      ? 'bg-gradient-to-br from-warning via-warning/90 to-amber-600 hover:shadow-warning/20'
-                      : 'bg-gradient-to-br from-primary via-primary/90 to-primary/70 hover:shadow-primary/20'
+                    ${
+                      workStatus?.isWorking
+                        ? 'bg-gradient-to-br from-warning via-warning/90 to-amber-600 hover:shadow-warning/20'
+                        : 'bg-gradient-to-br from-primary via-primary/90 to-primary/70 hover:shadow-primary/20'
                     }
                     ${cooldownSeconds > 0 ? 'grayscale pointer-events-none' : 'hover:scale-[1.02] active:scale-95'}
                   `}
@@ -923,10 +992,15 @@ export default function EmployeePage() {
                         {scanning ? 'Sincronizando...' : 'Ação Requerida'}
                       </p>
                       <h4 className="text-lg sm:text-xl font-black text-white tracking-widest leading-none">
-                        {scanning ? 'SCANNER ATIVO' :
-                          isCheckingCamera ? 'CONFIGURANDO...' :
-                            cooldownSeconds > 0 ? `AGUARDE ${cooldownSeconds}S` :
-                              workStatus?.isWorking ? 'REGISTRAR SAÍDA' : 'REGISTRAR ENTRADA'}
+                        {scanning
+                          ? 'SCANNER ATIVO'
+                          : isCheckingCamera
+                            ? 'CONFIGURANDO...'
+                            : cooldownSeconds > 0
+                              ? `AGUARDE ${cooldownSeconds}S`
+                              : workStatus?.isWorking
+                                ? 'REGISTRAR SAÍDA'
+                                : 'REGISTRAR ENTRADA'}
                       </h4>
                     </div>
                   </div>
@@ -935,7 +1009,11 @@ export default function EmployeePage() {
             </Card>
 
             {/* History */}
-            <Card variant="glass" className="group hover:border-secondary-500/40 hover:shadow-2xl hover:shadow-secondary-500/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5" asChild>
+            <Card
+              variant="glass"
+              className="group hover:border-secondary-500/40 hover:shadow-2xl hover:shadow-secondary-500/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5"
+              asChild
+            >
               <Link href="/employee/attendance-history">
                 <CardContent className="p-6 sm:p-8 flex flex-col h-full relative">
                   <div className="absolute -top-10 -right-10 w-32 h-32 bg-secondary-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -955,9 +1033,12 @@ export default function EmployeePage() {
               </Link>
             </Card>
 
-
             {/* Security */}
-            <Card variant="glass" className="group hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5" asChild>
+            <Card
+              variant="glass"
+              className="group hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5"
+              asChild
+            >
               <Link href="/auth/change-password">
                 <CardContent className="p-6 sm:p-8 flex flex-col h-full relative">
                   <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -977,10 +1058,11 @@ export default function EmployeePage() {
               </Link>
             </Card>
 
-
-
             {/* FASE 1: Cadastro e Início */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+            <Card
+              variant="glass"
+              className="group hover:scale-105 transition-all duration-200 h-full"
+            >
               <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
                 <div className="bg-success-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-success-500/30 transition-colors">
                   <FileText className="h-10 w-10 text-success-400" />
@@ -994,15 +1076,30 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
-                  <a href="/documents/internship-registration-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400">
+                  <a
+                    href="/documents/internship-registration-request"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400"
+                  >
                     <span>Solicitação de Cadastro</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/internship-registration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400">
+                  <a
+                    href="/documents/internship-registration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400"
+                  >
                     <span>Ficha de Cadastro</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/commitment-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400">
+                  <a
+                    href="/documents/commitment-term"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400"
+                  >
                     <span>Termo de Compromisso</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -1011,7 +1108,10 @@ export default function EmployeePage() {
             </Card>
 
             {/* FASE 2: Acompanhamento */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+            <Card
+              variant="glass"
+              className="group hover:scale-105 transition-all duration-200 h-full"
+            >
               <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
                 <div className="bg-info-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-info-500/30 transition-colors">
                   <FileText className="h-10 w-10 text-info-400" />
@@ -1025,15 +1125,30 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
-                  <a href="/documents/monthly-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                  <a
+                    href="/documents/monthly-report"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400"
+                  >
                     <span>Relatório Mensal</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/semester-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                  <a
+                    href="/documents/semester-report"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400"
+                  >
                     <span>Relatório Semestral</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/student-evaluation" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400">
+                  <a
+                    href="/documents/student-evaluation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400"
+                  >
                     <span>Ficha de Avaliação</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -1042,7 +1157,10 @@ export default function EmployeePage() {
             </Card>
 
             {/* FASE 3: Alterações */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+            <Card
+              variant="glass"
+              className="group hover:scale-105 transition-all duration-200 h-full"
+            >
               <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
                 <div className="bg-warning/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-warning/30 transition-colors">
                   <FileText className="h-10 w-10 text-warning" />
@@ -1056,7 +1174,12 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
-                  <a href="/documents/additive-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-warning/10 transition-colors text-sm text-neutral-300 hover:text-warning">
+                  <a
+                    href="/documents/additive-term"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-warning/10 transition-colors text-sm text-neutral-300 hover:text-warning"
+                  >
                     <span>Termo Aditivo</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -1065,7 +1188,10 @@ export default function EmployeePage() {
             </Card>
 
             {/* FASE 4: Finalização */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+            <Card
+              variant="glass"
+              className="group hover:scale-105 transition-all duration-200 h-full"
+            >
               <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
                 <div className="bg-primary/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-primary/30 transition-colors">
                   <FileText className="h-10 w-10 text-primary" />
@@ -1079,15 +1205,30 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
-                  <a href="/documents/final-report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary">
+                  <a
+                    href="/documents/final-report"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary"
+                  >
                     <span>Relatório Final</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/realization-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary">
+                  <a
+                    href="/documents/realization-term"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary"
+                  >
                     <span>Termo de Realização</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/rescission-term" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary">
+                  <a
+                    href="/documents/rescission-term"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary"
+                  >
                     <span>Termo de Rescisão</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -1096,7 +1237,10 @@ export default function EmployeePage() {
             </Card>
 
             {/* Casos Especiais */}
-            <Card variant="glass" className="group hover:scale-105 transition-all duration-200 h-full">
+            <Card
+              variant="glass"
+              className="group hover:scale-105 transition-all duration-200 h-full"
+            >
               <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
                 <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-secondary-500/30 transition-colors">
                   <FileText className="h-10 w-10 text-secondary-500" />
@@ -1110,15 +1254,30 @@ export default function EmployeePage() {
                 <div className="flex-1"></div>
 
                 <div className="space-y-2">
-                  <a href="/documents/equivalence-request" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500">
+                  <a
+                    href="/documents/equivalence-request"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
+                  >
                     <span>Solicitação de Equivalência</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/professional-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500">
+                  <a
+                    href="/documents/professional-declaration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
+                  >
                     <span>Declaração Profissional</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
-                  <a href="/documents/extension-declaration" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500">
+                  <a
+                    href="/documents/extension-declaration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
+                  >
                     <span>Declaração de Extensão</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -1127,7 +1286,11 @@ export default function EmployeePage() {
             </Card>
 
             {/* Justifications */}
-            <Card variant="glass" className="group hover:border-warning/40 hover:shadow-2xl hover:shadow-warning/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5" asChild>
+            <Card
+              variant="glass"
+              className="group hover:border-warning/40 hover:shadow-2xl hover:shadow-warning/10 transition-all duration-500 cursor-pointer overflow-hidden border-white/5"
+              asChild
+            >
               <Link href="/employee/justifications">
                 <CardContent className="p-6 sm:p-8 flex flex-col h-full relative">
                   <div className="absolute -top-10 -right-10 w-32 h-32 bg-warning/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -1146,7 +1309,6 @@ export default function EmployeePage() {
                 </CardContent>
               </Link>
             </Card>
-
           </div>
 
           {!loading && (
@@ -1158,7 +1320,12 @@ export default function EmployeePage() {
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
                     Últimos 5 Dias
                   </CardTitle>
-                  <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary hover:text-primary/80"
+                  >
                     <Link href="/employee/attendance-history" className="flex items-center">
                       Ver todos
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -1169,14 +1336,19 @@ export default function EmployeePage() {
                   <div className="space-y-3">
                     {recentRecords.length > 0 ? (
                       recentRecords.map((record) => (
-                        <div key={record.id} className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden border border-neutral-700/30">
+                        <div
+                          key={record.id}
+                          className="rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors overflow-hidden border border-neutral-700/30"
+                        >
                           {/* Alertas - se houver */}
                           {record.alerts && record.alerts.length > 0 && (
                             <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border-l-4 border-red-500 p-3">
                               <div className="flex items-start space-x-2">
                                 <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
                                 <div className="flex-1">
-                                  <p className="text-red-400 text-xs font-medium mb-1">Atenção Necessária</p>
+                                  <p className="text-red-400 text-xs font-medium mb-1">
+                                    Atenção Necessária
+                                  </p>
                                   {record.alerts.map((alert, idx) => (
                                     <p key={idx} className="text-red-300 text-xs">
                                       • {alert.message}
@@ -1202,14 +1374,17 @@ export default function EmployeePage() {
                                 <p className="text-white font-semibold text-sm">{record.date}</p>
                                 <p className="text-neutral-400 text-xs">Total: {record.hours}</p>
                               </div>
-                              <span className={`text-xs px-3 py-1 rounded-full font-medium ${record.status === 'Completo'
-                                ? 'bg-success/20 text-success border border-success/30'
-                                : record.status === 'Incompleto'
-                                  ? 'bg-warning/20 text-warning border border-warning/30'
-                                  : record.status === 'Ausente'
-                                    ? 'bg-error/20 text-error border border-error/30'
-                                    : 'bg-info/20 text-info border border-info/30'
-                                }`}>
+                              <span
+                                className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                  record.status === 'Completo'
+                                    ? 'bg-success/20 text-success border border-success/30'
+                                    : record.status === 'Incompleto'
+                                      ? 'bg-warning/20 text-warning border border-warning/30'
+                                      : record.status === 'Ausente'
+                                        ? 'bg-error/20 text-error border border-error/30'
+                                        : 'bg-info/20 text-info border border-info/30'
+                                }`}
+                              >
                                 {record.status}
                               </span>
                             </div>
@@ -1281,7 +1456,9 @@ export default function EmployeePage() {
                           <Clock className="h-8 w-8 text-neutral-500" />
                         </div>
                         <p className="text-neutral-400 mb-2">Nenhum registro encontrado</p>
-                        <p className="text-neutral-500 text-sm">Seus registros de ponto aparecerão aqui</p>
+                        <p className="text-neutral-500 text-sm">
+                          Seus registros de ponto aparecerão aqui
+                        </p>
                       </div>
                     )}
                   </div>
@@ -1303,7 +1480,8 @@ export default function EmployeePage() {
                   style={{ mixBlendMode: 'screen' }}
                 />
                 <p className="text-neutral-500 text-sm">
-                  © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto eletrônico moderno e seguro.
+                  © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto
+                  eletrônico moderno e seguro.
                 </p>
               </div>
               <p className="text-neutral-600 text-xs">

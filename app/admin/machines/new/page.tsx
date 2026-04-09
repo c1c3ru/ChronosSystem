@@ -5,13 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  Monitor, 
-  ArrowLeft,
-  Save,
-  MapPin,
-  Settings
-} from 'lucide-react'
+import { Monitor, ArrowLeft, Save, MapPin, Settings } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -29,7 +23,7 @@ export default function NewMachinePage() {
   const [machineData, setMachineData] = useState<MachineData>({
     name: '',
     location: '',
-    isActive: true
+    isActive: true,
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -37,7 +31,7 @@ export default function NewMachinePage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -71,19 +65,19 @@ export default function NewMachinePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     try {
       setLoading(true)
       console.log('📝 Enviando máquina:', machineData)
-      
+
       const response = await fetch('/api/machines', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(machineData)
+        body: JSON.stringify(machineData),
       })
 
       console.log('📡 Resposta da API:', response.status, response.statusText)
@@ -158,7 +152,7 @@ export default function NewMachinePage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {errors.general && (
@@ -169,7 +163,10 @@ export default function NewMachinePage() {
 
                 {/* Nome da Máquina */}
                 <div>
-                  <label htmlFor="machine-name" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="machine-name"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Nome da Máquina *
                   </label>
                   <div className="relative">
@@ -180,7 +177,9 @@ export default function NewMachinePage() {
                       placeholder="Ex: Terminal Principal, Kiosk Recepção..."
                       className={`input pl-10 ${errors.name ? 'border-error' : ''}`}
                       value={machineData.name}
-                      onChange={(e) => setMachineData(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) =>
+                        setMachineData((prev) => ({ ...prev, name: e.target.value }))
+                      }
                     />
                   </div>
                   {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
@@ -188,7 +187,10 @@ export default function NewMachinePage() {
 
                 {/* Localização */}
                 <div>
-                  <label htmlFor="machine-location" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="machine-location"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Localização *
                   </label>
                   <div className="relative">
@@ -198,7 +200,9 @@ export default function NewMachinePage() {
                       placeholder="Ex: Recepção - Térreo, Sala de Reuniões - 2º Andar..."
                       className={`input pl-10 min-h-[80px] resize-none ${errors.location ? 'border-error' : ''}`}
                       value={machineData.location}
-                      onChange={(e) => setMachineData(prev => ({ ...prev, location: e.target.value }))}
+                      onChange={(e) =>
+                        setMachineData((prev) => ({ ...prev, location: e.target.value }))
+                      }
                     />
                   </div>
                   {errors.location && <p className="text-error text-xs mt-1">{errors.location}</p>}
@@ -215,7 +219,7 @@ export default function NewMachinePage() {
                         type="radio"
                         name="isActive"
                         checked={machineData.isActive}
-                        onChange={() => setMachineData(prev => ({ ...prev, isActive: true }))}
+                        onChange={() => setMachineData((prev) => ({ ...prev, isActive: true }))}
                         className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary"
                       />
                       <span className="text-success text-sm">Ativa</span>
@@ -225,7 +229,7 @@ export default function NewMachinePage() {
                         type="radio"
                         name="isActive"
                         checked={!machineData.isActive}
-                        onChange={() => setMachineData(prev => ({ ...prev, isActive: false }))}
+                        onChange={() => setMachineData((prev) => ({ ...prev, isActive: false }))}
                         className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary"
                       />
                       <span className="text-neutral-500 text-sm">Inativa</span>
@@ -241,7 +245,9 @@ export default function NewMachinePage() {
                   <div className="flex items-start space-x-3">
                     <Settings className="h-5 w-5 text-neutral-400 mt-0.5" />
                     <div>
-                      <h3 className="text-sm font-medium text-white mb-2">Configurações Automáticas</h3>
+                      <h3 className="text-sm font-medium text-white mb-2">
+                        Configurações Automáticas
+                      </h3>
                       <ul className="text-xs text-neutral-400 space-y-1">
                         <li>• QR codes serão gerados automaticamente a cada 60 segundos</li>
                         <li>• Registros de ponto ficarão disponíveis imediatamente</li>
@@ -255,9 +261,7 @@ export default function NewMachinePage() {
                 {/* Submit Button */}
                 <div className="flex justify-end space-x-4 pt-6 border-t border-neutral-700">
                   <Button asChild variant="ghost">
-                    <Link href="/admin/machines">
-                      Cancelar
-                    </Link>
+                    <Link href="/admin/machines">Cancelar</Link>
                   </Button>
                   <Button type="submit" disabled={loading} className="min-w-[150px]">
                     {loading ? (

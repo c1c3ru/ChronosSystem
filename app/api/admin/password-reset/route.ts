@@ -9,20 +9,20 @@ import { z } from 'zod'
 const massResetSchema = z.object({
   userIds: z.array(z.string()).optional(), // Se não fornecido, reseta todos
   reason: z.string().min(1, 'Motivo é obrigatório'),
-  expiresInHours: z.number().min(1).max(168).default(24) // 1 hora a 7 dias
+  expiresInHours: z.number().min(1).max(168).default(24), // 1 hora a 7 dias
 })
 
 const individualResetSchema = z.object({
   userId: z.string(),
   reason: z.string().min(1, 'Motivo é obrigatório'),
-  expiresInHours: z.number().min(1).max(168).default(24)
+  expiresInHours: z.number().min(1).max(168).default(24),
 })
 
 // POST /api/admin/password-reset - Reset de senha em massa ou individual
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({ error: 'Tipo de reset inválido' }, { status: 400 })
     }
-
   } catch (error) {
     console.error('Erro no reset de senha:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
@@ -48,24 +47,24 @@ export async function POST(request: NextRequest) {
 async function handleMassReset(request: NextRequest, session: any, body: any) {
   try {
     const validatedData = massResetSchema.parse(body)
-    
+
     // Buscar usuários
     let users
     if (validatedData.userIds && validatedData.userIds.length > 0) {
       users = await prisma.user.findMany({
         where: {
           id: { in: validatedData.userIds },
-          password: { not: null } // Apenas usuários com senha (não só Google)
+          password: { not: null }, // Apenas usuários com senha (não só Google)
         },
-        select: { id: true, email: true, name: true }
+        select: { id: true, email: true, name: true },
       })
     } else {
       // Todos os usuários com senha
       users = await prisma.user.findMany({
         where: {
-          password: { not: null }
+          password: { not: null },
         },
-        select: { id: true, email: true, name: true }
+        select: { id: true, email: true, name: true },
       })
     }
 
@@ -78,23 +77,23 @@ async function handleMassReset(request: NextRequest, session: any, body: any) {
     expiresAt.setHours(expiresAt.getHours() + validatedData.expiresInHours)
 
     const resetTokens = []
-    
+
     for (const user of users) {
       // Invalidar tokens existentes
       await prisma.passwordResetToken.updateMany({
         where: { userId: user.id, used: false },
-        data: { used: true, usedAt: new Date() }
+        data: { used: true, usedAt: new Date() },
       })
 
       // Criar novo token
       const token = crypto.randomBytes(32).toString('hex')
-      
+
       const resetToken = await prisma.passwordResetToken.create({
         data: {
           token,
           userId: user.id,
-          expires: expiresAt
-        }
+          expires: expiresAt,
+        },
       })
 
       resetTokens.push({
@@ -102,7 +101,7 @@ async function handleMassReset(request: NextRequest, session: any, body: any) {
         email: user.email,
         name: user.name,
         token: resetToken.token,
-        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken.token}`
+        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken.token}`,
       })
     }
 
@@ -112,23 +111,25 @@ async function handleMassReset(request: NextRequest, session: any, body: any) {
         userId: session.user.id,
         action: 'MASS_PASSWORD_RESET',
         resource: 'USER_PASSWORD',
-        details: `Reset em massa para ${users.length} usuários. Motivo: ${validatedData.reason}`
-      }
+        details: `Reset em massa para ${users.length} usuários. Motivo: ${validatedData.reason}`,
+      },
     })
 
     return NextResponse.json({
       success: true,
       message: `Reset de senha iniciado para ${users.length} usuários`,
       resetTokens,
-      expiresAt
+      expiresAt,
     })
-
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
     throw error
   }
@@ -138,11 +139,11 @@ async function handleMassReset(request: NextRequest, session: any, body: any) {
 async function handleIndividualReset(request: NextRequest, session: any, body: any) {
   try {
     const validatedData = individualResetSchema.parse(body)
-    
+
     // Buscar usuário
     const user = await prisma.user.findUnique({
       where: { id: validatedData.userId },
-      select: { id: true, email: true, name: true, password: true }
+      select: { id: true, email: true, name: true, password: true },
     })
 
     if (!user) {
@@ -150,26 +151,29 @@ async function handleIndividualReset(request: NextRequest, session: any, body: a
     }
 
     if (!user.password) {
-      return NextResponse.json({ error: 'Usuário não possui senha (login apenas com Google)' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Usuário não possui senha (login apenas com Google)' },
+        { status: 400 }
+      )
     }
 
     // Invalidar tokens existentes
     await prisma.passwordResetToken.updateMany({
       where: { userId: user.id, used: false },
-      data: { used: true, usedAt: new Date() }
+      data: { used: true, usedAt: new Date() },
     })
 
     // Criar novo token
     const token = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date()
     expiresAt.setHours(expiresAt.getHours() + validatedData.expiresInHours)
-    
+
     const resetToken = await prisma.passwordResetToken.create({
       data: {
         token,
         userId: user.id,
-        expires: expiresAt
-      }
+        expires: expiresAt,
+      },
     })
 
     // Log de auditoria
@@ -178,8 +182,8 @@ async function handleIndividualReset(request: NextRequest, session: any, body: a
         userId: session.user.id,
         action: 'INDIVIDUAL_PASSWORD_RESET',
         resource: 'USER_PASSWORD',
-        details: `Reset individual para usuário ${user.email}. Motivo: ${validatedData.reason}`
-      }
+        details: `Reset individual para usuário ${user.email}. Motivo: ${validatedData.reason}`,
+      },
     })
 
     return NextResponse.json({
@@ -190,17 +194,19 @@ async function handleIndividualReset(request: NextRequest, session: any, body: a
         email: user.email,
         name: user.name,
         token: resetToken.token,
-        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken.token}`
+        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken.token}`,
       },
-      expiresAt
+      expiresAt,
     })
-
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
     throw error
   }
@@ -210,7 +216,7 @@ async function handleIndividualReset(request: NextRequest, session: any, body: a
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -218,18 +224,18 @@ export async function GET(request: NextRequest) {
     const activeTokens = await prisma.passwordResetToken.findMany({
       where: {
         used: false,
-        expires: { gt: new Date() }
+        expires: { gt: new Date() },
       },
       include: {
         user: {
           select: {
             id: true,
             email: true,
-            name: true
-          }
-        }
+            name: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json({
@@ -239,10 +245,9 @@ export async function GET(request: NextRequest) {
         expires: token.expires,
         createdAt: token.createdAt,
         user: token.user,
-        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token.token}`
-      }))
+        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token.token}`,
+      })),
     })
-
   } catch (error) {
     console.error('Erro ao listar tokens:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
@@ -253,7 +258,7 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -266,7 +271,7 @@ export async function DELETE(request: NextRequest) {
       // Invalidar token específico
       await prisma.passwordResetToken.update({
         where: { id: tokenId },
-        data: { used: true, usedAt: new Date() }
+        data: { used: true, usedAt: new Date() },
       })
 
       await prisma.auditLog.create({
@@ -274,8 +279,8 @@ export async function DELETE(request: NextRequest) {
           userId: session.user.id,
           action: 'INVALIDATE_RESET_TOKEN',
           resource: 'PASSWORD_RESET_TOKEN',
-          details: `Token ${tokenId} invalidado manualmente`
-        }
+          details: `Token ${tokenId} invalidado manualmente`,
+        },
       })
 
       return NextResponse.json({ success: true, message: 'Token invalidado' })
@@ -283,7 +288,7 @@ export async function DELETE(request: NextRequest) {
       // Invalidar todos os tokens do usuário
       await prisma.passwordResetToken.updateMany({
         where: { userId, used: false },
-        data: { used: true, usedAt: new Date() }
+        data: { used: true, usedAt: new Date() },
       })
 
       await prisma.auditLog.create({
@@ -291,15 +296,14 @@ export async function DELETE(request: NextRequest) {
           userId: session.user.id,
           action: 'INVALIDATE_USER_RESET_TOKENS',
           resource: 'PASSWORD_RESET_TOKEN',
-          details: `Todos os tokens do usuário ${userId} invalidados`
-        }
+          details: `Todos os tokens do usuário ${userId} invalidados`,
+        },
       })
 
       return NextResponse.json({ success: true, message: 'Tokens do usuário invalidados' })
     } else {
       return NextResponse.json({ error: 'tokenId ou userId é obrigatório' }, { status: 400 })
     }
-
   } catch (error) {
     console.error('Erro ao invalidar token:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

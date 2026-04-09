@@ -17,19 +17,19 @@ export async function GET(request: NextRequest) {
 
     const justifications = await prisma.justification.findMany({
       where: {
-        userId: session.user.id
+        userId: session.user.id,
       },
       include: {
         reviewer: {
           select: {
             name: true,
-            email: true
-          }
-        }
+            email: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     })
 
     return NextResponse.json({
@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
         adminResponse: j.adminResponse,
         reviewedAt: j.reviewedAt?.toISOString(),
         reviewedBy: j.reviewer?.name,
-        createdAt: j.createdAt.toISOString()
-      }))
+        createdAt: j.createdAt.toISOString(),
+      })),
     })
   } catch (error) {
     console.error('Erro ao buscar justificativas:', error)
@@ -76,20 +76,23 @@ export async function POST(request: NextRequest) {
       where: {
         userId: session.user.id,
         date: new Date(date),
-        type
-      }
+        type,
+      },
     })
 
     if (existingJustification) {
-      return NextResponse.json({ error: 'Já existe uma justificativa para esta data' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Já existe uma justificativa para esta data' },
+        { status: 400 }
+      )
     }
 
     // Contar quantas justificativas pendentes o usuário já tem
     const pendingCount = await prisma.justification.count({
       where: {
         userId: session.user.id,
-        status: 'PENDING'
-      }
+        status: 'PENDING',
+      },
     })
 
     // REGRA: Primeira justificativa é automática, demais precisam de aprovação admin
@@ -100,8 +103,8 @@ export async function POST(request: NextRequest) {
         type,
         date: new Date(date),
         reason,
-        status: 'PENDING'
-      }
+        status: 'PENDING',
+      },
     })
 
     // Log de auditoria
@@ -110,8 +113,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'JUSTIFICATION_CREATED',
         resource: 'JUSTIFICATION',
-        details: `Justificativa criada: ${type} para ${date} - ${pendingCount + 1}ª justificativa`
-      }
+        details: `Justificativa criada: ${type} para ${date} - ${pendingCount + 1}ª justificativa`,
+      },
     })
 
     // 🎯 NOVO: Enviar notificação ao supervisor
@@ -120,13 +123,13 @@ export async function POST(request: NextRequest) {
       const supervisors = await prisma.user.findMany({
         where: {
           role: {
-            in: ['ADMIN', 'SUPERVISOR']
-          }
+            in: ['ADMIN', 'SUPERVISOR'],
+          },
         },
         select: {
           email: true,
-          name: true
-        }
+          name: true,
+        },
       })
 
       // Buscar dados do usuário
@@ -134,8 +137,8 @@ export async function POST(request: NextRequest) {
         where: { id: session.user.id },
         select: {
           name: true,
-          email: true
-        }
+          email: true,
+        },
       })
 
       // Enviar email para cada supervisor
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest) {
           {
             type,
             date: justification.date.toISOString(),
-            reason
+            reason,
           }
         )
       }
@@ -167,11 +170,12 @@ export async function POST(request: NextRequest) {
         date: justification.date.toISOString(),
         reason: justification.reason,
         status: justification.status,
-        isFirstJustification: pendingCount === 0
+        isFirstJustification: pendingCount === 0,
       },
-      message: pendingCount === 0
-        ? 'Primeira justificativa criada. Aguardando revisão do administrador.'
-        : 'Justificativa criada. Como você já possui outras justificativas, esta também aguardará aprovação do administrador.'
+      message:
+        pendingCount === 0
+          ? 'Primeira justificativa criada. Aguardando revisão do administrador.'
+          : 'Justificativa criada. Como você já possui outras justificativas, esta também aguardará aprovação do administrador.',
     })
   } catch (error) {
     console.error('Erro ao criar justificativa:', error)

@@ -15,7 +15,7 @@ import {
   Power,
   PowerOff,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -84,9 +84,9 @@ export default function MachinesPage() {
       const response = await fetch(`/api/machines/${machineId}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ isActive: !isActive })
+        body: JSON.stringify({ isActive: !isActive }),
       })
 
       const data = await response.json()
@@ -104,7 +104,7 @@ export default function MachinesPage() {
   }
 
   const deleteMachine = async (machineId: string) => {
-    const machine = machines.find(m => m.id === machineId)
+    const machine = machines.find((m) => m.id === machineId)
 
     if (!machine) return
 
@@ -117,11 +117,12 @@ export default function MachinesPage() {
       return
     }
 
-    if (!confirm('Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.')) return
+    if (!confirm('Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.'))
+      return
 
     try {
       const response = await fetch(`/api/machines/${machineId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       const data = await response.json()
@@ -145,9 +146,10 @@ export default function MachinesPage() {
     }
   }
 
-  const filteredMachines = machines.filter(machine =>
-    machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    machine.location.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMachines = machines.filter(
+    (machine) =>
+      machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.location.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   if (status === 'loading' || loading) {
@@ -218,12 +220,17 @@ export default function MachinesPage() {
                     <button
                       onClick={() => toggleMachine(machine.id, machine.isActive)}
                       title={machine.isActive ? 'Clique para desativar' : 'Clique para ativar'}
-                      className={`p-2 rounded transition-all ${machine.isActive
-                        ? 'text-success bg-success/10 hover:bg-success/20'
-                        : 'text-neutral-500 bg-neutral-700/50 hover:bg-neutral-700'
-                        }`}
+                      className={`p-2 rounded transition-all ${
+                        machine.isActive
+                          ? 'text-success bg-success/10 hover:bg-success/20'
+                          : 'text-neutral-500 bg-neutral-700/50 hover:bg-neutral-700'
+                      }`}
                     >
-                      {machine.isActive ? <Power className="h-5 w-5" /> : <PowerOff className="h-5 w-5" />}
+                      {machine.isActive ? (
+                        <Power className="h-5 w-5" />
+                      ) : (
+                        <PowerOff className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -239,10 +246,16 @@ export default function MachinesPage() {
                     <div>
                       <p className="text-sm text-neutral-400">Status</p>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${machine.isActive ? 'bg-success' : 'bg-neutral-500'
-                          }`} />
-                        <span className={`text-sm ${machine.isActive ? 'text-success' : 'text-neutral-500'
-                          }`}>
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            machine.isActive ? 'bg-success' : 'bg-neutral-500'
+                          }`}
+                        />
+                        <span
+                          className={`text-sm ${
+                            machine.isActive ? 'text-success' : 'text-neutral-500'
+                          }`}
+                        >
                           {machine.isActive ? 'Ativa' : 'Inativa'}
                         </span>
                       </div>
@@ -250,7 +263,9 @@ export default function MachinesPage() {
 
                     <div className="text-right">
                       <p className="text-sm text-neutral-400">Registros</p>
-                      <p className="text-white font-medium">{machine._count?.attendanceRecords || 0}</p>
+                      <p className="text-white font-medium">
+                        {machine._count?.attendanceRecords || 0}
+                      </p>
                     </div>
                   </div>
 
@@ -273,14 +288,16 @@ export default function MachinesPage() {
                       size="sm"
                       onClick={() => deleteMachine(machine.id)}
                       disabled={machine._count?.attendanceRecords > 0}
-                      title={machine._count?.attendanceRecords > 0
-                        ? `Máquina tem ${machine._count.attendanceRecords} registro(s). Desative em vez de excluir.`
-                        : 'Excluir máquina'
+                      title={
+                        machine._count?.attendanceRecords > 0
+                          ? `Máquina tem ${machine._count.attendanceRecords} registro(s). Desative em vez de excluir.`
+                          : 'Excluir máquina'
                       }
-                      className={`${machine._count?.attendanceRecords > 0
-                        ? 'text-neutral-500 cursor-not-allowed opacity-50'
-                        : 'text-red-400 hover:text-red-300'
-                        }`}
+                      className={`${
+                        machine._count?.attendanceRecords > 0
+                          ? 'text-neutral-500 cursor-not-allowed opacity-50'
+                          : 'text-red-400 hover:text-red-300'
+                      }`}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Excluir
@@ -300,8 +317,7 @@ export default function MachinesPage() {
               <p className="text-neutral-400 mb-4">
                 {searchTerm
                   ? 'Tente ajustar o termo de busca'
-                  : 'Comece criando a primeira máquina'
-                }
+                  : 'Comece criando a primeira máquina'}
               </p>
               {!searchTerm && (
                 <Button asChild>

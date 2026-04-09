@@ -15,18 +15,21 @@ Localização: `/lib/pdf-generator.ts`
 **Funções principais:**
 
 #### `printElementAsPDF(element, options)`
+
 - Converte qualquer elemento HTML em PDF
 - Otimizado para documentos oficiais do IFCE
 - Remove automaticamente botões e elementos de navegação
 - Ajusta estilos para impressão profissional
 
 #### `generateFormPDF(formRef, documentType, formData)`
+
 - Wrapper conveniente para formulários
 - Valida se há dados preenchidos
 - Gera nome de arquivo automaticamente com data
 - Exemplo: `relatorio-mensal_2025-11-24.pdf`
 
 #### `validateFormData(formData)`
+
 - Verifica se o formulário tem dados preenchidos
 - Lança erro se estiver vazio
 
@@ -46,7 +49,7 @@ import { generateFormPDF } from '@/lib/pdf-generator'
 const handleGeneratePDF = async () => {
   try {
     // Validar se há dados preenchidos
-    const hasData = Object.values(formData).some(value => value !== '')
+    const hasData = Object.values(formData).some((value) => value !== '')
     if (!hasData) {
       toast.error('Preencha pelo menos um campo antes de gerar o PDF')
       return
@@ -56,16 +59,15 @@ const handleGeneratePDF = async () => {
 
     // Importar dinamicamente para evitar problemas de SSR
     const { generateFormPDF } = await import('@/lib/pdf-generator')
-    
+
     await generateFormPDF(formRef, 'nome-do-documento', formData)
-    
+
     toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
   } catch (error) {
     console.error('Erro ao gerar PDF:', error)
-    toast.error(
-      error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.',
-      { id: 'pdf-generation' }
-    )
+    toast.error(error instanceof Error ? error.message : 'Erro ao gerar PDF. Tente novamente.', {
+      id: 'pdf-generation',
+    })
   }
 }
 ```
@@ -73,6 +75,7 @@ const handleGeneratePDF = async () => {
 ### **Passo 3: Substituir a mensagem "em desenvolvimento"**
 
 **Antes:**
+
 ```typescript
 const handleGeneratePDF = () => {
   toast.info('Funcionalidade em desenvolvimento')
@@ -80,6 +83,7 @@ const handleGeneratePDF = () => {
 ```
 
 **Depois:**
+
 ```typescript
 const handleGeneratePDF = async () => {
   // Código do Passo 2
@@ -91,6 +95,7 @@ const handleGeneratePDF = async () => {
 ## 📂 Formulários a Serem Atualizados
 
 ### ✅ **Já Implementado:**
+
 - [x] `monthly-report` - Relatório Mensal
 
 ### ⏳ **Pendentes:**
@@ -135,7 +140,7 @@ Para margens personalizadas, use `printElementAsPDF`:
 ```typescript
 await printElementAsPDF(formRef.current, {
   filename: 'documento.pdf',
-  margin: [20, 15, 20, 15] // [top, right, bottom, left] em mm
+  margin: [20, 15, 20, 15], // [top, right, bottom, left] em mm
 })
 ```
 
@@ -144,12 +149,11 @@ await printElementAsPDF(formRef.current, {
 Adicione o atributo `data-no-pdf="true"` para remover do PDF:
 
 ```tsx
-<div data-no-pdf="true">
-  Este conteúdo não aparecerá no PDF
-</div>
+<div data-no-pdf="true">Este conteúdo não aparecerá no PDF</div>
 ```
 
 Automaticamente removidos:
+
 - Todos os `<button>`
 - Links de navegação (`<a href="/">`)
 - Elementos com classe `.no-print`
@@ -209,11 +213,7 @@ Use classes CSS para controlar quebras:
 ```tsx
 const formRef = useRef<HTMLFormElement>(null)
 
-return (
-  <form ref={formRef}>
-    {/* conteúdo */}
-  </form>
-)
+return <form ref={formRef}>{/* conteúdo */}</form>
 ```
 
 ### **Problema: "Preencha pelo menos um campo"**
@@ -223,13 +223,14 @@ return (
 ```typescript
 const handleChange = (e) => {
   const { name, value } = e.target
-  setFormData(prev => ({ ...prev, [name]: value }))
+  setFormData((prev) => ({ ...prev, [name]: value }))
 }
 ```
 
 ### **Problema: PDF com formatação quebrada**
 
 **Solução:** Verifique se os estilos CSS estão inline ou em classes globais. Evite usar:
+
 - Gradientes complexos
 - Sombras muito elaboradas
 - Animações CSS
@@ -265,12 +266,12 @@ export default function DocumentPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleGeneratePDF = async () => {
     try {
-      const hasData = Object.values(formData).some(value => value !== '')
+      const hasData = Object.values(formData).some((value) => value !== '')
       if (!hasData) {
         toast.error('Preencha pelo menos um campo antes de gerar o PDF')
         return
@@ -280,24 +281,21 @@ export default function DocumentPage() {
 
       const { generateFormPDF } = await import('@/lib/pdf-generator')
       await generateFormPDF(formRef, 'nome-documento', formData)
-      
+
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao gerar PDF.',
-        { id: 'pdf-generation' }
-      )
+      toast.error(error instanceof Error ? error.message : 'Erro ao gerar PDF.', {
+        id: 'pdf-generation',
+      })
     }
   }
 
   return (
     <form ref={formRef}>
       {/* Campos do formulário */}
-      
-      <button onClick={handleGeneratePDF}>
-        Gerar PDF
-      </button>
+
+      <button onClick={handleGeneratePDF}>Gerar PDF</button>
     </form>
   )
 }

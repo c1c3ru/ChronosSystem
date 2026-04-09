@@ -27,18 +27,19 @@ TOTAL: 151/164 testes passando (92%)
 
 ## 📁 Arquivos Criados
 
-| # | Arquivo | Caminho | Testes |
-|---|---------|---------|--------|
-| 1 | pdf-schemas.test.ts | `__tests__/lib/pdf-schemas.test.ts` | 35 ✅ |
-| 2 | pdf-generator-html.test.ts | `__tests__/lib/pdf-generator-html.test.ts` | 32 ✅ |
-| 3 | pdf-generator-react.test.ts | `__tests__/lib/pdf-generator-react.test.ts` | 19 ✅ |
-| 4 | pdf-server-generator.test.ts | `__tests__/lib/pdf-server-generator.test.ts` | 20 (18✅) |
-| 5 | pdf-client-generator.test.ts | `__tests__/lib/pdf-client-generator.test.ts` | 22 (14✅) |
-| 6 | pdf-generate.test.ts | `__tests__/api/pdf-generate.test.ts` | 18 (15✅) |
+| #   | Arquivo                      | Caminho                                      | Testes    |
+| --- | ---------------------------- | -------------------------------------------- | --------- |
+| 1   | pdf-schemas.test.ts          | `__tests__/lib/pdf-schemas.test.ts`          | 35 ✅     |
+| 2   | pdf-generator-html.test.ts   | `__tests__/lib/pdf-generator-html.test.ts`   | 32 ✅     |
+| 3   | pdf-generator-react.test.ts  | `__tests__/lib/pdf-generator-react.test.ts`  | 19 ✅     |
+| 4   | pdf-server-generator.test.ts | `__tests__/lib/pdf-server-generator.test.ts` | 20 (18✅) |
+| 5   | pdf-client-generator.test.ts | `__tests__/lib/pdf-client-generator.test.ts` | 22 (14✅) |
+| 6   | pdf-generate.test.ts         | `__tests__/api/pdf-generate.test.ts`         | 18 (15✅) |
 
 ## 🎯 Cobertura de Testes
 
 ### O que está 100% testado:
+
 - ✅ **13 schemas PDF** (estrutura, headers, sections, signatures)
 - ✅ **13 builders HTML** (geração de HTML válido, datas, dados)
 - ✅ **Funções utilitárias** (formatDate, formatCPF, formatCNPJ, formatPhone)
@@ -47,6 +48,7 @@ TOTAL: 151/164 testes passando (92%)
 - ✅ **Estrutura HTML** (CSS IFCE, logo, brasão, tabelas)
 
 ### O que precisa ajustes nos mocks:
+
 - ⚠️ Testes de integração com Puppeteer (browser launch)
 - ⚠️ Testes de integração com API route (NextRequest)
 - ⚠️ Testes de fallback client/server

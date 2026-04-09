@@ -20,7 +20,7 @@ import {
   Activity,
   Trash2,
   Filter,
-  LogIn
+  LogIn,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -102,7 +102,7 @@ export default function AdminPage() {
       const [statsResponse, activityResponse, internsResponse] = await Promise.all([
         fetch('/api/dashboard/stats'),
         fetch('/api/dashboard/activity?limit=5'),
-        fetch('/api/admin/interns/overview')
+        fetch('/api/admin/interns/overview'),
       ])
 
       if (statsResponse.ok) {
@@ -112,7 +112,7 @@ export default function AdminPage() {
           todayRecords: statsData.todayRecords,
           activeMachines: statsData.activeMachines,
           alerts: statsData.alerts,
-          trends: statsData.trends
+          trends: statsData.trends,
         })
       }
 
@@ -132,7 +132,7 @@ export default function AdminPage() {
         totalUsers: 0,
         todayRecords: 0,
         activeMachines: 0,
-        alerts: 0
+        alerts: 0,
       })
 
       setRecentActivity([])
@@ -143,19 +143,23 @@ export default function AdminPage() {
   }
 
   const deleteRecord = async (recordId: string, recordType: 'ENTRY' | 'EXIT') => {
-    if (!confirm(`Tem certeza que deseja deletar este registro de ${recordType === 'ENTRY' ? 'entrada' : 'saída'}?`)) {
+    if (
+      !confirm(
+        `Tem certeza que deseja deletar este registro de ${recordType === 'ENTRY' ? 'entrada' : 'saída'}?`
+      )
+    ) {
       return
     }
 
     try {
       setDeletingId(recordId)
       const response = await fetch(`/api/attendance/${recordId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
         toast.success('Registro deletado com sucesso!')
-        setRecentActivity(recentActivity.filter(a => a.id !== recordId))
+        setRecentActivity(recentActivity.filter((a) => a.id !== recordId))
       } else {
         const data = await response.json()
         toast.error(data.error || 'Erro ao deletar registro')
@@ -168,12 +172,15 @@ export default function AdminPage() {
     }
   }
 
-  const filteredActivity = recentActivity.filter(activity =>
-    filterType === 'ALL' || activity.type === filterType
+  const filteredActivity = recentActivity.filter(
+    (activity) => filterType === 'ALL' || activity.type === filterType
   )
 
   const totalInternPages = Math.ceil(interns.length / internsPerPage)
-  const paginatedInterns = interns.slice((internPage - 1) * internsPerPage, internPage * internsPerPage)
+  const paginatedInterns = interns.slice(
+    (internPage - 1) * internsPerPage,
+    internPage * internsPerPage
+  )
 
   if (status === 'loading') {
     return <Loading size="lg" text="Aguarde um momento..." />
@@ -188,7 +195,7 @@ export default function AdminPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -206,7 +213,10 @@ export default function AdminPage() {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <Link
+                href="/"
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              >
                 <Home className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </Link>
               <div className="h-4 sm:h-6 w-px bg-neutral-600" />
@@ -216,7 +226,9 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <h1 className="text-lg sm:text-xl font-bold text-white">Painel Administrativo</h1>
-                  <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Sistema Chronos - Gestão de Ponto</p>
+                  <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
+                    Sistema Chronos - Gestão de Ponto
+                  </p>
                 </div>
               </div>
             </div>
@@ -248,9 +260,12 @@ export default function AdminPage() {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Total de Usuários</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.totalUsers}</p>
-
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">
+                        Total de Usuários
+                      </p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
+                        {stats?.totalUsers}
+                      </p>
                     </div>
                     <div className="bg-secondary-500/20 rounded-2xl p-2 sm:p-3">
                       <Users className="h-6 w-6 sm:h-8 sm:w-8 text-secondary-500" />
@@ -263,9 +278,12 @@ export default function AdminPage() {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Registros Hoje</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.todayRecords}</p>
-
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">
+                        Registros Hoje
+                      </p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
+                        {stats?.todayRecords}
+                      </p>
                     </div>
                     <div className="bg-primary/20 rounded-2xl p-2 sm:p-3">
                       <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
@@ -278,9 +296,12 @@ export default function AdminPage() {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">Máquinas Ativas</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.activeMachines}</p>
-
+                      <p className="text-neutral-400 text-xs sm:text-sm font-medium">
+                        Máquinas Ativas
+                      </p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
+                        {stats?.activeMachines}
+                      </p>
                     </div>
                     <div className="bg-warning/20 rounded-2xl p-2 sm:p-3">
                       <Monitor className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
@@ -290,12 +311,17 @@ export default function AdminPage() {
               </Card>
 
               <Link href="/admin/reports/justifications">
-                <Card variant="glass" className="hover:scale-105 transition-transform duration-200 cursor-pointer h-full">
+                <Card
+                  variant="glass"
+                  className="hover:scale-105 transition-transform duration-200 cursor-pointer h-full"
+                >
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-neutral-400 text-xs sm:text-sm font-medium">Alertas</p>
-                        <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{stats?.alerts}</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
+                          {stats?.alerts}
+                        </p>
                         <p className="text-xs text-error mt-1 flex items-center">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           Justificativas pendentes
@@ -313,19 +339,27 @@ export default function AdminPage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Link href="/admin/users/new">
-                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-success/30 hover:border-success/50">
+                <Card
+                  variant="glass"
+                  className="group hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-success/30 hover:border-success/50"
+                >
                   <CardContent className="p-6 text-center">
                     <div className="bg-success/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-success/30 transition-colors">
                       <UserPlus className="h-8 w-8 text-success group-hover:scale-110 transition-transform" />
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">Cadastrar Usuário</h3>
-                    <p className="text-neutral-400 text-sm">Adicionar novo estagiário ou supervisor</p>
+                    <p className="text-neutral-400 text-sm">
+                      Adicionar novo estagiário ou supervisor
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
 
               <Link href="/admin/users">
-                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                <Card
+                  variant="glass"
+                  className="group hover:scale-105 transition-all duration-200 cursor-pointer"
+                >
                   <CardContent className="p-6 text-center">
                     <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
                       <Users className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
@@ -337,7 +371,10 @@ export default function AdminPage() {
               </Link>
 
               <Link href="/admin/machines">
-                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                <Card
+                  variant="glass"
+                  className="group hover:scale-105 transition-all duration-200 cursor-pointer"
+                >
                   <CardContent className="p-6 text-center">
                     <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary-500/30 transition-colors">
                       <Monitor className="h-8 w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
@@ -349,7 +386,10 @@ export default function AdminPage() {
               </Link>
 
               <Link href="/admin/reports">
-                <Card variant="glass" className="group hover:scale-105 transition-all duration-200 cursor-pointer">
+                <Card
+                  variant="glass"
+                  className="group hover:scale-105 transition-all duration-200 cursor-pointer"
+                >
                   <CardContent className="p-6 text-center">
                     <div className="bg-warning/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-warning/30 transition-colors">
                       <BarChart3 className="h-8 w-8 text-warning group-hover:scale-110 transition-transform" />
@@ -375,36 +415,58 @@ export default function AdminPage() {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {paginatedInterns.map(intern => (
-                  <Card key={intern.id} variant="glass" className="overflow-hidden border-neutral-700/30 hover:border-primary/30 transition-colors">
+                {paginatedInterns.map((intern) => (
+                  <Card
+                    key={intern.id}
+                    variant="glass"
+                    className="overflow-hidden border-neutral-700/30 hover:border-primary/30 transition-colors"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-white font-semibold truncate">{intern.name || 'Sem nome'}</h3>
+                          <h3 className="text-white font-semibold truncate">
+                            {intern.name || 'Sem nome'}
+                          </h3>
                           <p className="text-neutral-400 text-xs truncate">{intern.email}</p>
                         </div>
-                        <div className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex-shrink-0 ${intern.isPresent ? 'bg-success/20 text-success border border-success/30' : 'bg-neutral-800 text-neutral-500 border border-neutral-700'
-                          }`}>
+                        <div
+                          className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex-shrink-0 ${
+                            intern.isPresent
+                              ? 'bg-success/20 text-success border border-success/30'
+                              : 'bg-neutral-800 text-neutral-500 border border-neutral-700'
+                          }`}
+                        >
                           {intern.isPresent ? 'Presente' : 'Ausente'}
                         </div>
                       </div>
 
                       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                         <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50">
-                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Horário</p>
-                          <p className="text-white text-xs font-medium">{intern.shiftStartTime} - {intern.shiftEndTime}</p>
+                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">
+                            Horário
+                          </p>
+                          <p className="text-white text-xs font-medium">
+                            {intern.shiftStartTime} - {intern.shiftEndTime}
+                          </p>
                         </div>
                         <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50">
-                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Saldo Atual</p>
-                          <p className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}>
-                            {intern.hourBalance > 0 ? '+' : ''}{intern.hourBalance.toFixed(1)}h
+                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">
+                            Saldo Atual
+                          </p>
+                          <p
+                            className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}
+                          >
+                            {intern.hourBalance > 0 ? '+' : ''}
+                            {intern.hourBalance.toFixed(1)}h
                           </p>
                         </div>
                       </div>
 
                       <div className="mt-4 pt-3 border-t border-neutral-800/50 flex items-center justify-between text-[11px] text-neutral-400">
                         <div className="flex items-center">
-                          <div className={`h-1.5 w-1.5 rounded-full mr-2 ${intern.lastStatus?.type === 'ENTRY' ? 'bg-success animate-pulse' : 'bg-neutral-600'}`} />
+                          <div
+                            className={`h-1.5 w-1.5 rounded-full mr-2 ${intern.lastStatus?.type === 'ENTRY' ? 'bg-success animate-pulse' : 'bg-neutral-600'}`}
+                          />
                           {intern.lastStatus
                             ? `${intern.lastStatus.type === 'ENTRY' ? 'Entrou às' : 'Saiu às'} ${new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
                             : 'Sem registros hoje'}
@@ -476,7 +538,7 @@ export default function AdminPage() {
                     options={[
                       { value: 'ALL', label: 'Todas as atividades' },
                       { value: 'ENTRY', label: '→ Apenas Entradas' },
-                      { value: 'EXIT', label: '← Apenas Saídas' }
+                      { value: 'EXIT', label: '← Apenas Saídas' },
                     ]}
                   />
                 </div>
@@ -485,12 +547,18 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   {filteredActivity.length > 0 ? (
                     filteredActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group">
+                      <div
+                        key={activity.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group"
+                      >
                         <div className="flex items-center space-x-4 flex-1">
-                          <div className={`p-2 rounded-lg flex-shrink-0 ${activity.type === 'ENTRY'
-                            ? 'bg-primary/20 text-primary'
-                            : 'bg-warning/20 text-warning'
-                            }`}>
+                          <div
+                            className={`p-2 rounded-lg flex-shrink-0 ${
+                              activity.type === 'ENTRY'
+                                ? 'bg-primary/20 text-primary'
+                                : 'bg-warning/20 text-warning'
+                            }`}
+                          >
                             {activity.type === 'ENTRY' ? (
                               <LogIn className="h-4 w-4" />
                             ) : (

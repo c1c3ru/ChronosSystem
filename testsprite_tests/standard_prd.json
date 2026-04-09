@@ -84,10 +84,7 @@
       {
         "name": "QR Code Scanner",
         "description": "QR code scanning functionality for attendance registration using html5-qrcode library",
-        "files": [
-          "app/employee/page.tsx",
-          "lib/qr-security.ts"
-        ]
+        "files": ["app/employee/page.tsx", "lib/qr-security.ts"]
       },
       {
         "name": "Attendance Management",
@@ -101,32 +98,22 @@
       {
         "name": "Employee Dashboard",
         "description": "Employee interface for registering attendance and viewing records",
-        "files": [
-          "app/employee/page.tsx"
-        ]
+        "files": ["app/employee/page.tsx"]
       },
       {
         "name": "Admin Dashboard",
         "description": "Administrative interface for managing users, machines and viewing statistics",
-        "files": [
-          "app/admin/page.tsx"
-        ]
+        "files": ["app/admin/page.tsx"]
       },
       {
         "name": "User Management",
         "description": "User profile completion and management system",
-        "files": [
-          "app/auth/complete-profile/page.tsx",
-          "app/api/auth/complete-profile/route.ts"
-        ]
+        "files": ["app/auth/complete-profile/page.tsx", "app/api/auth/complete-profile/route.ts"]
       },
       {
         "name": "Database Schema",
         "description": "Complete database schema with users, attendance records, machines and audit logs",
-        "files": [
-          "prisma/schema.prisma",
-          "prisma/migrations/"
-        ]
+        "files": ["prisma/schema.prisma", "prisma/migrations/"]
       }
     ]
   }

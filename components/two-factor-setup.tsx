@@ -42,7 +42,7 @@ export function TwoFactorSetup() {
     try {
       const response = await fetch('/api/auth/2fa/setup')
       const data = await response.json()
-      
+
       if (response.ok) {
         setStatus(data)
       } else {
@@ -56,13 +56,13 @@ export function TwoFactorSetup() {
   const startSetup = async () => {
     setLoading(true)
     setError('')
-    
+
     try {
       const response = await fetch('/api/auth/2fa/setup', {
-        method: 'POST'
+        method: 'POST',
       })
       const data = await response.json()
-      
+
       if (response.ok) {
         setSetup(data.setup)
         setStep('setup')
@@ -84,17 +84,17 @@ export function TwoFactorSetup() {
 
     setLoading(true)
     setError('')
-    
+
     try {
       const response = await fetch('/api/auth/2fa/verify', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token }),
       })
       const data = await response.json()
-      
+
       if (response.ok) {
         setSuccess(data.message)
         setStep('status')
@@ -119,17 +119,17 @@ export function TwoFactorSetup() {
 
     setLoading(true)
     setError('')
-    
+
     try {
       const response = await fetch('/api/auth/2fa/disable', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token }),
       })
       const data = await response.json()
-      
+
       if (response.ok) {
         setSuccess(data.message)
         setToken('')
@@ -182,13 +182,14 @@ export function TwoFactorSetup() {
                 Status: {status.enabled ? 'Habilitado' : 'Desabilitado'}
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {status.enabled 
-                  ? 'Sua conta está protegida com 2FA' 
-                  : 'Adicione uma camada extra de segurança'
-                }
+                {status.enabled
+                  ? 'Sua conta está protegida com 2FA'
+                  : 'Adicione uma camada extra de segurança'}
               </p>
             </div>
-            <div className={`w-3 h-3 rounded-full ${status.enabled ? 'bg-green-500' : 'bg-red-500'}`} />
+            <div
+              className={`w-3 h-3 rounded-full ${status.enabled ? 'bg-green-500' : 'bg-red-500'}`}
+            />
           </div>
 
           {!status.enabled && (
@@ -206,7 +207,7 @@ export function TwoFactorSetup() {
                   2FA está ativo. Use seu app autenticador para gerar códigos de acesso.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="space-y-2">
                 <label htmlFor="token-disable" className="text-sm font-medium">
                   Código do app autenticador (para desabilitar):
@@ -221,8 +222,8 @@ export function TwoFactorSetup() {
                     maxLength={6}
                     className="text-center text-lg tracking-widest"
                   />
-                  <Button 
-                    onClick={disableTwoFactor} 
+                  <Button
+                    onClick={disableTwoFactor}
                     disabled={loading || token.length !== 6}
                     variant="destructive"
                   >
@@ -255,13 +256,9 @@ export function TwoFactorSetup() {
             {/* QR Code */}
             <div className="text-center space-y-4">
               <div className="inline-block p-4 bg-white rounded-lg">
-                <img 
-                  src={setup.qrCodeUrl} 
-                  alt="QR Code para 2FA" 
-                  className="w-48 h-48"
-                />
+                <img src={setup.qrCodeUrl} alt="QR Code para 2FA" className="w-48 h-48" />
               </div>
-              
+
               {/* Chave manual */}
               <div className="space-y-2">
                 <Button
@@ -269,16 +266,18 @@ export function TwoFactorSetup() {
                   size="sm"
                   onClick={() => setShowManualKey(!showManualKey)}
                 >
-                  {showManualKey ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                  {showManualKey ? (
+                    <EyeOff className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Eye className="w-4 h-4 mr-2" />
+                  )}
                   {showManualKey ? 'Ocultar' : 'Mostrar'} chave manual
                 </Button>
-                
+
                 {showManualKey && (
                   <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
                     <div className="flex items-center justify-between">
-                      <code className="text-sm font-mono break-all">
-                        {setup.manualEntryKey}
-                      </code>
+                      <code className="text-sm font-mono break-all">{setup.manualEntryKey}</code>
                       <Button size="sm" variant="ghost" onClick={copyManualKey}>
                         <Copy className="w-4 h-4" />
                       </Button>
@@ -303,20 +302,13 @@ export function TwoFactorSetup() {
                   maxLength={6}
                   className="text-center text-lg tracking-widest"
                 />
-                <Button 
-                  onClick={verifyToken} 
-                  disabled={loading || token.length !== 6}
-                >
+                <Button onClick={verifyToken} disabled={loading || token.length !== 6}>
                   Verificar
                 </Button>
               </div>
             </div>
 
-            <Button 
-              variant="secondary" 
-              onClick={() => setStep('status')}
-              className="w-full"
-            >
+            <Button variant="secondary" onClick={() => setStep('status')} className="w-full">
               Cancelar
             </Button>
           </CardContent>

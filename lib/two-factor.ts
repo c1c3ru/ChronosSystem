@@ -23,7 +23,7 @@ export async function generateTwoFactorSecret(
   const secret = speakeasy.generateSecret({
     name: userEmail,
     issuer: serviceName,
-    length: 32
+    length: 32,
   })
 
   // Gerar QR code
@@ -32,7 +32,7 @@ export async function generateTwoFactorSecret(
   return {
     secret: secret.base32!,
     qrCodeUrl,
-    manualEntryKey: secret.base32!
+    manualEntryKey: secret.base32!,
   }
 }
 
@@ -52,7 +52,7 @@ export function verifyTwoFactorToken(
     if (!/^\d{6}$/.test(cleanToken)) {
       return {
         isValid: false,
-        error: 'Token deve conter exatamente 6 dígitos'
+        error: 'Token deve conter exatamente 6 dígitos',
       }
     }
 
@@ -62,18 +62,17 @@ export function verifyTwoFactorToken(
       encoding: 'base32',
       token: cleanToken,
       window: window, // Permite tokens de até 30s antes/depois
-      step: 30 // Intervalo de 30 segundos
+      step: 30, // Intervalo de 30 segundos
     })
 
     return {
       isValid: verified,
-      error: verified ? undefined : 'Token inválido ou expirado'
+      error: verified ? undefined : 'Token inválido ou expirado',
     }
-
   } catch (error) {
     return {
       isValid: false,
-      error: 'Erro ao verificar token 2FA'
+      error: 'Erro ao verificar token 2FA',
     }
   }
 }
@@ -85,14 +84,17 @@ export function generateTwoFactorToken(secret: string): string {
   return speakeasy.totp({
     secret: secret,
     encoding: 'base32',
-    step: 30
+    step: 30,
   })
 }
 
 /**
  * Verifica se um usuário tem 2FA habilitado
  */
-export function isTwoFactorEnabled(user: { twoFactorEnabled?: boolean, twoFactorSecret?: string }): boolean {
+export function isTwoFactorEnabled(user: {
+  twoFactorEnabled?: boolean
+  twoFactorSecret?: string
+}): boolean {
   return !!(user.twoFactorEnabled && user.twoFactorSecret)
 }
 
@@ -101,13 +103,13 @@ export function isTwoFactorEnabled(user: { twoFactorEnabled?: boolean, twoFactor
  */
 export function generateBackupCodes(count: number = 8): string[] {
   const codes: string[] = []
-  
+
   for (let i = 0; i < count; i++) {
     // Gerar código de 8 caracteres alfanuméricos
     const code = Math.random().toString(36).substring(2, 10).toUpperCase()
     codes.push(code)
   }
-  
+
   return codes
 }
 

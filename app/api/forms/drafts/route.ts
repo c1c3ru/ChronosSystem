@@ -18,10 +18,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -33,10 +30,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Usuário não encontrado' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     }
 
     // Salva ou atualiza o rascunho
@@ -71,16 +65,10 @@ export async function POST(request: NextRequest) {
     console.error('Erro ao salvar rascunho:', error)
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Dados inválidos', details: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 })
     }
 
-    return NextResponse.json(
-      { error: 'Erro ao salvar rascunho' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao salvar rascunho' }, { status: 500 })
   }
 }
 
@@ -93,19 +81,13 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     const formType = request.nextUrl.searchParams.get('formType')
 
     if (!formType) {
-      return NextResponse.json(
-        { error: 'formType é obrigatório' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'formType é obrigatório' }, { status: 400 })
     }
 
     // Busca o usuário
@@ -114,10 +96,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Usuário não encontrado' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     }
 
     // Busca o rascunho
@@ -131,19 +110,13 @@ export async function GET(request: NextRequest) {
     })
 
     if (!draft) {
-      return NextResponse.json(
-        { error: 'Rascunho não encontrado' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Rascunho não encontrado' }, { status: 404 })
     }
 
     return NextResponse.json(draft, { status: 200 })
   } catch (error) {
     console.error('Erro ao recuperar rascunho:', error)
-    return NextResponse.json(
-      { error: 'Erro ao recuperar rascunho' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao recuperar rascunho' }, { status: 500 })
   }
 }
 
@@ -156,19 +129,13 @@ export async function DELETE(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     const formType = request.nextUrl.searchParams.get('formType')
 
     if (!formType) {
-      return NextResponse.json(
-        { error: 'formType é obrigatório' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'formType é obrigatório' }, { status: 400 })
     }
 
     // Busca o usuário
@@ -177,10 +144,7 @@ export async function DELETE(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Usuário não encontrado' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     }
 
     // Remove o rascunho
@@ -199,9 +163,6 @@ export async function DELETE(request: NextRequest) {
     )
   } catch (error) {
     console.error('Erro ao remover rascunho:', error)
-    return NextResponse.json(
-      { error: 'Erro ao remover rascunho' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao remover rascunho' }, { status: 500 })
   }
 }

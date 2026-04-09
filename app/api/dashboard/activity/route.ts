@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -26,16 +26,16 @@ export async function GET(request: NextRequest) {
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     // Formatar dados para o frontend
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       type: record.type,
       location: record.machine.name,
       fullLocation: record.machine.location,
-      rawTimestamp: record.timestamp
+      rawTimestamp: record.timestamp,
     }))
 
     return NextResponse.json(activity)

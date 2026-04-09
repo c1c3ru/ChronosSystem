@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 })
 
 function question(query: string): Promise<string> {
@@ -20,14 +20,14 @@ async function main() {
   // Coletar dados do usuário
   const email = await question('📧 Email do usuário: ')
   const name = await question('👤 Nome completo: ')
-  
+
   console.log('\n🎭 Selecione o perfil:')
   console.log('1. EMPLOYEE (Funcionário/Estagiário)')
   console.log('2. SUPERVISOR (Supervisor)')
   console.log('3. ADMIN (Administrador)')
-  
+
   const roleChoice = await question('\nEscolha (1-3): ')
-  
+
   let role: string
   switch (roleChoice) {
     case '1':
@@ -44,7 +44,7 @@ async function main() {
       role = 'EMPLOYEE'
   }
 
-  const department = await question('🏢 Departamento (opcional): ') || 'Geral'
+  const department = (await question('🏢 Departamento (opcional): ')) || 'Geral'
 
   if (!email || !name) {
     console.log('❌ Email e nome são obrigatórios.')
@@ -53,7 +53,7 @@ async function main() {
 
   // Verificar se usuário já existe
   const existingUser = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   })
 
   if (existingUser) {
@@ -61,7 +61,7 @@ async function main() {
     console.log(`📧 Email: ${existingUser.email}`)
     console.log(`👤 Nome: ${existingUser.name}`)
     console.log(`🎭 Role: ${existingUser.role}`)
-    
+
     const update = await question('\nDeseja atualizar o perfil? (s/N): ')
     if (update.toLowerCase() === 's' || update.toLowerCase() === 'sim') {
       const updatedUser = await prisma.user.update({
@@ -71,9 +71,9 @@ async function main() {
           role,
           department,
           profileComplete: true, // Usuários autorizados têm perfil completo
-        }
+        },
       })
-      
+
       console.log('\n✅ Usuário atualizado com sucesso!')
       console.log(`👤 Nome: ${updatedUser.name}`)
       console.log(`🎭 Role: ${updatedUser.role}`)
@@ -93,7 +93,7 @@ async function main() {
       department,
       profileComplete: true, // Usuários autorizados têm perfil completo
       // Não definir password - será usado apenas Google OAuth
-    }
+    },
   })
 
   // Criar log de auditoria
@@ -103,7 +103,7 @@ async function main() {
       action: 'AUTHORIZE_GOOGLE_USER',
       resource: 'USER',
       details: `Usuário autorizado para Google Login: ${email} como ${role}`,
-    }
+    },
   })
 
   console.log('\n✅ Usuário autorizado com sucesso!')

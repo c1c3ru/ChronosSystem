@@ -6,11 +6,11 @@ import { signOut } from 'next-auth/react'
 export async function handleCompleteLogout() {
   try {
     // Fazer logout do NextAuth com redirecionamento para página inicial
-    await signOut({ 
+    await signOut({
       callbackUrl: '/',
-      redirect: true 
+      redirect: true,
     })
-    
+
     // Opcional: Limpar storage local
     if (typeof window !== 'undefined') {
       localStorage.clear()
@@ -31,7 +31,7 @@ export async function handleCompleteLogout() {
 export async function handleLogoutNoRedirect() {
   try {
     await signOut({ redirect: false })
-    
+
     // Limpar storage local
     if (typeof window !== 'undefined') {
       localStorage.clear()

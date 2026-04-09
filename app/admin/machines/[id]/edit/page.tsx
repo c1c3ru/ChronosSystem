@@ -5,13 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  Monitor, 
-  ArrowLeft,
-  Save,
-  MapPin,
-  Settings
-} from 'lucide-react'
+import { Monitor, ArrowLeft, Save, MapPin, Settings } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -48,7 +42,7 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -67,14 +61,14 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
       try {
         setLoading(true)
         const response = await fetch(`/api/machines/${id}`)
-        
+
         if (response.ok) {
           const data = await response.json()
           setMachineData(data)
           setUpdateData({
             name: data.name,
             location: data.location,
-            isActive: data.isActive
+            isActive: data.isActive,
           })
         } else {
           router.push('/admin/machines')
@@ -109,12 +103,12 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     try {
       setSaving(true)
-      
+
       // Filtrar apenas campos que foram alterados
       const changedData: UpdateData = {}
       if (updateData.name !== machineData?.name) changedData.name = updateData.name
@@ -124,9 +118,9 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
       const response = await fetch(`/api/machines/${id}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(changedData)
+        body: JSON.stringify(changedData),
       })
 
       if (response.ok) {
@@ -183,13 +177,11 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <CardTitle>Atualizar Configurações</CardTitle>
-                  <p className="text-neutral-400 text-sm">
-                    Modifique as informações da máquina
-                  </p>
+                  <p className="text-neutral-400 text-sm">Modifique as informações da máquina</p>
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {errors.general && (
@@ -201,7 +193,7 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                 {/* Informações da Máquina */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Informações da Máquina</h3>
-                  
+
                   {/* Nome da Máquina */}
                   <div>
                     <label
@@ -218,7 +210,9 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                         placeholder="Ex: Terminal Principal, Kiosk Recepção..."
                         className={`input pl-10 ${errors.name ? 'border-error' : ''}`}
                         value={updateData.name || ''}
-                        onChange={(e) => setUpdateData(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setUpdateData((prev) => ({ ...prev, name: e.target.value }))
+                        }
                       />
                     </div>
                     {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
@@ -239,10 +233,14 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                         placeholder="Ex: Recepção - Térreo, Sala de Reuniões - 2º Andar..."
                         className={`input pl-10 min-h-[80px] resize-none ${errors.location ? 'border-error' : ''}`}
                         value={updateData.location || ''}
-                        onChange={(e) => setUpdateData(prev => ({ ...prev, location: e.target.value }))}
+                        onChange={(e) =>
+                          setUpdateData((prev) => ({ ...prev, location: e.target.value }))
+                        }
                       />
                     </div>
-                    {errors.location && <p className="text-error text-xs mt-1">{errors.location}</p>}
+                    {errors.location && (
+                      <p className="text-error text-xs mt-1">{errors.location}</p>
+                    )}
                   </div>
 
                   {/* Status */}
@@ -256,7 +254,7 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                           type="radio"
                           name="isActive"
                           checked={updateData.isActive === true}
-                          onChange={() => setUpdateData(prev => ({ ...prev, isActive: true }))}
+                          onChange={() => setUpdateData((prev) => ({ ...prev, isActive: true }))}
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary"
                         />
                         <span className="text-success text-sm">Ativa</span>
@@ -266,7 +264,7 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                           type="radio"
                           name="isActive"
                           checked={updateData.isActive === false}
-                          onChange={() => setUpdateData(prev => ({ ...prev, isActive: false }))}
+                          onChange={() => setUpdateData((prev) => ({ ...prev, isActive: false }))}
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary"
                         />
                         <span className="text-neutral-500 text-sm">Inativa</span>
@@ -284,15 +282,21 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                     <div className="flex items-start space-x-3">
                       <Settings className="h-5 w-5 text-neutral-400 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-white mb-2">Estatísticas da Máquina</h3>
+                        <h3 className="text-sm font-medium text-white mb-2">
+                          Estatísticas da Máquina
+                        </h3>
                         <div className="grid grid-cols-2 gap-4 text-xs text-neutral-400">
                           <div>
                             <span className="block text-neutral-300">Registros de Ponto:</span>
-                            <span className="text-white font-medium">{machineData._count.attendanceRecords || 0}</span>
+                            <span className="text-white font-medium">
+                              {machineData._count.attendanceRecords || 0}
+                            </span>
                           </div>
                           <div>
                             <span className="block text-neutral-300">QR Codes Gerados:</span>
-                            <span className="text-white font-medium">{machineData._count.qrEvents || 0}</span>
+                            <span className="text-white font-medium">
+                              {machineData._count.qrEvents || 0}
+                            </span>
                           </div>
                         </div>
                         <p className="text-xs text-neutral-500 mt-2">
@@ -306,9 +310,7 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
                 {/* Submit Button */}
                 <div className="flex justify-end space-x-4 pt-6 border-t border-neutral-700">
                   <Button asChild variant="ghost">
-                    <Link href="/admin/machines">
-                      Cancelar
-                    </Link>
+                    <Link href="/admin/machines">Cancelar</Link>
                   </Button>
                   <Button type="submit" disabled={saving} className="min-w-[150px]">
                     {saving ? (

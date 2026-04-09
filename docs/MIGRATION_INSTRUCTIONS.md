@@ -11,6 +11,7 @@ npx prisma migrate dev --name add_shift_configuration
 ```
 
 Este comando irá:
+
 - ✅ Criar um arquivo de migração em `prisma/migrations/`
 - ✅ Aplicar as mudanças ao banco de dados
 - ✅ Regenerar o Prisma Client
@@ -42,6 +43,7 @@ allowFlexibleHours Boolean     @default(false)
 ## 🎯 Campos Adicionados aos Formulários
 
 ### Complete Profile Form
+
 - `shift` - Tipo de turno (MORNING, AFTERNOON, NIGHT, HYBRID)
 - `shiftStartTime` - Horário de início (HH:MM)
 - `shiftEndTime` - Horário de fim (HH:MM)
@@ -49,11 +51,13 @@ allowFlexibleHours Boolean     @default(false)
 - `allowFlexibleHours` - Permite horas flexíveis?
 
 ### API Endpoint
+
 - `/api/auth/complete-profile` - Agora aceita os novos campos de turno
 
 ## ✅ Validações
 
 Os campos de turno são:
+
 - **Opcionais** no formulário (têm valores padrão)
 - **Salvos** no banco de dados com valores padrão se não fornecidos
 - **Utilizados** pela API de validação de ponto (`lib/shift-validation.ts`)

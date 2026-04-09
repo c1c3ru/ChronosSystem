@@ -26,9 +26,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         className
       ),
       ref: ref,
-      'aria-invalid': (error ? "true" : "false") as "true" | "false",
+      'aria-invalid': (error ? 'true' : 'false') as 'true' | 'false',
       'aria-describedby': describedBy,
-      'aria-required': (required ? "true" : "false") as boolean | "true" | "false",
+      'aria-required': (required ? 'true' : 'false') as boolean | 'true' | 'false',
     }
 
     return (
@@ -42,7 +42,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
           >
             {label}
-            {required && <span className="text-destructive ml-1" aria-label="obrigatório">*</span>}
+            {required && (
+              <span className="text-destructive ml-1" aria-label="obrigatório">
+                *
+              </span>
+            )}
           </label>
         )}
         <input {...inputProps} />

@@ -66,13 +66,13 @@ export function PWAInstaller() {
     try {
       await deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
-      
+
       if (outcome === 'accepted') {
         console.log('✅ Usuário aceitou instalar o PWA')
       } else {
         console.log('❌ Usuário recusou instalar o PWA')
       }
-      
+
       setDeferredPrompt(null)
       setShowInstallBanner(false)
     } catch (error) {
@@ -95,7 +95,7 @@ export function PWAInstaller() {
   const dismissed = localStorage.getItem('pwa-install-dismissed')
   if (dismissed) {
     const dismissedTime = parseInt(dismissed)
-    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000)
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
     if (dismissedTime > oneDayAgo) {
       return null
     }
@@ -110,11 +110,9 @@ export function PWAInstaller() {
               <Download className="w-5 h-5 text-success-400" />
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-foreground">
-              Instalar Chronos
-            </h3>
+            <h3 className="text-sm font-medium text-foreground">Instalar Chronos</h3>
             <p className="text-xs text-muted-foreground mt-1">
               Adicione à tela inicial para acesso rápido e uso offline
             </p>
@@ -129,21 +127,12 @@ export function PWAInstaller() {
         </div>
 
         <div className="mt-3 flex space-x-2">
-          <Button
-            onClick={handleInstallClick}
-            size="sm"
-            variant="primary"
-            className="flex-1"
-          >
+          <Button onClick={handleInstallClick} size="sm" variant="primary" className="flex-1">
             <Download className="w-3 h-3 mr-1" />
             Instalar
           </Button>
-          
-          <Button
-            onClick={handleDismiss}
-            size="sm"
-            variant="secondary"
-          >
+
+          <Button onClick={handleDismiss} size="sm" variant="secondary">
             Agora não
           </Button>
         </div>

@@ -44,26 +44,29 @@ exit
 
 ### 4. Acesse as Aplicações
 
-| Aplicação | URL | Credenciais |
-|-----------|-----|-------------|
-| **Admin Dashboard** | http://localhost:3000 | admin@ponto.com / admin123 |
-| **PWA Estagiário** | http://localhost:3001 | estagiario@ponto.com / estagio123 |
-| **Kiosk** | http://localhost:3002 | - |
-| **API Backend** | http://localhost:4000/api | - |
+| Aplicação           | URL                       | Credenciais                       |
+| ------------------- | ------------------------- | --------------------------------- |
+| **Admin Dashboard** | http://localhost:3000     | admin@ponto.com / admin123        |
+| **PWA Estagiário**  | http://localhost:3001     | estagiario@ponto.com / estagio123 |
+| **Kiosk**           | http://localhost:3002     | -                                 |
+| **API Backend**     | http://localhost:4000/api | -                                 |
 
 ## 📱 Testando o Fluxo Completo
 
 ### Passo 1: Abra o Kiosk
+
 1. Acesse http://localhost:3002
 2. Você verá um QR code sendo exibido
 3. O QR code atualiza automaticamente a cada 60 segundos
 
 ### Passo 2: Faça Login no PWA
+
 1. Acesse http://localhost:3001
 2. Login: `estagiario@ponto.com`
 3. Senha: `estagio123`
 
 ### Passo 3: Registre Ponto
+
 1. No PWA, clique em "Escanear QR Code"
 2. Permita acesso à câmera
 3. Aponte para o QR code do Kiosk (ou use uma ferramenta de QR code virtual)
@@ -71,6 +74,7 @@ exit
 5. Veja a confirmação
 
 ### Passo 4: Verifique no Admin
+
 1. Acesse http://localhost:3000
 2. Login: `admin@ponto.com`
 3. Senha: `admin123`
@@ -79,6 +83,7 @@ exit
 ## 🎯 Funcionalidades Principais
 
 ### Para Estagiários
+
 - ✅ Login com email/senha ou Google
 - ✅ Escanear QR code para registrar ponto
 - ✅ Ver histórico de registros
@@ -86,6 +91,7 @@ exit
 - ✅ PWA funciona offline
 
 ### Para Administradores
+
 - ✅ Dashboard com estatísticas
 - ✅ Gerenciar usuários e máquinas
 - ✅ Ver todos os registros
@@ -95,6 +101,7 @@ exit
 - ✅ Verificar integridade da cadeia de hashes
 
 ### Para Máquinas (Kiosk)
+
 - ✅ QR code rotativo (60s)
 - ✅ Relógio em tempo real
 - ✅ Status de conectividade
@@ -103,6 +110,7 @@ exit
 ## 🔐 Segurança
 
 O sistema implementa:
+
 - ✅ QR code assinado com HMAC-SHA256
 - ✅ Nonce único (anti-replay)
 - ✅ Hash chain imutável
@@ -278,6 +286,6 @@ docker logs ponto-postgres
 
 ## 🎉 Pronto!
 
-Seu sistema de ponto está funcionando! 
+Seu sistema de ponto está funcionando!
 
 Explore as funcionalidades e personalize conforme necessário.

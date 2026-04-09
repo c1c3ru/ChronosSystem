@@ -14,7 +14,7 @@ export default function OfflinePage() {
 
     window.addEventListener('online', updateOnlineStatus)
     window.addEventListener('offline', updateOnlineStatus)
-    
+
     // Verificar status inicial
     updateOnlineStatus()
 
@@ -51,12 +51,11 @@ export default function OfflinePage() {
           <h1 className="text-2xl font-bold text-white mb-4">
             {isOnline ? 'Conectado!' : 'Você está offline'}
           </h1>
-          
+
           <p className="text-slate-300 mb-6">
-            {isOnline 
+            {isOnline
               ? 'Sua conexão foi restaurada. Você pode tentar recarregar a página.'
-              : 'Verifique sua conexão com a internet e tente novamente.'
-            }
+              : 'Verifique sua conexão com a internet e tente novamente.'}
           </p>
 
           {/* Status da conexão */}
@@ -71,7 +70,7 @@ export default function OfflinePage() {
 
           {/* Botões de ação */}
           <div className="space-y-3">
-            <Button 
+            <Button
               onClick={handleRetry}
               disabled={!isOnline}
               className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -80,7 +79,7 @@ export default function OfflinePage() {
               Tentar Novamente
             </Button>
 
-            <Button 
+            <Button
               variant="secondary"
               onClick={() => window.history.back()}
               className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
@@ -102,9 +101,7 @@ export default function OfflinePage() {
 
         {/* Logo/Branding */}
         <div className="mt-6">
-          <p className="text-slate-500 text-sm">
-            Chronos System - PWA
-          </p>
+          <p className="text-slate-500 text-sm">Chronos System - PWA</p>
         </div>
       </div>
     </div>

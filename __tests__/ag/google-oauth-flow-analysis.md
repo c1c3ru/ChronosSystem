@@ -13,7 +13,7 @@ Este documento analisa o fluxo de login do Google OAuth segundo a documentação
 Segundo a documentação oficial do NextAuth, o Google Provider deve ser configurado da seguinte forma:
 
 ```typescript
-import GoogleProvider from "next-auth/providers/google"
+import GoogleProvider from 'next-auth/providers/google'
 
 providers: [
   GoogleProvider({
@@ -21,16 +21,17 @@ providers: [
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     authorization: {
       params: {
-        prompt: "consent",
-        access_type: "offline",
-        response_type: "code"
-      }
-    }
-  })
+        prompt: 'consent',
+        access_type: 'offline',
+        response_type: 'code',
+      },
+    },
+  }),
 ]
 ```
 
 **Parâmetros importantes:**
+
 - `prompt: "consent"` - Força o Google a sempre pedir consentimento (necessário para refresh tokens)
 - `access_type: "offline"` - Permite obter refresh tokens
 - `response_type: "code"` - Usa o fluxo de código de autorização
@@ -38,6 +39,7 @@ providers: [
 ### **Etapa 2: Callback URLs**
 
 A documentação especifica que as URLs de callback autorizadas devem seguir o padrão:
+
 - **Produção:** `https://{YOUR_DOMAIN}/api/auth/callback/google`
 - **Desenvolvimento:** `http://localhost:3000/api/auth/callback/google`
 
@@ -121,6 +123,7 @@ A documentação especifica que as URLs de callback autorizadas devem seguir o p
 **Propósito:** Controlar se um usuário pode fazer login
 
 **Documentação oficial:**
+
 ```typescript
 callbacks: {
   async signIn({ user, account, profile, email, credentials }) {
@@ -135,11 +138,13 @@ callbacks: {
 ```
 
 **Comportamento:**
+
 - `return true` → Permite login
 - `return false` → Bloqueia login (exibe mensagem de erro padrão)
 - `return '/url'` → Redireciona para URL específica
 
 **Importante:** Para Google OAuth, o callback recebe:
+
 - `profile.email_verified` - Boolean indicando se o email foi verificado
 - `profile.email` - Email do usuário
 - `profile.name` - Nome do usuário
@@ -150,6 +155,7 @@ callbacks: {
 **Propósito:** Criar e atualizar o token JWT
 
 **Documentação oficial:**
+
 ```typescript
 callbacks: {
   async jwt({ token, account, profile, user }) {
@@ -165,6 +171,7 @@ callbacks: {
 ```
 
 **Comportamento:**
+
 - **Primeira chamada (login):** Recebe `user`, `account`, `profile`
 - **Chamadas subsequentes:** Recebe apenas `token`
 - Deve sempre retornar o token (modificado ou não)
@@ -174,6 +181,7 @@ callbacks: {
 **Propósito:** Expor dados do token para o cliente
 
 **Documentação oficial:**
+
 ```typescript
 callbacks: {
   async session({ session, token }) {
@@ -190,6 +198,7 @@ callbacks: {
 **Propósito:** Controlar para onde o usuário é redirecionado após login
 
 **Documentação oficial:**
+
 ```typescript
 callbacks: {
   async redirect({ url, baseUrl }) {
@@ -217,15 +226,16 @@ GoogleProvider({
   allowDangerousEmailAccountLinking: true,
   authorization: {
     params: {
-      prompt: "consent",
-      access_type: "offline",
-      response_type: "code"
-    }
-  }
+      prompt: 'consent',
+      access_type: 'offline',
+      response_type: 'code',
+    },
+  },
 })
 ```
 
 **Análise:**
+
 - ✅ Configuração correta dos parâmetros de autorização
 - ✅ `prompt: "consent"` configurado
 - ✅ `access_type: "offline"` configurado
@@ -244,12 +254,12 @@ async signIn({ user, account, profile }) {
     if (!(profile as any)?.email_verified) {
       return false
     }
-    
+
     // Buscar usuário existente
     const existingUser = await prisma.user.findUnique({
       where: { email: user.email! }
     })
-    
+
     if (existingUser) {
       // Atualizar dados do usuário no objeto user
       user.id = existingUser.id
@@ -267,7 +277,7 @@ async signIn({ user, account, profile }) {
           profileComplete: false
         }
       })
-      
+
       user.id = newUser.id
       user.role = newUser.role
       user.profileComplete = newUser.profileComplete
@@ -280,14 +290,14 @@ async signIn({ user, account, profile }) {
 
 **Análise:**
 
-| Aspecto | Documentação | Implementação Atual | Conformidade |
-|---------|--------------|---------------------|--------------|
-| **Verificação de email** | ✅ Recomendado usar `profile.email_verified` | ✅ Implementado (linha 169) | ✅ Conforme |
-| **Retorno booleano** | ✅ `true` permite, `false` bloqueia | ✅ Implementado | ✅ Conforme |
-| **Criação automática de usuário** | ⚠️ Não mencionado na docs | ⚠️ Implementado (linhas 213-257) | ⚠️ Extensão customizada |
-| **Modificação do objeto `user`** | ⚠️ Não recomendado explicitamente | ⚠️ Implementado (linhas 198-209, 239-243) | ⚠️ Prática não documentada |
-| **Logs extensivos** | ❌ Não mencionado | ✅ Implementado | ✅ Boa prática |
-| **Auditoria** | ❌ Não mencionado | ✅ Implementado (linhas 246-253) | ✅ Boa prática |
+| Aspecto                           | Documentação                                 | Implementação Atual                       | Conformidade               |
+| --------------------------------- | -------------------------------------------- | ----------------------------------------- | -------------------------- |
+| **Verificação de email**          | ✅ Recomendado usar `profile.email_verified` | ✅ Implementado (linha 169)               | ✅ Conforme                |
+| **Retorno booleano**              | ✅ `true` permite, `false` bloqueia          | ✅ Implementado                           | ✅ Conforme                |
+| **Criação automática de usuário** | ⚠️ Não mencionado na docs                    | ⚠️ Implementado (linhas 213-257)          | ⚠️ Extensão customizada    |
+| **Modificação do objeto `user`**  | ⚠️ Não recomendado explicitamente            | ⚠️ Implementado (linhas 198-209, 239-243) | ⚠️ Prática não documentada |
+| **Logs extensivos**               | ❌ Não mencionado                            | ✅ Implementado                           | ✅ Boa prática             |
+| **Auditoria**                     | ❌ Não mencionado                            | ✅ Implementado (linhas 246-253)          | ✅ Boa prática             |
 
 **Problemas identificados:**
 
@@ -309,19 +319,19 @@ async jwt({ token, user, account, trigger }) {
       token.sub = user.id
       token.profileComplete = user.profileComplete
     }
-    
+
     // Buscar dados atualizados do banco
     if (token.sub) {
       const dbUser = await prisma.user.findUnique({
         where: { id: token.sub },
-        select: { 
-          role: true, 
+        select: {
+          role: true,
           profileComplete: true,
           name: true,
-          email: true 
+          email: true
         }
       })
-      
+
       if (dbUser) {
         token.role = dbUser.role
         token.profileComplete = dbUser.profileComplete
@@ -335,12 +345,14 @@ async jwt({ token, user, account, trigger }) {
 ```
 
 **Análise:**
+
 - ✅ Persiste dados customizados no token (`role`, `profileComplete`)
 - ✅ Busca dados atualizados do banco
 - ✅ Suporta trigger `update` para atualização de sessão
 - ⚠️ Faz query ao banco em TODA chamada (pode impactar performance)
 
 **Problema de performance:**
+
 - O callback `jwt` é chamado em TODA requisição que acessa a sessão
 - Fazer query ao banco em cada chamada pode ser custoso
 - **Sugestão:** Cachear dados ou buscar apenas quando `user` existe (primeira vez)
@@ -361,6 +373,7 @@ async session({ session, token }) {
 ```
 
 **Análise:**
+
 - ✅ Expõe dados do token para o cliente
 - ✅ Implementação conforme documentação
 - ✅ Type-safe com declarações de módulo
@@ -375,12 +388,12 @@ async redirect({ url, baseUrl }) {
   if (url.includes('/api/auth/callback/')) {
     return `${baseUrl}/`
   }
-  
+
   // URL relativa
   if (url.startsWith('/')) {
     return `${baseUrl}${url}`
   }
-  
+
   // Mesma origem
   try {
     if (new URL(url).origin === baseUrl) {
@@ -389,17 +402,19 @@ async redirect({ url, baseUrl }) {
   } catch (error) {
     // ...
   }
-  
+
   return baseUrl
 }
 ```
 
 **Análise:**
+
 - ✅ Implementação base conforme documentação
 - ⚠️ Redirecionamento especial para callbacks OAuth (linha 293-297)
 - ⚠️ Sempre redireciona para `/` após login Google (ignora `callbackUrl`)
 
 **Problema:**
+
 - O redirecionamento forçado para `/` ignora o parâmetro `callbackUrl`
 - Usuários não são redirecionados para a página que tentavam acessar originalmente
 - **Exemplo:** Usuário tenta acessar `/admin` → faz login → é redirecionado para `/` (não para `/admin`)
@@ -416,7 +431,7 @@ const handleGoogleSignIn = async () => {
 
     const result = await signIn('google', {
       callbackUrl: '/',
-      redirect: false
+      redirect: false,
     })
 
     if (result?.error) {
@@ -434,13 +449,13 @@ const handleGoogleSignIn = async () => {
 
 **Análise:**
 
-| Aspecto | Documentação | Implementação Atual | Conformidade |
-|---------|--------------|---------------------|--------------|
-| **Uso de `signIn()`** | ✅ `signIn('google', { callbackUrl })` | ✅ Implementado | ✅ Conforme |
-| **`redirect: false`** | ⚠️ Não recomendado para OAuth | ⚠️ Usado (linha 127) | ⚠️ Não ideal |
-| **Redirecionamento manual** | ❌ Não recomendado | ❌ Usado (linha 186) | ❌ Não conforme |
-| **Tratamento de erros** | ✅ Verificar `result.error` | ✅ Implementado extensivamente | ✅ Conforme |
-| **Loading states** | ❌ Não mencionado | ✅ Implementado | ✅ Boa prática |
+| Aspecto                     | Documentação                           | Implementação Atual            | Conformidade    |
+| --------------------------- | -------------------------------------- | ------------------------------ | --------------- |
+| **Uso de `signIn()`**       | ✅ `signIn('google', { callbackUrl })` | ✅ Implementado                | ✅ Conforme     |
+| **`redirect: false`**       | ⚠️ Não recomendado para OAuth          | ⚠️ Usado (linha 127)           | ⚠️ Não ideal    |
+| **Redirecionamento manual** | ❌ Não recomendado                     | ❌ Usado (linha 186)           | ❌ Não conforme |
+| **Tratamento de erros**     | ✅ Verificar `result.error`            | ✅ Implementado extensivamente | ✅ Conforme     |
+| **Loading states**          | ❌ Não mencionado                      | ✅ Implementado                | ✅ Boa prática  |
 
 **Problemas identificados:**
 
@@ -456,38 +471,38 @@ const handleGoogleSignIn = async () => {
 
 ### **Conformidades ✅**
 
-| Item | Status |
-|------|--------|
-| Configuração do Google Provider | ✅ Conforme |
+| Item                                                | Status      |
+| --------------------------------------------------- | ----------- |
+| Configuração do Google Provider                     | ✅ Conforme |
 | Parâmetros de autorização (`prompt`, `access_type`) | ✅ Conforme |
-| Verificação de `email_verified` | ✅ Conforme |
-| Callback `jwt` - estrutura básica | ✅ Conforme |
-| Callback `session` | ✅ Conforme |
-| Callback `redirect` - estrutura básica | ✅ Conforme |
-| Tratamento de erros no cliente | ✅ Conforme |
-| Validação de variáveis de ambiente | ✅ Conforme |
+| Verificação de `email_verified`                     | ✅ Conforme |
+| Callback `jwt` - estrutura básica                   | ✅ Conforme |
+| Callback `session`                                  | ✅ Conforme |
+| Callback `redirect` - estrutura básica              | ✅ Conforme |
+| Tratamento de erros no cliente                      | ✅ Conforme |
+| Validação de variáveis de ambiente                  | ✅ Conforme |
 
 ### **Divergências ⚠️**
 
-| Item | Documentação | Implementação Atual | Impacto |
-|------|--------------|---------------------|---------|
-| **Criação automática de usuários** | Não mencionado; PrismaAdapter já faz isso | Criação manual no `signIn` callback | ⚠️ Médio - Pode causar duplicação |
-| **Modificação do objeto `user`** | Não recomendado | Modificado no `signIn` callback | ⚠️ Médio - Prática não documentada |
-| **Query ao banco no `jwt` callback** | Apenas na primeira vez | Em toda chamada | ⚠️ Alto - Impacto de performance |
-| **Redirecionamento após OAuth** | Usar `callbackUrl` padrão | Forçado para `/` | ⚠️ Médio - UX prejudicada |
-| **`redirect: false` no cliente** | Não recomendado para OAuth | Usado | ⚠️ Baixo - Pode causar problemas |
-| **Redirecionamento manual** | Deixar NextAuth gerenciar | `window.location.href` | ⚠️ Médio - Reload desnecessário |
-| **`allowDangerousEmailAccountLinking`** | Não recomendado | Habilitado | ⚠️ Alto - Risco de segurança |
+| Item                                    | Documentação                              | Implementação Atual                 | Impacto                            |
+| --------------------------------------- | ----------------------------------------- | ----------------------------------- | ---------------------------------- |
+| **Criação automática de usuários**      | Não mencionado; PrismaAdapter já faz isso | Criação manual no `signIn` callback | ⚠️ Médio - Pode causar duplicação  |
+| **Modificação do objeto `user`**        | Não recomendado                           | Modificado no `signIn` callback     | ⚠️ Médio - Prática não documentada |
+| **Query ao banco no `jwt` callback**    | Apenas na primeira vez                    | Em toda chamada                     | ⚠️ Alto - Impacto de performance   |
+| **Redirecionamento após OAuth**         | Usar `callbackUrl` padrão                 | Forçado para `/`                    | ⚠️ Médio - UX prejudicada          |
+| **`redirect: false` no cliente**        | Não recomendado para OAuth                | Usado                               | ⚠️ Baixo - Pode causar problemas   |
+| **Redirecionamento manual**             | Deixar NextAuth gerenciar                 | `window.location.href`              | ⚠️ Médio - Reload desnecessário    |
+| **`allowDangerousEmailAccountLinking`** | Não recomendado                           | Habilitado                          | ⚠️ Alto - Risco de segurança       |
 
 ### **Extensões Customizadas (não documentadas, mas válidas) ✅**
 
-| Item | Descrição |
-|------|-----------|
-| **Logs extensivos** | Logging detalhado em todos os callbacks |
-| **Auditoria** | Registro de criação de usuários no `AuditLog` |
-| **Tratamento de erros robusto** | Mensagens de erro específicas por tipo |
-| **Loading states** | Estados de carregamento para melhor UX |
-| **Verificação de perfil completo** | Lógica customizada de `profileComplete` |
+| Item                               | Descrição                                     |
+| ---------------------------------- | --------------------------------------------- |
+| **Logs extensivos**                | Logging detalhado em todos os callbacks       |
+| **Auditoria**                      | Registro de criação de usuários no `AuditLog` |
+| **Tratamento de erros robusto**    | Mensagens de erro específicas por tipo        |
+| **Loading states**                 | Estados de carregamento para melhor UX        |
+| **Verificação de perfil completo** | Lógica customizada de `profileComplete`       |
 
 ---
 
@@ -497,6 +512,7 @@ const handleGoogleSignIn = async () => {
 
 **Problema:**
 O `PrismaAdapter` já gerencia automaticamente a criação de usuários quando um novo usuário faz login via OAuth. A criação manual de usuários no callback `signIn` pode causar:
+
 - Tentativa de criar usuário duplicado
 - Conflitos de ID
 - Inconsistências no banco de dados
@@ -511,12 +527,12 @@ async signIn({ user, account, profile }) {
     if (!(profile as any)?.email_verified) {
       return false
     }
-    
+
     // Verificar se é domínio permitido (opcional)
     // if (!profile.email.endsWith('@empresa.com')) {
     //   return false
     // }
-    
+
     return true
   }
   return true
@@ -527,6 +543,7 @@ async signIn({ user, account, profile }) {
 
 **Problema:**
 O callback `jwt` faz query ao banco de dados em TODA chamada, incluindo:
+
 - Cada acesso à página
 - Cada chamada a `getSession()`
 - Cada uso de `useSession()`
@@ -550,7 +567,7 @@ async jwt({ token, user, account, trigger }) {
         where: { id: token.sub },
         select: { role: true, profileComplete: true, name: true, email: true }
       })
-      
+
       if (dbUser) {
         token.role = dbUser.role
         token.profileComplete = dbUser.profileComplete
@@ -567,6 +584,7 @@ async jwt({ token, user, account, trigger }) {
 
 **Problema:**
 O callback `redirect` sempre redireciona para `/` após login OAuth, ignorando o `callbackUrl`. Isso prejudica a UX:
+
 - Usuário tenta acessar `/admin`
 - É redirecionado para login
 - Faz login com Google
@@ -582,7 +600,7 @@ async redirect({ url, baseUrl }) {
   if (url.startsWith('/')) {
     return `${baseUrl}${url}`
   }
-  
+
   // Permitir URLs da mesma origem
   try {
     if (new URL(url).origin === baseUrl) {
@@ -591,7 +609,7 @@ async redirect({ url, baseUrl }) {
   } catch (error) {
     console.log('Erro ao parsear URL:', error)
   }
-  
+
   // Fallback para baseUrl
   return baseUrl
 }
@@ -601,6 +619,7 @@ async redirect({ url, baseUrl }) {
 
 **Problema:**
 A opção `allowDangerousEmailAccountLinking: true` permite que contas com o mesmo email sejam vinculadas automaticamente, mesmo que sejam de providers diferentes. Isso pode ser explorado:
+
 - Atacante cria conta com email `admin@empresa.com` via credenciais
 - Admin faz login com Google usando `admin@empresa.com`
 - Contas são vinculadas automaticamente
@@ -616,11 +635,11 @@ GoogleProvider({
   // Remover: allowDangerousEmailAccountLinking: true,
   authorization: {
     params: {
-      prompt: "consent",
-      access_type: "offline",
-      response_type: "code"
-    }
-  }
+      prompt: 'consent',
+      access_type: 'offline',
+      response_type: 'code',
+    },
+  },
 })
 ```
 
@@ -628,6 +647,7 @@ GoogleProvider({
 
 **Problema:**
 No cliente, o código usa `redirect: false` e depois faz redirecionamento manual com `window.location.href`. Isso:
+
 - Causa reload completo da página
 - Perde estado do React
 - Pode causar flash de conteúdo
@@ -644,9 +664,9 @@ const handleGoogleSignIn = async () => {
 
     // Deixar NextAuth gerenciar o redirecionamento
     await signIn('google', {
-      callbackUrl: '/' // Ou usar a URL que o usuário tentava acessar
+      callbackUrl: '/', // Ou usar a URL que o usuário tentava acessar
     })
-    
+
     // Não precisa de código após signIn - o NextAuth redireciona automaticamente
   } catch (error) {
     console.error('Google login error:', error)
@@ -661,24 +681,28 @@ const handleGoogleSignIn = async () => {
 ## 📋 Checklist de Conformidade
 
 ### **Configuração**
+
 - ✅ Google Provider configurado
 - ✅ Client ID e Secret definidos
 - ✅ Parâmetros de autorização corretos
 - ⚠️ `allowDangerousEmailAccountLinking` habilitado (risco)
 
 ### **Callbacks**
+
 - ⚠️ `signIn` - Cria usuários manualmente (conflito com adapter)
 - ⚠️ `jwt` - Faz query ao banco em toda chamada (performance)
 - ✅ `session` - Conforme documentação
 - ⚠️ `redirect` - Força redirecionamento para `/` (UX)
 
 ### **Cliente**
+
 - ⚠️ Usa `redirect: false` (não recomendado para OAuth)
 - ⚠️ Redirecionamento manual com `window.location.href`
 - ✅ Tratamento de erros robusto
 - ✅ Loading states implementados
 
 ### **Segurança**
+
 - ✅ Verificação de `email_verified`
 - ⚠️ `allowDangerousEmailAccountLinking` (risco alto)
 - ✅ Validação de variáveis de ambiente
@@ -803,18 +827,18 @@ callbacks: {
         console.log('❌ Email não verificado pelo Google')
         return false
       }
-      
+
       // Opcional: Validar domínio
       // if (!profile.email.endsWith('@empresa.com')) {
       //   return false
       // }
-      
+
       console.log('✅ Login Google autorizado:', profile.email)
       return true
     }
     return true
   },
-  
+
   async jwt({ token, user, trigger }) {
     // Apenas na primeira vez OU quando explicitamente atualizado
     if (user) {
@@ -828,7 +852,7 @@ callbacks: {
         where: { id: token.sub },
         select: { role: true, profileComplete: true, name: true, email: true }
       })
-      
+
       if (dbUser) {
         token.role = dbUser.role
         token.profileComplete = dbUser.profileComplete
@@ -838,7 +862,7 @@ callbacks: {
     }
     return token
   },
-  
+
   async session({ session, token }) {
     if (token) {
       session.user.id = token.sub!
@@ -847,13 +871,13 @@ callbacks: {
     }
     return session
   },
-  
+
   async redirect({ url, baseUrl }) {
     // Permitir URLs relativas
     if (url.startsWith('/')) {
       return `${baseUrl}${url}`
     }
-    
+
     // Permitir URLs da mesma origem
     try {
       if (new URL(url).origin === baseUrl) {
@@ -862,7 +886,7 @@ callbacks: {
     } catch (error) {
       console.log('Erro ao parsear URL:', error)
     }
-    
+
     return baseUrl
   }
 }
@@ -878,9 +902,9 @@ const handleGoogleSignIn = async () => {
 
     // Deixar NextAuth gerenciar o redirecionamento
     await signIn('google', {
-      callbackUrl: '/' // Middleware redirecionará conforme role e profileComplete
+      callbackUrl: '/', // Middleware redirecionará conforme role e profileComplete
     })
-    
+
     // NextAuth redireciona automaticamente - não precisa de código aqui
   } catch (error) {
     console.error('Google login error:', error)

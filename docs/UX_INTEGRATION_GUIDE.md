@@ -9,6 +9,7 @@ Este guia mostra como usar as funcionalidades de UX prontas para integração no
 Componentes de loading prontos para usar em diferentes contextos.
 
 #### Importação
+
 ```tsx
 import { FormSkeleton, CardSkeleton, TableSkeleton, ListSkeleton } from '@/components/skeletons'
 ```
@@ -16,40 +17,45 @@ import { FormSkeleton, CardSkeleton, TableSkeleton, ListSkeleton } from '@/compo
 #### Uso
 
 **FormSkeleton** - Para formulários
+
 ```tsx
-<FormSkeleton 
-  fields={5}                    // Número de campos (padrão: 4)
-  showSubmitButton={true}       // Mostrar botão submit (padrão: true)
-  className="custom-class"      // Classes adicionais
+<FormSkeleton
+  fields={5} // Número de campos (padrão: 4)
+  showSubmitButton={true} // Mostrar botão submit (padrão: true)
+  className="custom-class" // Classes adicionais
 />
 ```
 
 **CardSkeleton** - Para cards
+
 ```tsx
-<CardSkeleton 
-  count={3}                     // Número de cards (padrão: 1)
+<CardSkeleton
+  count={3} // Número de cards (padrão: 1)
   className="custom-class"
 />
 ```
 
 **TableSkeleton** - Para tabelas
+
 ```tsx
-<TableSkeleton 
-  rows={5}                      // Número de linhas (padrão: 5)
-  columns={4}                   // Número de colunas (padrão: 3)
+<TableSkeleton
+  rows={5} // Número de linhas (padrão: 5)
+  columns={4} // Número de colunas (padrão: 3)
   className="custom-class"
 />
 ```
 
 **ListSkeleton** - Para listas
+
 ```tsx
-<ListSkeleton 
-  items={5}                     // Número de itens (padrão: 5)
+<ListSkeleton
+  items={5} // Número de itens (padrão: 5)
   className="custom-class"
 />
 ```
 
 #### Exemplo Prático
+
 ```tsx
 'use client'
 
@@ -61,7 +67,7 @@ export default function MyPage() {
   const [data, setData] = useState(null)
 
   useEffect(() => {
-    fetchData().then(data => {
+    fetchData().then((data) => {
       setData(data)
       setLoading(false)
     })
@@ -82,6 +88,7 @@ export default function MyPage() {
 Feedback tátil para dispositivos móveis.
 
 #### Importação
+
 ```tsx
 import { haptic } from '@/lib/haptic'
 ```
@@ -115,6 +122,7 @@ haptic.cancel()
 ```
 
 #### Exemplo Prático
+
 ```tsx
 'use client'
 
@@ -124,7 +132,7 @@ import { Button } from '@/components/ui/Button'
 export default function MyButton() {
   const handleClick = async () => {
     haptic.tap() // Feedback ao clicar
-    
+
     try {
       await submitForm()
       haptic.success() // Feedback de sucesso
@@ -133,25 +141,21 @@ export default function MyButton() {
     }
   }
 
-  return (
-    <Button onClick={handleClick}>
-      Enviar
-    </Button>
-  )
+  return <Button onClick={handleClick}>Enviar</Button>
 }
 ```
 
 #### Casos de Uso Recomendados
 
-| Ação | Método | Quando usar |
-|------|--------|-------------|
-| Clique em botão | `haptic.tap()` | Botões normais, links |
-| Botão importante | `haptic.impact()` | Botões primários, CTAs |
-| Ação crítica | `haptic.heavy()` | Deletar, confirmar ações irreversíveis |
-| Sucesso | `haptic.success()` | Formulário enviado, ação concluída |
-| Erro | `haptic.error()` | Validação falhou, erro de API |
-| Aviso | `haptic.warning()` | Alertas, confirmações |
-| Seleção | `haptic.selection()` | Selecionar item de lista, checkbox |
+| Ação             | Método               | Quando usar                            |
+| ---------------- | -------------------- | -------------------------------------- |
+| Clique em botão  | `haptic.tap()`       | Botões normais, links                  |
+| Botão importante | `haptic.impact()`    | Botões primários, CTAs                 |
+| Ação crítica     | `haptic.heavy()`     | Deletar, confirmar ações irreversíveis |
+| Sucesso          | `haptic.success()`   | Formulário enviado, ação concluída     |
+| Erro             | `haptic.error()`     | Validação falhou, erro de API          |
+| Aviso            | `haptic.warning()`   | Alertas, confirmações                  |
+| Seleção          | `haptic.selection()` | Selecionar item de lista, checkbox     |
 
 ---
 
@@ -160,6 +164,7 @@ export default function MyButton() {
 Transições suaves entre páginas.
 
 #### Importação
+
 ```tsx
 import { PageTransition } from '@/components/PageTransition'
 ```
@@ -167,9 +172,9 @@ import { PageTransition } from '@/components/PageTransition'
 #### Uso
 
 ```tsx
-<PageTransition 
-  variant="fade"                // 'fade' | 'slide' | 'scale' (padrão: 'fade')
-  duration={0.3}                // Duração em segundos (padrão: 0.3)
+<PageTransition
+  variant="fade" // 'fade' | 'slide' | 'scale' (padrão: 'fade')
+  duration={0.3} // Duração em segundos (padrão: 0.3)
 >
   {children}
 </PageTransition>
@@ -178,6 +183,7 @@ import { PageTransition } from '@/components/PageTransition'
 #### Variantes Disponíveis
 
 **fade** - Fade in/out suave
+
 ```tsx
 <PageTransition variant="fade">
   <MyPageContent />
@@ -185,6 +191,7 @@ import { PageTransition } from '@/components/PageTransition'
 ```
 
 **slide** - Desliza da esquerda para direita
+
 ```tsx
 <PageTransition variant="slide">
   <MyPageContent />
@@ -192,6 +199,7 @@ import { PageTransition } from '@/components/PageTransition'
 ```
 
 **scale** - Zoom in/out
+
 ```tsx
 <PageTransition variant="scale">
   <MyPageContent />
@@ -199,6 +207,7 @@ import { PageTransition } from '@/components/PageTransition'
 ```
 
 #### Exemplo Prático - Layout
+
 ```tsx
 // app/layout.tsx ou app/(dashboard)/layout.tsx
 import { PageTransition } from '@/components/PageTransition'
@@ -217,6 +226,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 ```
 
 #### Exemplo Prático - Página Individual
+
 ```tsx
 // app/documents/extension-declaration/page.tsx
 import { PageTransition } from '@/components/PageTransition'
@@ -255,7 +265,7 @@ export default function MyFormPage() {
 
   useEffect(() => {
     // Carregar dados do formulário
-    fetchFormData().then(data => {
+    fetchFormData().then((data) => {
       setFormData(data)
       setLoading(false)
     })
@@ -264,9 +274,9 @@ export default function MyFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     haptic.tap() // Feedback ao clicar
-    
+
     setSubmitting(true)
-    
+
     try {
       await submitForm(formData)
       haptic.success() // Feedback de sucesso
@@ -283,18 +293,14 @@ export default function MyFormPage() {
     <PageTransition variant="fade">
       <div className="container mx-auto p-6">
         <h1>Meu Formulário</h1>
-        
+
         {loading ? (
           <FormSkeleton fields={5} />
         ) : (
           <form onSubmit={handleSubmit}>
             {/* Campos do formulário */}
-            
-            <Button 
-              type="submit" 
-              disabled={submitting}
-              onClick={() => haptic.tap()}
-            >
+
+            <Button type="submit" disabled={submitting} onClick={() => haptic.tap()}>
               {submitting ? 'Enviando...' : 'Enviar'}
             </Button>
           </form>
@@ -369,17 +375,20 @@ if (shouldEnableHaptic()) {
 ## 📱 Compatibilidade
 
 ### Haptic Feedback
+
 - ✅ Android (Chrome, Firefox)
 - ✅ iOS (Safari, Chrome)
 - ❌ Desktop (gracefully degraded)
 - ✅ Respeita `prefers-reduced-motion`
 
 ### Page Transitions
+
 - ✅ Todos os navegadores modernos
 - ✅ Respeita `prefers-reduced-motion`
 - ✅ SSR-safe
 
 ### Skeletons
+
 - ✅ Todos os navegadores
 - ✅ Acessível (ARIA labels)
 
@@ -390,18 +399,15 @@ if (shouldEnableHaptic()) {
 ### Customizar Skeletons
 
 ```tsx
-<FormSkeleton 
-  fields={5}
-  className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4"
-/>
+<FormSkeleton fields={5} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4" />
 ```
 
 ### Customizar Transitions
 
 ```tsx
-<PageTransition 
+<PageTransition
   variant="slide"
-  duration={0.5}  // Transição mais lenta
+  duration={0.5} // Transição mais lenta
 >
   {children}
 </PageTransition>
@@ -423,17 +429,20 @@ const HAPTIC_PATTERNS: Record<HapticPattern, number | number[]> = {
 ## 🐛 Troubleshooting
 
 ### Haptic não funciona
+
 1. Verifique se está em dispositivo móvel
 2. Verifique se o navegador suporta Vibration API
 3. Verifique se o usuário não tem `prefers-reduced-motion` ativado
 4. Verifique permissões do navegador
 
 ### Transitions não aparecem
+
 1. Verifique se `framer-motion` está instalado
 2. Verifique se o componente é `'use client'`
 3. Verifique se `prefers-reduced-motion` não está ativado
 
 ### Skeletons não aparecem
+
 1. Verifique a importação
 2. Verifique se o estado de loading está correto
 3. Verifique o console para erros

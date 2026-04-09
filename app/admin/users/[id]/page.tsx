@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
+import {
   ArrowLeft,
   Edit,
   User,
@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Users,
-  Target
+  Target,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -61,7 +61,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
@@ -80,7 +80,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
       try {
         setLoading(true)
         const response = await fetch(`/api/users/${id}`)
-        
+
         if (response.ok) {
           const userData = await response.json()
           setUser(userData)
@@ -110,7 +110,9 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
           <CardContent className="p-8 text-center">
             <AlertTriangle className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Usuário não encontrado</h2>
-            <p className="text-neutral-400 mb-4">O usuário solicitado não existe ou foi removido.</p>
+            <p className="text-neutral-400 mb-4">
+              O usuário solicitado não existe ou foi removido.
+            </p>
             <Button asChild>
               <Link href="/admin/users">Voltar à lista</Link>
             </Button>
@@ -151,7 +153,6 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
       {/* Content */}
       <div className="container mx-auto px-6 py-8">
         <div className="grid gap-6 lg:grid-cols-3">
-          
           {/* Profile Card */}
           <div className="lg:col-span-1">
             <Card>
@@ -168,13 +169,17 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <h3 className="text-xl font-semibold text-white">{user.name}</h3>
                   <p className="text-neutral-400">{user.email}</p>
-                  
+
                   <div className="flex items-center justify-center gap-2 mt-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
-                      user.role === 'SUPERVISOR' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        user.role === 'ADMIN'
+                          ? 'bg-red-500/20 text-red-400'
+                          : user.role === 'SUPERVISOR'
+                            ? 'bg-yellow-500/20 text-yellow-400'
+                            : 'bg-blue-500/20 text-blue-400'
+                      }`}
+                    >
                       {user.role}
                     </span>
                     {user.profileComplete ? (
@@ -192,11 +197,15 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-400">Criado em:</span>
-                    <span className="text-white font-medium">{formatDate(new Date(user.createdAt))}</span>
+                    <span className="text-white font-medium">
+                      {formatDate(new Date(user.createdAt))}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-400">Atualizado em:</span>
-                    <span className="text-white font-medium">{formatDate(new Date(user.updatedAt))}</span>
+                    <span className="text-white font-medium">
+                      {formatDate(new Date(user.updatedAt))}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -205,7 +214,6 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
 
           {/* Details Cards */}
           <div className="lg:col-span-2 space-y-6">
-            
             {/* Personal Information */}
             <Card>
               <CardHeader>
@@ -225,7 +233,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   )}
-                  
+
                   {user.birthDate && (
                     <div className="flex items-center space-x-3">
                       <Calendar className="h-4 w-4 text-neutral-400" />
@@ -235,7 +243,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   )}
-                  
+
                   {user.address && (
                     <div className="flex items-start space-x-3 md:col-span-2">
                       <MapPin className="h-4 w-4 text-neutral-400 mt-1" />
@@ -269,7 +277,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                         </div>
                       </div>
                     )}
-                    
+
                     {user.emergencyPhone && (
                       <div className="flex items-center space-x-3">
                         <Phone className="h-4 w-4 text-neutral-400" />
@@ -303,7 +311,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   )}
-                  
+
                   {user.department && (
                     <div className="flex items-center space-x-3">
                       <Building className="h-4 w-4 text-neutral-400" />
@@ -313,7 +321,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   )}
-                  
+
                   {user.contractType && (
                     <div className="flex items-center space-x-3">
                       <FileText className="h-4 w-4 text-neutral-400" />
@@ -323,17 +331,19 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   )}
-                  
+
                   {user.weeklyHours && (
                     <div className="flex items-center space-x-3">
                       <Clock className="h-4 w-4 text-neutral-400" />
                       <div>
                         <p className="text-xs text-neutral-500">Carga Horária</p>
-                        <p className="text-white">{user.weeklyHours}h/semana ({user.dailyHours}h/dia)</p>
+                        <p className="text-white">
+                          {user.weeklyHours}h/semana ({user.dailyHours}h/dia)
+                        </p>
                       </div>
                     </div>
                   )}
-                  
+
                   {user.startDate && (
                     <div className="flex items-center space-x-3">
                       <Calendar className="h-4 w-4 text-neutral-400" />
@@ -346,7 +356,6 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                 </div>
               </CardContent>
             </Card>
-
           </div>
         </div>
       </div>

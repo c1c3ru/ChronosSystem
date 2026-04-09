@@ -37,11 +37,10 @@ export default function DeclarationPage() {
       <div className="max-w-6xl mx-auto">
         {/* Cabeçalho */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Declaração de Participação
-          </h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Declaração de Participação</h1>
           <p className="text-neutral-400">
-            Gere e exporte sua declaração de participação em experiência de extensão, iniciação científica ou monitoria.
+            Gere e exporte sua declaração de participação em experiência de extensão, iniciação
+            científica ou monitoria.
           </p>
         </div>
 

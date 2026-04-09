@@ -82,7 +82,9 @@ function f(label: string, value?: string, pct?: string): string {
   return `<td${w}><span class="lbl">${label}</span><span class="val">${value || ''}</span></td>`
 }
 
-function row(...cells: string[]): string { return `<tr>${cells.join('')}</tr>` }
+function row(...cells: string[]): string {
+  return `<tr>${cells.join('')}</tr>`
+}
 
 function sec(title: string, content?: string): string {
   return `<div class="sec-bar">${title}</div>
@@ -90,8 +92,9 @@ function sec(title: string, content?: string): string {
 }
 
 function sigs(...labels: string[]): string {
-  return `<div class="sigs">${labels.map(l =>
-    `<div class="sig"><div class="sig-line">${l}</div></div>`).join('')}</div>`
+  return `<div class="sigs">${labels
+    .map((l) => `<div class="sig"><div class="sig-line">${l}</div></div>`)
+    .join('')}</div>`
 }
 
 function wrap(title: string, body: string): string {
@@ -106,7 +109,9 @@ function wrap(title: string, body: string): string {
 
 // 1. Relatório Mensal
 export function buildMonthlyReportHTML(d: Record<string, string>): string {
-  return wrap('Relatório Mensal de Atividades', `
+  return wrap(
+    'Relatório Mensal de Atividades',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -116,12 +121,15 @@ export function buildMonthlyReportHTML(d: Record<string, string>): string {
     ${sec('1. Principais Atividades Desenvolvidas no Período', d.atividades)}
     ${sec('2. Dificuldades Encontradas', d.dificuldades)}
     ${sec('3. Soluções Adotadas', d.solucoes)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`
+  )
 }
 
 // 2. Relatório Final
 export function buildFinalReportHTML(d: Record<string, string>): string {
-  return wrap('Relatório Final de Estágio', `
+  return wrap(
+    'Relatório Final de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -132,12 +140,15 @@ export function buildFinalReportHTML(d: Record<string, string>): string {
     ${sec('2. Competências Adquiridas', d.competencias)}
     ${sec('3. Avaliação do Estágio', d.avaliacao)}
     ${sec('4. Conclusão', d.conclusao)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador')}`
+  )
 }
 
 // 3. Relatório Semestral
 export function buildSemesterReportHTML(d: Record<string, string>): string {
-  return wrap('Relatório Semestral de Estágio', `
+  return wrap(
+    'Relatório Semestral de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -147,12 +158,15 @@ export function buildSemesterReportHTML(d: Record<string, string>): string {
     ${sec('1. Atividades Desenvolvidas no Semestre', d.atividades)}
     ${sec('2. Dificuldades e Soluções', d.dificuldades)}
     ${sec('3. Resultados Alcançados', d.resultados)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`
+  )
 }
 
 // 4. Termo de Compromisso
 export function buildCommitmentTermHTML(d: Record<string, string>): string {
-  return wrap('Termo de Compromisso de Estágio', `
+  return wrap(
+    'Termo de Compromisso de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -165,12 +179,15 @@ export function buildCommitmentTermHTML(d: Record<string, string>): string {
       ${row(f('Início do Estágio', fmt(d.inicio_estagio), '33%'), f('Término do Estágio', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
       ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Auxílio Transporte (R$)', d.valor_transporte, '50%'))}
     </table>
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`
+  )
 }
 
 // 5. Termo Aditivo
 export function buildAdditiveTermHTML(d: Record<string, string>): string {
-  return wrap('Termo Aditivo ao Contrato de Estágio', `
+  return wrap(
+    'Termo Aditivo ao Contrato de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -180,12 +197,15 @@ export function buildAdditiveTermHTML(d: Record<string, string>): string {
       ${row(f('Novo Valor da Bolsa (R$)', d.novo_valor_bolsa, '50%'), f('Novo Aux. Transporte (R$)', d.novo_valor_transporte, '50%'))}
     </table>
     ${sec('Justificativa', d.justificativa)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`
+  )
 }
 
 // 6. Declaração de Extensão / Prorrogação
 export function buildExtensionDeclarationHTML(d: Record<string, string>): string {
-  return wrap('Declaração de Prorrogação de Estágio', `
+  return wrap(
+    'Declaração de Prorrogação de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -198,12 +218,15 @@ export function buildExtensionDeclarationHTML(d: Record<string, string>): string
       <strong>${d.nome_estudante}</strong> será prorrogado até a data de <strong>${fmt(d.nova_data_final)}</strong>.
     </p>
     <p class="para right">${d.cidade || 'Maracanaú'} — CE, ${fmt(new Date().toISOString().slice(0, 10))}</p>
-    ${sigs('Representante da Empresa', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+    ${sigs('Representante da Empresa', 'Discente Estagiário', 'Coordenador de Estágios')}`
+  )
 }
 
 // 7. Declaração Profissional
 export function buildProfessionalDeclarationHTML(d: Record<string, string>): string {
-  return wrap('Declaração de Estágio', `
+  return wrap(
+    'Declaração de Estágio',
+    `
     <br/>
     <p class="para">
       Declaramos que <strong>${d.nome_estudante || '________________________________'}</strong>,
@@ -221,12 +244,15 @@ export function buildProfessionalDeclarationHTML(d: Record<string, string>): str
     <p class="para">Por ser expressão da verdade, firmamos a presente declaração.</p>
     <p class="para right">Maracanaú — CE, ${d.data_declaracao || fmt(new Date().toISOString().slice(0, 10))}</p>
     <br/>
-    ${sigs('Supervisor do Estágio', 'Coordenador de Estágios IFCE')}`)
+    ${sigs('Supervisor do Estágio', 'Coordenador de Estágios IFCE')}`
+  )
 }
 
 // 8. Solicitação de Matrícula em Estágio
 export function buildInternshipRegistrationHTML(d: Record<string, string>): string {
-  return wrap('Solicitação de Matrícula em Estágio Curricular', `
+  return wrap(
+    'Solicitação de Matrícula em Estágio Curricular',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -236,12 +262,15 @@ export function buildInternshipRegistrationHTML(d: Record<string, string>): stri
       ${row(f('Endereço da Empresa', d.empresa_endereco, '70%'), f('Cidade', d.empresa_cidade, '30%'))}
       ${row(f('Início Pretendido', fmt(d.inicio_estagio), '33%'), f('Fim Pretendido', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
     </table>
-    ${sigs('Discente', 'Coordenador de Estágios')}`)
+    ${sigs('Discente', 'Coordenador de Estágios')}`
+  )
 }
 
 // 9. Requerimento de Estágio
 export function buildInternshipRegistrationRequestHTML(d: Record<string, string>): string {
-  return wrap('Requerimento de Estágio Supervisionado', `
+  return wrap(
+    'Requerimento de Estágio Supervisionado',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -252,12 +281,15 @@ export function buildInternshipRegistrationRequestHTML(d: Record<string, string>
       ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Aux. Transporte (R$)', d.valor_transporte, '50%'))}
     </table>
     ${sec('Atividades Previstas', d.atividades_previstas)}
-    ${sigs('Discente', 'Supervisor do Estágio', 'Coordenador de Estágios')}`)
+    ${sigs('Discente', 'Supervisor do Estágio', 'Coordenador de Estágios')}`
+  )
 }
 
 // 10. Termo de Realização
 export function buildRealizationTermHTML(d: Record<string, string>): string {
-  return wrap('Termo de Realização de Estágio', `
+  return wrap(
+    'Termo de Realização de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -266,12 +298,15 @@ export function buildRealizationTermHTML(d: Record<string, string>): string {
       ${row(f('Início', fmt(d.inicio_estagio), '33%'), f('Término', fmt(d.fim_estagio), '33%'), f('C.H. Total', (d.horas_total || '') + ' h', '34%'))}
     </table>
     ${sec('Atividades Realizadas', d.atividades)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`
+  )
 }
 
 // 11. Termo de Rescisão
 export function buildRescissionTermHTML(d: Record<string, string>): string {
-  return wrap('Termo de Rescisão de Estágio', `
+  return wrap(
+    'Termo de Rescisão de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -279,12 +314,15 @@ export function buildRescissionTermHTML(d: Record<string, string>): string {
       ${row(f('Data de Início do Estágio', fmt(d.inicio_estagio), '50%'), f('Data da Rescisão', fmt(d.data_rescisao), '50%'))}
     </table>
     ${sec('Motivo da Rescisão', d.motivo_rescisao)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`)
+    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`
+  )
 }
 
 // 12. Pedido de Equivalência
 export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
-  return wrap('Pedido de Aproveitamento / Equivalência de Estágio', `
+  return wrap(
+    'Pedido de Aproveitamento / Equivalência de Estágio',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -292,12 +330,15 @@ export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
       ${row(f('Período Atividades', fmt(d.inicio_atividades) + ' a ' + fmt(d.fim_atividades), '70%'), f('C.H. Total', (d.total_hours || '') + ' h', '30%'))}
     </table>
     ${sec('Justificativa / Descrição das Atividades', d.justificativa)}
-    ${sigs('Discente', 'Coordenador de Estágios')}`)
+    ${sigs('Discente', 'Coordenador de Estágios')}`
+  )
 }
 
 // 13. Avaliação do Estudante
 export function buildStudentEvaluationHTML(d: Record<string, any>): string {
-  return wrap('Ficha de Avaliação do Estagiário', `
+  return wrap(
+    'Ficha de Avaliação do Estagiário',
+    `
     <table>
       ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
       ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
@@ -310,7 +351,8 @@ export function buildStudentEvaluationHTML(d: Record<string, any>): string {
     ${sec('3. Conhecimento Técnico', d.avaliacao_tecnico)}
     ${sec('4. Relacionamento Interpessoal', d.avaliacao_relacionamento)}
     ${sec('5. Considerações Gerais', d.consideracoes)}
-    ${sigs('Supervisor Avaliador', 'Coordenador de Estágios')}`)
+    ${sigs('Supervisor Avaliador', 'Coordenador de Estágios')}`
+  )
 }
 
 // generateHTMLPDF é exportado da engine unificada (pdf-engine.ts)

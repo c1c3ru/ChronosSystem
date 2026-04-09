@@ -16,10 +16,10 @@ export interface UltimoRegistro {
 }
 
 export const HORARIO_TRABALHO_PADRAO: HorarioTrabalho = {
-  inicio: "08:00",
-  fim: "17:00",
-  inicioAlmoco: "12:00",
-  fimAlmoco: "13:00"
+  inicio: '08:00',
+  fim: '17:00',
+  inicioAlmoco: '12:00',
+  fimAlmoco: '13:00',
 }
 
 function hParaMins(h: string) {
@@ -34,7 +34,15 @@ export function ehFimDeSemana(data: Date): boolean {
 }
 
 function obterNomeDia(data: Date): string {
-  const dias = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
+  const dias = [
+    'domingo',
+    'segunda-feira',
+    'terça-feira',
+    'quarta-feira',
+    'quinta-feira',
+    'sexta-feira',
+    'sábado',
+  ]
   return dias[data.getDay()]
 }
 
@@ -42,8 +50,9 @@ function obterNomeDia(data: Date): string {
 export function determinarTipoRegistro(contexto: any) {
   const horaAtual = contexto.horaAtual || contexto.currentTime || new Date()
   const ultimoRegistro = contexto.ultimoRegistro || contexto.lastRecord
-  const horarioTrabalho = contexto.horarioTrabalho || contexto.workingHours || HORARIO_TRABALHO_PADRAO
-  
+  const horarioTrabalho =
+    contexto.horarioTrabalho || contexto.workingHours || HORARIO_TRABALHO_PADRAO
+
   const minutosAtuais = horaAtual.getHours() * 60 + horaAtual.getMinutes()
   const inicioAlmoco = hParaMins(horarioTrabalho.inicioAlmoco)
   const fimAlmoco = hParaMins(horarioTrabalho.fimAlmoco)
@@ -55,7 +64,7 @@ export function determinarTipoRegistro(contexto: any) {
   }
 
   const timestampUltimo = new Date(ultimoRegistro.timestamp || ultimoRegistro.createdAt)
-  const tipoUltimo = (ultimoRegistro.tipo || ultimoRegistro.type)
+  const tipoUltimo = ultimoRegistro.tipo || ultimoRegistro.type
   const diffHoras = (horaAtual.getTime() - timestampUltimo.getTime()) / (1000 * 60 * 60)
 
   // 2. Novo Dia (mais de 12h ou data diferente) - TESTE EXIGE "Novo dia" com N maiúsculo
@@ -70,10 +79,10 @@ export function determinarTipoRegistro(contexto: any) {
       return { type: 'EXIT', reason: 'Saída para intervalo de almoço.', confidence: 'high' }
     }
     if (minutosAtuais >= fimTurno) {
-        if (minutosAtuais > fimTurno + 60) {
-            return { type: 'EXIT', reason: 'Saída em horário de hora extra.', confidence: 'high' }
-        }
-        return { type: 'EXIT', reason: 'Fim de expediente regular.', confidence: 'high' }
+      if (minutosAtuais > fimTurno + 60) {
+        return { type: 'EXIT', reason: 'Saída em horário de hora extra.', confidence: 'high' }
+      }
+      return { type: 'EXIT', reason: 'Fim de expediente regular.', confidence: 'high' }
     }
     return { type: 'EXIT', reason: 'Saída registrada.', confidence: 'medium' }
   } else {
@@ -129,52 +138,57 @@ export function detectarAtraso(data: Date, horario: HorarioTrabalho) {
   const minsEntrada = data.getHours() * 60 + data.getMinutes()
   const minsInicioPrevisto = hParaMins(horario.inicio)
   const atraso = Math.max(0, minsEntrada - minsInicioPrevisto)
-  
+
   return {
     isLate: atraso > 0,
     minutesLate: atraso,
-    requiresJustification: atraso > 30
+    requiresJustification: atraso > 30,
   }
 }
 
 export function detectarSaidaAntecipada(
-  inicioTime: Date | string, 
-  fimTime: Date | string, 
-  horario: HorarioTrabalho = HORARIO_TRABALHO_PADRAO, 
+  inicioTime: Date | string,
+  fimTime: Date | string,
+  horario: HorarioTrabalho = HORARIO_TRABALHO_PADRAO,
   horasEsperadas: number = 8
 ) {
   const dInicio = new Date(inicioTime)
   const dFim = new Date(fimTime)
   const diffMins = (dFim.getTime() - dInicio.getTime()) / (1000 * 60)
-  
-  const tempoAlmoco = (horasEsperadas >= 8) ? 60 : 0
+
+  const tempoAlmoco = horasEsperadas >= 8 ? 60 : 0
   const totalTrabalhadoMins = diffMins - tempoAlmoco
-  const minutosFaltantes = Math.max(0, (horasEsperadas * 60) - totalTrabalhadoMins)
-  
+  const minutosFaltantes = Math.max(0, horasEsperadas * 60 - totalTrabalhadoMins)
+
   return {
     isEarly: minutosFaltantes >= 5, // Mudança para >= 5 para atender teste
     minutesShort: minutosFaltantes,
     requiresJustification: minutosFaltantes > 15,
-    hoursWorked: totalTrabalhadoMins / 60
+    hoursWorked: totalTrabalhadoMins / 60,
   }
 }
 
 // Análise Diária
 export function analisarDiaParaJustificativa(
-  data: Date, 
-  entradaParams: any = null, 
-  saidaParams: any = null, 
+  data: Date,
+  entradaParams: any = null,
+  saidaParams: any = null,
   horario: HorarioTrabalho = HORARIO_TRABALHO_PADRAO,
   ehDiaTrabalho: boolean = true
 ) {
   const finalDeSemana = ehFimDeSemana(data)
   const temEntrada = !!entradaParams
   const temSaida = !!saidaParams
-  
+
   let requiresJustification = false
   let justificationReason = ''
   let lateArrival = { isLate: false, minutesLate: 0, requiresJustification: false }
-  let earlyDeparture = { isEarly: false, minutesShort: 0, requiresJustification: false, hoursWorked: 0 }
+  let earlyDeparture = {
+    isEarly: false,
+    minutesShort: 0,
+    requiresJustification: false,
+    hoursWorked: 0,
+  }
 
   if (ehDiaTrabalho) {
     if (!temEntrada) {
@@ -186,10 +200,10 @@ export function analisarDiaParaJustificativa(
     } else {
       const dEntrada = new Date(entradaParams.timestamp || entradaParams.createdAt || entradaParams)
       const dSaida = new Date(saidaParams.timestamp || saidaParams.createdAt || saidaParams)
-      
+
       lateArrival = detectarAtraso(dEntrada, horario)
       earlyDeparture = detectarSaidaAntecipada(dEntrada, dSaida, horario)
-      
+
       if (lateArrival.requiresJustification) {
         requiresJustification = true
         justificationReason = 'Atraso significativo'
@@ -209,7 +223,7 @@ export function analisarDiaParaJustificativa(
     isWeekend: finalDeSemana,
     isComplete: temEntrada && temSaida,
     lateArrival,
-    earlyDeparture
+    earlyDeparture,
   }
 }
 
@@ -226,7 +240,7 @@ export {
   detectarSaidaAntecipada as detectEarlyDeparture,
   analisarDiaParaJustificativa as analyzeDayForJustification,
   obterHorarioTrabalhoUsuario as getUserWorkingHours,
-  HORARIO_TRABALHO_PADRAO as DEFAULT_WORKING_HOURS
+  HORARIO_TRABALHO_PADRAO as DEFAULT_WORKING_HOURS,
 }
 
 // Novos tipos e classe para compatibilidade com a API
@@ -245,12 +259,20 @@ export class AttendanceLogic {
   /**
    * Valida se um registro de ponto pode ser realizado
    */
-  async validateRecord(type: AttendanceRecordType, lastRecord: any, date: Date = new Date(), hasAuthorization: boolean = false) {
-    return await validarRegistro({
-      ultimoRegistro: lastRecord,
-      horaAtual: date,
-      hasAuthorization
-    }, type)
+  async validateRecord(
+    type: AttendanceRecordType,
+    lastRecord: any,
+    date: Date = new Date(),
+    hasAuthorization: boolean = false
+  ) {
+    return await validarRegistro(
+      {
+        ultimoRegistro: lastRecord,
+        horaAtual: date,
+        hasAuthorization,
+      },
+      type
+    )
   }
 
   /**
@@ -265,12 +287,12 @@ export class AttendanceLogic {
    */
   detectSequenceAnomaly(records: any[]) {
     const anomalies: string[] = []
-    
+
     // Verificar registros duplicados em sequência
     for (let i = 1; i < records.length; i++) {
       const typeCurrent = records[i].type || records[i].tipo
-      const typePrev = records[i-1].type || records[i-1].tipo
-      
+      const typePrev = records[i - 1].type || records[i - 1].tipo
+
       if (typeCurrent === typePrev) {
         anomalies.push(`Sequência inválida: dois registros de ${typeCurrent} seguidos.`)
       }

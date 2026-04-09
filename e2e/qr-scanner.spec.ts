@@ -3,7 +3,7 @@ import { QRScannerTestHelper, QR_TEST_DATA, QR_SELECTORS } from './utils/qr-scan
 
 /**
  * Teste E2E para o QR Scanner - Versão Limpa
- * 
+ *
  * Testa todas as funcionalidades do scanner QR:
  * - Interface inicial
  * - Ativação da câmera
@@ -17,11 +17,11 @@ test.describe('QR Scanner - Funcionalidades Principais', () => {
 
   test.beforeEach(async ({ page }) => {
     helper = new QRScannerTestHelper(page)
-    
+
     // Configurar permissões e mocks
     await page.context().grantPermissions(['camera'])
     await helper.setupCameraMocks()
-    
+
     // Fazer login
     await helper.loginAsTestUser()
   })
@@ -37,7 +37,10 @@ test.describe('QR Scanner - Funcionalidades Principais', () => {
     await expect(activateButton).toBeVisible()
 
     // Verificar ícone da câmera
-    const cameraIcon = page.locator('svg, i').filter({ hasText: /camera|câmera/i }).first()
+    const cameraIcon = page
+      .locator('svg, i')
+      .filter({ hasText: /camera|câmera/i })
+      .first()
     await expect(cameraIcon).toBeVisible()
 
     console.log('✅ [TEST] Interface inicial OK')
@@ -76,10 +79,10 @@ test.describe('QR Scanner - Funcionalidades Principais', () => {
     // Verificar se houve algum processamento
     const qrResult = page.locator(`text=${QR_TEST_DATA.VALID_QR_CODE}`)
     const processingMessage = page.locator('text=/Processando|Processing|QR.*detectado/i')
-    
+
     const hasResult = await qrResult.isVisible().catch(() => false)
     const hasProcessing = await processingMessage.isVisible().catch(() => false)
-    
+
     // Pelo menos um indicador deve estar presente
     expect(hasResult || hasProcessing).toBeTruthy()
 
@@ -116,7 +119,7 @@ test.describe('QR Scanner - Funcionalidades Principais', () => {
 
     // Tentar fechar
     const closed = await helper.closeScanner()
-    
+
     if (closed) {
       console.log('✅ [TEST] Scanner fechado com sucesso')
     } else {
@@ -132,7 +135,7 @@ test.describe('QR Scanner - Funcionalidades Principais', () => {
     // Ativar scanner
     await helper.openScanner()
     await helper.activateScanner()
-    
+
     // Aguardar logs
     await page.waitForTimeout(4000)
 
@@ -154,12 +157,12 @@ test.describe('QR Scanner - Compatibilidade entre Navegadores', () => {
 
   test('deve funcionar no Chrome com BarcodeDetector', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'Teste específico para Chrome')
-    
+
     console.log('🧪 [TEST] Testando Chrome com BarcodeDetector...')
 
     // Mock específico para Chrome
     await page.addInitScript(() => {
-      (window as any).BarcodeDetector = class {
+      ;(window as any).BarcodeDetector = class {
         constructor() {}
         async detect() {
           return [{ rawValue: 'CHROME_TEST_QR' }]
@@ -177,7 +180,7 @@ test.describe('QR Scanner - Compatibilidade entre Navegadores', () => {
 
   test('deve funcionar no Firefox com jsQR fallback', async ({ page, browserName }) => {
     test.skip(browserName !== 'firefox', 'Teste específico para Firefox')
-    
+
     console.log('🧪 [TEST] Testando Firefox com jsQR...')
 
     // Mock específico para Firefox (sem BarcodeDetector)
@@ -195,7 +198,7 @@ test.describe('QR Scanner - Compatibilidade entre Navegadores', () => {
 
   test('deve funcionar no Safari com jsQR fallback', async ({ page, browserName }) => {
     test.skip(browserName !== 'webkit', 'Teste específico para Safari')
-    
+
     console.log('🧪 [TEST] Testando Safari com jsQR...')
 
     // Mock específico para Safari (sem BarcodeDetector)

@@ -44,6 +44,7 @@ Após análise de todos os templates de documentos, **identificamos inconsistên
 ## 🎯 Padrão Oficial IFCE (Requisitos)
 
 ### Margens
+
 ```css
 padding: 30mm 20mm 20mm 30mm;
 /* Superior: 30mm (3cm)
@@ -53,16 +54,18 @@ padding: 30mm 20mm 20mm 30mm;
 ```
 
 ### Tipografia
+
 ```css
-font-family: Arial, "Times New Roman", sans-serif;
+font-family: Arial, 'Times New Roman', sans-serif;
 font-size: 12pt;
 line-height: 1.5;
 ```
 
 ### Cores
+
 ```css
 color: #000000;
-background: #FFFFFF;
+background: #ffffff;
 ```
 
 ---
@@ -85,11 +88,13 @@ Para cada documento, verificar:
 ## 🔧 Ações Necessárias
 
 ### Imediato
+
 1. ✅ Atualizar `OfficialFormTemplate.tsx` - **CONCLUÍDO**
 2. ✅ Atualizar `pdf-generator.ts` - **CONCLUÍDO**
 3. ⏳ **Padronizar TODOS os 9 documentos restantes**
 
 ### Arquivos a Padronizar
+
 ```
 components/templates/
 ├── CommitmentTermDocument.tsx          ❌ PRECISA PADRONIZAR
@@ -108,11 +113,13 @@ components/templates/
 ## 🛠️ Padrão de Correção
 
 ### Antes (Incorreto)
+
 ```tsx
 <div ref={ref} className="bg-white text-black p-8 w-full mx-auto text-[10pt] font-serif leading-tight">
 ```
 
 ### Depois (Correto)
+
 ```tsx
 <div ref={ref} className="bg-white text-black w-full mx-auto" style={{
     fontSize: '12pt',
@@ -129,17 +136,20 @@ components/templates/
 ## 📊 Impacto
 
 ### Documentos Afetados
+
 - **Total**: 10 documentos
 - **Padronizados**: 1 (10%)
 - **Não padronizados**: 9 (90%)
 
 ### Usuários Impactados
+
 - Alunos gerando PDFs
 - Professores orientadores
 - Coordenadores de estágio
 - Empresas concedentes
 
 ### Problemas Atuais
+
 1. ❌ Margens inconsistentes entre documentos
 2. ❌ Tamanho de fonte menor que o padrão oficial (10pt vs 12pt)
 3. ❌ Fontes diferentes (serif vs sans vs padrão)
@@ -150,25 +160,31 @@ components/templates/
 ## ✅ Solução Proposta
 
 ### Opção 1: Padronização Manual (Recomendada)
+
 Atualizar cada arquivo individualmente com o padrão correto.
 
 **Vantagens:**
+
 - ✅ Controle total sobre cada documento
 - ✅ Possibilidade de ajustes específicos
 - ✅ Revisão detalhada de cada template
 
 **Desvantagens:**
+
 - ⏰ Trabalhoso (9 arquivos)
 - ⚠️ Risco de inconsistências
 
 ### Opção 2: Componente Wrapper Padronizado
+
 Criar componente que força o padrão.
 
 **Vantagens:**
+
 - ✅ Garantia de consistência
 - ✅ Fácil manutenção futura
 
 **Desvantagens:**
+
 - ⚠️ Requer refatoração de todos os templates
 
 ---
@@ -185,11 +201,13 @@ Criar componente que força o padrão.
 ## 📝 Próximos Passos
 
 ### Fase 1: Padronização Urgente (Hoje)
+
 - [ ] Padronizar CommitmentTermDocument.tsx
 - [ ] Padronizar MonthlyReportDocument.tsx
 - [ ] Padronizar FinalReportDocument.tsx
 
 ### Fase 2: Padronização Complementar (Esta Semana)
+
 - [ ] Padronizar AdditiveTermDocument.tsx
 - [ ] Padronizar EquivalenceRequestDocument.tsx
 - [ ] Padronizar ExtensionDeclarationDocument.tsx
@@ -198,6 +216,7 @@ Criar componente que força o padrão.
 - [ ] Padronizar SemesterReportDocument.tsx
 
 ### Fase 3: Validação e Testes
+
 - [ ] Gerar PDFs de todos os documentos
 - [ ] Comparar com modelo oficial do IFCE
 - [ ] Ajustar espaçamentos se necessário

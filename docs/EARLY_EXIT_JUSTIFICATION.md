@@ -29,6 +29,7 @@ Quando um aluno sai **mais de 10 minutos antes** do horário esperado, o sistema
 ## 📊 Exemplos
 
 ### Cenário 1: Saída No Horário
+
 ```
 Turno: 08:00-12:00
 Saída: 11:58
@@ -37,6 +38,7 @@ Resultado: ✅ Sem justificativa necessária
 ```
 
 ### Cenário 2: Saída 10 Minutos Antes
+
 ```
 Turno: 08:00-12:00
 Saída: 11:50
@@ -45,6 +47,7 @@ Resultado: ✅ Sem justificativa necessária (limite é > 10 min)
 ```
 
 ### Cenário 3: Saída 15 Minutos Antes
+
 ```
 Turno: 08:00-12:00
 Saída: 11:45
@@ -54,6 +57,7 @@ Modal exibe: "Você está saindo 15 minutos antes do horário esperado (12:00)"
 ```
 
 ### Cenário 4: Saída 1 Hora Antes
+
 ```
 Turno: 08:00-12:00
 Saída: 11:00
@@ -73,7 +77,7 @@ export function validateExitTime(
   config: UserShiftConfig
 ): ShiftValidationResult {
   // ... código ...
-  
+
   // Converter horário de saída esperado para minutos
   const [expectedEndHour, expectedEndMin] = config.shiftEndTime.split(':').map(Number)
   const expectedEndMinutes = expectedEndHour * 60 + expectedEndMin
@@ -85,11 +89,11 @@ export function validateExitTime(
     requiresJustification = true
     justificationReason = `Saída ${minutesEarly} minutos antes do horário esperado (${config.shiftEndTime}). Justificativa obrigatória.`
   }
-  
+
   return {
     // ... resultado ...
     requiresJustification,
-    justificationReason
+    justificationReason,
   }
 }
 ```
@@ -133,8 +137,8 @@ const attendanceRecord = await prisma.attendanceRecord.create({
     prevHash: lastRecord?.hash,
     latitude: location?.latitude,
     longitude: location?.longitude,
-    justification: justification || null // ← Salvar justificativa
-  }
+    justification: justification || null, // ← Salvar justificativa
+  },
 })
 ```
 
@@ -153,10 +157,10 @@ model AttendanceRecord {
   hash          String
   prevHash      String?
   justification String?  // ← Campo para justificativa
-  
+
   user    User    @relation(fields: [userId], references: [id])
   machine Machine @relation(fields: [machineId], references: [id])
-  
+
   @@index([userId, timestamp])
   @@index([machineId, timestamp])
 }
@@ -165,11 +169,13 @@ model AttendanceRecord {
 ## 📋 Validações
 
 ### Justificativa Obrigatória
+
 - ✅ Mínimo 10 caracteres
 - ✅ Não pode estar vazia
 - ✅ Deve ser preenchida antes de confirmar saída
 
 ### Detecção de Saída Antecipada
+
 - ✅ Calcula diferença em minutos
 - ✅ Compara com limite de 10 minutos
 - ✅ Retorna motivo detalhado
@@ -177,6 +183,7 @@ model AttendanceRecord {
 ## 🔍 Revisão pelo Administrador
 
 ### Dashboard Admin
+
 ```
 Registros com Justificativa:
 ├─ João Silva - 15 min antes - "Consulta médica"
@@ -191,6 +198,7 @@ Filtros:
 ```
 
 ### Ações Possíveis
+
 - ✅ Revisar justificativa
 - ✅ Aprovar saída antecipada
 - ✅ Rejeitar e solicitar esclarecimento
@@ -199,6 +207,7 @@ Filtros:
 ## 📊 Relatórios
 
 ### Saídas Antecipadas
+
 ```
 Período: Novembro 2025
 Total de Saídas: 150
@@ -216,28 +225,29 @@ Tempo Médio de Antecipação: 22 minutos
 ## 🚀 Integração
 
 ### 1. Na Página de Ponto
+
 ```tsx
 import { EarlyExitJustification } from '@/components/EarlyExitJustification'
 
 export function AttendancePage() {
   const [showJustification, setShowJustification] = useState(false)
   const [minutesEarly, setMinutesEarly] = useState(0)
-  
+
   const handleExit = async (validation: ShiftValidationResult) => {
     if (validation.requiresJustification) {
       setMinutesEarly(validation.minutesEarly)
       setShowJustification(true)
       return
     }
-    
+
     // Processar saída normalmente
     await submitExit()
   }
-  
+
   return (
     <>
       {/* ... conteúdo ... */}
-      
+
       {showJustification && (
         <EarlyExitJustification
           minutesEarly={minutesEarly}
@@ -255,25 +265,29 @@ export function AttendancePage() {
 ```
 
 ### 2. Na API
+
 ```typescript
 // Validar saída
 const exitValidation = validateExitTime(entryTime, exitTime, userConfig)
 
 // Se requer justificativa
 if (exitValidation.requiresJustification && !justification) {
-  return NextResponse.json({
-    error: exitValidation.justificationReason,
-    requiresJustification: true,
-    minutesEarly: minutesEarly
-  }, { status: 400 })
+  return NextResponse.json(
+    {
+      error: exitValidation.justificationReason,
+      requiresJustification: true,
+      minutesEarly: minutesEarly,
+    },
+    { status: 400 }
+  )
 }
 
 // Processar com justificativa
 const record = await prisma.attendanceRecord.create({
   data: {
     // ... dados ...
-    justification: justification || null
-  }
+    justification: justification || null,
+  },
 })
 ```
 
@@ -296,6 +310,7 @@ const record = await prisma.attendanceRecord.create({
 ## 📞 Suporte
 
 Para dúvidas sobre o sistema de justificativa:
+
 1. Consulte este documento
 2. Revise exemplos em `components/EarlyExitJustification.tsx`
 3. Verifique validação em `lib/shift-validation.ts`

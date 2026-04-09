@@ -17,6 +17,7 @@ Este guia unifica todas as instruções de deploy para o ChronosSystem, cobrindo
 A Vercel é a plataforma recomendada para o ChronosSystem devido à sua integração nativa com Next.js.
 
 ### Pré-requisitos
+
 - Conta na Vercel
 - Repositório no GitHub/GitLab/Bitbucket
 - Banco de dados PostgreSQL hospedado (ex: Neon, Supabase, Vercel Postgres)
@@ -35,17 +36,17 @@ A Vercel é a plataforma recomendada para o ChronosSystem devido à sua integra�
    # Autenticação
    NEXTAUTH_URL=https://seu-projeto.vercel.app
    NEXTAUTH_SECRET=sua-chave-secreta-super-segura-minimo-32-caracteres
-   
+
    # Google OAuth
    GOOGLE_CLIENT_ID=seu_client_id
    GOOGLE_CLIENT_SECRET=seu_client_secret
-   
+
    # Banco de Dados
    DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
-   
+
    # Segurança QR Code
    QR_SECRET=sua_chave_secreta_qr
-   
+
    # Configurações Gerais
    NODE_ENV=production
    NEXT_TELEMETRY_DISABLED=1
@@ -62,15 +63,18 @@ A Vercel é a plataforma recomendada para o ChronosSystem devido à sua integra�
 Para automatizar o deploy a cada push na branch `main`.
 
 ### Configurar Secrets no GitHub
+
 Acesse: **Settings → Secrets and variables → Actions**
 
 Adicione os seguintes secrets:
+
 - `VERCEL_TOKEN`: Seu token de API da Vercel
 - `VERCEL_ORG_ID`: ID da organização
 - `VERCEL_PROJECT_ID`: ID do projeto
 - `DATABASE_URL`: URL de conexão do banco de produção
 
 ### Workflow
+
 O arquivo `.github/workflows/deploy.yml` já está configurado para realizar o deploy automaticamente.
 
 ---
@@ -80,6 +84,7 @@ O arquivo `.github/workflows/deploy.yml` já está configurado para realizar o d
 Para hospedar em sua própria infraestrutura (VPS, On-premise).
 
 ### Pré-requisitos
+
 - Node.js 18+
 - PostgreSQL 14+
 - Redis (opcional, para cache/sessões)
@@ -88,36 +93,39 @@ Para hospedar em sua própria infraestrutura (VPS, On-premise).
 ### Instalação
 
 1. **Preparar o Servidor**
+
    ```bash
    # Instalar dependências básicas
    sudo apt update
    sudo apt install -y curl git nginx nodejs npm postgresql
-   
+
    # Instalar PM2
    sudo npm install -g pm2
    ```
 
 2. **Configurar Aplicação**
+
    ```bash
    # Clonar repositório
    git clone https://github.com/seu-usuario/chronos-system.git
    cd chronos-system
-   
+
    # Instalar dependências
    npm install
-   
+
    # Configurar ambiente
    cp .env.example .env
    # Edite o .env com suas configurações
-   
+
    # Build
    npm run build
-   
+
    # Migrações do banco
    npx prisma migrate deploy
    ```
 
 3. **Iniciar Aplicação**
+
    ```bash
    pm2 start npm --name "chronos-system" -- start
    pm2 save
@@ -144,6 +152,7 @@ Para hospedar em sua própria infraestrutura (VPS, On-premise).
    ```
 
    Ative o site:
+
    ```bash
    sudo ln -s /etc/nginx/sites-available/chronos /etc/nginx/sites-enabled/
    sudo nginx -t
@@ -157,6 +166,7 @@ Para hospedar em sua própria infraestrutura (VPS, On-premise).
 ### PostgreSQL
 
 1. **Criar Banco e Usuário**
+
    ```sql
    CREATE USER chronos WITH PASSWORD 'senha_segura';
    CREATE DATABASE chronos_db;

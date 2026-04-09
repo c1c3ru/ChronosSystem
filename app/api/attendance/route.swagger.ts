@@ -70,7 +70,7 @@
  *         $ref: '#/components/responses/Forbidden'
  *       500:
  *         $ref: '#/components/responses/ServerError'
- * 
+ *
  *   post:
  *     summary: Cria um novo registro de ponto
  *     tags: [Attendance]

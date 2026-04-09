@@ -12,11 +12,13 @@ Este guia explica como fazer deploy do ChronosSystem em servidores Apache ou Ngi
 ## 🎯 Opções de Deploy
 
 ### **Opção 1: Nginx (Recomendado)**
+
 - Melhor performance
 - Menor uso de recursos
 - Ideal para SPAs e PWAs
 
 ### **Opção 2: Apache**
+
 - Mais tradicional
 - Configuração familiar
 - Suporte robusto
@@ -24,12 +26,14 @@ Este guia explica como fazer deploy do ChronosSystem em servidores Apache ou Ngi
 ## 🚀 Deploy Automático
 
 ### **Com Nginx:**
+
 ```bash
 sudo chmod +x deploy/scripts/deploy-nginx.sh
 sudo ./deploy/scripts/deploy-nginx.sh
 ```
 
 ### **Com Apache:**
+
 ```bash
 sudo chmod +x deploy/scripts/deploy-apache.sh
 sudo ./deploy/scripts/deploy-apache.sh
@@ -40,6 +44,7 @@ sudo ./deploy/scripts/deploy-apache.sh
 ### **1. Preparar o Sistema**
 
 #### Ubuntu/Debian:
+
 ```bash
 sudo apt update
 sudo apt install -y curl git
@@ -52,6 +57,7 @@ sudo apt install -y apache2 nodejs npm postgresql redis-server
 ```
 
 #### CentOS/RHEL:
+
 ```bash
 sudo yum update
 sudo yum install -y curl git
@@ -64,11 +70,13 @@ sudo yum install -y httpd nodejs npm postgresql-server redis
 ```
 
 ### **2. Instalar PM2**
+
 ```bash
 sudo npm install -g pm2
 ```
 
 ### **3. Configurar Banco de Dados**
+
 ```bash
 # PostgreSQL
 sudo -u postgres createuser chronos
@@ -82,6 +90,7 @@ sudo systemctl enable redis
 ```
 
 ### **4. Build dos Frontends**
+
 ```bash
 # Frontend Admin
 cd frontend-admin
@@ -103,6 +112,7 @@ sudo cp -r dist /var/www/chronos/kiosk
 ```
 
 ### **5. Configurar Backend**
+
 ```bash
 cd backend
 npm install
@@ -125,6 +135,7 @@ pm2 startup
 ### **6. Configurar Servidor Web**
 
 #### **Para Nginx:**
+
 ```bash
 sudo cp deploy/nginx/chronos-system.conf /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/chronos-system.conf /etc/nginx/sites-enabled/
@@ -134,6 +145,7 @@ sudo systemctl restart nginx
 ```
 
 #### **Para Apache:**
+
 ```bash
 sudo a2enmod rewrite proxy proxy_http headers deflate expires ssl
 sudo cp deploy/apache/chronos-system.conf /etc/apache2/sites-available/
@@ -144,6 +156,7 @@ sudo systemctl restart apache2
 ```
 
 ### **7. Configurar Permissões**
+
 ```bash
 sudo chown -R www-data:www-data /var/www/chronos
 sudo chmod -R 755 /var/www/chronos
@@ -152,7 +165,9 @@ sudo chmod -R 755 /var/www/chronos
 ## 🌐 Configuração de Domínios
 
 ### **Para Teste Local:**
+
 Adicione ao `/etc/hosts`:
+
 ```
 127.0.0.1 admin.chronos.local
 127.0.0.1 pwa.chronos.local
@@ -161,7 +176,9 @@ Adicione ao `/etc/hosts`:
 ```
 
 ### **Para Produção:**
+
 Configure seus domínios no DNS:
+
 - `admin.seudominio.com` → IP do servidor
 - `pwa.seudominio.com` → IP do servidor
 - `kiosk.seudominio.com` → IP do servidor
@@ -170,6 +187,7 @@ Configure seus domínios no DNS:
 ## 🔒 Configuração SSL (HTTPS)
 
 ### **Com Certbot (Let's Encrypt):**
+
 ```bash
 # Instalar Certbot
 sudo apt install -y certbot
@@ -184,6 +202,7 @@ sudo certbot --apache -d admin.seudominio.com -d pwa.seudominio.com
 ```
 
 ### **Com Certificado Próprio:**
+
 1. Descomente as seções HTTPS nos arquivos de configuração
 2. Configure os caminhos dos certificados
 3. Reinicie o servidor web
@@ -191,6 +210,7 @@ sudo certbot --apache -d admin.seudominio.com -d pwa.seudominio.com
 ## 📊 Monitoramento
 
 ### **Logs do Sistema:**
+
 ```bash
 # Backend
 pm2 logs chronos-backend
@@ -208,6 +228,7 @@ sudo tail -f /var/log/postgresql/postgresql-*.log
 ```
 
 ### **Status dos Serviços:**
+
 ```bash
 pm2 status                    # Backend
 sudo systemctl status nginx  # Nginx
@@ -219,6 +240,7 @@ sudo systemctl status redis
 ## 🔧 Manutenção
 
 ### **Atualizar Sistema:**
+
 ```bash
 # Parar backend
 pm2 stop chronos-backend
@@ -242,11 +264,13 @@ pm2 restart chronos-backend
 ```
 
 ### **Backup do Banco:**
+
 ```bash
 sudo -u postgres pg_dump chronos_db > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### **Restaurar Backup:**
+
 ```bash
 sudo -u postgres psql chronos_db < backup_file.sql
 ```
@@ -273,6 +297,7 @@ sudo -u postgres psql chronos_db < backup_file.sql
    - Verificar variáveis de ambiente
 
 ### **Comandos de Diagnóstico:**
+
 ```bash
 # Testar conectividade do banco
 psql -h localhost -U chronos -d chronos_db -c "SELECT 1;"
@@ -290,6 +315,7 @@ netstat -tlnp | grep :4000
 ## 📞 Suporte
 
 Para problemas específicos:
+
 1. Verificar logs do sistema
 2. Consultar documentação do erro
 3. Verificar configurações de rede/firewall
@@ -300,7 +326,7 @@ Para problemas específicos:
 Após o deploy bem-sucedido:
 
 - **Admin Dashboard:** http://admin.chronos.local
-- **PWA Estagiário:** http://pwa.chronos.local  
+- **PWA Estagiário:** http://pwa.chronos.local
 - **Kiosk:** http://kiosk.chronos.local
 - **API:** http://api.chronos.local
 

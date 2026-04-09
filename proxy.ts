@@ -67,7 +67,7 @@ export default withAuth(
     if (profileComplete === false) {
       // Só redireciona se não estiver já na página de completar perfil
       const allowedWhileIncomplete = ['/auth/complete-profile', '/api/auth']
-      const isAllowed = allowedWhileIncomplete.some(p => pathname.startsWith(p))
+      const isAllowed = allowedWhileIncomplete.some((p) => pathname.startsWith(p))
       if (!isAllowed) {
         const completeProfileUrl = new URL('/auth/complete-profile', req.url)
         completeProfileUrl.searchParams.set('reason', 'incomplete')
@@ -100,7 +100,7 @@ export default withAuth(
         logger.security('Unauthorized access attempt to admin route', {
           userId: token.sub,
           role,
-          pathname
+          pathname,
         })
         const unauthorizedUrl = new URL('/unauthorized', req.url)
         unauthorizedUrl.searchParams.set('reason', 'role')
@@ -115,7 +115,7 @@ export default withAuth(
         logger.security('Unauthorized access attempt to employee route', {
           userId: token.sub,
           role,
-          pathname
+          pathname,
         })
         const unauthorizedUrl = new URL('/unauthorized', req.url)
         unauthorizedUrl.searchParams.set('reason', 'role')

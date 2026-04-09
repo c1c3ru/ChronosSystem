@@ -9,7 +9,15 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import {
+  maskCPF,
+  maskRG,
+  maskCTPS,
+  maskCNPJ,
+  maskCEP,
+  maskPhone,
+  maskCurrency,
+} from '@/lib/input-masks'
 
 export default function EquivalenceRequestPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -18,7 +26,7 @@ export default function EquivalenceRequestPage() {
     doc_work_card: 'false',
     doc_service_declaration: 'false',
     doc_activities_declaration: 'false',
-    doc_other: 'false'
+    doc_other: 'false',
   })
 
   useEffect(() => {
@@ -35,7 +43,9 @@ export default function EquivalenceRequestPage() {
     loadDraft()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target
     let maskedValue = value
 
@@ -77,11 +87,16 @@ export default function EquivalenceRequestPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: any = { ...formData }
 
     // Checkboxes
-    const checkboxes = ['doc_work_card', 'doc_service_declaration', 'doc_activities_declaration', 'doc_other']
-    checkboxes.forEach(cb => {
+    const checkboxes = [
+      'doc_work_card',
+      'doc_service_declaration',
+      'doc_activities_declaration',
+      'doc_other',
+    ]
+    checkboxes.forEach((cb) => {
       if (!data[cb]) data[cb] = 'false'
       else data[cb] = 'true'
     })
@@ -96,7 +111,8 @@ export default function EquivalenceRequestPage() {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
       const raw: any = { ...formData }
-      const { generateHTMLPDF, buildEquivalenceRequestHTML } = await import('@/lib/pdf-generator-html')
+      const { generateHTMLPDF, buildEquivalenceRequestHTML } =
+        await import('@/lib/pdf-generator-html')
 
       // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
@@ -107,7 +123,7 @@ export default function EquivalenceRequestPage() {
         inicio_atividades: raw.start_date || '',
         fim_atividades: raw.end_date || '',
         total_hours: raw.total_hours || '',
-        justificativa: raw.activities || ''
+        justificativa: raw.activities || '',
       }
 
       const html = buildEquivalenceRequestHTML(htmlData)
@@ -162,12 +178,16 @@ export default function EquivalenceRequestPage() {
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6" onChange={() => {
-          if (formRef.current) {
-            const data = new FormData(formRef.current)
-            // Checkboxes precisam ser tratados manualmente
-          }
-        }}>
+        <form
+          ref={formRef}
+          className="space-y-6"
+          onChange={() => {
+            if (formRef.current) {
+              const data = new FormData(formRef.current)
+              // Checkboxes precisam ser tratados manualmente
+            }
+          }}
+        >
           {/* Dados do Discente */}
           <Card variant="elevated">
             <CardHeader>
@@ -176,28 +196,78 @@ export default function EquivalenceRequestPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
-                   <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} title="Nome Completo" placeholder="Nome Completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome Completo
+                  </label>
+                  <input
+                    type="text"
+                    name="student_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome Completo"
+                    placeholder="Nome Completo"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                   <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} title="Matrícula" placeholder="Número da Matrícula" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Matrícula
+                  </label>
+                  <input
+                    type="text"
+                    name="student_enrollment"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Matrícula"
+                    placeholder="Número da Matrícula"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                   <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} title="Curso" placeholder="Nome do Curso" />
+                  <input
+                    type="text"
+                    name="student_course"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Curso"
+                    placeholder="Nome do Curso"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                   <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço Completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Endereço
+                  </label>
+                  <input
+                    type="text"
+                    name="student_address"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Endereço"
+                    placeholder="Endereço Completo"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
-                   <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="Ex: (85) 99999-9999" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Telefone
+                  </label>
+                  <input
+                    type="text"
+                    name="student_phone"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Telefone"
+                    placeholder="Ex: (85) 99999-9999"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
-                   <input type="email" name="student_email" className="input w-full" onChange={handleInputChange} title="Email" placeholder="exemplo@email.com" />
+                  <input
+                    type="email"
+                    name="student_email"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Email"
+                    placeholder="exemplo@email.com"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -211,24 +281,67 @@ export default function EquivalenceRequestPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome da Empresa</label>
-                   <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Nome da Empresa" placeholder="Razão Social" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome da Empresa
+                  </label>
+                  <input
+                    type="text"
+                    name="company_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome da Empresa"
+                    placeholder="Razão Social"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                   <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço da Empresa" placeholder="Endereço Completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Endereço
+                  </label>
+                  <input
+                    type="text"
+                    name="company_address"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Endereço da Empresa"
+                    placeholder="Endereço Completo"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
-                   <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} title="Telefone da Empresa" placeholder="Ex: (85) 3333-3333" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Telefone
+                  </label>
+                  <input
+                    type="text"
+                    name="company_phone"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Telefone da Empresa"
+                    placeholder="Ex: (85) 3333-3333"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
-                   <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} title="Email da Empresa" placeholder="empresa@exemplo.com" />
+                  <input
+                    type="email"
+                    name="company_email"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Email da Empresa"
+                    placeholder="empresa@exemplo.com"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Chefe Imediato</label>
-                   <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} title="Chefe Imediato" placeholder="Nome do Chefe Imediato" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Chefe Imediato
+                  </label>
+                  <input
+                    type="text"
+                    name="company_supervisor"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Chefe Imediato"
+                    placeholder="Nome do Chefe Imediato"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -241,21 +354,55 @@ export default function EquivalenceRequestPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Descrição das Atividades</label>
-                 <textarea name="activities" rows={5} className="input w-full" onChange={handleInputChange} title="Descrição das Atividades" placeholder="Descreva as atividades profissionais realizadas"></textarea>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Descrição das Atividades
+                </label>
+                <textarea
+                  name="activities"
+                  rows={5}
+                  className="input w-full"
+                  onChange={handleInputChange}
+                  title="Descrição das Atividades"
+                  placeholder="Descreva as atividades profissionais realizadas"
+                ></textarea>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
-                   <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} title="Data Inicial" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Inicial
+                  </label>
+                  <input
+                    type="date"
+                    name="start_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Inicial"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final</label>
-                   <input type="date" name="end_date" className="input w-full" onChange={handleInputChange} title="Data Final" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Final
+                  </label>
+                  <input
+                    type="date"
+                    name="end_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Final"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Total</label>
-                   <input type="number" name="total_hours" className="input w-full" onChange={handleInputChange} title="Carga Horária Total" placeholder="000" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Carga Horária Total
+                  </label>
+                  <input
+                    type="number"
+                    name="total_hours"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Carga Horária Total"
+                    placeholder="000"
+                  />
                 </div>
               </div>
             </CardContent>

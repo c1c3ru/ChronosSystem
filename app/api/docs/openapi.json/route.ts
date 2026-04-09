@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { swaggerSpec } from '@/lib/swagger';
+import { NextResponse } from 'next/server'
+import { swaggerSpec } from '@/lib/swagger'
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 /**
  * @swagger
@@ -19,5 +19,5 @@ export const dynamic = 'force-dynamic';
  *               type: object
  */
 export async function GET() {
-    return NextResponse.json(swaggerSpec);
+  return NextResponse.json(swaggerSpec)
 }

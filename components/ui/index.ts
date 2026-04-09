@@ -9,5 +9,3 @@ export { OptimizedImage } from './OptimizedImage'
 export { Badge } from './Badge'
 export { Select } from './Select'
 export { FilterSelect } from './FilterSelect'
-
-

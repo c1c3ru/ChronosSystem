@@ -36,19 +36,19 @@ export function isValidRole(role: unknown): role is Role {
 export function isPublicPath(pathname: string) {
   return (
     (PUBLIC_ROUTES as readonly string[]).includes(pathname) ||
-    (PUBLIC_PREFIXES as readonly string[]).some(prefix => pathname.startsWith(prefix)) ||
+    (PUBLIC_PREFIXES as readonly string[]).some((prefix) => pathname.startsWith(prefix)) ||
     pathname.startsWith('/auth/complete-profile')
   )
 }
 
 export function isAdminOnlyPath(pathname: string) {
-  return (ADMIN_ONLY_PREFIXES as readonly string[]).some(prefix => pathname.startsWith(prefix))
+  return (ADMIN_ONLY_PREFIXES as readonly string[]).some((prefix) => pathname.startsWith(prefix))
 }
 
 export function isEmployeeOnlyPath(pathname: string) {
-  return (EMPLOYEE_ONLY_PREFIXES as readonly string[]).some(prefix => pathname.startsWith(prefix))
+  return (EMPLOYEE_ONLY_PREFIXES as readonly string[]).some((prefix) => pathname.startsWith(prefix))
 }
 
 export function isAdminApiPath(pathname: string) {
-  return (ADMIN_API_PREFIXES as readonly string[]).some(prefix => pathname.startsWith(prefix))
+  return (ADMIN_API_PREFIXES as readonly string[]).some((prefix) => pathname.startsWith(prefix))
 }

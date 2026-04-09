@@ -30,11 +30,11 @@ function prepareElementForPDF(element: HTMLElement): void {
   const elementsToRemove = element.querySelectorAll(
     'button, [data-no-pdf="true"], nav, .no-print, [role="navigation"]'
   )
-  elementsToRemove.forEach(el => el.remove())
+  elementsToRemove.forEach((el) => el.remove())
 
   // Remover links de navegação (manter apenas texto)
   const navLinks = element.querySelectorAll('a[href^="/"]')
-  navLinks.forEach(link => {
+  navLinks.forEach((link) => {
     const span = document.createElement('span')
     span.textContent = link.textContent
     span.className = link.className
@@ -199,10 +199,7 @@ export async function generatePDFBlobFromElement(
  * Gera PDF a partir de HTML string usando iframe oculto (cliente)
  * Usado pelos builders de documentos IFCE
  */
-export async function generateHTMLPDF(
-  html: string,
-  filename: string
-): Promise<void> {
+export async function generateHTMLPDF(html: string, filename: string): Promise<void> {
   if (typeof window === 'undefined') {
     throw new Error('generateHTMLPDF só pode ser executado no navegador')
   }
@@ -210,7 +207,8 @@ export async function generateHTMLPDF(
   const html2pdf = (await import('html2pdf.js')).default
 
   const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;background:#fff;'
+  iframe.style.cssText =
+    'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;background:#fff;'
   document.body.appendChild(iframe)
 
   const doc = iframe.contentDocument || iframe.contentWindow?.document
@@ -223,7 +221,7 @@ export async function generateHTMLPDF(
   doc.write(html)
   doc.close()
 
-  await new Promise(resolve => setTimeout(resolve, 1200))
+  await new Promise((resolve) => setTimeout(resolve, 1200))
 
   const opt = {
     margin: [6, 6, 6, 6] as [number, number, number, number],
@@ -334,7 +332,7 @@ export async function generatePDF(
  */
 export function validateFormData(formData: Record<string, any>): boolean {
   const hasData = Object.values(formData).some(
-    value => value !== null && value !== undefined && value !== '' && value !== 0
+    (value) => value !== null && value !== undefined && value !== '' && value !== 0
   )
 
   if (!hasData) {
@@ -347,10 +345,7 @@ export function validateFormData(formData: Record<string, any>): boolean {
 /**
  * Converte imagens em base64 para uso no PDF
  */
-export async function convertImagesToBase64(
-  html: string,
-  baseUrl: string
-): Promise<string> {
+export async function convertImagesToBase64(html: string, baseUrl: string): Promise<string> {
   const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
   let result = html
   const matches = Array.from(html.matchAll(imgRegex))
@@ -364,7 +359,7 @@ export async function convertImagesToBase64(
         const fullUrl = `${baseUrl}${src}`
         const response = await fetch(fullUrl)
         const blob = await response.blob()
-        const base64 = await new Promise<string>(resolve => {
+        const base64 = await new Promise<string>((resolve) => {
           const reader = new FileReader()
           reader.onloadend = () => resolve(reader.result as string)
           reader.readAsDataURL(blob)

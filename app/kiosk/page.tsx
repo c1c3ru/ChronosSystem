@@ -34,7 +34,7 @@ export default function KioskPage() {
   const [machineInfo, setMachineInfo] = useState({
     name: 'Carregando...',
     location: 'Aguarde...',
-    id: '' 
+    id: '',
   })
 
   // Carregar máquinas disponíveis
@@ -51,7 +51,7 @@ export default function KioskPage() {
             setMachineInfo({
               id: machinesList[0].id,
               name: machinesList[0].name,
-              location: machinesList[0].location
+              location: machinesList[0].location,
             })
           }
         }
@@ -104,9 +104,9 @@ export default function KioskPage() {
             margin: 2,
             color: {
               dark: '#22c55e',
-              light: '#ffffff'
+              light: '#ffffff',
             },
-            errorCorrectionLevel: 'M'
+            errorCorrectionLevel: 'M',
           })
 
           setQrCodeUrl(qrUrl)
@@ -133,13 +133,13 @@ export default function KioskPage() {
 
   // Função para mudar de máquina
   const handleMachineChange = (machineId: string) => {
-    const selected = machines.find(m => m.id === machineId)
+    const selected = machines.find((m) => m.id === machineId)
     if (selected) {
       setSelectedMachineId(machineId)
       setMachineInfo({
         id: selected.id,
         name: selected.name,
-        location: selected.location
+        location: selected.location,
       })
     }
   }
@@ -190,9 +190,10 @@ export default function KioskPage() {
         // Garantir que timestamp venha como string ISO e seja usado para formatar a hora no frontend
         const normalized = (data.activity || []).map((item: any) => ({
           ...item,
-          timestamp: typeof item.timestamp === 'string'
-            ? item.timestamp
-            : new Date(item.timestamp).toISOString(),
+          timestamp:
+            typeof item.timestamp === 'string'
+              ? item.timestamp
+              : new Date(item.timestamp).toISOString(),
         }))
 
         setRecentScans(normalized)
@@ -219,7 +220,7 @@ export default function KioskPage() {
     return date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
     })
   }
 
@@ -228,7 +229,7 @@ export default function KioskPage() {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -251,7 +252,9 @@ export default function KioskPage() {
               <h1 className="text-2xl font-bold text-white">Chronos Kiosk</h1>
               {machines.length > 0 ? (
                 <div className="flex flex-col mt-2">
-                  <label htmlFor="machine-select" className="sr-only">Selecionar Máquina</label>
+                  <label htmlFor="machine-select" className="sr-only">
+                    Selecionar Máquina
+                  </label>
                   <select
                     id="machine-select"
                     title="Selecionar Máquina"
@@ -276,7 +279,9 @@ export default function KioskPage() {
           </div>
 
           <div className="flex items-center space-x-6">
-            <div className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}>
+            <div
+              className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}
+            >
               {isOnline ? <Wifi className="h-5 w-5" /> : <WifiOff className="h-5 w-5" />}
               <span className="text-sm font-medium">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
@@ -298,9 +303,7 @@ export default function KioskPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-lg">
             <div className="glass rounded-2xl p-8 mb-6">
-              <h2 className="text-3xl font-semibold text-white mb-6">
-                Registrar Ponto
-              </h2>
+              <h2 className="text-3xl font-semibold text-white mb-6">Registrar Ponto</h2>
 
               {qrError ? (
                 <div className="flex flex-col items-center justify-center h-80 gap-4">
@@ -350,19 +353,27 @@ export default function KioskPage() {
               <h3 className="text-lg font-semibold text-white mb-4">Como usar:</h3>
               <div className="space-y-3 text-left">
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">1</div>
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">
+                    1
+                  </div>
                   <span>Abra o app Chronos no seu celular</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">2</div>
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">
+                    2
+                  </div>
                   <span>Toque em &quot;Registrar Ponto&quot;</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">3</div>
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">
+                    3
+                  </div>
                   <span>Escaneie o QR code acima</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-success/20 rounded-full w-8 h-8 flex items-center justify-center text-success font-bold mr-3">✓</div>
+                  <div className="bg-success/20 rounded-full w-8 h-8 flex items-center justify-center text-success font-bold mr-3">
+                    ✓
+                  </div>
                   <span>Ponto registrado automaticamente!</span>
                 </div>
               </div>
@@ -380,10 +391,16 @@ export default function KioskPage() {
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {recentScans.map((scan) => (
-                <div key={scan.id} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
+                <div
+                  key={scan.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors"
+                >
                   <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-3 ${scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
-                      }`}></div>
+                    <div
+                      className={`w-3 h-3 rounded-full mr-3 ${
+                        scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
+                      }`}
+                    ></div>
                     <div>
                       <p className="text-white font-medium text-sm">{scan.user}</p>
                       <p className="text-xs text-neutral-400">
@@ -435,7 +452,8 @@ export default function KioskPage() {
               style={{ mixBlendMode: 'screen' }}
             />
             <p className="text-neutral-500 text-sm">
-              © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto eletrônico moderno e seguro.
+              © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto
+              eletrônico moderno e seguro.
             </p>
           </div>
           <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50 text-center">

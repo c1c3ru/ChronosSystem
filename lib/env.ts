@@ -6,88 +6,77 @@
 import { z } from 'zod'
 
 const envSchema = z.object({
-    // ========================================
-    // DATABASE
-    // ========================================
-    DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL válida'),
+  // ========================================
+  // DATABASE
+  // ========================================
+  DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL válida'),
 
-    // ========================================
-    // AUTENTICAÇÃO - NextAuth.js
-    // ========================================
-    NEXTAUTH_SECRET: z
-        .string()
-        .min(32, 'NEXTAUTH_SECRET deve ter no mínimo 32 caracteres'),
-    NEXTAUTH_URL: z.string().url('NEXTAUTH_URL deve ser uma URL válida'),
+  // ========================================
+  // AUTENTICAÇÃO - NextAuth.js
+  // ========================================
+  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET deve ter no mínimo 32 caracteres'),
+  NEXTAUTH_URL: z.string().url('NEXTAUTH_URL deve ser uma URL válida'),
 
-    // ========================================
-    // OAUTH - Google
-    // ========================================
-    GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID é obrigatório'),
-    GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET é obrigatório'),
+  // ========================================
+  // OAUTH - Google
+  // ========================================
+  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID é obrigatório'),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET é obrigatório'),
 
-    // ========================================
-    // SEGURANÇA - QR Codes
-    // ========================================
-    QR_SECRET: z
-        .string()
-        .min(32, 'QR_SECRET deve ter no mínimo 32 caracteres para segurança'),
+  // ========================================
+  // SEGURANÇA - QR Codes
+  // ========================================
+  QR_SECRET: z.string().min(32, 'QR_SECRET deve ter no mínimo 32 caracteres para segurança'),
 
-    // ========================================
-    // REDIS (Opcional)
-    // ========================================
-    REDIS_URL: z
-        .string()
-        .url('REDIS_URL deve ser uma URL válida')
-        .optional(),
+  // ========================================
+  // REDIS (Opcional)
+  // ========================================
+  REDIS_URL: z.string().url('REDIS_URL deve ser uma URL válida').optional(),
 
-    // ========================================
-    // EMAIL - SMTP
-    // ========================================
-    SMTP_HOST: z.string().min(1, 'SMTP_HOST é obrigatório'),
-    SMTP_PORT: z.coerce
-        .number()
-        .int()
-        .min(1)
-        .max(65535, 'SMTP_PORT deve estar entre 1 e 65535'),
-    SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
-    SMTP_PASSWORD: z.string().min(1, 'SMTP_PASSWORD é obrigatório'),
-    SMTP_FROM: z.string().email('SMTP_FROM deve ser um email válido'),
+  // ========================================
+  // EMAIL - SMTP
+  // ========================================
+  SMTP_HOST: z.string().min(1, 'SMTP_HOST é obrigatório'),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535, 'SMTP_PORT deve estar entre 1 e 65535'),
+  SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
+  SMTP_PASSWORD: z.string().min(1, 'SMTP_PASSWORD é obrigatório'),
+  SMTP_FROM: z.string().email('SMTP_FROM deve ser um email válido'),
 
-    // ========================================
-    // APLICAÇÃO
-    // ========================================
-    NODE_ENV: z.enum(['development', 'production', 'test'], {
-        errorMap: () => ({ message: 'NODE_ENV deve ser development, production ou test' })
-    }),
+  // ========================================
+  // APLICAÇÃO
+  // ========================================
+  NODE_ENV: z.enum(['development', 'production', 'test'], {
+    errorMap: () => ({ message: 'NODE_ENV deve ser development, production ou test' }),
+  }),
 
-    // ========================================
-    // OPCIONAL - Recursos Avançados
-    // ========================================
+  // ========================================
+  // OPCIONAL - Recursos Avançados
+  // ========================================
 
-    // Sentry (Error Tracking)
-    NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+  // Sentry (Error Tracking)
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
 
-    // Analytics
-    NEXT_PUBLIC_GA_ID: z.string().optional(),
+  // Analytics
+  NEXT_PUBLIC_GA_ID: z.string().optional(),
 
-    // Feature Flags
-    ENABLE_2FA: z
-        .string()
-        .transform((val: string) => val === 'true')
-        .optional()
-        .default('true'),
+  // Feature Flags
+  ENABLE_2FA: z
+    .string()
+    .transform((val: string) => val === 'true')
+    .optional()
+    .default('true'),
 
-    ENABLE_PWA: z
-        .string()
-        .transform((val: string) => val === 'true')
-        .optional()
-        .default('true'),
+  ENABLE_PWA: z
+    .string()
+    .transform((val: string) => val === 'true')
+    .optional()
+    .default('true'),
 
-    ENABLE_OFFLINE_MODE: z
-        .string()
-        .transform((val: string) => val === 'true')
-        .optional()
-        .default('true'),
+  ENABLE_OFFLINE_MODE: z
+    .string()
+    .transform((val: string) => val === 'true')
+    .optional()
+    .default('true'),
 })
 
 // Tipo TypeScript inferido do schema
@@ -98,41 +87,41 @@ export type Env = z.infer<typeof envSchema>
  * Lança erro se alguma variável obrigatória estiver faltando ou inválida
  */
 function validateEnv(): Env {
-    try {
-        // Compatibilidade: alguns setups usam SMTP_PASS em vez de SMTP_PASSWORD
-        const parsed = envSchema.parse({
-            ...process.env,
-            SMTP_PASSWORD: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS,
-        })
+  try {
+    // Compatibilidade: alguns setups usam SMTP_PASS em vez de SMTP_PASSWORD
+    const parsed = envSchema.parse({
+      ...process.env,
+      SMTP_PASSWORD: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS,
+    })
 
-        // Log de sucesso em desenvolvimento
-        if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Variáveis de ambiente validadas com sucesso')
-        }
-
-        return parsed
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            console.error('❌ Erro na validação de variáveis de ambiente:')
-            console.error('')
-
-            error.errors.forEach((err: z.ZodIssue) => {
-                const path = err.path.join('.')
-                console.error(`  • ${path}: ${err.message}`)
-            })
-
-            console.error('')
-            console.error('Verifique o arquivo .env e corrija as variáveis acima.')
-            console.error('')
-
-            // Em produção, falhar imediatamente
-            if (process.env.NODE_ENV === 'production') {
-                throw new Error('Configuração de ambiente inválida')
-            }
-        }
-
-        throw error
+    // Log de sucesso em desenvolvimento
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Variáveis de ambiente validadas com sucesso')
     }
+
+    return parsed
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('❌ Erro na validação de variáveis de ambiente:')
+      console.error('')
+
+      error.errors.forEach((err: z.ZodIssue) => {
+        const path = err.path.join('.')
+        console.error(`  • ${path}: ${err.message}`)
+      })
+
+      console.error('')
+      console.error('Verifique o arquivo .env e corrija as variáveis acima.')
+      console.error('')
+
+      // Em produção, falhar imediatamente
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Configuração de ambiente inválida')
+      }
+    }
+
+    throw error
+  }
 }
 
 // Validar e exportar
@@ -170,19 +159,19 @@ export const hasSentry = () => !!env.NEXT_PUBLIC_SENTRY_DSN
 
 /**
  * Exemplo de uso:
- * 
+ *
  * ```typescript
  * import { env, isProduction, hasRedis } from '@/lib/env'
- * 
+ *
  * // Usar variáveis validadas
  * const dbUrl = env.DATABASE_URL
  * const secret = env.NEXTAUTH_SECRET
- * 
+ *
  * // Verificar ambiente
  * if (isProduction) {
  *   // Lógica de produção
  * }
- * 
+ *
  * // Verificar recursos opcionais
  * if (hasRedis()) {
  *   // Usar Redis

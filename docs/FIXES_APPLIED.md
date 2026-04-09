@@ -3,38 +3,46 @@
 ## ✅ Problemas Resolvidos
 
 ### 1. Backend Não Funcional 🔴 → ✅
+
 **Problema**: Servidor não respondia devido a problemas de permissão no diretório `dist/`
 
 **Soluções Implementadas**:
+
 - ✅ Corrigidas permissões do diretório `dist/` com `chmod -R 755`
 - ✅ Script de inicialização automática criado (`start-system.sh`)
 - ✅ Configuração TypeScript otimizada para decorators
 
 ### 2. Endpoint QR Público 🟡 → ✅
+
 **Problema**: Endpoint `/machines/:id/qr` protegido por autenticação, impedindo acesso do kiosk
 
 **Soluções Implementadas**:
+
 - ✅ Endpoint QR tornado público (sem guards de autenticação)
 - ✅ Geração automática de QR codes a cada minuto via cron job
 - ✅ Informações de timestamp e expiração adicionadas à resposta
 - ✅ Proteção de integridade mantida com HMAC-SHA256
 
 ### 3. Infraestrutura com Nginx 🆕 → ✅
+
 **Implementação**: Servidor Nginx como proxy reverso
 
 **Funcionalidades**:
+
 - ✅ Proxy reverso para todas as aplicações
 - ✅ Configuração de subdomínios:
   - `admin.localhost` → Frontend Admin
-  - `pwa.localhost` → PWA Estagiário  
+  - `pwa.localhost` → PWA Estagiário
   - `kiosk.localhost` → Kiosk
   - `api.localhost` → API Backend
 - ✅ Balanceamento de carga preparado
 
 ### 4. Geração Automática de QR Codes 🆕 → ✅
+
 **Implementação**: Sistema de geração automática com segurança
 
 **Funcionalidades**:
+
 - ✅ Cron job executando a cada minuto
 - ✅ Geração para todas as máquinas ativas
 - ✅ Limpeza automática de códigos expirados
@@ -43,12 +51,14 @@
 ## 🚀 Como Usar
 
 ### Inicialização Rápida
+
 ```bash
 # Executar script de inicialização
 ./start-system.sh
 ```
 
 ### Inicialização Manual
+
 ```bash
 # 1. Corrigir permissões
 cd backend && sudo rm -rf dist && mkdir dist && chmod -R 755 dist
@@ -72,13 +82,14 @@ cd ../kiosk && npm run dev -- --port 3002 &
 ```
 
 ### Com Nginx (Produção)
+
 ```bash
 # Iniciar todos os serviços incluindo Nginx
 docker-compose up -d
 
 # Acessar via subdomínios
 # http://admin.localhost
-# http://pwa.localhost  
+# http://pwa.localhost
 # http://kiosk.localhost
 # http://api.localhost
 ```
@@ -86,12 +97,14 @@ docker-compose up -d
 ## 🔐 Segurança dos QR Codes
 
 ### Geração Automática
+
 - **Frequência**: A cada 60 segundos
 - **Algoritmo**: HMAC-SHA256
 - **Proteção**: Anti-replay com nonces únicos
 - **Expiração**: 60 segundos por código
 
 ### Formato do QR Code
+
 ```json
 {
   "machine_id": "MACHINE_001",
@@ -103,6 +116,7 @@ docker-compose up -d
 ```
 
 ### Validação
+
 1. Verificação de assinatura HMAC
 2. Validação de timestamp e expiração
 3. Verificação de nonce único (anti-replay)
@@ -111,6 +125,7 @@ docker-compose up -d
 ## 📊 Monitoramento
 
 ### Logs Importantes
+
 ```bash
 # Backend
 tail -f backend/logs/app.log
@@ -123,6 +138,7 @@ docker-compose logs nginx
 ```
 
 ### Endpoints de Saúde
+
 - `GET /api/health` - Status geral do sistema
 - `GET /api/machines/MACHINE_001/qr` - Teste de geração QR
 
@@ -136,11 +152,13 @@ docker-compose logs nginx
 ## 📞 Suporte
 
 Em caso de problemas:
+
 1. Verificar logs do backend
 2. Confirmar se banco de dados está rodando
 3. Validar permissões de arquivos
 4. Executar script de inicialização
 
 ---
+
 **Data da Correção**: 21/10/2025
 **Status**: ✅ Sistema Funcional

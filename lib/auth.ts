@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email }
+            where: { email: credentials.email },
           })
 
           if (!user || !user.password) {
@@ -79,13 +79,13 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             profileComplete: user.profileComplete,
-            image: user.image
+            image: user.image,
           }
         } catch (error) {
           authLogger.error('Authentication failed', { error })
           return null
         }
-      }
+      },
     }),
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID!,
@@ -93,11 +93,11 @@ export const authOptions: NextAuthOptions = {
       // Removido allowDangerousEmailAccountLinking por segurança
       authorization: {
         params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
-        }
-      }
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
     }),
   ],
   session: {
@@ -119,7 +119,7 @@ export const authOptions: NextAuthOptions = {
         authLogger.debug('JWT callback - primeira vez', {
           userId: user.id,
           role: user.role,
-          profileComplete: user.profileComplete
+          profileComplete: user.profileComplete,
         })
       } else if (trigger === 'update' && token.sub) {
         // Atualização explícita via update() - buscar dados atualizados do banco
@@ -129,8 +129,8 @@ export const authOptions: NextAuthOptions = {
             role: true,
             profileComplete: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         })
 
         if (dbUser) {
@@ -142,7 +142,7 @@ export const authOptions: NextAuthOptions = {
           authLogger.debug('JWT callback - atualização', {
             userId: token.sub,
             role: dbUser.role,
-            profileComplete: dbUser.profileComplete
+            profileComplete: dbUser.profileComplete,
           })
         }
       }
@@ -163,7 +163,7 @@ export const authOptions: NextAuthOptions = {
         email: user.email,
         userId: user.id,
         accountType: account?.type,
-        profileData: profile ? { name: profile.name, email: profile.email } : null
+        profileData: profile ? { name: profile.name, email: profile.email } : null,
       })
 
       if (account?.provider === 'google') {
@@ -174,8 +174,8 @@ export const authOptions: NextAuthOptions = {
               name: profile?.name,
               email: profile?.email,
               picture: (profile as any)?.picture,
-              email_verified: (profile as any)?.email_verified
-            }
+              email_verified: (profile as any)?.email_verified,
+            },
           })
 
           // Verificar se o email foi verificado pelo Google
@@ -196,12 +196,11 @@ export const authOptions: NextAuthOptions = {
           // PrismaAdapter irá criar/atualizar o usuário automaticamente
           // Não é necessário criar manualmente
           return true
-
         } catch (error) {
           authLogger.error('Google login error', {
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
-            email: user.email
+            email: user.email,
           })
           return false
         }

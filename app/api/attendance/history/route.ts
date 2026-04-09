@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         ...(Object.keys(dateFilter).length > 0 && { timestamp: dateFilter }),
-        ...(typeFilter && { type: typeFilter })
-      }
+        ...(typeFilter && { type: typeFilter }),
+      },
     })
 
     // Buscar registros paginados
@@ -50,24 +50,24 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         ...(Object.keys(dateFilter).length > 0 && { timestamp: dateFilter }),
-        ...(typeFilter && { type: typeFilter })
+        ...(typeFilter && { type: typeFilter }),
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
       skip,
-      take: limit
+      take: limit,
     })
 
     // Agrupar por dia
     const recordsByDay: { [key: string]: any[] } = {}
-    records.forEach(record => {
+    records.forEach((record) => {
       const date = new Date(record.timestamp).toLocaleDateString('pt-BR')
       if (!recordsByDay[date]) {
         recordsByDay[date] = []
@@ -77,12 +77,12 @@ export async function GET(request: NextRequest) {
 
     // Formatar resposta
     const formattedDays = Object.entries(recordsByDay).map(([date, dayRecords]) => {
-      const entries = dayRecords.filter(r => r.type === 'ENTRY').sort((a, b) => 
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      )
-      const exits = dayRecords.filter(r => r.type === 'EXIT').sort((a, b) => 
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      )
+      const entries = dayRecords
+        .filter((r) => r.type === 'ENTRY')
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      const exits = dayRecords
+        .filter((r) => r.type === 'EXIT')
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 
       // Calcular horas trabalhadas
       let totalMinutes = 0
@@ -110,18 +110,18 @@ export async function GET(request: NextRequest) {
         date,
         status,
         totalHours,
-        entries: entries.map(r => ({
+        entries: entries.map((r) => ({
           id: r.id,
           timestamp: new Date(r.timestamp).toISOString(), // ISO cru para formatar no frontend
           machine: r.machine.name,
-          location: r.machine.location
+          location: r.machine.location,
         })),
-        exits: exits.map(r => ({
+        exits: exits.map((r) => ({
           id: r.id,
           timestamp: new Date(r.timestamp).toISOString(), // ISO cru para formatar no frontend
           machine: r.machine.name,
-          location: r.machine.location
-        }))
+          location: r.machine.location,
+        })),
       }
     })
 
@@ -136,15 +136,11 @@ export async function GET(request: NextRequest) {
         total,
         totalPages,
         hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      }
+        hasPrevPage: page > 1,
+      },
     })
-
   } catch (error: any) {
     console.error('❌ [API] Erro ao buscar histórico:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar histórico de registros' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar histórico de registros' }, { status: 500 })
   }
 }

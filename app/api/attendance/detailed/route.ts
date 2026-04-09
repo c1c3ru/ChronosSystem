@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -27,19 +27,19 @@ export async function GET(request: NextRequest) {
           select: {
             name: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
       take: limit,
-      skip: offset
+      skip: offset,
     })
 
     // Simular dados se não houver registros reais
@@ -52,12 +52,12 @@ export async function GET(request: NextRequest) {
           user: {
             name: 'João Silva',
             email: 'joao@empresa.com',
-            role: 'EMPLOYEE'
+            role: 'EMPLOYEE',
           },
           machine: {
             name: 'Terminal Principal',
-            location: 'Recepção - Térreo'
-          }
+            location: 'Recepção - Térreo',
+          },
         },
         {
           id: 'sim-2',
@@ -66,12 +66,12 @@ export async function GET(request: NextRequest) {
           user: {
             name: 'João Silva',
             email: 'joao@empresa.com',
-            role: 'EMPLOYEE'
+            role: 'EMPLOYEE',
           },
           machine: {
             name: 'Terminal Principal',
-            location: 'Recepção - Térreo'
-          }
+            location: 'Recepção - Térreo',
+          },
         },
         {
           id: 'sim-3',
@@ -80,15 +80,15 @@ export async function GET(request: NextRequest) {
           user: {
             name: 'Maria Santos',
             email: 'maria@empresa.com',
-            role: 'SUPERVISOR'
+            role: 'SUPERVISOR',
           },
           machine: {
             name: 'Kiosk Sala de Reuniões',
-            location: '2º Andar - Sala 201'
-          }
-        }
+            location: '2º Andar - Sala 201',
+          },
+        },
       ]
-      
+
       return NextResponse.json(simulatedRecords)
     }
 

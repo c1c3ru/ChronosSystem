@@ -9,7 +9,7 @@ import {
   FormInput,
   FormTextarea,
   FormSelect,
-  SignatureSection
+  SignatureSection,
 } from '@/components/OfficialFormTemplate'
 
 interface AttendanceDeclarationFormProps {
@@ -21,7 +21,7 @@ interface AttendanceDeclarationFormProps {
 export function AttendanceDeclarationForm({
   userId,
   userName = '',
-  userEmail = ''
+  userEmail = '',
 }: AttendanceDeclarationFormProps) {
   const [formData, setFormData] = useState({
     declarantName: '',
@@ -37,12 +37,14 @@ export function AttendanceDeclarationForm({
     projectInstitution: '',
     activities: '',
     startDate: '',
-    weeklyHours: ''
+    weeklyHours: '',
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   return (
@@ -63,8 +65,8 @@ export function AttendanceDeclarationForm({
       >
         <div className="mb-3 text-[9pt] text-justify px-1">
           <p>
-            Para fins de <strong>EQUIPARAÇÃO</strong> a atividades de estágio supervisionado obrigatório,
-            declaro os fatos a seguir descritos, para que surjam efeitos legais.
+            Para fins de <strong>EQUIPARAÇÃO</strong> a atividades de estágio supervisionado
+            obrigatório, declaro os fatos a seguir descritos, para que surjam efeitos legais.
           </p>
         </div>
 
@@ -169,7 +171,10 @@ export function AttendanceDeclarationForm({
               <FormField label="TIPO DE EXPERIÊNCIA" colSpan={3}>
                 <div className="flex gap-6 pt-0.5">
                   {['EXTENSÃO', 'INICIAÇÃO CIENTÍFICA', 'MONITORIA'].map((type) => (
-                    <label key={type} className="flex items-center gap-1 text-[7pt] uppercase cursor-pointer">
+                    <label
+                      key={type}
+                      className="flex items-center gap-1 text-[7pt] uppercase cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="experienceType"
@@ -244,10 +249,7 @@ export function AttendanceDeclarationForm({
         </FormTable>
 
         <div className="mt-6 border border-black p-3">
-          <SignatureSection
-            label="ASSINATURA DO (A) DECLARANTE"
-            date={true}
-          />
+          <SignatureSection label="ASSINATURA DO (A) DECLARANTE" date={true} />
         </div>
       </OfficialFormTemplate>
     </div>

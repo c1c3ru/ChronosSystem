@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  Calendar, 
+import {
+  Calendar,
   ArrowLeft,
   TrendingUp,
   TrendingDown,
@@ -15,7 +15,7 @@ import {
   BarChart3,
   User,
   Award,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -72,7 +72,7 @@ export default function FrequencyPage() {
     try {
       setLoading(true)
       const response = await fetch(`/api/reports/frequency?period=${selectedPeriod}`)
-      
+
       if (response.ok) {
         const data = await response.json()
         setFrequencyData(data.frequencyData || [])
@@ -87,7 +87,7 @@ export default function FrequencyPage() {
 
   const sortedData = [...frequencyData].sort((a, b) => {
     let aValue, bValue
-    
+
     switch (sortBy) {
       case 'frequency':
         aValue = a.frequencyPercentage
@@ -113,7 +113,7 @@ export default function FrequencyPage() {
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
     }
-    
+
     // Garantir que são números para operação aritmética
     const numA = typeof aValue === 'number' ? aValue : 0
     const numB = typeof bValue === 'number' ? bValue : 0
@@ -135,20 +135,26 @@ export default function FrequencyPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'text-red-400'
-      case 'SUPERVISOR': return 'text-yellow-400'
-      case 'EMPLOYEE': return 'text-blue-400'
-      default: return 'text-neutral-400'
+      case 'ADMIN':
+        return 'text-red-400'
+      case 'SUPERVISOR':
+        return 'text-yellow-400'
+      case 'EMPLOYEE':
+        return 'text-blue-400'
+      default:
+        return 'text-neutral-400'
     }
   }
 
   const overallStats = {
     totalUsers: frequencyData.length,
-    averageFrequency: frequencyData.length > 0 
-      ? frequencyData.reduce((sum, user) => sum + user.frequencyPercentage, 0) / frequencyData.length 
-      : 0,
-    excellentUsers: frequencyData.filter(user => user.frequencyPercentage >= 95).length,
-    lowFrequencyUsers: frequencyData.filter(user => user.frequencyPercentage < 70).length
+    averageFrequency:
+      frequencyData.length > 0
+        ? frequencyData.reduce((sum, user) => sum + user.frequencyPercentage, 0) /
+          frequencyData.length
+        : 0,
+    excellentUsers: frequencyData.filter((user) => user.frequencyPercentage >= 95).length,
+    lowFrequencyUsers: frequencyData.filter((user) => user.frequencyPercentage < 70).length,
   }
 
   if (status === 'loading' || loading) {
@@ -164,7 +170,7 @@ export default function FrequencyPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -205,7 +211,10 @@ export default function FrequencyPage() {
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex gap-4">
                 <div>
-                  <label htmlFor="frequency-period" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="frequency-period"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Período
                   </label>
                   <select
@@ -222,7 +231,10 @@ export default function FrequencyPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="frequency-sort-by" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="frequency-sort-by"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Ordenar por
                   </label>
                   <select
@@ -239,7 +251,10 @@ export default function FrequencyPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="frequency-sort-order" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="frequency-sort-order"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Ordem
                   </label>
                   <select
@@ -276,7 +291,9 @@ export default function FrequencyPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-neutral-400">Frequência Média</p>
-                  <p className={`text-2xl font-bold ${getFrequencyColor(overallStats.averageFrequency)}`}>
+                  <p
+                    className={`text-2xl font-bold ${getFrequencyColor(overallStats.averageFrequency)}`}
+                  >
                     {overallStats.averageFrequency.toFixed(1)}%
                   </p>
                 </div>
@@ -328,10 +345,13 @@ export default function FrequencyPage() {
                         </span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
-                        <div 
+                        <div
                           className={`h-2 rounded-full ${
-                            month.averageFrequency >= 95 ? 'bg-success' :
-                            month.averageFrequency >= 85 ? 'bg-warning' : 'bg-error'
+                            month.averageFrequency >= 95
+                              ? 'bg-success'
+                              : month.averageFrequency >= 85
+                                ? 'bg-warning'
+                                : 'bg-error'
                           }`}
                           style={{ width: `${Math.min(month.averageFrequency, 100)}%` }}
                         />
@@ -357,11 +377,19 @@ export default function FrequencyPage() {
                     <tr className="border-b border-neutral-700">
                       <th className="text-left py-3 px-4 text-neutral-300 font-medium">Usuário</th>
                       <th className="text-left py-3 px-4 text-neutral-300 font-medium">Role</th>
-                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">Frequência</th>
-                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">Dias Presentes</th>
+                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">
+                        Frequência
+                      </th>
+                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">
+                        Dias Presentes
+                      </th>
                       <th className="text-center py-3 px-4 text-neutral-300 font-medium">Faltas</th>
-                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">Atrasos</th>
-                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">Horas Médias</th>
+                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">
+                        Atrasos
+                      </th>
+                      <th className="text-center py-3 px-4 text-neutral-300 font-medium">
+                        Horas Médias
+                      </th>
                       <th className="text-center py-3 px-4 text-neutral-300 font-medium">Status</th>
                     </tr>
                   </thead>
@@ -369,7 +397,10 @@ export default function FrequencyPage() {
                     {sortedData.map((userData) => {
                       const badge = getFrequencyBadge(userData.frequencyPercentage)
                       return (
-                        <tr key={userData.user.id} className="border-b border-neutral-800 hover:bg-neutral-800/30">
+                        <tr
+                          key={userData.user.id}
+                          className="border-b border-neutral-800 hover:bg-neutral-800/30"
+                        >
                           <td className="py-3 px-4">
                             <div>
                               <p className="text-white font-medium">{userData.user.name}</p>
@@ -377,12 +408,16 @@ export default function FrequencyPage() {
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className={`text-sm font-medium ${getRoleColor(userData.user.role)}`}>
+                            <span
+                              className={`text-sm font-medium ${getRoleColor(userData.user.role)}`}
+                            >
                               {userData.user.role}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className={`text-lg font-bold ${getFrequencyColor(userData.frequencyPercentage)}`}>
+                            <span
+                              className={`text-lg font-bold ${getFrequencyColor(userData.frequencyPercentage)}`}
+                            >
                               {userData.frequencyPercentage.toFixed(1)}%
                             </span>
                           </td>
@@ -390,12 +425,20 @@ export default function FrequencyPage() {
                             {userData.presentDays}/{userData.totalDays}
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className={userData.absentDays > 0 ? 'text-error' : 'text-neutral-400'}>
+                            <span
+                              className={
+                                userData.absentDays > 0 ? 'text-error' : 'text-neutral-400'
+                              }
+                            >
                               {userData.absentDays}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className={userData.lateCount > 0 ? 'text-warning' : 'text-neutral-400'}>
+                            <span
+                              className={
+                                userData.lateCount > 0 ? 'text-warning' : 'text-neutral-400'
+                              }
+                            >
                               {userData.lateCount}
                             </span>
                           </td>
@@ -403,7 +446,9 @@ export default function FrequencyPage() {
                             {userData.averageHours.toFixed(1)}h
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${badge.color}`}>
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium ${badge.color}`}
+                            >
                               {badge.text}
                             </span>
                           </td>
@@ -416,7 +461,9 @@ export default function FrequencyPage() {
             ) : (
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-neutral-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-white mb-2">Nenhum dado de frequência encontrado</h3>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  Nenhum dado de frequência encontrado
+                </h3>
                 <p className="text-neutral-400">
                   Não há registros suficientes para o período selecionado
                 </p>

@@ -4,11 +4,7 @@ import { useSession, signIn } from 'next-auth/react'
 import { Loading } from '@/components/ui/Loading'
 import { Button } from '@/components/ui/Button'
 
-export default function DocumentsAuthGuard({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function DocumentsAuthGuard({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
 
   if (status === 'loading') {

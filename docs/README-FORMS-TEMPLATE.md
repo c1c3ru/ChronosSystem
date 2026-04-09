@@ -24,7 +24,7 @@ Componente principal que fornece o layout base do formulário.
 ```tsx
 import { OfficialFormTemplate } from '@/components/OfficialFormTemplate'
 
-<OfficialFormTemplate
+;<OfficialFormTemplate
   formId="meu-formulario"
   title="TÍTULO DO FORMULÁRIO"
   subtitle="Subtítulo opcional"
@@ -36,6 +36,7 @@ import { OfficialFormTemplate } from '@/components/OfficialFormTemplate'
 ```
 
 **Props:**
+
 - `formId` (string, obrigatório): ID para geração de PDF
 - `title` (string, obrigatório): Título principal
 - `subtitle` (string, opcional): Subtítulo
@@ -50,10 +51,8 @@ Tabela padronizada com bordas pretas.
 ```tsx
 import { FormTable } from '@/components/OfficialFormTemplate'
 
-<FormTable>
-  <tbody>
-    {/* Linhas da tabela */}
-  </tbody>
+;<FormTable>
+  <tbody>{/* Linhas da tabela */}</tbody>
 </FormTable>
 ```
 
@@ -64,9 +63,7 @@ Célula de cabeçalho (label) com fundo cinza.
 ```tsx
 import { FormHeaderCell } from '@/components/OfficialFormTemplate'
 
-<FormHeaderCell colSpan={2}>
-  NOME DO CAMPO
-</FormHeaderCell>
+;<FormHeaderCell colSpan={2}>NOME DO CAMPO</FormHeaderCell>
 ```
 
 ### 4. `FormDataCell`
@@ -76,7 +73,7 @@ Célula de dados (input).
 ```tsx
 import { FormDataCell } from '@/components/OfficialFormTemplate'
 
-<FormDataCell>
+;<FormDataCell>
   <FormInput name="campo" />
 </FormDataCell>
 ```
@@ -88,7 +85,7 @@ Input padronizado sem bordas.
 ```tsx
 import { FormInput } from '@/components/OfficialFormTemplate'
 
-<FormInput
+;<FormInput
   type="text"
   name="nome"
   value={formData.nome}
@@ -104,12 +101,7 @@ Textarea padronizado.
 ```tsx
 import { FormTextarea } from '@/components/OfficialFormTemplate'
 
-<FormTextarea
-  name="descricao"
-  value={formData.descricao}
-  onChange={handleChange}
-  rows={4}
-/>
+;<FormTextarea name="descricao" value={formData.descricao} onChange={handleChange} rows={4} />
 ```
 
 ### 7. `FormSelect`
@@ -119,7 +111,7 @@ Select padronizado.
 ```tsx
 import { FormSelect } from '@/components/OfficialFormTemplate'
 
-<FormSelect name="tipo" value={formData.tipo} onChange={handleChange}>
+;<FormSelect name="tipo" value={formData.tipo} onChange={handleChange}>
   <option value="opcao1">Opção 1</option>
   <option value="opcao2">Opção 2</option>
 </FormSelect>
@@ -132,8 +124,8 @@ Seção de assinatura com linha.
 ```tsx
 import { SignatureSection } from '@/components/OfficialFormTemplate'
 
-<SignatureSection 
-  label="ASSINATURA DO RESPONSÁVEL" 
+;<SignatureSection
+  label="ASSINATURA DO RESPONSÁVEL"
   date={true} // Adiciona campo de data
 />
 ```
@@ -152,29 +144,26 @@ import {
   FormDataCell,
   FormInput,
   FormTextarea,
-  SignatureSection
+  SignatureSection,
 } from '@/components/OfficialFormTemplate'
 
 export function MeuFormulario() {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    descricao: ''
+    descricao: '',
   })
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   return (
     <div className="w-full max-w-[210mm] mx-auto p-4 bg-neutral-50">
       {/* Botão de Exportar PDF */}
       <div className="mb-6 flex justify-end no-print">
-        <FormPDFExport
-          formId="meu-formulario"
-          fileName="meu-documento"
-        />
+        <FormPDFExport formId="meu-formulario" fileName="meu-documento" />
       </div>
 
       {/* Formulário */}
@@ -191,12 +180,7 @@ export function MeuFormulario() {
             </tr>
             <tr>
               <FormDataCell>
-                <FormInput
-                  type="text"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleChange}
-                />
+                <FormInput type="text" name="nome" value={formData.nome} onChange={handleChange} />
               </FormDataCell>
             </tr>
             <tr>
@@ -235,10 +219,7 @@ export function MeuFormulario() {
         </FormTable>
 
         {/* Assinatura */}
-        <SignatureSection 
-          label="ASSINATURA DO RESPONSÁVEL" 
-          date={true}
-        />
+        <SignatureSection label="ASSINATURA DO RESPONSÁVEL" date={true} />
       </OfficialFormTemplate>
     </div>
   )
@@ -248,18 +229,21 @@ export function MeuFormulario() {
 ## 🎨 Padrões de Design
 
 ### Cores
+
 - **Bordas**: Preto (#000000)
 - **Fundo de cabeçalho**: Cinza claro (#f5f5f5)
 - **Texto**: Preto (#000000)
 - **Background**: Branco (#ffffff)
 
 ### Tipografia
+
 - **Fonte**: Arial, sans-serif
 - **Tamanho base**: 10pt
 - **Cabeçalhos**: 12pt (título), 10pt (subtítulo)
 - **Labels**: Bold
 
 ### Espaçamento
+
 - **Padding interno**: 15mm
 - **Margem entre tabelas**: 3mm (mb-3)
 - **Padding células**: 1.5 (p-1.5)
@@ -303,12 +287,14 @@ const [formData, setFormData] = useState({ ... })
 ## 🚀 Geração de PDF
 
 O PDF é gerado automaticamente com:
+
 - ✅ Formato A4 (210mm x 297mm)
 - ✅ Alta qualidade (scale: 2, quality: 0.98)
 - ✅ Compressão otimizada
 - ✅ Margem zero (controle total no componente)
 
 **Configurações em** `lib/pdf-generator.ts`:
+
 ```typescript
 {
   margin: 0,
@@ -328,6 +314,7 @@ O PDF é gerado automaticamente com:
 ## 📱 Responsividade
 
 O formulário é otimizado para:
+
 - ✅ **Desktop**: Visualização e edição
 - ✅ **Impressão**: Formato A4 perfeito
 - ✅ **PDF**: Layout preservado

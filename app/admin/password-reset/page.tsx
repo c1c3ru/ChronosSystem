@@ -3,18 +3,18 @@
 import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { 
-  Shield, 
-  Users, 
-  User, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Shield,
+  Users,
+  User,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   Copy,
   Trash2,
   RefreshCw,
-  Mail
+  Mail,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -36,7 +36,7 @@ interface ActiveToken {
 export default function PasswordResetPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   const [users, setUsers] = useState<User[]>([])
   const [activeTokens, setActiveTokens] = useState<ActiveToken[]>([])
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -62,7 +62,7 @@ export default function PasswordResetPage() {
     try {
       const response = await fetch('/api/users')
       const data = await response.json()
-      
+
       if (response.ok) {
         // Filtrar apenas usuários com senha (não só Google)
         const usersWithPassword = data.users.filter((user: any) => user.password !== null)
@@ -79,7 +79,7 @@ export default function PasswordResetPage() {
       setIsLoadingTokens(true)
       const response = await fetch('/api/admin/password-reset')
       const data = await response.json()
-      
+
       if (response.ok) {
         setActiveTokens(data.activeTokens)
       }
@@ -109,8 +109,8 @@ export default function PasswordResetPage() {
           type: 'mass',
           userIds: resetType === 'mass' ? undefined : selectedUsers,
           reason,
-          expiresInHours
-        })
+          expiresInHours,
+        }),
       })
 
       const data = await response.json()
@@ -149,8 +149,8 @@ export default function PasswordResetPage() {
           type: 'individual',
           userId,
           reason,
-          expiresInHours
-        })
+          expiresInHours,
+        }),
       })
 
       const data = await response.json()
@@ -182,7 +182,7 @@ export default function PasswordResetPage() {
   const invalidateToken = async (tokenId: string) => {
     try {
       const response = await fetch(`/api/admin/password-reset?tokenId=${tokenId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
@@ -221,8 +221,8 @@ export default function PasswordResetPage() {
         },
         body: JSON.stringify({
           tokenIds: selectedTokens,
-          customMessage: customMessage.trim() || undefined
-        })
+          customMessage: customMessage.trim() || undefined,
+        }),
       })
 
       const data = await response.json()
@@ -243,9 +243,11 @@ export default function PasswordResetPage() {
   }
 
   if (status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    </div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    )
   }
 
   // Fallback visual caso o middleware falhe e o usuário não tenha permissão
@@ -257,14 +259,14 @@ export default function PasswordResetPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <button 
-            onClick={() => window.location.href = '/employee'} 
+          <button
+            onClick={() => (window.location.href = '/employee')}
             className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-md transition-colors"
           >
             Ir para Área do Funcionário
           </button>
-          <button 
-            onClick={() => signIn()} 
+          <button
+            onClick={() => signIn()}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Fazer Login
@@ -281,9 +283,7 @@ export default function PasswordResetPage() {
           <Shield className="h-8 w-8 text-blue-600 mr-3" />
           <h1 className="text-3xl font-bold text-gray-900">Reset de Senhas</h1>
         </div>
-        <p className="text-gray-600">
-          Gerencie resets de senha para usuários do sistema
-        </p>
+        <p className="text-gray-600">Gerencie resets de senha para usuários do sistema</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -301,30 +301,30 @@ export default function PasswordResetPage() {
                 <legend className="block text-sm font-medium text-gray-700 mb-2">
                   Tipo de Reset
                 </legend>
-              <div className="flex space-x-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="individual"
-                    checked={resetType === 'individual'}
-                    onChange={(e) => setResetType(e.target.value as 'individual')}
-                    className="mr-2"
-                  />
-                  <User className="h-4 w-4 mr-1" />
-                  Individual
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="mass"
-                    checked={resetType === 'mass'}
-                    onChange={(e) => setResetType(e.target.value as 'mass')}
-                    className="mr-2"
-                  />
-                  <Users className="h-4 w-4 mr-1" />
-                  Em Massa
-                </label>
-              </div>
+                <div className="flex space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="individual"
+                      checked={resetType === 'individual'}
+                      onChange={(e) => setResetType(e.target.value as 'individual')}
+                      className="mr-2"
+                    />
+                    <User className="h-4 w-4 mr-1" />
+                    Individual
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="mass"
+                      checked={resetType === 'mass'}
+                      onChange={(e) => setResetType(e.target.value as 'mass')}
+                      className="mr-2"
+                    />
+                    <Users className="h-4 w-4 mr-1" />
+                    Em Massa
+                  </label>
+                </div>
               </fieldset>
             </div>
 
@@ -345,7 +345,7 @@ export default function PasswordResetPage() {
                           if (e.target.checked) {
                             setSelectedUsers([...selectedUsers, user.id])
                           } else {
-                            setSelectedUsers(selectedUsers.filter(id => id !== user.id))
+                            setSelectedUsers(selectedUsers.filter((id) => id !== user.id))
                           }
                         }}
                         className="mr-3"
@@ -365,7 +365,10 @@ export default function PasswordResetPage() {
 
             {/* Motivo */}
             <div>
-              <label htmlFor="reset-reason" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="reset-reason"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Motivo do Reset
               </label>
               <textarea
@@ -381,7 +384,10 @@ export default function PasswordResetPage() {
 
             {/* Expiração */}
             <div>
-              <label htmlFor="reset-expires" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="reset-expires"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Expira em (horas)
               </label>
               <select
@@ -401,14 +407,22 @@ export default function PasswordResetPage() {
 
             {/* Botão de Ação */}
             <button
-              onClick={resetType === 'mass' ? handleMassReset : () => {
-                if (selectedUsers.length === 0) {
-                  toast.error('Selecione pelo menos um usuário')
-                  return
-                }
-                selectedUsers.forEach(userId => handleIndividualReset(userId))
-              }}
-              disabled={isLoading || !reason.trim() || (resetType === 'individual' && selectedUsers.length === 0)}
+              onClick={
+                resetType === 'mass'
+                  ? handleMassReset
+                  : () => {
+                      if (selectedUsers.length === 0) {
+                        toast.error('Selecione pelo menos um usuário')
+                        return
+                      }
+                      selectedUsers.forEach((userId) => handleIndividualReset(userId))
+                    }
+              }
+              disabled={
+                isLoading ||
+                !reason.trim() ||
+                (resetType === 'individual' && selectedUsers.length === 0)
+              }
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isLoading ? (
@@ -419,7 +433,9 @@ export default function PasswordResetPage() {
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  {resetType === 'mass' ? 'Reset em Massa' : `Reset para ${selectedUsers.length} usuário(s)`}
+                  {resetType === 'mass'
+                    ? 'Reset em Massa'
+                    : `Reset para ${selectedUsers.length} usuário(s)`}
                 </>
               )}
             </button>
@@ -433,10 +449,7 @@ export default function PasswordResetPage() {
               <Clock className="h-5 w-5 mr-2" />
               Tokens Ativos
             </h2>
-            <button
-              onClick={loadActiveTokens}
-              className="text-blue-600 hover:text-blue-700"
-            >
+            <button onClick={loadActiveTokens} className="text-blue-600 hover:text-blue-700">
               <RefreshCw className="h-4 w-4" />
             </button>
           </div>
@@ -464,7 +477,7 @@ export default function PasswordResetPage() {
                             if (e.target.checked) {
                               setSelectedTokens([...selectedTokens, token.id])
                             } else {
-                              setSelectedTokens(selectedTokens.filter(id => id !== token.id))
+                              setSelectedTokens(selectedTokens.filter((id) => id !== token.id))
                             }
                           }}
                           className="mr-3"
@@ -507,17 +520,20 @@ export default function PasswordResetPage() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Envio de Emails */}
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                   <Mail className="h-4 w-4 mr-2" />
                   Enviar Emails de Reset
                 </h3>
-                
+
                 <div className="space-y-3">
                   <div>
-                    <label htmlFor="reset-custom-message" className="block text-xs font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="reset-custom-message"
+                      className="block text-xs font-medium text-gray-700 mb-1"
+                    >
                       Mensagem Personalizada (opcional)
                     </label>
                     <textarea
@@ -529,7 +545,7 @@ export default function PasswordResetPage() {
                       placeholder="Ex: Por motivos de segurança..."
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-500">
                       {selectedTokens.length} token(s) selecionado(s)
@@ -576,7 +592,7 @@ export default function PasswordResetPage() {
             <Clock className="h-8 w-8 text-green-600 mr-3" />
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {activeTokens.filter(t => !isExpired(t.expires)).length}
+                {activeTokens.filter((t) => !isExpired(t.expires)).length}
               </p>
               <p className="text-gray-600">Tokens Válidos</p>
             </div>
@@ -588,7 +604,7 @@ export default function PasswordResetPage() {
             <AlertTriangle className="h-8 w-8 text-red-600 mr-3" />
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {activeTokens.filter(t => isExpired(t.expires)).length}
+                {activeTokens.filter((t) => isExpired(t.expires)).length}
               </p>
               <p className="text-gray-600">Tokens Expirados</p>
             </div>

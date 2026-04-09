@@ -6,12 +6,9 @@ class ApiClient {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || ''
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}/api${endpoint}`
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -22,7 +19,7 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config)
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
@@ -36,18 +33,13 @@ class ApiClient {
   }
 
   // === USERS API ===
-  async getUsers(params?: {
-    page?: number
-    limit?: number
-    search?: string
-    role?: string
-  }) {
+  async getUsers(params?: { page?: number; limit?: number; search?: string; role?: string }) {
     const searchParams = new URLSearchParams()
     if (params?.page) searchParams.set('page', params.page.toString())
     if (params?.limit) searchParams.set('limit', params.limit.toString())
     if (params?.search) searchParams.set('search', params.search)
     if (params?.role) searchParams.set('role', params.role)
-    
+
     const query = searchParams.toString()
     return this.request(`/users${query ? `?${query}` : ''}`)
   }
@@ -122,7 +114,7 @@ class ApiClient {
     if (params?.endDate) searchParams.set('endDate', params.endDate)
     if (params?.page) searchParams.set('page', params.page.toString())
     if (params?.limit) searchParams.set('limit', params.limit.toString())
-    
+
     const query = searchParams.toString()
     return this.request(`/attendance${query ? `?${query}` : ''}`)
   }
@@ -152,7 +144,7 @@ class ApiClient {
     })
   }
 
-  async validateQRCode(qrData: string, location?: { latitude: number, longitude: number }) {
+  async validateQRCode(qrData: string, location?: { latitude: number; longitude: number }) {
     return this.request('/qr/validate', {
       method: 'POST',
       body: JSON.stringify({ qrData, location }),

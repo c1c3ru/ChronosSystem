@@ -5,18 +5,23 @@ import { prisma } from '@/lib/prisma'
 import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
 import { rateLimiters } from '@/lib/rate-limit'
 import { apiLogger } from '@/lib/logger'
-import { determineRecordType, getUserWorkingHours, validateRecord, isWeekend } from '@/lib/attendance-logic'
+import {
+  determineRecordType,
+  getUserWorkingHours,
+  validateRecord,
+  isWeekend,
+} from '@/lib/attendance-logic'
 import { getNowInFortaleza } from '@/lib/timezone'
 import { updateHourBalance } from '@/lib/hour-calculator'
 
 /**
  * API UNIFICADA PARA QR CODES
- * 
+ *
  * Esta API substitui e consolida:
  * - /api/attendance/qr-scan (QR seguro com HMAC)
  * - /api/qr/validate (JSON simples)
  * - /api/attendance/simple-register (híbrido)
- * 
+ *
  * Suporta automaticamente:
  * ✅ QR codes seguros (HMAC-SHA256)
  * ❌ QR codes JSON simples (Desabilitado por segurança)
@@ -40,14 +45,14 @@ export async function POST(request: NextRequest) {
     apiLogger.warn('Rate limit exceeded for QR scan', {
       ip: request.headers.get('x-forwarded-for') || 'unknown',
       remaining: rateLimitResult.remaining,
-      retryAfter
+      retryAfter,
     })
 
     return new Response(
       JSON.stringify({
         error: 'Muitas tentativas. Tente novamente em alguns segundos.',
         retryAfter,
-        code: 'RATE_LIMIT_EXCEEDED'
+        code: 'RATE_LIMIT_EXCEEDED',
       }),
       {
         status: 429,
@@ -56,8 +61,8 @@ export async function POST(request: NextRequest) {
           'X-RateLimit-Limit': rateLimitResult.limit.toString(),
           'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
           'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-          'Retry-After': retryAfter.toString()
-        }
+          'Retry-After': retryAfter.toString(),
+        },
       }
     )
   }
@@ -67,26 +72,32 @@ export async function POST(request: NextRequest) {
 
     if (!session) {
       apiLogger.warn('Unauthorized QR scan attempt', {
-        ip: request.headers.get('x-forwarded-for') || 'unknown'
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
       })
-      return NextResponse.json({
-        error: 'Não autenticado',
-        code: 'UNAUTHORIZED'
-      }, { status: 401 })
+      return NextResponse.json(
+        {
+          error: 'Não autenticado',
+          code: 'UNAUTHORIZED',
+        },
+        { status: 401 }
+      )
     }
 
     const { qrData, location, justification } = await request.json()
 
     if (!qrData) {
-      return NextResponse.json({
-        error: 'QR code é obrigatório',
-        code: 'MISSING_QR_DATA'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'QR code é obrigatório',
+          code: 'MISSING_QR_DATA',
+        },
+        { status: 400 }
+      )
     }
 
     apiLogger.debug('Processing QR code', {
       userId: session.user.id,
-      qrPreview: qrData.substring(0, 20) + '...'
+      qrPreview: qrData.substring(0, 20) + '...',
     })
 
     let machineId: string
@@ -99,19 +110,23 @@ export async function POST(request: NextRequest) {
     if (!secureValidation.isValid || !secureValidation.payload) {
       apiLogger.security('Insecure or invalid QR format attempted', {
         userId: session.user.id,
-        error: secureValidation.error
+        error: secureValidation.error,
       })
 
-      return NextResponse.json({
-        error: 'Este sistema exige QR codes criptografados e seguros. O formato detectado não é aceito.',
-        code: 'INSECURE_QR_FORMAT',
-        details: secureValidation.error
-      }, { status: 403 })
+      return NextResponse.json(
+        {
+          error:
+            'Este sistema exige QR codes criptografados e seguros. O formato detectado não é aceito.',
+          code: 'INSECURE_QR_FORMAT',
+          details: secureValidation.error,
+        },
+        { status: 403 }
+      )
     }
 
     apiLogger.debug('Secure QR detected', {
       machineId: secureValidation.payload.machineId,
-      expiresIn: secureValidation.payload.expiresIn
+      expiresIn: secureValidation.payload.expiresIn,
     })
 
     isSecureQR = true
@@ -129,51 +144,63 @@ export async function POST(request: NextRequest) {
         data: {
           used: true,
           usedAt: new Date(),
-          usedBy: session.user.id
+          usedBy: session.user.id,
         },
-        include: { machine: true }
+        include: { machine: true },
       })
     } catch (error: any) {
       // Se falhar, é porque o nonce não existe ou já foi usado (P2025 no Prisma)
       apiLogger.warn('Replay attack or invalid nonce detected', {
         userId: session.user.id,
-        nonce
+        nonce,
       })
 
-      return NextResponse.json({
-        error: 'Este QR code já foi utilizado ou é inválido. Gere um novo QR na tela da máquina.',
-        code: 'QR_REPLAY_DETECTED'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Este QR code já foi utilizado ou é inválido. Gere um novo QR na tela da máquina.',
+          code: 'QR_REPLAY_DETECTED',
+        },
+        { status: 400 }
+      )
     }
 
     // Validações adicionais de negócio no QR recuperado
     if (qrEvent.machineId !== machineId) {
-      return NextResponse.json({
-        error: 'QR code inválido para esta máquina',
-        code: 'INVALID_MACHINE'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'QR code inválido para esta máquina',
+          code: 'INVALID_MACHINE',
+        },
+        { status: 400 }
+      )
     }
 
     if (new Date() > qrEvent.expiresAt) {
-      return NextResponse.json({
-        error: 'QR code expirado. Gere um novo.',
-        code: 'QR_EXPIRED'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'QR code expirado. Gere um novo.',
+          code: 'QR_EXPIRED',
+        },
+        { status: 400 }
+      )
     }
 
     if (!qrEvent.machine.isActive) {
-      return NextResponse.json({
-        error: 'Máquina não está ativa',
-        code: 'MACHINE_INACTIVE'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Máquina não está ativa',
+          code: 'MACHINE_INACTIVE',
+        },
+        { status: 400 }
+      )
     }
 
     // Verificar se a máquina existe e está ativa
     const machine = await prisma.machine.findFirst({
       where: {
         id: machineId,
-        isActive: true
-      }
+        isActive: true,
+      },
     })
 
     if (!machine) {
@@ -181,21 +208,27 @@ export async function POST(request: NextRequest) {
 
       // Verificar se a máquina existe mas está inativa
       const inactiveMachine = await prisma.machine.findFirst({
-        where: { id: machineId }
+        where: { id: machineId },
       })
 
       if (inactiveMachine && !inactiveMachine.isActive) {
-        return NextResponse.json({
-          error: `Máquina '${inactiveMachine.name}' está inativa. Contate o administrador.`,
-          code: 'MACHINE_INACTIVE'
-        }, { status: 400 })
+        return NextResponse.json(
+          {
+            error: `Máquina '${inactiveMachine.name}' está inativa. Contate o administrador.`,
+            code: 'MACHINE_INACTIVE',
+          },
+          { status: 400 }
+        )
       }
 
       // Máquina não existe
-      return NextResponse.json({
-        error: 'Máquina não encontrada. Verifique se o QR code está correto.',
-        code: 'MACHINE_NOT_FOUND'
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          error: 'Máquina não encontrada. Verifique se o QR code está correto.',
+          code: 'MACHINE_NOT_FOUND',
+        },
+        { status: 404 }
+      )
     }
 
     apiLogger.debug('Machine found', { machineName: machine.name, location: machine.location })
@@ -203,7 +236,7 @@ export async function POST(request: NextRequest) {
     // Buscar último registro para análise inteligente
     const lastRecord = await prisma.attendanceRecord.findFirst({
       where: { userId: session.user.id },
-      orderBy: { timestamp: 'desc' }
+      orderBy: { timestamp: 'desc' },
     })
 
     // Obter horários de trabalho do usuário
@@ -221,46 +254,56 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         date: {
           gte: todayStart,
-          lte: todayEnd
+          lte: todayEnd,
         },
         type: 'EXTRA_WORK',
-        status: 'APPROVED'
-      }
+        status: 'APPROVED',
+      },
     })
 
     const hasAuthorization = !!specialAuthorization
 
     if (hasAuthorization) {
-      apiLogger.info('Special authorization found for user', { userId: session.user.id, date: currentTime.toISOString() })
+      apiLogger.info('Special authorization found for user', {
+        userId: session.user.id,
+        date: currentTime.toISOString(),
+      })
     }
 
     // Usar lógica inteligente para determinar tipo de registro
     const attendanceAnalysis = determineRecordType({
       userId: session.user.id,
       currentTime,
-      lastRecord: lastRecord ? {
-        type: lastRecord.type as 'ENTRY' | 'EXIT',
-        timestamp: lastRecord.timestamp
-      } : null,
+      lastRecord: lastRecord
+        ? {
+            type: lastRecord.type as 'ENTRY' | 'EXIT',
+            timestamp: lastRecord.timestamp,
+          }
+        : null,
       workingHours,
       isWeekend: isWeekend(currentTime),
-      hasAuthorization
+      hasAuthorization,
     })
 
     const recordType = attendanceAnalysis.type
 
     // Validar se o registro faz sentido
-    const validation = await validateRecord({
-      userId: session.user.id,
-      currentTime,
-      lastRecord: lastRecord ? {
-        type: lastRecord.type as 'ENTRY' | 'EXIT',
-        timestamp: lastRecord.timestamp
-      } : null,
-      workingHours,
-      isWeekend: isWeekend(currentTime),
-      hasAuthorization
-    }, recordType)
+    const validation = await validateRecord(
+      {
+        userId: session.user.id,
+        currentTime,
+        lastRecord: lastRecord
+          ? {
+              type: lastRecord.type as 'ENTRY' | 'EXIT',
+              timestamp: lastRecord.timestamp,
+            }
+          : null,
+        workingHours,
+        isWeekend: isWeekend(currentTime),
+        hasAuthorization,
+      },
+      recordType
+    )
 
     apiLogger.debug('Intelligent analysis', {
       qrType: isSecureQR ? 'SECURE' : 'SIMPLE',
@@ -268,16 +311,19 @@ export async function POST(request: NextRequest) {
       reason: attendanceAnalysis.reason,
       confidence: attendanceAnalysis.confidence,
       warnings: validation.warnings.length,
-      errors: validation.errors.length
+      errors: validation.errors.length,
     })
 
     // Se há erros críticos, bloquear registro
     if (!validation.isValid) {
-      return NextResponse.json({
-        error: `Registro bloqueado: ${validation.errors.join(', ')}`,
-        warnings: validation.warnings,
-        code: 'VALIDATION_FAILED'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: `Registro bloqueado: ${validation.errors.join(', ')}`,
+          warnings: validation.warnings,
+          code: 'VALIDATION_FAILED',
+        },
+        { status: 400 }
+      )
     }
 
     // Verificar se não há registro duplicado no mesmo minuto (qualquer tipo)
@@ -287,21 +333,27 @@ export async function POST(request: NextRequest) {
       where: {
         userId: session.user.id,
         timestamp: {
-          gte: oneMinuteAgo
-        }
-      }
+          gte: oneMinuteAgo,
+        },
+      },
     })
 
     if (recentRecord) {
       const recordTypeLabel = recentRecord.type === 'ENTRY' ? 'entrada' : 'saída'
-      return NextResponse.json({
-        error: `Você já registrou ${recordTypeLabel} recentemente. Aguarde 1 minuto entre registros.`,
-        code: 'DUPLICATE_RECORD',
-        lastRecord: {
-          type: recentRecord.type,
-          time: recentRecord.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        }
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: `Você já registrou ${recordTypeLabel} recentemente. Aguarde 1 minuto entre registros.`,
+          code: 'DUPLICATE_RECORD',
+          lastRecord: {
+            type: recentRecord.type,
+            time: recentRecord.timestamp.toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          },
+        },
+        { status: 400 }
+      )
     }
 
     // Criar hash para integridade usando o último registro do próprio usuário
@@ -325,18 +377,17 @@ export async function POST(request: NextRequest) {
         prevHash: lastRecord?.hash,
         latitude: location?.latitude,
         longitude: location?.longitude,
-        justification: justification || null // Adicionar justificativa se fornecida
+        justification: justification || null, // Adicionar justificativa se fornecida
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
-
 
     // Calcular saldo de horas após registro de ponto
     try {
@@ -352,20 +403,20 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'QR_UNIFIED_ATTENDANCE',
         resource: 'ATTENDANCE_RECORD',
-        details: `Registro de ${recordType} via QR ${isSecureQR ? 'seguro' : 'simples'} na máquina ${machine.name}`
-      }
+        details: `Registro de ${recordType} via QR ${isSecureQR ? 'seguro' : 'simples'} na máquina ${machine.name}`,
+      },
     })
 
     const recordTime = attendanceRecord.timestamp.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
 
     apiLogger.audit('ATTENDANCE_RECORDED', 'ATTENDANCE_RECORD', {
       userId: session.user.id,
       recordType,
       time: recordTime,
-      qrType: isSecureQR ? 'SECURE' : 'SIMPLE'
+      qrType: isSecureQR ? 'SECURE' : 'SIMPLE',
     })
 
     // Resposta unificada
@@ -382,45 +433,50 @@ export async function POST(request: NextRequest) {
         timestamp: attendanceRecord.timestamp,
         time: recordTime,
         location: machine.location,
-        machineName: machine.name
+        machineName: machine.name,
       },
       qrType: isSecureQR ? 'SECURE' : 'SIMPLE',
       analysis: {
         reason: attendanceAnalysis.reason,
         confidence: attendanceAnalysis.confidence,
         suggestions: (attendanceAnalysis as any).suggestions || [],
-        warnings: validation.warnings
+        warnings: validation.warnings,
       },
       machine: {
         name: machine.name,
-        location: machine.location
+        location: machine.location,
       },
       message: `${typeLabel} registrada com sucesso às ${recordTime}!`,
       smartMessage: `${typeLabel} detectada: ${attendanceAnalysis.reason}`,
-      displayMessage: `${typeLabel} às ${recordTime}\nMáquina: ${machine.name}`
+      displayMessage: `${typeLabel} às ${recordTime}\nMáquina: ${machine.name}`,
     })
-
   } catch (error: any) {
     // Error already logged by apiLogger below
 
     apiLogger.error('QR scan processing error', {
       error: error.message,
       stack: error.stack,
-      userId: (await getServerSession(authOptions))?.user?.id
+      userId: (await getServerSession(authOptions))?.user?.id,
     })
 
     // Verificar se é erro de QR_SECRET
     if (error.message && error.message.includes('QR_SECRET')) {
-      return NextResponse.json({
-        error: 'Erro de configuração do servidor: QR_SECRET não está configurado',
-        code: 'SERVER_CONFIG_ERROR'
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Erro de configuração do servidor: QR_SECRET não está configurado',
+          code: 'SERVER_CONFIG_ERROR',
+        },
+        { status: 500 }
+      )
     }
 
-    return NextResponse.json({
-      error: 'Erro interno do servidor',
-      code: 'INTERNAL_ERROR',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Erro interno do servidor',
+        code: 'INTERNAL_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      },
+      { status: 500 }
+    )
   }
 }

@@ -8,7 +8,7 @@ import { ptBR } from 'date-fns/locale'
 export async function GET(request: NextRequest) {
   try {
     const sessao = await getServerSession(authOptions)
-    
+
     if (!sessao) {
       return NextResponse.json({ erro: 'Não autenticado' }, { status: 401 })
     }
@@ -37,47 +37,34 @@ export async function GET(request: NextRequest) {
       where: {
         userId: sessao.user.id,
         ...(Object.keys(filtroData).length > 0 && { timestamp: filtroData }),
-        ...(filtroTipo && { type: filtroTipo })
+        ...(filtroTipo && { type: filtroTipo }),
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Cabeçalho do CSV
-    const colunas = [
-      'Data',
-      'Hora',
-      'Tipo',
-      'Máquina',
-      'Localização'
-    ]
+    const colunas = ['Data', 'Hora', 'Tipo', 'Máquina', 'Localização']
 
     // Formatar linhas do CSV
-    const linhas = registros.map(registro => {
+    const linhas = registros.map((registro) => {
       const data = format(new Date(registro.timestamp), 'dd/MM/yyyy')
       const hora = format(new Date(registro.timestamp), 'HH:mm:ss')
       const tipoTraduzido = registro.type === 'ENTRY' ? 'Entrada' : 'Saída'
-      
-      return [
-        data,
-        hora,
-        tipoTraduzido,
-        registro.machine.name,
-        registro.machine.location
-      ].map(campo => `"${campo}"`).join(',')
+
+      return [data, hora, tipoTraduzido, registro.machine.name, registro.machine.location]
+        .map((campo) => `"${campo}"`)
+        .join(',')
     })
 
-    const csvConteudo = [
-      colunas.join(','),
-      ...linhas
-    ].join('\n')
+    const csvConteudo = [colunas.join(','), ...linhas].join('\n')
 
     // Definir nome do arquivo
     const nomeArquivo = `historico_ponto_${format(new Date(), 'yyyy-MM-dd')}.csv`
@@ -89,12 +76,8 @@ export async function GET(request: NextRequest) {
         'Content-Disposition': `attachment; filename="${nomeArquivo}"`,
       },
     })
-
   } catch (erro: any) {
     console.error('❌ [API Export] Erro ao exportar dados:', erro)
-    return NextResponse.json(
-      { erro: 'Erro ao exportar dados de registros' },
-      { status: 500 }
-    )
+    return NextResponse.json({ erro: 'Erro ao exportar dados de registros' }, { status: 500 })
   }
 }

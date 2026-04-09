@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     logger.info('Employee dashboard - usuário autenticado', {
       userId: session.user.id,
       email: session.user.email,
-      role: session.user.role
+      role: session.user.role,
     })
 
     const userId = session.user.id
@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     // Verificar se está trabalhando (último registro foi entrada)
@@ -53,10 +53,10 @@ export async function GET(request: NextRequest) {
         userId,
         timestamp: {
           gte: today,
-          lt: tomorrow
-        }
+          lt: tomorrow,
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Calcular total de horas hoje
@@ -85,31 +85,33 @@ export async function GET(request: NextRequest) {
       where: {
         userId,
         timestamp: {
-          gte: sevenDaysAgo
-        }
+          gte: sevenDaysAgo,
+        },
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
-      take: 10
+      take: 10,
     })
 
     return NextResponse.json({
       success: true,
       workStatus: {
         isWorking,
-        lastRecord: lastRecord ? {
-          type: lastRecord.type,
-          timestamp: lastRecord.timestamp.toISOString(), // Envia ISO cru para formatar no frontend
-          location: lastRecord.machine.location
-        } : null,
-        todayHours
+        lastRecord: lastRecord
+          ? {
+              type: lastRecord.type,
+              timestamp: lastRecord.timestamp.toISOString(), // Envia ISO cru para formatar no frontend
+              location: lastRecord.machine.location,
+            }
+          : null,
+        todayHours,
       },
       recentRecords: recentRecords.map((record: any) => ({
         id: record.id,
@@ -118,14 +120,13 @@ export async function GET(request: NextRequest) {
         machine: record.machine,
         date: record.timestamp.toLocaleDateString('pt-BR', {
           day: '2-digit',
-          month: '2-digit'
-        })
-      }))
+          month: '2-digit',
+        }),
+      })),
     })
-
   } catch (error: unknown) {
     logger.error('Erro ao buscar dados do dashboard', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     })
     return NextResponse.json(
       {
@@ -134,9 +135,9 @@ export async function GET(request: NextRequest) {
         workStatus: {
           isWorking: false,
           lastRecord: null,
-          todayHours: '0h 00min'
+          todayHours: '0h 00min',
         },
-        recentRecords: []
+        recentRecords: [],
       },
       { status: 500 }
     )

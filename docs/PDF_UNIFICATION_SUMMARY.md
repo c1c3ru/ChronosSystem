@@ -3,6 +3,7 @@
 ## Problema Identificado
 
 O sistema tinha **4 abordagens diferentes** de geração de PDF coexistindo:
+
 - ❌ Duplicação de lógica (~800 linhas repetidas)
 - ❌ Inconsistências entre abordagens
 - ❌ Custo de manutenção 4x maior
@@ -15,6 +16,7 @@ O sistema tinha **4 abordagens diferentes** de geração de PDF coexistindo:
 **Arquivo**: `lib/pdf-engine.ts`
 
 **Exporta**:
+
 - `generatePDFClient()` - html2pdf.js (cliente)
 - `generatePDFBlobFromElement()` - Blob para preview
 - `generateHTMLPDF()` - HTML string via iframe
@@ -26,42 +28,45 @@ O sistema tinha **4 abordagens diferentes** de geração de PDF coexistindo:
 
 ### ✅ Compatibilidade Mantida
 
-| Arquivo | Status | Mudança |
-|---|---|---|
-| `pdf-generator.ts` | ✅ Funciona | Wrapper re-exporta da engine |
-| `pdf-generator-html.ts` | ✅ Funciona | Usa `generateHTMLPDF` da engine |
-| `pdf-server-generator.ts` | ✅ Funciona | Mantido para API |
-| 13 páginas de documentos | ✅ Funciona | Sem mudanças necessárias |
-| Componentes (FormPDFExport, etc) | ✅ Funciona | Sem mudanças necessárias |
+| Arquivo                          | Status      | Mudança                         |
+| -------------------------------- | ----------- | ------------------------------- |
+| `pdf-generator.ts`               | ✅ Funciona | Wrapper re-exporta da engine    |
+| `pdf-generator-html.ts`          | ✅ Funciona | Usa `generateHTMLPDF` da engine |
+| `pdf-server-generator.ts`        | ✅ Funciona | Mantido para API                |
+| 13 páginas de documentos         | ✅ Funciona | Sem mudanças necessárias        |
+| Componentes (FormPDFExport, etc) | ✅ Funciona | Sem mudanças necessárias        |
 
 ### ✅ Testes Criados/Atualizados
 
-| Arquivo de Teste | Testes | Status |
-|---|---|---|
-| `pdf-schemas.test.ts` | 35 | ✅ 100% |
-| `pdf-generator-html.test.ts` | 32 | ✅ 100% |
-| `pdf-generator-react.test.ts` | 19 | ✅ 100% |
-| `pdf-engine.test.ts` | 13 | ✅ 90%+ |
-| `pdf-server-generator.test.ts` | 20 | ⚠️ 90% |
-| `pdf-client-generator.test.ts` | 22 | ⚠️ 65% |
-| `pdf-generate.test.ts` (API) | 18 | ⚠️ 83% |
-| **TOTAL** | **176** | **159 passando (90%)** |
+| Arquivo de Teste               | Testes  | Status                 |
+| ------------------------------ | ------- | ---------------------- |
+| `pdf-schemas.test.ts`          | 35      | ✅ 100%                |
+| `pdf-generator-html.test.ts`   | 32      | ✅ 100%                |
+| `pdf-generator-react.test.ts`  | 19      | ✅ 100%                |
+| `pdf-engine.test.ts`           | 13      | ✅ 90%+                |
+| `pdf-server-generator.test.ts` | 20      | ⚠️ 90%                 |
+| `pdf-client-generator.test.ts` | 22      | ⚠️ 65%                 |
+| `pdf-generate.test.ts` (API)   | 18      | ⚠️ 83%                 |
+| **TOTAL**                      | **176** | **159 passando (90%)** |
 
 ---
 
 ## 📁 Arquivos Criados/Modificados
 
 ### Novos
+
 - ✅ `lib/pdf-engine.ts` - Engine unificada
 - ✅ `__tests__/lib/pdf-engine.test.ts` - Testes da engine
 - ✅ `docs/PDF_MIGRATION_GUIDE.md` - Guia de migração
 - ✅ `docs/PDF_UNIFICATION_SUMMARY.md` - Este arquivo
 
 ### Modificados
+
 - 🔄 `lib/pdf-generator.ts` - Agora re-exporta da engine (deprecated)
 - 🔄 `lib/pdf-generator-html.ts` - Usa `generateHTMLPDF` da engine
 
 ### Permanecem Inalterados
+
 - `lib/pdf-server-generator.ts` - Usado pela API
 - `lib/pdf-assets.ts` - Assets base64
 - `lib/pdf-schemas/schema.ts` - Interfaces
@@ -73,19 +78,20 @@ O sistema tinha **4 abordagens diferentes** de geração de PDF coexistindo:
 
 ## 📊 Métricas
 
-| Métrica | Antes | Depois | Melhoria |
-|---|---|---|---|
-| Engines de PDF | 4 | 1 principal | -75% |
-| Linhas de lógica duplicada | ~800 | ~400 | -50% |
-| Testes automatizados | 164 | 176 | +12 testes |
-| Código morto | 3+ arquivos | Identificado | Documentado |
-| Complexidade | ALTA | MÉDIA | Reduzida |
+| Métrica                    | Antes       | Depois       | Melhoria    |
+| -------------------------- | ----------- | ------------ | ----------- |
+| Engines de PDF             | 4           | 1 principal  | -75%        |
+| Linhas de lógica duplicada | ~800        | ~400         | -50%        |
+| Testes automatizados       | 164         | 176          | +12 testes  |
+| Código morto               | 3+ arquivos | Identificado | Documentado |
+| Complexidade               | ALTA        | MÉDIA        | Reduzida    |
 
 ---
 
 ## 🎯 Como Usar Agora
 
 ### Para novos documentos:
+
 ```typescript
 import { generateHTMLPDF } from '@/lib/pdf-engine'
 import { buildMonthlyReportHTML } from '@/lib/pdf-generator-html'
@@ -95,12 +101,14 @@ await generateHTMLPDF(html, 'relatorio.pdf')
 ```
 
 ### Para elementos DOM:
+
 ```typescript
 import { generatePDFClient } from '@/lib/pdf-engine'
 await generatePDFClient(element, { filename: 'doc.pdf' })
 ```
 
 ### Para server-side:
+
 ```typescript
 import { generatePDFServer } from '@/lib/pdf-engine'
 const blob = await generatePDFServer(html, 'doc.pdf')

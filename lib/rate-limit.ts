@@ -107,7 +107,7 @@ async function redisRateLimit(
         success: false,
         limit: config.maxRequests,
         remaining: 0,
-        reset: resetTime
+        reset: resetTime,
       }
     }
 
@@ -115,12 +115,12 @@ async function redisRateLimit(
       success: true,
       limit: config.maxRequests,
       remaining,
-      reset: resetTime
+      reset: resetTime,
     }
   } catch (error: any) {
     logger.error('Redis rate limit error, falling back to in-memory', {
       error: error.message,
-      identifier
+      identifier,
     })
     return inMemoryRateLimit(identifier, config)
   }
@@ -129,10 +129,7 @@ async function redisRateLimit(
 /**
  * Rate limiting em memória (fallback)
  */
-function inMemoryRateLimit(
-  identifier: string,
-  config: RateLimitConfig
-): RateLimitResult {
+function inMemoryRateLimit(identifier: string, config: RateLimitConfig): RateLimitResult {
   const key = `rate_limit:${identifier}`
   const now = Date.now()
 
@@ -145,7 +142,7 @@ function inMemoryRateLimit(
     // Nova janela de tempo
     const newEntry: RateLimitEntry = {
       count: 1,
-      resetTime: now + config.windowMs
+      resetTime: now + config.windowMs,
     }
     inMemoryCache.set(key, newEntry)
 
@@ -153,7 +150,7 @@ function inMemoryRateLimit(
       success: true,
       limit: config.maxRequests,
       remaining: config.maxRequests - 1,
-      reset: newEntry.resetTime
+      reset: newEntry.resetTime,
     }
   }
 
@@ -163,7 +160,7 @@ function inMemoryRateLimit(
       success: false,
       limit: config.maxRequests,
       remaining: 0,
-      reset: entry.resetTime
+      reset: entry.resetTime,
     }
   }
 
@@ -175,7 +172,7 @@ function inMemoryRateLimit(
     success: true,
     limit: config.maxRequests,
     remaining: config.maxRequests - entry.count,
-    reset: entry.resetTime
+    reset: entry.resetTime,
   }
 }
 
@@ -225,40 +222,38 @@ export const rateLimiters = {
   // Login: 5 tentativas por minuto
   login: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 5
+    maxRequests: 5,
   }),
 
   // 2FA: 3 tentativas por minuto
   twoFactor: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 3
+    maxRequests: 3,
   }),
 
   // QR Scan: 20 scans por minuto
   qrScan: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 20
+    maxRequests: 20,
   }),
 
   // API Geral: 100 requests por minuto
   general: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 100
+    maxRequests: 100,
   }),
 
   // Password Reset: 3 tentativas por hora
   passwordReset: rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 3
-  })
+    maxRequests: 3,
+  }),
 }
 
 /**
  * Middleware helper para aplicar rate limiting (async)
  */
-export function withRateLimit(
-  rateLimiter: (request: NextRequest) => Promise<RateLimitResult>
-) {
+export function withRateLimit(rateLimiter: (request: NextRequest) => Promise<RateLimitResult>) {
   return async (request: NextRequest): Promise<Response | null> => {
     const result = await rateLimiter(request)
 
@@ -269,14 +264,14 @@ export function withRateLimit(
         ip: getClientIP(request),
         path: request.nextUrl.pathname,
         limit: result.limit,
-        retryAfter
+        retryAfter,
       })
 
       return new Response(
         JSON.stringify({
           error: 'Rate limit exceeded',
           message: 'Too many requests. Please try again later.',
-          retryAfter
+          retryAfter,
         }),
         {
           status: 429,
@@ -285,8 +280,8 @@ export function withRateLimit(
             'X-RateLimit-Limit': result.limit.toString(),
             'X-RateLimit-Remaining': result.remaining.toString(),
             'X-RateLimit-Reset': result.reset.toString(),
-            'Retry-After': retryAfter.toString()
-          }
+            'Retry-After': retryAfter.toString(),
+          },
         }
       )
     }
@@ -298,10 +293,7 @@ export function withRateLimit(
 /**
  * Helper para adicionar headers de rate limit em respostas bem-sucedidas
  */
-export function addRateLimitHeaders(
-  response: Response,
-  result: RateLimitResult
-): Response {
+export function addRateLimitHeaders(response: Response, result: RateLimitResult): Response {
   response.headers.set('X-RateLimit-Limit', result.limit.toString())
   response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
   response.headers.set('X-RateLimit-Reset', result.reset.toString())

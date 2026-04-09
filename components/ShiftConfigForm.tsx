@@ -2,7 +2,11 @@
 
 import React from 'react'
 import { Clock, AlertCircle } from 'lucide-react'
-import { calculateExpectedDailyHours, getShiftDescription, getShiftStartTime } from '@/lib/shift-validation'
+import {
+  calculateExpectedDailyHours,
+  getShiftDescription,
+  getShiftStartTime,
+} from '@/lib/shift-validation'
 import { getContractTypeConfig } from '@/lib/contract-types'
 
 interface ShiftConfigFormProps {
@@ -24,17 +28,17 @@ export function ShiftConfigForm({
   allowFlexibleHours,
   contractType,
   onChange,
-  errors = {}
+  errors = {},
 }: ShiftConfigFormProps) {
   // Obter carga horária do tipo de contrato
   const contractConfig = contractType ? getContractTypeConfig(contractType) : null
   const weeklyHours = contractConfig?.weeklyHours || 20
   const expectedDailyHours = calculateExpectedDailyHours(weeklyHours, workingDaysPerWeek)
-  
+
   // Atualizar horários de turno automaticamente quando o turno muda
   const handleShiftChange = (newShift: string) => {
     onChange('shift', newShift)
-    
+
     // Definir horários padrão baseado no turno
     const defaultTimes = getShiftStartTime(newShift as any)
     onChange('shiftStartTime', defaultTimes.start)
@@ -64,9 +68,7 @@ export function ShiftConfigForm({
           <option value="NIGHT">🌙 Período Noturno (18:00-22:00)</option>
           <option value="HYBRID">🔄 Período Híbrido (08:00-14:00)</option>
         </select>
-        <p className="mt-1 text-xs text-neutral-400">
-          {getShiftDescription(shift as any)}
-        </p>
+        <p className="mt-1 text-xs text-neutral-400">{getShiftDescription(shift as any)}</p>
       </div>
 
       {/* Horário de Início */}
@@ -123,9 +125,7 @@ export function ShiftConfigForm({
           onChange={(e) => onChange('workingDaysPerWeek', Number(e.target.value))}
           className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
         />
-        <p className="mt-1 text-xs text-neutral-400">
-          Padrão: 5 dias (segunda a sexta)
-        </p>
+        <p className="mt-1 text-xs text-neutral-400">Padrão: 5 dias (segunda a sexta)</p>
       </div>
 
       {/* Informações de Carga Horária */}
@@ -134,10 +134,12 @@ export function ShiftConfigForm({
           <span className="font-medium">Carga Horária:</span> {weeklyHours}h/semana
         </p>
         <p className="text-sm text-white">
-          <span className="font-medium">Horas Diárias Esperadas:</span> {expectedDailyHours.toFixed(2)}h/dia
+          <span className="font-medium">Horas Diárias Esperadas:</span>{' '}
+          {expectedDailyHours.toFixed(2)}h/dia
         </p>
         <p className="text-xs text-neutral-300 mt-2">
-          Calculado como: {weeklyHours}h/semana ÷ {workingDaysPerWeek} dias = {expectedDailyHours.toFixed(2)}h/dia
+          Calculado como: {weeklyHours}h/semana ÷ {workingDaysPerWeek} dias ={' '}
+          {expectedDailyHours.toFixed(2)}h/dia
         </p>
         {!contractType && (
           <p className="text-xs text-warning-400 mt-2">

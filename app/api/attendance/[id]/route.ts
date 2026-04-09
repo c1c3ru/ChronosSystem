@@ -59,7 +59,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/attendance/[id] - Deletar um registro (apenas admin/supervisor)
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions)
 

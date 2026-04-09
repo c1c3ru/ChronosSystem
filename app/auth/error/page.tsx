@@ -15,29 +15,30 @@ function ErrorContent() {
         return {
           title: 'Acesso Negado - IFCE Maracanaú',
           message: 'Seu email não está cadastrado no sistema Chronos.',
-          description: 'Apenas funcionários, professores e estudantes pré-cadastrados pelo IFCE campus Maracanaú podem acessar o sistema. Entre em contato com a administração para solicitar seu cadastro.',
-          icon: Shield
+          description:
+            'Apenas funcionários, professores e estudantes pré-cadastrados pelo IFCE campus Maracanaú podem acessar o sistema. Entre em contato com a administração para solicitar seu cadastro.',
+          icon: Shield,
         }
       case 'Configuration':
         return {
           title: 'Erro de Configuração',
           message: 'Há um problema na configuração do sistema.',
           description: 'Entre em contato com o suporte técnico.',
-          icon: AlertCircle
+          icon: AlertCircle,
         }
       case 'Verification':
         return {
           title: 'Erro de Verificação',
           message: 'Não foi possível verificar sua conta.',
           description: 'Tente novamente ou entre em contato com o suporte.',
-          icon: Mail
+          icon: Mail,
         }
       default:
         return {
           title: 'Erro de Autenticação',
           message: 'Ocorreu um erro durante o processo de login.',
           description: 'Tente novamente ou entre em contato com o suporte.',
-          icon: AlertCircle
+          icon: AlertCircle,
         }
     }
   }
@@ -57,19 +58,13 @@ function ErrorContent() {
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-white mb-4">
-            {errorInfo.title}
-          </h1>
+          <h1 className="text-2xl font-bold text-white mb-4">{errorInfo.title}</h1>
 
           {/* Message */}
-          <p className="text-slate-300 mb-4">
-            {errorInfo.message}
-          </p>
+          <p className="text-slate-300 mb-4">{errorInfo.message}</p>
 
           {/* Description */}
-          <p className="text-slate-400 text-sm mb-8">
-            {errorInfo.description}
-          </p>
+          <p className="text-slate-400 text-sm mb-8">{errorInfo.description}</p>
 
           {/* Actions */}
           <div className="space-y-4">
@@ -92,13 +87,17 @@ function ErrorContent() {
           {/* Contact Info */}
           {error === 'AccessDenied' && (
             <div className="mt-8 p-4 bg-slate-900/50 rounded-lg border border-slate-600">
-              <h3 className="text-sm font-medium text-slate-300 mb-2">
-                Como solicitar acesso?
-              </h3>
+              <h3 className="text-sm font-medium text-slate-300 mb-2">Como solicitar acesso?</h3>
               <div className="text-xs text-slate-400 space-y-2">
-                <p>• <strong>Funcionários/Professores:</strong> Procure o setor de RH ou TI</p>
-                <p>• <strong>Estudantes:</strong> Procure o Registro Acadêmico</p>
-                <p>• <strong>Terceirizados:</strong> Procure a Administração</p>
+                <p>
+                  • <strong>Funcionários/Professores:</strong> Procure o setor de RH ou TI
+                </p>
+                <p>
+                  • <strong>Estudantes:</strong> Procure o Registro Acadêmico
+                </p>
+                <p>
+                  • <strong>Terceirizados:</strong> Procure a Administração
+                </p>
                 <p className="mt-2 text-slate-500">
                   Informe seu email Google institucional para cadastro no sistema.
                 </p>

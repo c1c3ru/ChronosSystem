@@ -15,8 +15,8 @@ async function main() {
   try {
     const result = await prisma.machine.deleteMany({
       where: {
-        name: 'Kiosk Principal'
-      }
+        name: 'Kiosk Principal',
+      },
     })
 
     console.log(`✅ ${result.count} máquina(s) deletada(s)`)

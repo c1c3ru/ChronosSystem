@@ -6,7 +6,6 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
 
-
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 const updateUserSchema = z.object({
@@ -16,14 +15,11 @@ const updateUserSchema = z.object({
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']).optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  department: z.string().optional()
+  department: z.string().optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const session = await getServerSession(authOptions)
@@ -60,10 +56,10 @@ export async function GET(
         updatedAt: true,
         _count: {
           select: {
-            attendanceRecords: true
-          }
-        }
-      }
+            attendanceRecords: true,
+          },
+        },
+      },
     })
 
     if (!user) {
@@ -78,10 +74,7 @@ export async function GET(
 }
 
 // PUT /api/users/[id] - Atualizar usuário
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const session = await getServerSession(authOptions)
@@ -101,7 +94,7 @@ export async function PUT(
 
     // Verificar se usuário existe
     const existingUser = await prisma.user.findUnique({
-      where: { id }
+      where: { id },
     })
 
     if (!existingUser) {
@@ -111,7 +104,7 @@ export async function PUT(
     // Verificar conflitos de email
     if (validatedData.email && validatedData.email !== existingUser.email) {
       const emailExists = await prisma.user.findUnique({
-        where: { email: validatedData.email }
+        where: { email: validatedData.email },
       })
 
       if (emailExists) {
@@ -135,8 +128,8 @@ export async function PUT(
         name: true,
         email: true,
         role: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     })
 
     // Log de auditoria
@@ -145,8 +138,8 @@ export async function PUT(
         userId: session.user.id,
         action: 'UPDATE_USER',
         resource: 'USER',
-        details: `Usuário atualizado: ${user.email}`
-      }
+        details: `Usuário atualizado: ${user.email}`,
+      },
     })
 
     // Invalidate user cache
@@ -156,10 +149,13 @@ export async function PUT(
     return NextResponse.json(user)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        error: 'Dados inválidos',
-        details: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao atualizar usuário:', error)
@@ -182,12 +178,15 @@ export async function DELETE(
 
     // Não permitir deletar a si mesmo
     if (session.user.id === id) {
-      return NextResponse.json({ error: 'Não é possível deletar sua própria conta' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Não é possível deletar sua própria conta' },
+        { status: 400 }
+      )
     }
 
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { email: true, role: true }
+      select: { email: true, role: true },
     })
 
     if (!user) {
@@ -195,7 +194,7 @@ export async function DELETE(
     }
 
     await prisma.user.delete({
-      where: { id }
+      where: { id },
     })
 
     // Log de auditoria
@@ -204,8 +203,8 @@ export async function DELETE(
         userId: session.user.id,
         action: 'DELETE_USER',
         resource: 'USER',
-        details: `Usuário deletado: ${user.email} (${user.role})`
-      }
+        details: `Usuário deletado: ${user.email} (${user.role})`,
+      },
     })
 
     // Invalidate user cache

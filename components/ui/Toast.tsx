@@ -26,9 +26,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9)
     const newToast = { ...toast, id }
-    
-    setToasts(prev => [...prev, newToast])
-    
+
+    setToasts((prev) => [...prev, newToast])
+
     // Auto remove after duration
     setTimeout(() => {
       removeToast(id)
@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
   return (
@@ -55,44 +55,50 @@ export function useToast() {
   return context
 }
 
-function ToastContainer({ toasts, removeToast }: { toasts: Toast[], removeToast: (id: string) => void }) {
+function ToastContainer({
+  toasts,
+  removeToast,
+}: {
+  toasts: Toast[]
+  removeToast: (id: string) => void
+}) {
   return (
     <div className="fixed top-4 right-4 z-toast space-y-2">
-      {toasts.map(toast => (
+      {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onRemove={() => removeToast(toast.id)} />
       ))}
     </div>
   )
 }
 
-function ToastItem({ toast, onRemove }: { toast: Toast, onRemove: () => void }) {
+function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
   const icons = {
     success: CheckCircle,
     error: XCircle,
     warning: AlertCircle,
-    info: Info
+    info: Info,
   }
 
   const styles = {
     success: 'bg-success/10 border-success/20 text-success',
     error: 'bg-destructive/10 border-destructive/20 text-destructive',
     warning: 'bg-warning/10 border-warning/20 text-warning',
-    info: 'bg-info/10 border-info/20 text-info'
+    info: 'bg-info/10 border-info/20 text-info',
   }
 
   const Icon = icons[toast.type]
 
   return (
-    <div className={cn(
-      'flex items-start space-x-3 p-4 rounded-lg border backdrop-blur-sm animate-slide-in max-w-sm',
-      styles[toast.type]
-    )}>
+    <div
+      className={cn(
+        'flex items-start space-x-3 p-4 rounded-lg border backdrop-blur-sm animate-slide-in max-w-sm',
+        styles[toast.type]
+      )}
+    >
       <Icon className="h-5 w-5 flex-shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm">{toast.title}</p>
-        {toast.description && (
-          <p className="text-xs opacity-90 mt-1">{toast.description}</p>
-        )}
+        {toast.description && <p className="text-xs opacity-90 mt-1">{toast.description}</p>}
       </div>
       <button
         onClick={onRemove}

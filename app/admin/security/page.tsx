@@ -33,7 +33,7 @@ export default function SecurityPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -79,7 +79,6 @@ export default function SecurityPage() {
       {/* Conteúdo */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          
           {/* Informações da conta */}
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardHeader>
@@ -135,9 +134,7 @@ export default function SecurityPage() {
                     <p className="text-sm text-slate-400">Visualize suas atividades recentes</p>
                   </div>
                   <Link href="/admin/audit">
-                    <Button variant="secondary">
-                      Ver Logs
-                    </Button>
+                    <Button variant="secondary">Ver Logs</Button>
                   </Link>
                 </div>
 
@@ -173,7 +170,6 @@ export default function SecurityPage() {
               </ul>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>

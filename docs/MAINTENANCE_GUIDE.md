@@ -5,18 +5,21 @@
 ### Semanalmente
 
 #### 1. Verificar Imports Não Utilizados
+
 ```bash
 # Executar ESLint para identificar imports não utilizados
 npm run lint
 ```
 
 #### 2. Verificar Arquivos de Teste
+
 ```bash
 # Listar arquivos de teste que podem estar fora de lugar
 find . -name "*test*" -not -path "./node_modules/*" -not -path "./__tests__/*" -not -path "./e2e/*" -not -path "./testsprite_tests/*"
 ```
 
 #### 3. Verificar Arquivos Temporários
+
 ```bash
 # Listar arquivos temporários ou de backup
 find . -name "*.backup" -o -name "*.tmp" -o -name "*copy*" | grep -v node_modules
@@ -25,12 +28,14 @@ find . -name "*.backup" -o -name "*.tmp" -o -name "*copy*" | grep -v node_module
 ### Mensalmente
 
 #### 1. Analisar Bundle Size
+
 ```bash
 # Executar build e verificar tamanho dos bundles
 npm run build
 ```
 
 #### 2. Verificar Dependências Não Utilizadas
+
 ```bash
 # Instalar depcheck (se não tiver)
 npm install -g depcheck
@@ -40,6 +45,7 @@ depcheck
 ```
 
 #### 3. Limpar Cache
+
 ```bash
 # Limpar cache do Next.js
 rm -rf .next
@@ -68,10 +74,11 @@ npm cache clean --force
 ### Ao Importar Bibliotecas
 
 1. **Importar apenas o necessário**
+
    ```typescript
    // ❌ Evitar
    import * as Icons from 'lucide-react'
-   
+
    // ✅ Preferir
    import { Clock, Users, Shield } from 'lucide-react'
    ```
@@ -83,11 +90,13 @@ npm cache clean --force
 ### Ao Fazer Commit
 
 1. **Verificar arquivos modificados**
+
    ```bash
    git status
    ```
 
 2. **Executar lint antes de commit**
+
    ```bash
    npm run lint:fix
    ```
@@ -110,10 +119,7 @@ Adicionar ao `.vscode/settings.json`:
     "source.organizeImports": true,
     "source.fixAll.eslint": true
   },
-  "typescript.preferences.autoImportFileExcludePatterns": [
-    "**/node_modules/*",
-    "**/.next/*"
-  ]
+  "typescript.preferences.autoImportFileExcludePatterns": ["**/node_modules/*", "**/.next/*"]
 }
 ```
 

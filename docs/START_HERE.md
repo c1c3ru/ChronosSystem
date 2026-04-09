@@ -144,12 +144,12 @@ npm run dev
 
 ## 🌐 Acessar as Aplicações
 
-| Aplicação | URL | Credenciais |
-|-----------|-----|-------------|
-| **Admin** | http://localhost:3000 | admin@ponto.com / admin123 |
-| **PWA** | http://localhost:3001 | estagiario@ponto.com / estagio123 |
-| **Kiosk** | http://localhost:3002 | - |
-| **API** | http://localhost:4000/api | - |
+| Aplicação | URL                       | Credenciais                       |
+| --------- | ------------------------- | --------------------------------- |
+| **Admin** | http://localhost:3000     | admin@ponto.com / admin123        |
+| **PWA**   | http://localhost:3001     | estagiario@ponto.com / estagio123 |
+| **Kiosk** | http://localhost:3002     | -                                 |
+| **API**   | http://localhost:4000/api | -                                 |
 
 ## 🧪 Testar o Sistema
 
@@ -202,7 +202,8 @@ pg_isready
 
 ### QR code não funciona
 
-**Solução:** 
+**Solução:**
+
 1. Verifique se o backend está rodando
 2. Verifique se o HMAC_SECRET está configurado no .env
 3. Veja os logs: `docker logs ponto-backend`

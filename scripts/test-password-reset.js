@@ -15,33 +15,33 @@ async function testPasswordReset() {
     console.log('1. Verificando usuários com senha...')
     const usersWithPassword = await prisma.user.findMany({
       where: {
-        password: { not: null }
+        password: { not: null },
       },
       select: {
         id: true,
         email: true,
-        name: true
-      }
+        name: true,
+      },
     })
-    
+
     console.log(`   ✅ Encontrados ${usersWithPassword.length} usuários com senha`)
-    usersWithPassword.forEach(user => {
+    usersWithPassword.forEach((user) => {
       console.log(`   - ${user.name} (${user.email})`)
     })
 
     if (usersWithPassword.length === 0) {
       console.log('   ⚠️  Nenhum usuário com senha encontrado. Criando usuário de teste...')
-      
+
       const testUser = await prisma.user.create({
         data: {
           name: 'Usuário Teste',
           email: 'teste@chronos.com',
           password: await bcrypt.hash('senha123', 10),
           role: 'EMPLOYEE',
-          profileComplete: true
-        }
+          profileComplete: true,
+        },
       })
-      
+
       console.log(`   ✅ Usuário de teste criado: ${testUser.email}`)
       usersWithPassword.push(testUser)
     }
@@ -57,8 +57,8 @@ async function testPasswordReset() {
       data: {
         token,
         userId: testUser.id,
-        expires: expiresAt
-      }
+        expires: expiresAt,
+      },
     })
 
     console.log(`   ✅ Token criado para ${testUser.email}`)
@@ -71,28 +71,30 @@ async function testPasswordReset() {
     const activeTokens = await prisma.passwordResetToken.findMany({
       where: {
         used: false,
-        expires: { gt: new Date() }
+        expires: { gt: new Date() },
       },
       include: {
         user: {
           select: {
             email: true,
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     })
 
     console.log(`   ✅ ${activeTokens.length} token(s) ativo(s)`)
-    activeTokens.forEach(token => {
-      console.log(`   - ${token.user.name} (${token.user.email}) - Expira: ${token.expires.toLocaleString('pt-BR')}`)
+    activeTokens.forEach((token) => {
+      console.log(
+        `   - ${token.user.name} (${token.user.email}) - Expira: ${token.expires.toLocaleString('pt-BR')}`
+      )
     })
 
     // 4. Testar validação de token
     console.log('\n4. Testando validação de token...')
     const validationTest = await prisma.passwordResetToken.findUnique({
       where: { token },
-      include: { user: true }
+      include: { user: true },
     })
 
     if (validationTest && !validationTest.used && validationTest.expires > new Date()) {
@@ -110,12 +112,12 @@ async function testPasswordReset() {
 
     await prisma.user.update({
       where: { id: testUser.id },
-      data: { password: hashedNewPassword }
+      data: { password: hashedNewPassword },
     })
 
     await prisma.passwordResetToken.update({
       where: { id: resetToken.id },
-      data: { used: true, usedAt: new Date() }
+      data: { used: true, usedAt: new Date() },
     })
 
     console.log('   ✅ Senha alterada com sucesso!')
@@ -128,15 +130,15 @@ async function testPasswordReset() {
         OR: [
           { action: 'PASSWORD_RESET_COMPLETED' },
           { action: 'MASS_PASSWORD_RESET' },
-          { action: 'INDIVIDUAL_PASSWORD_RESET' }
-        ]
+          { action: 'INDIVIDUAL_PASSWORD_RESET' },
+        ],
       },
       orderBy: { timestamp: 'desc' },
-      take: 5
+      take: 5,
     })
 
     console.log(`   ✅ ${auditLogs.length} log(s) de reset encontrado(s)`)
-    auditLogs.forEach(log => {
+    auditLogs.forEach((log) => {
       console.log(`   - ${log.action}: ${log.details} (${log.timestamp.toLocaleString('pt-BR')})`)
     })
 
@@ -151,7 +153,6 @@ async function testPasswordReset() {
     console.log('\n🌐 Páginas disponíveis:')
     console.log('   • /admin/password-reset - Interface administrativa')
     console.log('   • /auth/reset-password?token=XXX - Página de reset do usuário')
-
   } catch (error) {
     console.error('❌ Erro durante o teste:', error)
   } finally {

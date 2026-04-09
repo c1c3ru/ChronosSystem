@@ -15,7 +15,7 @@ export function FormPDFExport({
   formId,
   fileName,
   isLoading = false,
-  onExport
+  onExport,
 }: FormPDFExportProps) {
   const [loading, setLoading] = useState(false)
 
@@ -39,7 +39,6 @@ export function FormPDFExport({
       // Gerar PDF usando html2pdf.js
       const { printElementAsPDF } = await import('@/lib/pdf-generator')
       await printElementAsPDF(element, { filename: fileName })
-
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
       alert('Erro ao gerar PDF. Tente novamente.')

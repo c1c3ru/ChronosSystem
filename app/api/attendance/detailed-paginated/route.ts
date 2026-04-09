@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
@@ -33,26 +33,26 @@ export async function GET(request: NextRequest) {
           user: {
             name: {
               contains: searchTerm,
-              mode: 'insensitive'
-            }
-          }
+              mode: 'insensitive',
+            },
+          },
         },
         {
           user: {
             email: {
               contains: searchTerm,
-              mode: 'insensitive'
-            }
-          }
+              mode: 'insensitive',
+            },
+          },
         },
         {
           machine: {
             name: {
               contains: searchTerm,
-              mode: 'insensitive'
-            }
-          }
-        }
+              mode: 'insensitive',
+            },
+          },
+        },
       ]
     }
 
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
       whereClause.timestamp = {
         gte: date,
-        lt: nextDay
+        lt: nextDay,
       }
     }
 
@@ -77,13 +77,13 @@ export async function GET(request: NextRequest) {
     if (roleFilter !== 'ALL') {
       whereClause.user = {
         ...whereClause.user,
-        role: roleFilter
+        role: roleFilter,
       }
     }
 
     // Buscar total de registros
     const total = await prisma.attendanceRecord.count({
-      where: whereClause
+      where: whereClause,
     })
 
     // Buscar registros paginados
@@ -95,27 +95,27 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         machine: {
           select: {
             id: true,
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
       skip,
-      take: limit
+      take: limit,
     })
 
     const totalPages = Math.ceil(total / limit)
 
     return NextResponse.json({
       success: true,
-      data: records.map(record => ({
+      data: records.map((record) => ({
         id: record.id,
         timestamp: record.timestamp.toISOString(),
         type: record.type,
@@ -125,8 +125,8 @@ export async function GET(request: NextRequest) {
         formattedDate: record.timestamp.toLocaleDateString('pt-BR'),
         formattedHour: record.timestamp.toLocaleTimeString('pt-BR', {
           hour: '2-digit',
-          minute: '2-digit'
-        })
+          minute: '2-digit',
+        }),
       })),
       pagination: {
         page,
@@ -134,15 +134,11 @@ export async function GET(request: NextRequest) {
         total,
         totalPages,
         hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      }
+        hasPrevPage: page > 1,
+      },
     })
-
   } catch (error: any) {
     console.error('❌ [API] Erro ao buscar registros detalhados:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar registros' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar registros' }, { status: 500 })
   }
 }
