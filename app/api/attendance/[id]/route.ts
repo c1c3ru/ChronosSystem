@@ -9,7 +9,7 @@ import { apiLogger } from '@/lib/logger'
 export const dynamic = 'force-dynamic'
 
 // GET /api/attendance/[id] - Obter detalhes de um registro
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const recordId = params.id
+    const { id: recordId } = await params
 
     const record = await prisma.attendanceRecord.findUnique({
       where: { id: recordId },
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/attendance/[id] - Deletar um registro (apenas admin/supervisor)
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -75,7 +75,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       )
     }
 
-    const recordId = params.id
+    const { id: recordId } = await params
 
     // Verificar se o registro existe
     const record = await prisma.attendanceRecord.findUnique({
@@ -146,7 +146,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 }
 
 // PATCH /api/attendance/[id] - Atualizar um registro (apenas admin/supervisor)
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -162,7 +162,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       )
     }
 
-    const recordId = params.id
+    const { id: recordId } = await params
     const body = await request.json()
 
     // Verificar se o registro existe

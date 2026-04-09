@@ -7,8 +7,9 @@ import { prisma } from '@/lib/prisma'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: justificationId } = await params
     const session = await getServerSession(authOptions)
 
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
@@ -16,7 +17,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const { status, adminResponse } = await request.json()
-    const justificationId = params.id
 
     if (!['APPROVED', 'REJECTED'].includes(status)) {
       return NextResponse.json({ error: 'Status inválido' }, { status: 400 })

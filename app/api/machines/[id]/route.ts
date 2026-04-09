@@ -16,9 +16,10 @@ const updateMachineSchema = z.object({
 // GET /api/machines/[id] - Buscar máquina por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     
     if (!session) {
@@ -26,7 +27,7 @@ export async function GET(
     }
 
     const machine = await prisma.machine.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -57,9 +58,10 @@ export async function GET(
 // PATCH /api/machines/[id] - Atualizar máquina
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
@@ -71,7 +73,7 @@ export async function PATCH(
 
     // Verificar se máquina existe
     const existingMachine = await prisma.machine.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingMachine) {
@@ -79,7 +81,7 @@ export async function PATCH(
     }
 
     const machine = await prisma.machine.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
       select: {
         id: true,
@@ -117,9 +119,10 @@ export async function PATCH(
 // DELETE /api/machines/[id] - Deletar máquina
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     
     if (!session || session.user.role !== 'ADMIN') {
@@ -127,7 +130,7 @@ export async function DELETE(
     }
 
     const machine = await prisma.machine.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { 
         name: true, 
         location: true,
@@ -153,7 +156,7 @@ export async function DELETE(
     }
 
     await prisma.machine.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     // Log de auditoria

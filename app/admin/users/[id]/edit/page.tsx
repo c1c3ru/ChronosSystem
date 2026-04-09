@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { 
@@ -37,7 +37,9 @@ interface UpdateData {
   department?: string
 }
 
-export default function EditUserPage({ params }: { params: { id: string } }) {
+export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+
   const { data: session, status } = useSession()
   const router = useRouter()
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -64,38 +66,37 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
   // Load user data
   useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/users/${id}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setUserData(data)
+          setUpdateData({
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            phone: data.phone || '',
+            address: data.address || '',
+            department: data.department || ''
+          })
+        } else {
+          router.push('/admin/users')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error)
+        router.push('/admin/users')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       loadUserData()
     }
-  }, [session, params.id])
-
-  const loadUserData = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/users/${params.id}`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        setUserData(data)
-        // Inicializar dados de atualização com dados atuais
-        setUpdateData({
-          name: data.name,
-          email: data.email,
-          role: data.role,
-          phone: data.phone || '',
-          address: data.address || '',
-          department: data.department || ''
-        })
-      } else {
-        router.push('/admin/users')
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error)
-      router.push('/admin/users')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [session, id, router])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -134,7 +135,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
       if (updateData.department !== userData?.department) changedData.department = updateData.department
       if (updateData.password) changedData.password = updateData.password
 
-      const response = await fetch(`/api/users/${params.id}`, {
+      const response = await fetch(`/api/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

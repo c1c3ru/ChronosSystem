@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { FinalReportDocument } from '@/components/templates/FinalReportDocument'
 import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function FinalReportPage() {
@@ -75,7 +74,7 @@ export default function FinalReportPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: any = { ...formData }
 
     await saveDraft('final-report', data)
     toast.success('Rascunho salvo com sucesso!')

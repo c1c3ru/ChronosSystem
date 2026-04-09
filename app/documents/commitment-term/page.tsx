@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { CommitmentTermDocument } from '@/components/templates/CommitmentTermDocument'
 import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
 
 export default function CommitmentTermPage() {
@@ -376,13 +375,13 @@ export default function CommitmentTermPage() {
                         <td className="px-4 py-2 font-medium capitalize">{shift === 'morning' ? 'Manhã' : shift === 'afternoon' ? 'Tarde' : 'Noite'}</td>
                         {['mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((day) => (
                           <td key={day} className="px-2 py-1">
-                              <input
-                                className="bg-transparent border border-neutral-700 rounded px-1 py-0.5 w-20 text-center text-xs"
-                                placeholder="00:00-00:00"
-                                value={JSON.parse(formData.schedule)[shift][day]}
-                                onChange={(e) => handleScheduleChange(shift, day, e.target.value)}
-                                title={`Horário ${shift} - ${day}`}
-                              />
+                            <input
+                              className="bg-transparent border border-neutral-700 rounded px-1 py-0.5 w-20 text-center text-xs"
+                              placeholder="00:00-00:00"
+                              value={JSON.parse(formData.schedule)[shift][day]}
+                              onChange={(e) => handleScheduleChange(shift, day, e.target.value)}
+                              title={`Horário ${shift} - ${day}`}
+                            />
                           </td>
                         ))}
                       </tr>

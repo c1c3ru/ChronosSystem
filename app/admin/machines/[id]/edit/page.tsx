@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { 
@@ -34,7 +34,9 @@ interface UpdateData {
   isActive?: boolean
 }
 
-export default function EditMachinePage({ params }: { params: { id: string } }) {
+export default function EditMachinePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+
   const { data: session, status } = useSession()
   const router = useRouter()
   const [machineData, setMachineData] = useState<MachineData | null>(null)
@@ -61,35 +63,34 @@ export default function EditMachinePage({ params }: { params: { id: string } }) 
 
   // Load machine data
   useEffect(() => {
+    const loadMachineData = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/machines/${id}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setMachineData(data)
+          setUpdateData({
+            name: data.name,
+            location: data.location,
+            isActive: data.isActive
+          })
+        } else {
+          router.push('/admin/machines')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar máquina:', error)
+        router.push('/admin/machines')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       loadMachineData()
     }
-  }, [session, params.id])
-
-  const loadMachineData = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/machines/${params.id}`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        setMachineData(data)
-        // Inicializar dados de atualização com dados atuais
-        setUpdateData({
-          name: data.name,
-          location: data.location,
-          isActive: data.isActive
-        })
-      } else {
-        router.push('/admin/machines')
-      }
-    } catch (error) {
-      console.error('Erro ao carregar máquina:', error)
-      router.push('/admin/machines')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [session, id, router])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -120,7 +121,7 @@ export default function EditMachinePage({ params }: { params: { id: string } }) 
       if (updateData.location !== machineData?.location) changedData.location = updateData.location
       if (updateData.isActive !== machineData?.isActive) changedData.isActive = updateData.isActive
 
-      const response = await fetch(`/api/machines/${params.id}`, {
+      const response = await fetch(`/api/machines/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

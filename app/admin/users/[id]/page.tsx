@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { 
@@ -50,7 +50,9 @@ interface UserDetails {
   }
 }
 
-export default function UserDetailsPage({ params }: { params: { id: string } }) {
+export default function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+
   const { data: session, status } = useSession()
   const router = useRouter()
   const [user, setUser] = useState<UserDetails | null>(null)
@@ -74,28 +76,28 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
 
   // Load user data
   useEffect(() => {
+    const loadUser = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/users/${id}`)
+        
+        if (response.ok) {
+          const userData = await response.json()
+          setUser(userData)
+        } else if (response.status === 404) {
+          router.push('/admin/users')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       loadUser()
     }
-  }, [session, params.id])
-
-  const loadUser = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/users/${params.id}`)
-      
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else if (response.status === 404) {
-        router.push('/admin/users')
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [session, id, router])
 
   if (status === 'loading' || loading) {
     return <Loading />

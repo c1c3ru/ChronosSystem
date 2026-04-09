@@ -28,12 +28,11 @@ function buildCsp() {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['@prisma/client', 'bcryptjs', '@react-pdf/renderer'],
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs', '@react-pdf/renderer'],
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
   // Otimizações de build
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

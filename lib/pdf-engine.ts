@@ -119,7 +119,7 @@ export async function generatePDFClient(
     jsPDF: {
       unit: 'mm' as const,
       format: 'a4' as const,
-      orientation: (options.landscape ? 'landscape' : 'portrait') as const,
+      orientation: (options.landscape ? 'landscape' : 'portrait') as 'landscape' | 'portrait',
       compress: true,
       ...options.jsPDF,
     },
@@ -173,7 +173,7 @@ export async function generatePDFBlobFromElement(
     jsPDF: {
       unit: 'mm' as const,
       format: 'a4' as const,
-      orientation: (options.landscape ? 'landscape' : 'portrait') as const,
+      orientation: (options.landscape ? 'landscape' : 'portrait') as 'landscape' | 'portrait',
       compress: true,
       ...options.jsPDF,
     },

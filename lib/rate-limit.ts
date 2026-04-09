@@ -200,7 +200,7 @@ function getClientIP(request: NextRequest): string {
   }
 
   // Fallback para IP direto (desenvolvimento)
-  return request.ip || 'unknown'
+  return (request as any).ip || 'unknown'
 }
 
 /**

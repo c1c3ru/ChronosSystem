@@ -22,9 +22,10 @@ const updateUserSchema = z.object({
 // GET /api/users/[id] - Buscar usuário por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -32,12 +33,12 @@ export async function GET(
     }
 
     // Usuários podem ver seus próprios dados, admins/supervisores podem ver todos
-    if (session.user.id !== params.id && !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
+    if (session.user.id !== id && !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -79,9 +80,10 @@ export async function GET(
 // PUT /api/users/[id] - Atualizar usuário
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -89,7 +91,7 @@ export async function PUT(
     }
 
     // Verificar permissões
-    const canEdit = session.user.id === params.id || ['ADMIN', 'SUPERVISOR'].includes(session.user.role)
+    const canEdit = session.user.id === id || ['ADMIN', 'SUPERVISOR'].includes(session.user.role)
     if (!canEdit) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
@@ -99,7 +101,7 @@ export async function PUT(
 
     // Verificar se usuário existe
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingUser) {
@@ -126,7 +128,7 @@ export async function PUT(
     }
 
     const user = await (prisma.user as any).update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       select: {
         id: true,
@@ -148,7 +150,7 @@ export async function PUT(
     })
 
     // Invalidate user cache
-    await UserCache.invalidate(params.id)
+    await UserCache.invalidate(id)
     await UserCache.invalidateAll()
 
     return NextResponse.json(user)
@@ -168,9 +170,10 @@ export async function PUT(
 // DELETE /api/users/[id] - Deletar usuário
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -178,12 +181,12 @@ export async function DELETE(
     }
 
     // Não permitir deletar a si mesmo
-    if (session.user.id === params.id) {
+    if (session.user.id === id) {
       return NextResponse.json({ error: 'Não é possível deletar sua própria conta' }, { status: 400 })
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { email: true, role: true }
     })
 
@@ -192,7 +195,7 @@ export async function DELETE(
     }
 
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     // Log de auditoria
@@ -206,7 +209,7 @@ export async function DELETE(
     })
 
     // Invalidate user cache
-    await UserCache.invalidate(params.id)
+    await UserCache.invalidate(id)
     await UserCache.invalidateAll()
 
     return NextResponse.json({ message: 'Usuário deletado com sucesso' })
