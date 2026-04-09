@@ -5,7 +5,9 @@
       "Bash(npm test *)",
       "Bash(rm *)",
       "Bash(npx *)",
-      "Bash(git show *)"
+      "Bash(git show *)",
+      "Bash(npm install)",
+      "Bash(npm ci)"
     ]
   },
   "$version": 3
