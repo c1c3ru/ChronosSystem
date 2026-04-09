@@ -32,7 +32,7 @@ jobs:
           # cache: "npm" # Cache might behave differently on self-hosted
 
       - name: 📦 Install
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: 🏗️ Prisma Generate
         run: npx prisma generate
