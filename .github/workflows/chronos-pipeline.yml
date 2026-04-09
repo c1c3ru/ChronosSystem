@@ -32,9 +32,7 @@ jobs:
           # cache: "npm" # Cache might behave differently on self-hosted
 
       - name: 📦 Install
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: 🏗️ Prisma Generate
         run: npx prisma generate
@@ -78,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Install
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: 🏗️ Prisma Generate
         run: npx prisma generate
@@ -120,7 +118,7 @@ jobs:
           git reset --hard origin/main
           
           echo "📦 Installing production dependencies..."
-          npm ci --production
+          npm install --production --legacy-peer-deps
           
           echo "🔍 Pre-deployment checks..."
           chmod +x ./scripts/check-migration.sh
