@@ -23,7 +23,6 @@ Componente principal que fornece o layout base do formulário.
 
 ```tsx
 import { OfficialFormTemplate } from '@/components/OfficialFormTemplate'
-
 ;<OfficialFormTemplate
   formId="meu-formulario"
   title="TÍTULO DO FORMULÁRIO"
@@ -50,7 +49,6 @@ Tabela padronizada com bordas pretas.
 
 ```tsx
 import { FormTable } from '@/components/OfficialFormTemplate'
-
 ;<FormTable>
   <tbody>{/* Linhas da tabela */}</tbody>
 </FormTable>
@@ -62,7 +60,6 @@ Célula de cabeçalho (label) com fundo cinza.
 
 ```tsx
 import { FormHeaderCell } from '@/components/OfficialFormTemplate'
-
 ;<FormHeaderCell colSpan={2}>NOME DO CAMPO</FormHeaderCell>
 ```
 
@@ -72,7 +69,6 @@ Célula de dados (input).
 
 ```tsx
 import { FormDataCell } from '@/components/OfficialFormTemplate'
-
 ;<FormDataCell>
   <FormInput name="campo" />
 </FormDataCell>
@@ -84,7 +80,6 @@ Input padronizado sem bordas.
 
 ```tsx
 import { FormInput } from '@/components/OfficialFormTemplate'
-
 ;<FormInput
   type="text"
   name="nome"
@@ -100,7 +95,6 @@ Textarea padronizado.
 
 ```tsx
 import { FormTextarea } from '@/components/OfficialFormTemplate'
-
 ;<FormTextarea name="descricao" value={formData.descricao} onChange={handleChange} rows={4} />
 ```
 
@@ -110,7 +104,6 @@ Select padronizado.
 
 ```tsx
 import { FormSelect } from '@/components/OfficialFormTemplate'
-
 ;<FormSelect name="tipo" value={formData.tipo} onChange={handleChange}>
   <option value="opcao1">Opção 1</option>
   <option value="opcao2">Opção 2</option>
@@ -123,7 +116,6 @@ Seção de assinatura com linha.
 
 ```tsx
 import { SignatureSection } from '@/components/OfficialFormTemplate'
-
 ;<SignatureSection
   label="ASSINATURA DO RESPONSÁVEL"
   date={true} // Adiciona campo de data
