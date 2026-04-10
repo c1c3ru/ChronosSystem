@@ -148,19 +148,19 @@ if (typeof global.Request === 'undefined') {
     global.Response = fetchProps.Response
     global.Headers = fetchProps.Headers
   } catch (e) {
-    global.Request = class Request { }
-    global.Response = class Response { }
-    global.Headers = class Headers { }
+    global.Request = class Request {}
+    global.Response = class Response {}
+    global.Headers = class Headers {}
   }
 
   try {
     const { ReadableStream } = require('stream/web')
     global.ReadableStream = ReadableStream
   } catch (e) {
-    global.ReadableStream = class ReadableStream { }
+    global.ReadableStream = class ReadableStream {}
   }
 
-  global.FormData = class FormData { }
+  global.FormData = class FormData {}
 }
 
 // Polyfill Response.json static method if missing
