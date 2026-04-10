@@ -5,6 +5,35 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
+jest.mock('next/server', () => {
+  return {
+    NextRequest: class MockNextRequest {},
+    NextResponse: class MockNextResponse {
+      status: number;
+      _headers: Record<string, string>;
+      body: any;
+
+      constructor(body: any, init?: any) {
+        this.status = init?.status || 200;
+        this._headers = init?.headers || {};
+        this.body = body;
+      }
+
+      get headers() {
+        return {
+          get: (key: string) => this._headers[key] || null
+        };
+      }
+
+      static json(body: any, init?: any) {
+        const resp = new MockNextResponse(body, init);
+        // Cast to any to add json method specifically for test compatibility
+        ;(resp as any).json = async () => body;
+        return resp;
+      }
+    }
+  };
+});
 
 // Mock do generatePDFFromSchema
 jest.mock('@/lib/pdf-server-generator', () => ({

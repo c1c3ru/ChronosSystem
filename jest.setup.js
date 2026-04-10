@@ -138,12 +138,36 @@ global.TextDecoder = TextDecoder
 
 // Polyfill for Web API Request/Response (needed for Next.js API route tests)
 if (typeof global.Request === 'undefined') {
-  // In Node 18+, these are available in the global scope but might be missing in Jest environment
-  if (typeof Request !== 'undefined') {
-    global.Request = Request;
-    global.Response = Response;
-    global.Headers = Headers;
-    global.ReadableStream = ReadableStream;
-    global.FormData = FormData;
+  try {
+    const fetchProps = require('next/dist/compiled/@edge-runtime/primitives/fetch');
+    global.Request = fetchProps.Request;
+    global.Response = fetchProps.Response;
+    global.Headers = fetchProps.Headers;
+  } catch (e) {
+    global.Request = class Request {};
+    global.Response = class Response {};
+    global.Headers = class Headers {};
   }
+  
+  try {
+    const { ReadableStream } = require('stream/web');
+    global.ReadableStream = ReadableStream;
+  } catch (e) {
+    global.ReadableStream = class ReadableStream {};
+  }
+  
+  global.FormData = class FormData {};
+}
+
+// Polyfill Response.json static method if missing
+if (typeof global.Response !== 'undefined' && !global.Response.json) {
+  global.Response.json = function(data, init = {}) {
+    return new global.Response(JSON.stringify(data), {
+      status: init.status || 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init.headers || {})
+      }
+    });
+  };
 }

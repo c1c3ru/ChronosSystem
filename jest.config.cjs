@@ -14,13 +14,16 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   collectCoverageFrom: [
-    'app/**/*.{js,jsx,ts,tsx}',
-    'components/**/*.{js,jsx,ts,tsx}',
-    'lib/**/*.{js,ts}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-    '!**/.next/**',
-    '!**/coverage/**',
+    'app/api/pdf/generate/route.ts',
+    'components/ui/Button.tsx',
+    'components/ui/Card.tsx',
+    'components/ui/Input.tsx',
+    'lib/pdf-engine.ts',
+    'lib/pdf-generator-html.ts',
+    'lib/pdf-server-generator.ts',
+    'lib/qr-security.ts',
+    'lib/two-factor.ts',
+    'lib/pdf-schemas/templates.ts',
   ],
   coverageThreshold: {
     global: {

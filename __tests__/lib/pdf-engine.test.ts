@@ -145,8 +145,10 @@ describe('pdf-engine - generateHTMLPDF', () => {
 describe('pdf-engine - downloadPDFBlob', () => {
   it('deve configurar link de download corretamente', () => {
     const mockBlob = new Blob(['pdf content'], { type: 'application/pdf' })
-    const mockLink = { click: jest.fn(), href: '', download: '' }
+    const mockLink = document.createElement('a')
+    mockLink.click = jest.fn()
 
+    const originalCreateElement = global.document.createElement
     global.document.createElement = jest.fn().mockReturnValue(mockLink) as any
     global.URL.createObjectURL = jest.fn().mockReturnValue('blob:url')
     global.URL.revokeObjectURL = jest.fn()
@@ -156,6 +158,8 @@ describe('pdf-engine - downloadPDFBlob', () => {
     expect(mockLink.download).toBe('test.pdf')
     expect(mockLink.click).toHaveBeenCalled()
     expect(global.URL.revokeObjectURL).toHaveBeenCalled()
+
+    global.document.createElement = originalCreateElement
   })
 })
 
