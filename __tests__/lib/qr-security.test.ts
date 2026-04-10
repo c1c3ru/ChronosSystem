@@ -324,8 +324,9 @@ describe('qr-security', () => {
       const qr = generateSecureQR('machine-1', 60)
       const [payload] = qr.fullQR.split('.')
 
-      // Criar assinatura similar mas incorreta
-      const wrongSignature = qr.signature.substring(0, qr.signature.length - 1) + 'X'
+      // Criar assinatura similar mas garantidamente incorreta no meio da string
+      const charToReplace = qr.signature[10] === 'X' ? 'Y' : 'X'
+      const wrongSignature = qr.signature.substring(0, 10) + charToReplace + qr.signature.substring(11)
       const tamperedQR = `${payload}.${wrongSignature}`
 
       const result = validateSecureQR(tamperedQR)
