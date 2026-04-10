@@ -243,11 +243,11 @@ export default function InternshipRegistrationRequestPage() {
         bairro: raw.bairro || '',
         municipio_uf: raw.municipio_uf || '',
         cep: raw.cep || '',
-        
+
         // Cor/Raça e Etnia
         cor_raca: raw.cor_raca || '',
         etnia: raw.etnia || '',
-        
+
         // Dados da Empresa
         empresa_nome: raw.nome_fantasia_pf || '',
         empresa_cnpj: raw.cnpj_registro_conselho || '',
@@ -255,21 +255,21 @@ export default function InternshipRegistrationRequestPage() {
         empresa_bairro: raw.bairro_pf || '',
         empresa_municipio_uf: raw.municipio_uf_pf || '',
         empresa_cep: raw.cep_pf || '',
-        
+
         // Responsável e Supervisor
         responsavel_legal: raw.responsavel_legal || '',
         cargo_responsavel: raw.cargo_qualificacao || '',
         nome_supervisor: raw.supervisor_nome || '',
         cargo_supervisor: raw.supervisor_cargo || '',
         setor_supervisor: raw.setor_realizacao || '',
-        
+
         // Estágio
         tipo_estagio: raw.tipo_estagio === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
         forma_estagio: raw.forma_estagio === 'presencial' ? 'Presencial' : 'Remoto',
         inicio_estagio: raw.data_inicial || '',
         fim_estagio: raw.data_final_prevista || '',
         horas_semanais: raw.carga_horaria_semanal || '',
-        
+
         // Horários
         horario_segunda_inicio: raw.horarios.segunda_feira.inicio || '',
         horario_segunda_fim: raw.horarios.segunda_feira.final || '',
