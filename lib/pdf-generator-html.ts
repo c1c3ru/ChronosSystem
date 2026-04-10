@@ -404,23 +404,400 @@ export function buildInternshipRegistrationHTML(d: Record<string, string>): stri
   )
 }
 
-// 9. Requerimento de Estágio
-export function buildInternshipRegistrationRequestHTML(d: Record<string, string>): string {
-  return wrap(
-    'Requerimento de Estágio Supervisionado',
-    `
-    <table>
-      ${row(f('Nome do Discente', d.nome_estudante, '100%'))}
-      ${row(f('Curso', d.curso_estudante, '70%'), f('Matrícula', d.matricula_estudante, '30%'))}
-      ${row(f('CPF', d.cpf_estudante, '45%'), f('Telefone', d.telefone_estudante, '55%'))}
-      ${row(f('Empresa / Instituição Concedente', d.empresa_nome, '100%'))}
-      ${row(f('Supervisor do Estágio', d.nome_supervisor, '65%'), f('Cargo', d.cargo_supervisor, '35%'))}
-      ${row(f('Início', fmt(d.inicio_estagio), '33%'), f('Término', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
-      ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Aux. Transporte (R$)', d.valor_transporte, '50%'))}
-    </table>
-    ${sec('Atividades Previstas', d.atividades_previstas)}
-    ${sigBlock(['Discente', 'Supervisor do Estágio', 'Coordenador de Estágios'])}`
-  )
+// 9. Solicitação de Cadastro no Estágio - Modelo IFCE
+export function buildInternshipRegistrationRequestHTML(data: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { 
+        font-family: Arial, sans-serif; 
+        font-size: 12px; 
+        line-height: 1.4;
+        margin: 0;
+        padding: 0;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+      }
+      .header h1 {
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0;
+        text-transform: uppercase;
+      }
+      .header h2 {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 5px 0;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .section-title {
+        font-weight: bold;
+        font-size: 12px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 3px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .form-field {
+        margin-bottom: 8px;
+      }
+      .field-label {
+        font-weight: bold;
+        font-size: 10px;
+        margin-bottom: 2px;
+      }
+      .field-value {
+        border: 1px solid #ccc;
+        padding: 4px;
+        min-height: 16px;
+        background: #f9f9f9;
+      }
+      .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 10px 0;
+      }
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        font-size: 10px;
+      }
+      .checkbox-item input {
+        margin-right: 4px;
+      }
+      .schedule-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin: 10px 0;
+      }
+      .schedule-day {
+        text-align: center;
+      }
+      .schedule-day-label {
+        font-weight: bold;
+        font-size: 9px;
+        margin-bottom: 3px;
+      }
+      .schedule-time {
+        border: 1px solid #ccc;
+        padding: 2px;
+        height: 15px;
+        font-size: 9px;
+        margin-bottom: 2px;
+      }
+      .signature-section {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .signature-box {
+        text-align: center;
+      }
+      .signature-line {
+        border-bottom: 1px solid #000;
+        margin: 30px 0 5px 0;
+        height: 40px;
+      }
+      .signature-label {
+        font-size: 10px;
+        font-weight: bold;
+      }
+      .dates-section {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin: 20px 0;
+      }
+      .date-box {
+        text-align: center;
+      }
+      .date-line {
+        border-bottom: 1px solid #000;
+        margin: 20px 0 5px 0;
+        height: 20px;
+      }
+      .observation {
+        border: 1px solid #ccc;
+        padding: 10px;
+        min-height: 40px;
+        margin: 15px 0;
+        font-style: italic;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>SOLICITAÇÃO DE CADASTRO NO ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+
+    <div class="section">
+      <div class="section-title">1. DADOS PESSOAIS</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${data.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">CPF</div>
+          <div class="field-value">${data.cpf_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Nome Social</div>
+          <div class="field-value">${data.nome_social || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${data.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${data.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 3;">
+          <div class="field-label">Endereço</div>
+          <div class="field-value">${data.endereco || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Bairro</div>
+          <div class="field-value">${data.bairro || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Município-UF</div>
+          <div class="field-value">${data.municipio_uf || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">CEP</div>
+          <div class="field-value">${data.cep || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Telefone</div>
+          <div class="field-value">${data.telefone_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">E-mail Institucional</div>
+          <div class="field-value">${data.email_institucional || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">E-mail Pessoal</div>
+          <div class="field-value">${data.email_pessoal || ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">2. COR/RAÇA E ETNIA</div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Cor/Raça</div>
+          <div class="field-value">${data.cor_raca || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Etnia</div>
+          <div class="field-value">${data.etnia || ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">3. TIPO DE ESTÁGIO</div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Tipo de Estágio</div>
+          <div class="field-value">${data.tipo_estagio || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Forma de Estágio</div>
+          <div class="field-value">${data.forma_estagio || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Data Inicial</div>
+          <div class="field-value">${data.inicio_estagio || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Carga Horária Semanal</div>
+          <div class="field-value">${data.horas_semanais || ''} horas</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Data Final Prevista</div>
+          <div class="field-value">${data.fim_estagio || ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">4. DISTRIBUIÇÃO DA CARGA HORÁRIA DIÁRIA</div>
+      <div class="schedule-grid">
+        <div class="schedule-day">
+          <div class="schedule-day-label">Segunda</div>
+          <div class="schedule-time">${data.horario_segunda_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_segunda_fim || ''}</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">Terça</div>
+          <div class="schedule-time">${data.horario_terca_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_terca_fim || ''}</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">Quarta</div>
+          <div class="schedule-time">${data.horario_quarta_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_quarta_fim || ''}</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">Quinta</div>
+          <div class="schedule-time">${data.horario_quinta_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_quinta_fim || ''}</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">Sexta</div>
+          <div class="schedule-time">${data.horario_sexta_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_sexta_fim || ''}</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">Sábado</div>
+          <div class="schedule-time">${data.horario_sabado_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_sabado_fim || ''}</div>
+        </div>
+        <div class="schedule-day">
+          <div class="schedule-day-label">Domingo</div>
+          <div class="schedule-time">${data.horario_domingo_inicio || ''}</div>
+          <div class="schedule-time">${data.horario_domingo_fim || ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">5. UNIDADE CONCEDENTE</div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Nome Fantasia / Razão Social</div>
+          <div class="field-value">${data.empresa_nome || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">CNPJ / Registro no Conselho</div>
+          <div class="field-value">${data.empresa_cnpj || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 3;">
+          <div class="field-label">Endereço</div>
+          <div class="field-value">${data.empresa_endereco || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Bairro</div>
+          <div class="field-value">${data.empresa_bairro || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Município-UF</div>
+          <div class="field-value">${data.empresa_municipio_uf || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">CEP</div>
+          <div class="field-value">${data.empresa_cep || ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">6. RESPONSÁVEL LEGAL E SUPERVISOR</div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Responsável Legal</div>
+          <div class="field-value">${data.responsavel_legal || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Cargo / Qualificação</div>
+          <div class="field-value">${data.cargo_responsavel || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Supervisor(a) do Estágio</div>
+          <div class="field-value">${data.nome_supervisor || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Cargo do Supervisor</div>
+          <div class="field-value">${data.cargo_supervisor || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Setor de Realização</div>
+          <div class="field-value">${data.setor_supervisor || ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dates-section">
+      <div class="date-box">
+        <div class="field-label">SOLICITAÇÃO EM</div>
+        <div class="date-line"></div>
+      </div>
+      <div class="date-box">
+        <div class="field-label">AUTORIZAÇÃO EM</div>
+        <div class="date-line"></div>
+      </div>
+    </div>
+
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Assinatura do Estagiário(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Assinatura do Responsável Legal</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Assinatura do Supervisor(a)</div>
+      </div>
+    </div>
+
+    <div class="observation">
+      Observação: Este formulário deve ser preenchido com todas as informações corretas e apresentado na coordenação de estágios.
+    </div>
+  </body>
+  </html>
+  `
 }
 
 // 10. Termo de Realização

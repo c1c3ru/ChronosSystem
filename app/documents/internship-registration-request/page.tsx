@@ -230,22 +230,61 @@ export default function InternshipRegistrationRequestPage() {
 
       // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
+        // Dados Pessoais
         nome_estudante: raw.nome || '',
+        nome_social: raw.nome_social || '',
         curso_estudante: raw.curso || '',
         matricula_estudante: raw.matricula || '',
         cpf_estudante: raw.cpf || '',
-        email_estudante: raw.email_institucional || raw.email_pessoal || '',
+        email_institucional: raw.email_institucional || '',
+        email_pessoal: raw.email_pessoal || '',
         telefone_estudante: raw.telefone || '',
+        endereco: raw.endereco || '',
+        bairro: raw.bairro || '',
+        municipio_uf: raw.municipio_uf || '',
+        cep: raw.cep || '',
+        
+        // Cor/Raça e Etnia
+        cor_raca: raw.cor_raca || '',
+        etnia: raw.etnia || '',
+        
+        // Dados da Empresa
         empresa_nome: raw.nome_fantasia_pf || '',
         empresa_cnpj: raw.cnpj_registro_conselho || '',
         empresa_endereco: raw.endereco_pf || '',
+        empresa_bairro: raw.bairro_pf || '',
+        empresa_municipio_uf: raw.municipio_uf_pf || '',
+        empresa_cep: raw.cep_pf || '',
+        
+        // Responsável e Supervisor
+        responsavel_legal: raw.responsavel_legal || '',
+        cargo_responsavel: raw.cargo_qualificacao || '',
         nome_supervisor: raw.supervisor_nome || '',
         cargo_supervisor: raw.supervisor_cargo || '',
         setor_supervisor: raw.setor_realizacao || '',
+        
+        // Estágio
         tipo_estagio: raw.tipo_estagio === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
+        forma_estagio: raw.forma_estagio === 'presencial' ? 'Presencial' : 'Remoto',
         inicio_estagio: raw.data_inicial || '',
         fim_estagio: raw.data_final_prevista || '',
         horas_semanais: raw.carga_horaria_semanal || '',
+        
+        // Horários
+        horario_segunda_inicio: raw.horarios.segunda_feira.inicio || '',
+        horario_segunda_fim: raw.horarios.segunda_feira.final || '',
+        horario_terca_inicio: raw.horarios.terca_feira.inicio || '',
+        horario_terca_fim: raw.horarios.terca_feira.final || '',
+        horario_quarta_inicio: raw.horarios.quarta_feira.inicio || '',
+        horario_quarta_fim: raw.horarios.quarta_feira.final || '',
+        horario_quinta_inicio: raw.horarios.quinta_feira.inicio || '',
+        horario_quinta_fim: raw.horarios.quinta_feira.final || '',
+        horario_sexta_inicio: raw.horarios.sexta_feira.inicio || '',
+        horario_sexta_fim: raw.horarios.sexta_feira.final || '',
+        horario_sabado_inicio: raw.horarios.sabado.inicio || '',
+        horario_sabado_fim: raw.horarios.sabado.final || '',
+        horario_domingo_inicio: raw.horarios.domingo.inicio || '',
+        horario_domingo_fim: raw.horarios.domingo.final || '',
       }
 
       const html = buildInternshipRegistrationRequestHTML(htmlData)
