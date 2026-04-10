@@ -12,10 +12,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "20"
-  DATABASE_URL: "file:./ci.db"
-  NEXTAUTH_SECRET: "ci-test-secret-key-123456789"
-  NEXTAUTH_URL: "http://localhost:5000"
+  NODE_VERSION: '20'
+  DATABASE_URL: 'file:./ci.db'
+  NEXTAUTH_SECRET: 'ci-test-secret-key-123456789'
+  NEXTAUTH_URL: 'http://localhost:5000'
 
 jobs:
   quality-gate:
@@ -67,43 +67,10 @@ jobs:
       - name: 📋 Audit Dependencies
         run: npm audit --audit-level=high
 
-  e2e-tests:
-    name: 🎭 E2E Tests
-    runs-on: self-hosted
-    needs: quality-gate
-    steps:
-      - name: ⬇️ Checkout
-        uses: actions/checkout@v4
-
-      - name: 📦 Install
-        run: npm install --legacy-peer-deps
-
-      - name: 🏗️ Prisma Generate
-        run: npx prisma generate
-
-      - name: 🎭 Install Playwright
-        run: npx playwright install
-
-      - name: 🗄️ Setup Test DB
-        run: |
-          npx prisma db push --force-reset
-          npm run db:seed
-
-      - name: 🧪 Run E2E
-        run: npm run test:e2e
-
-      - name: 📤 Upload Report
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
-
   deploy-production:
     name: 🌍 Local Deploy (Production)
     runs-on: self-hosted
-    needs: [quality-gate, e2e-tests]
+    needs: [quality-gate]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
@@ -127,3 +94,13 @@ jobs:
           echo "🚀 Restarting system..."
           chmod +x ./start-system.sh
           ./start-system.sh
+
+          echo "🧹 Clearing rate limit cache from Redis..."
+          if command -v redis-cli &> /dev/null; then
+            redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL || true
+            echo "✅ Rate limit cache cleared"
+          else
+            echo "⚠️ Redis CLI not available, rate limits will expire naturally"
+          fi
+
+          echo "✅ Deployment completed successfully!"

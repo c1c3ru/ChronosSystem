@@ -39,6 +39,15 @@ echo "🗄️ Gerando cliente Prisma e Sincronizando Schema..."
 npx prisma generate
 npx prisma db push --accept-data-loss
 
+# 2.1 Limpar cache de rate limiting do Redis
+echo "🧹 Limpando cache de rate limiting..."
+if command -v redis-cli &> /dev/null; then
+    redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL 2>/dev/null || true
+    echo "✅ Cache de rate limiting limpo"
+else
+    echo "⚠️ Redis não disponível, rate limits expirarão naturalmente"
+fi
+
 # 3. Build da aplicação (garante que mudanças de código entrem em produção)
 echo "🔨 Compilando aplicação Next.js..."
 npm run build || { echo "❌ FALHA CRÍTICA NO BUILD: A compilação falhou! O servidor não pode ser iniciado sem um build válido."; exit 1; }
