@@ -82,7 +82,7 @@ jobs:
         run: npx prisma generate
 
       - name: 🎭 Install Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install
 
       - name: 🗄️ Setup Test DB
         run: |
