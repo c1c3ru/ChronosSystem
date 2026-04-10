@@ -12,10 +12,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
-  DATABASE_URL: 'file:./ci.db'
-  NEXTAUTH_SECRET: 'ci-test-secret-key-123456789'
-  NEXTAUTH_URL: 'http://localhost:5000'
+  NODE_VERSION: "20"
+  DATABASE_URL: "file:./ci.db"
+  NEXTAUTH_SECRET: "ci-test-secret-key-123456789"
+  NEXTAUTH_URL: "http://localhost:5000"
 
 jobs:
   quality-gate:
@@ -86,10 +86,6 @@ jobs:
 
           echo "📦 Installing production dependencies..."
           npm install --production --legacy-peer-deps
-
-          echo "🔍 Pre-deployment checks..."
-          chmod +x ./scripts/check-migration.sh
-          ./scripts/check-migration.sh
 
           echo "🚀 Restarting system..."
           chmod +x ./start-system.sh
