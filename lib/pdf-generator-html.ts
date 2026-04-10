@@ -16,46 +16,151 @@ function fmt(d?: string): string {
   return `${day}/${m}/${y}`
 }
 
-// ─── CSS PADRÃO IFCE ─────────────────────────────────────────────────────────
+// ─── CSS PADRÃO IFCE (baseado no formulário oficial) ────────────────────────
 const CSS = `
+  @page { margin: 12mm 15mm 12mm 15mm; size: A4 portrait; }
   html, body { margin:0; padding:0; background:#fff; }
-  * { box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; font-size:8.5px; color:#000; }
-  body { padding:15px 18px; background:#fff; }
+  * { box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; font-size:8px; color:#000; }
+  body { padding:12px 16px; background:#fff; }
 
-  /* Cabeçalho institucional */
-  .hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
-  .hdr img { width:48px; height:48px; object-fit:contain; }
-  .hdr-txt { text-align:center; flex:1; padding:0 8px; line-height:1.5; }
-  .hdr-txt .inst { font-size:9.5px; font-weight:bold; text-transform:uppercase; color:#c00; }
-  .hdr-txt .sub  { font-size:7.5px; }
-  .hdr-txt .sub2 { font-size:7px; color:#c00; }
-  .hdr-txt .campus { font-size:7.5px; font-weight:bold; }
-  hr.hdr-line { border:none; border-top:1.5px solid #000; margin:4px 0 6px 0; }
+  /* ── Cabeçalho institucional (padrão IFCE oficial) ── */
+  .hdr {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:3px;
+    gap:6px;
+  }
+  .hdr-logo { width:52px; height:52px; object-fit:contain; flex-shrink:0; }
+  .hdr-txt {
+    text-align:center;
+    flex:1;
+    line-height:1.45;
+    padding:0 6px;
+  }
+  .hdr-txt .pro-reitoria {
+    font-size:8px;
+    font-weight:bold;
+    text-transform:uppercase;
+  }
+  .hdr-txt .coordenacao {
+    font-size:7px;
+    text-transform:uppercase;
+  }
+  .hdr-txt .campus-line {
+    font-size:8px;
+    font-weight:bold;
+  }
+  .hdr-txt .setor-line {
+    font-size:7px;
+  }
+  hr.hdr-line { border:none; border-top:1.5px solid #000; margin:5px 0 6px 0; }
 
-  /* Título do documento */
-  .doc-title { text-align:center; font-size:9.5px; font-weight:bold; text-transform:uppercase;
-    border:1px solid #000; padding:4px; background:#efefef; margin-bottom:8px; letter-spacing:0.5px; }
+  /* ── Título do documento (sem fundo cinza, apenas negrito/maiúsculo) ── */
+  .doc-title {
+    text-align:center;
+    font-size:10px;
+    font-weight:bold;
+    text-transform:uppercase;
+    text-decoration:underline;
+    margin-bottom:7px;
+    letter-spacing:0.4px;
+  }
 
-  /* Tabelas de campos */
+  /* ── Tabelas de campos ── */
   table { width:100%; border-collapse:collapse; margin-bottom:0; }
-  td, th { border:1px solid #555; padding:2px 4px; vertical-align:top; }
-  .lbl { font-size:6.5px; font-weight:bold; text-transform:uppercase; color:#333; display:block; margin-bottom:1px; }
-  .val { font-size:8.5px; min-height:11px; display:block; }
+  td, th { border:1px solid #000; padding:2px 4px; vertical-align:top; }
+  .lbl {
+    font-size:6px;
+    font-weight:bold;
+    text-transform:uppercase;
+    color:#000;
+    display:block;
+    margin-bottom:1px;
+  }
+  .val { font-size:8px; min-height:12px; display:block; }
 
-  /* Seções */
-  .sec-bar { background:#d0d0d0; font-weight:bold; font-size:7.5px; text-transform:uppercase;
-    border:1px solid #555; border-bottom:none; padding:2px 4px; margin-top:6px; }
-  .sec-body { border:1px solid #555; padding:6px; min-height:55px; font-size:8.5px;
-    line-height:1.5; white-space:pre-wrap; margin-bottom:6px; background:#fff; }
+  /* ── Checkbox style (radio IFCE) ── */
+  .chk-group {
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    font-size:7px;
+    padding:2px 0;
+  }
+  .chk-item { display:flex; align-items:center; gap:3px; }
+  .chk-box {
+    width:8px; height:8px;
+    border:1px solid #000;
+    display:inline-block;
+    flex-shrink:0;
+  }
 
-  /* Assinaturas */
-  .sigs { display:flex; justify-content:space-around; margin-top:35px; }
-  .sig { text-align:center; width:32%; }
-  .sig-line { border-top:1px solid #000; padding-top:3px; font-size:7.5px;
-    font-weight:bold; text-transform:uppercase; margin-top:28px; }
+  /* ── Seções com barra cinza ── */
+  .sec-bar {
+    background:#c0c0c0;
+    font-weight:bold;
+    font-size:7px;
+    text-transform:uppercase;
+    border:1px solid #000;
+    border-bottom:none;
+    padding:2px 4px;
+    margin-top:5px;
+  }
+  .sec-body {
+    border:1px solid #000;
+    padding:5px;
+    min-height:50px;
+    font-size:8px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    margin-bottom:5px;
+    background:#fff;
+  }
 
-  /* Parágrafos de texto corrido */
-  .para { font-size:9px; text-align:justify; line-height:1.6; margin-bottom:8px; }
+  /* ── Área de assinaturas ── */
+  .sig-area {
+    margin-top:30px;
+    border:1px solid #000;
+    padding:5px;
+    min-height:40px;
+  }
+  .sigs { display:flex; justify-content:space-around; margin-top:20px; }
+  .sig { text-align:center; width:45%; }
+  .sig-line {
+    border-top:1px solid #000;
+    padding-top:3px;
+    font-size:7px;
+    font-weight:bold;
+    text-transform:uppercase;
+    margin-top:22px;
+  }
+  .sig-date-row {
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:10px;
+  }
+  .sig-date-box {
+    border:1px solid #000;
+    padding:2px 4px;
+    flex:1;
+    font-size:7px;
+  }
+  .sig-date-label { font-size:6px; font-weight:bold; display:block; }
+  .sig-date-val { font-size:7.5px; min-height:12px; display:block; }
+
+  /* ── Observação de rodapé ── */
+  .obs {
+    font-size:7px;
+    font-style:italic;
+    margin-top:10px;
+    line-height:1.4;
+  }
+  .obs strong { font-size:7px; }
+
+  /* ── Parágrafos de texto corrido ── */
+  .para { font-size:8.5px; text-align:justify; line-height:1.6; margin-bottom:8px; }
   .bold { font-weight:bold; }
   .right { text-align:right; }
 `
@@ -64,15 +169,14 @@ const CSS = `
 function hdr(): string {
   return `
   <div class="hdr">
-    <img src="${LOGO_IFCE_BASE64}" width="48" height="48" alt=""/>
+    <img src="${LOGO_IFCE_BASE64}" class="hdr-logo" alt="Logo IFCE"/>
     <div class="hdr-txt">
-      <div class="inst">Instituto Federal de Educação, Ciência e Tecnologia do Ceará</div>
-      <div class="sub">Pró-Reitoria de Extensão</div>
-      <div class="sub2">Diretoria de Extensão e Relações Empresariais</div>
-      <div class="sub2">Coordenadoria de Estágios e Acompanhamento de Egressos de <strong>Maracanaú</strong></div>
-      <div class="campus">Campus Maracanaú</div>
+      <div class="pro-reitoria">Pró-Reitoria de Extensão</div>
+      <div class="coordenacao">Coordenação de Estágios e Acompanhamento de Egressos</div>
+      <div class="campus-line">IFCE Campus Maracanaú</div>
+      <div class="setor-line">Setor de Acompanhamento de Estágio</div>
     </div>
-    <img src="${BRASAO_BASE64}" width="48" height="48" alt=""/>
+    <img src="${BRASAO_BASE64}" class="hdr-logo" alt="Brasão República"/>
   </div>
   <hr class="hdr-line"/>`
 }
@@ -91,10 +195,38 @@ function sec(title: string, content?: string): string {
   <div class="sec-body">${content || ''}</div>`
 }
 
+/**
+ * Área de assinaturas com data padrão IFCE:
+ * "SOLICITAÇÃO EM ___/___ / _____   AUTORIZAÇÃO EM ___/___ / _____"
+ * seguida das linhas de assinaturas
+ */
 function sigs(...labels: string[]): string {
-  return `<div class="sigs">${labels
-    .map((l) => `<div class="sig"><div class="sig-line">${l}</div></div>`)
-    .join('')}</div>`
+  const cols = labels.length <= 2 ? '48%' : '30%'
+  return `
+  <div class="sigs">
+    ${labels.map((l) => `<div class="sig" style="width:${cols}"><div class="sig-line">${l}</div></div>`).join('')}
+  </div>`
+}
+
+/**
+ * Bloco de datas de solicitação/autorização com assinaturas abaixo
+ * (padrão do formulário oficial IFCE)
+ */
+function sigBlock(sigLabels: string[], obs?: string): string {
+  const datesRow = `
+  <div class="sig-date-row" style="margin-top:25px;">
+    <div class="sig-date-box">
+      <span class="sig-date-label">SOLICITAÇÃO EM</span>
+      <span class="sig-date-val">____/____/________</span>
+    </div>
+    <div class="sig-date-box">
+      <span class="sig-date-label">AUTORIZAÇÃO EM</span>
+      <span class="sig-date-val">____/____/________</span>
+    </div>
+  </div>`
+  const lines = sigs(...sigLabels)
+  const note = obs ? `<p class="obs"><strong>Observação:</strong> ${obs}</p>` : ''
+  return datesRow + lines + note
 }
 
 function wrap(title: string, body: string): string {
@@ -121,7 +253,7 @@ export function buildMonthlyReportHTML(d: Record<string, string>): string {
     ${sec('1. Principais Atividades Desenvolvidas no Período', d.atividades)}
     ${sec('2. Dificuldades Encontradas', d.dificuldades)}
     ${sec('3. Soluções Adotadas', d.solucoes)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`
+    ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário'])}`
   )
 }
 
@@ -140,7 +272,7 @@ export function buildFinalReportHTML(d: Record<string, string>): string {
     ${sec('2. Competências Adquiridas', d.competencias)}
     ${sec('3. Avaliação do Estágio', d.avaliacao)}
     ${sec('4. Conclusão', d.conclusao)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador')}`
+    ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador'])}`
   )
 }
 
@@ -158,7 +290,7 @@ export function buildSemesterReportHTML(d: Record<string, string>): string {
     ${sec('1. Atividades Desenvolvidas no Semestre', d.atividades)}
     ${sec('2. Dificuldades e Soluções', d.dificuldades)}
     ${sec('3. Resultados Alcançados', d.resultados)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`
+    ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário'])}`
   )
 }
 
@@ -179,7 +311,10 @@ export function buildCommitmentTermHTML(d: Record<string, string>): string {
       ${row(f('Início do Estágio', fmt(d.inicio_estagio), '33%'), f('Término do Estágio', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
       ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Auxílio Transporte (R$)', d.valor_transporte, '50%'))}
     </table>
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`
+    ${sigBlock(
+      ['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'],
+      'As atividades de estágio supervisionado só podem ser <strong>iniciadas após o cadastro</strong> do Termo de Compromisso de Estágio no sistema competente.'
+    )}`
   )
 }
 
@@ -197,7 +332,7 @@ export function buildAdditiveTermHTML(d: Record<string, string>): string {
       ${row(f('Novo Valor da Bolsa (R$)', d.novo_valor_bolsa, '50%'), f('Novo Aux. Transporte (R$)', d.novo_valor_transporte, '50%'))}
     </table>
     ${sec('Justificativa', d.justificativa)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`
+    ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'])}`
   )
 }
 
@@ -218,7 +353,7 @@ export function buildExtensionDeclarationHTML(d: Record<string, string>): string
       <strong>${d.nome_estudante}</strong> será prorrogado até a data de <strong>${fmt(d.nova_data_final)}</strong>.
     </p>
     <p class="para right">${d.cidade || 'Maracanaú'} — CE, ${fmt(new Date().toISOString().slice(0, 10))}</p>
-    ${sigs('Representante da Empresa', 'Discente Estagiário', 'Coordenador de Estágios')}`
+    ${sigBlock(['Representante da Empresa', 'Discente Estagiário', 'Coordenador de Estágios'])}`
   )
 }
 
@@ -244,7 +379,7 @@ export function buildProfessionalDeclarationHTML(d: Record<string, string>): str
     <p class="para">Por ser expressão da verdade, firmamos a presente declaração.</p>
     <p class="para right">Maracanaú — CE, ${d.data_declaracao || fmt(new Date().toISOString().slice(0, 10))}</p>
     <br/>
-    ${sigs('Supervisor do Estágio', 'Coordenador de Estágios IFCE')}`
+    ${sigBlock(['Supervisor do Estágio', 'Coordenador de Estágios IFCE'])}`
   )
 }
 
@@ -262,7 +397,10 @@ export function buildInternshipRegistrationHTML(d: Record<string, string>): stri
       ${row(f('Endereço da Empresa', d.empresa_endereco, '70%'), f('Cidade', d.empresa_cidade, '30%'))}
       ${row(f('Início Pretendido', fmt(d.inicio_estagio), '33%'), f('Fim Pretendido', fmt(d.fim_estagio), '33%'), f('C.H. Semanal', (d.horas_semanais || '') + ' h', '34%'))}
     </table>
-    ${sigs('Discente', 'Coordenador de Estágios')}`
+    ${sigBlock(
+      ['Discente', 'Coordenador de Estágios'],
+      'As atividades de estágio supervisionado só podem ser <strong>iniciadas após o cadastro</strong> do Termo de Compromisso de Estágio no sistema competente.'
+    )}`
   )
 }
 
@@ -281,7 +419,7 @@ export function buildInternshipRegistrationRequestHTML(d: Record<string, string>
       ${row(f('Valor da Bolsa (R$)', d.valor_bolsa, '50%'), f('Aux. Transporte (R$)', d.valor_transporte, '50%'))}
     </table>
     ${sec('Atividades Previstas', d.atividades_previstas)}
-    ${sigs('Discente', 'Supervisor do Estágio', 'Coordenador de Estágios')}`
+    ${sigBlock(['Discente', 'Supervisor do Estágio', 'Coordenador de Estágios'])}`
   )
 }
 
@@ -298,7 +436,7 @@ export function buildRealizationTermHTML(d: Record<string, string>): string {
       ${row(f('Início', fmt(d.inicio_estagio), '33%'), f('Término', fmt(d.fim_estagio), '33%'), f('C.H. Total', (d.horas_total || '') + ' h', '34%'))}
     </table>
     ${sec('Atividades Realizadas', d.atividades)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário')}`
+    ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário'])}`
   )
 }
 
@@ -314,7 +452,7 @@ export function buildRescissionTermHTML(d: Record<string, string>): string {
       ${row(f('Data de Início do Estágio', fmt(d.inicio_estagio), '50%'), f('Data da Rescisão', fmt(d.data_rescisao), '50%'))}
     </table>
     ${sec('Motivo da Rescisão', d.motivo_rescisao)}
-    ${sigs('Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios')}`
+    ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'])}`
   )
 }
 
@@ -330,7 +468,7 @@ export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
       ${row(f('Período Atividades', fmt(d.inicio_atividades) + ' a ' + fmt(d.fim_atividades), '70%'), f('C.H. Total', (d.total_hours || '') + ' h', '30%'))}
     </table>
     ${sec('Justificativa / Descrição das Atividades', d.justificativa)}
-    ${sigs('Discente', 'Coordenador de Estágios')}`
+    ${sigBlock(['Discente', 'Coordenador de Estágios'])}`
   )
 }
 
@@ -351,7 +489,7 @@ export function buildStudentEvaluationHTML(d: Record<string, any>): string {
     ${sec('3. Conhecimento Técnico', d.avaliacao_tecnico)}
     ${sec('4. Relacionamento Interpessoal', d.avaliacao_relacionamento)}
     ${sec('5. Considerações Gerais', d.consideracoes)}
-    ${sigs('Supervisor Avaliador', 'Coordenador de Estágios')}`
+    ${sigBlock(['Supervisor Avaliador', 'Coordenador de Estágios'])}`
   )
 }
 
