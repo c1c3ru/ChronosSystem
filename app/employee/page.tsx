@@ -329,6 +329,11 @@ export default function EmployeePage() {
   }
 
   const processQrCode = async (qrData: string) => {
+    if (cooldownSeconds > 0) {
+      console.log('🧊 [QR] Em cooldown, ignorando leitura')
+      return
+    }
+
     // 🛡️ BLOQUEIO 1: Não processar se já está processando
     if (processingQr) {
       console.log('🛡️ [QR] Ignorando leitura duplicada - já processando')
@@ -472,14 +477,22 @@ export default function EmployeePage() {
         } else if (result.code === 'UNAUTHORIZED') {
           userFriendlyError = 'Sessão expirada. Faça login novamente.'
         } else if (result.code === 'RATE_LIMIT_EXCEEDED') {
-          userFriendlyError = 'Muitas tentativas. Aguarde alguns segundos.'
+          const retryAfter = Number(result.retryAfter) || 15
+          setCooldownSeconds(retryAfter)
+          userFriendlyError = `Muitas tentativas. Aguarde ${retryAfter}s para tentar novamente.`
+          setTimeout(() => {
+            stopScanning()
+          }, 600)
         }
 
         setCameraError(userFriendlyError)
         setQrResult('')
 
-        // Limpar último QR code em caso de erro para permitir nova tentativa
-        setLastQrCode(null)
+        // Em alguns erros devemos manter o último QR para evitar loop de reenvio.
+        const preserveLastQrOnError = ['RATE_LIMIT_EXCEEDED', 'DUPLICATE_RECORD']
+        if (!preserveLastQrOnError.includes(result.code)) {
+          setLastQrCode(null)
+        }
       }
     } catch (error: any) {
       console.error('❌ [QR] Erro ao processar registro:', error)

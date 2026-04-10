@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     return new Response(
       JSON.stringify({
-        error: 'Muitas tentativas. Tente novamente em alguns segundos.',
+        error: `Muitas tentativas. Tente novamente em ${Math.max(1, retryAfter)} segundos.`,
         retryAfter,
         code: 'RATE_LIMIT_EXCEEDED',
       }),
