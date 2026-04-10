@@ -26,6 +26,53 @@ export interface PDFOptions {
  * Remove botões, ajusta inputs, controla quebras de página
  */
 function prepareElementForPDF(element: HTMLElement): void {
+  // Injeta normalização visual para garantir padrão institucional claro
+  const style = document.createElement('style')
+  style.textContent = `
+    .pdf-export-root {
+      background: #fff !important;
+      color: #000 !important;
+      font-family: Arial, "Times New Roman", sans-serif !important;
+      box-shadow: none !important;
+      filter: none !important;
+    }
+    .pdf-export-root *,
+    .pdf-export-root *::before,
+    .pdf-export-root *::after {
+      text-shadow: none !important;
+    }
+    .pdf-export-root [class*="text-white"],
+    .pdf-export-root [class*="text-slate-"],
+    .pdf-export-root [class*="text-neutral-"],
+    .pdf-export-root [class*="text-zinc-"],
+    .pdf-export-root [class*="text-gray-"] {
+      color: #000 !important;
+    }
+    .pdf-export-root [class*="bg-slate-"],
+    .pdf-export-root [class*="bg-neutral-"],
+    .pdf-export-root [class*="bg-zinc-"],
+    .pdf-export-root [class*="bg-black"],
+    .pdf-export-root [class*="from-slate-"],
+    .pdf-export-root [class*="to-slate-"] {
+      background: #fff !important;
+      background-color: #fff !important;
+      background-image: none !important;
+    }
+    .pdf-export-root [class*="border-white"] {
+      border-color: #000 !important;
+    }
+    .pdf-export-root .shadow,
+    .pdf-export-root [class*="shadow-"],
+    .pdf-export-root [class*="backdrop-"],
+    .pdf-export-root [class*="blur"] {
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      filter: none !important;
+    }
+  `
+  element.prepend(style)
+  element.classList.add('pdf-export-root')
+
   // Remover botões e elementos de navegação
   const elementsToRemove = element.querySelectorAll(
     'button, [data-no-pdf="true"], nav, .no-print, [role="navigation"]'
@@ -49,7 +96,7 @@ function prepareElementForPDF(element: HTMLElement): void {
       input.style.minHeight = '24px'
     }
     input.style.color = '#000'
-    input.style.backgroundColor = 'transparent'
+    input.style.backgroundColor = '#fff'
     input.readOnly = true
   })
 
@@ -111,6 +158,7 @@ export async function generatePDFClient(
       allowTaint: true,
       logging: false,
       letterRendering: true,
+      backgroundColor: '#ffffff',
       windowWidth: 794,
       scrollY: 0,
       scrollX: 0,
@@ -165,6 +213,7 @@ export async function generatePDFBlobFromElement(
       allowTaint: true,
       logging: false,
       letterRendering: true,
+      backgroundColor: '#ffffff',
       windowWidth: 794,
       scrollY: 0,
       scrollX: 0,
