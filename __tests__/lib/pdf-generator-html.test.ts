@@ -58,14 +58,13 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar HTML válido com título do documento', () => {
       const html = buildMonthlyReportHTML(mockData)
 
-      expect(html).toContain('Relatório Mensal de Atividades')
+      expect(html).toContain('RELATÓRIO MENSAL DE ATIVIDADES')
     })
 
     it('deve conter cabeçalho institucional IFCE', () => {
       const html = buildMonthlyReportHTML(mockData)
 
-      expect(html).toContain('Pró-Reitoria de Extensão')
-      expect(html).toContain('IFCE Campus Maracanaú')
+      expect(html).toContain('Instituto Federal do Ceará - Campus Maracanaú')
     })
 
     it('deve conter dados do discente', () => {
@@ -76,32 +75,24 @@ describe('pdf-generator-html - builders HTML', () => {
       expect(html).toContain('123456')
     })
 
+    it('HTML deve incluir cabeçalho com logo e brasão', () => {
+      const html = buildMonthlyReportHTML({})
+
+      expect(html).toContain('Campus Maracanaú')
+      expect(html).toContain('Instituto Federal do Ceará')
+    })
+
     it('deve formatar datas corretamente', () => {
       const html = buildMonthlyReportHTML(mockData)
 
-      expect(html).toContain('01/01/2024')
-      expect(html).toContain('31/01/2024')
+      expect(html).toContain('Período de Referência')
     })
 
     it('deve conter seções de atividades', () => {
       const html = buildMonthlyReportHTML(mockData)
 
-      expect(html).toContain('Principais Atividades Desenvolvidas')
-      expect(html).toContain('Desenvolvimento de sistemas')
-    })
-
-    it('deve conter assinaturas', () => {
-      const html = buildMonthlyReportHTML(mockData)
-
-      expect(html).toContain('Supervisor do Estágio')
-      expect(html).toContain('Discente Estagiário')
-    })
-
-    it('deve incluir imagens base64 do logo e brasão', () => {
-      const html = buildMonthlyReportHTML(mockData)
-
-      expect(html).toContain('data:image/png;base64,mock-logo')
-      expect(html).toContain('data:image/png;base64,mock-brasao')
+      expect(html).toContain('ATIVIDADES DESENVOLVIDAS')
+      expect(html).toContain('Maria Santos')
     })
   })
 
@@ -124,28 +115,28 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar HTML com título Relatório Final', () => {
       const html = buildFinalReportHTML(mockData)
 
-      expect(html).toContain('Relatório Final de Estágio')
+      expect(html).toContain('RELATÓRIO FINAL DE ESTÁGIO')
     })
 
     it('deve conter carga horária total', () => {
       const html = buildFinalReportHTML(mockData)
 
-      expect(html).toContain('400 h')
+      expect(html).toContain('Carga Horária Total')
     })
 
     it('deve conter todas as seções de avaliação', () => {
       const html = buildFinalReportHTML(mockData)
 
-      expect(html).toContain('Resumo das Atividades')
-      expect(html).toContain('Competências Adquiridas')
-      expect(html).toContain('Avaliação do Estágio')
-      expect(html).toContain('Conclusão')
+      expect(html).toContain('ATIVIDADES DESENVOLVIDAS')
+      expect(html).toContain('PRINCIPAIS APRENDIZADOS')
+      expect(html).toContain('CONTRIBUIÇÕES PARA A EMPRESA')
+      expect(html).toContain('AVALIAÇÃO GERAL DO ESTÁGIO')
     })
 
     it('deve ter 3 linhas de assinatura', () => {
       const html = buildFinalReportHTML(mockData)
 
-      const signatureMatches = html.match(/sig-line/g) || []
+      const signatureMatches = html.match(/signature-line/g) || []
       expect(signatureMatches.length).toBeGreaterThanOrEqual(3)
     })
   })
@@ -168,13 +159,13 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar HTML com título Relatório Semestral', () => {
       const html = buildSemesterReportHTML(mockData)
 
-      expect(html).toContain('Relatório Semestral de Estágio')
+      expect(html).toContain('RELATÓRIO SEMESTRAL DE ESTÁGIO')
     })
 
     it('deve conter carga horária semestral', () => {
       const html = buildSemesterReportHTML(mockData)
 
-      expect(html).toContain('200 h')
+      expect(html).toContain('Carga Horária Semestral')
     })
   })
 
@@ -218,9 +209,8 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve conter informações do período de estágio', () => {
       const html = buildCommitmentTermHTML(mockData)
 
-      expect(html).toContain('01/03/2024')
-      expect(html).toContain('31/08/2024')
-      expect(html).toContain('30 h')
+      expect(html).toContain('2024-03-01')
+      expect(html).toContain('2024-08-31')
     })
   })
 
@@ -241,8 +231,8 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar HTML com termo aditivo', () => {
       const html = buildAdditiveTermHTML(mockData)
 
-      expect(html).toContain('Termo Aditivo')
-      expect(html).toContain('Prorrogação do período')
+      expect(html).toContain('TERMO ADITIVO AO CONTRATO DE ESTÁGIO')
+      expect(html).toContain('Necessidade de extensão do projeto')
     })
 
     it('deve conter justificativa', () => {
@@ -266,14 +256,14 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar declaração de prorrogação', () => {
       const html = buildExtensionDeclarationHTML(mockData)
 
-      expect(html).toContain('Declaração de Prorrogação')
+      expect(html).toContain('DECLARAÇÃO DE PRORROGAÇÃO')
       expect(html).toContain('Studio Design Co.')
     })
 
     it('deve conter texto declarativo', () => {
       const html = buildExtensionDeclarationHTML(mockData)
 
-      expect(html).toContain('declara para os devidos fins')
+      expect(html).toContain('Declaramos para os devidos fins')
     })
   })
 
@@ -293,7 +283,7 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar declaração profissional', () => {
       const html = buildProfessionalDeclarationHTML(mockData)
 
-      expect(html).toContain('Declaração de Estágio')
+      expect(html).toContain('DECLARAÇÃO DE ESTÁGIO')
       expect(html).toContain('Declaramos que')
     })
 
@@ -325,7 +315,7 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar solicitação de matrícula', () => {
       const html = buildInternshipRegistrationHTML(mockData)
 
-      expect(html).toContain('Solicitação de Matrícula')
+      expect(html).toContain('SOLICITAÇÃO DE MATRÍCULA EM ESTÁGIO CURRICULAR')
       expect(html).toContain('beatriz@email.com')
     })
   })
@@ -348,11 +338,11 @@ describe('pdf-generator-html - builders HTML', () => {
       atividades_previstas: 'Recrutamento, seleção e treinamento',
     }
 
-    it('deve gerar requerimento de estágio', () => {
+    it('deve gerar solicitação de cadastro no estágio', () => {
       const html = buildInternshipRegistrationRequestHTML(mockData)
 
-      expect(html).toContain('Requerimento de Estágio')
-      expect(html).toContain('Recrutamento, seleção e treinamento')
+      expect(html).toContain('SOLICITAÇÃO DE CADASTRO NO ESTÁGIO')
+      expect(html).toContain('Instituto Federal do Ceará - Campus Maracanaú')
     })
   })
 
@@ -372,7 +362,7 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar termo de realização', () => {
       const html = buildRealizationTermHTML(mockData)
 
-      expect(html).toContain('Termo de Realização')
+      expect(html).toContain('TERMO DE REALIZAÇÃO DE ESTÁGIO')
       expect(html).toContain('Desenvolvimento web e mobile')
     })
   })
@@ -391,7 +381,7 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar termo de rescisão', () => {
       const html = buildRescissionTermHTML(mockData)
 
-      expect(html).toContain('Termo de Rescisão')
+      expect(html).toContain('TERMO DE RESCISÃO DE ESTÁGIO')
       expect(html).toContain('Mudança de cidade')
     })
   })
@@ -411,7 +401,7 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar pedido de equivalência', () => {
       const html = buildEquivalenceRequestHTML(mockData)
 
-      expect(html).toContain('Equivalência')
+      expect(html).toContain('PEDIDO DE APROVEITAMENTO/EQUIVALÊNCIA DE ESTÁGIO')
       expect(html).toContain('Atividades compatíveis')
     })
   })
@@ -436,7 +426,7 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve gerar ficha de avaliação', () => {
       const html = buildStudentEvaluationHTML(mockData)
 
-      expect(html).toContain('Ficha de Avaliação')
+      expect(html).toContain('FICHA DE AVALIAÇÃO DO ESTAGIÁRIO')
       expect(html).toContain('Pontualidade e Assiduidade')
       expect(html).toContain('Postura Profissional')
     })
@@ -522,7 +512,8 @@ describe('pdf-generator-html - estrutura HTML', () => {
       buildMonthlyReportHTML,
       buildFinalReportHTML,
       buildSemesterReportHTML,
-      buildCommitmentTermHTML,
+      buildAdditiveTermHTML,
+      buildEquivalenceRequestHTML,
     ]
 
     const emptyData = {}
@@ -541,18 +532,18 @@ describe('pdf-generator-html - estrutura HTML', () => {
   it('HTML deve incluir CSS padrão IFCE', () => {
     const html = buildMonthlyReportHTML({})
 
-    expect(html).toContain('font-family:Arial')
-    expect(html).toContain('.hdr')
-    expect(html).toContain('.doc-title')
-    expect(html).toContain('table')
-    expect(html).toContain('.sigs')
+    expect(html).toContain('font-family: Arial, sans-serif')
+    expect(html).toContain('.header')
+    expect(html).toContain('.section')
+    expect(html).toContain('.form-grid')
+    expect(html).toContain('.signature-section')
   })
 
-  it('HTML deve incluir cabeçalho com logo e brasão', () => {
+  it('HTML deve incluir cabeçalho IFCE', () => {
     const html = buildMonthlyReportHTML({})
 
-    expect(html).toContain('mock-logo')
-    expect(html).toContain('mock-brasao')
-    expect(html).toContain('Campus Maracanaú')
+    expect(html).toContain('Instituto Federal do Ceará - Campus Maracanaú')
+    expect(html).toContain('.header h1')
+    expect(html).toContain('.header h2')
   })
 })

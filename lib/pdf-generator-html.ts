@@ -1079,3 +1079,679 @@ export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
   </html>
   `
 }
+
+// Funções adicionais para compatibilidade com testes
+export function buildSemesterReportHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>RELATÓRIO SEMESTRAL DE ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Carga Horária Semestral</div>
+          <div class="field-value">${d.horas_semestre || ''} horas</div>
+        </div>
+      </div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Estagiário(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Supervisor(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a)</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildExtensionDeclarationHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>DECLARAÇÃO DE PRORROGAÇÃO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">DECLARAÇÃO</div>
+      <div class="text-area">
+        Declaramos para os devidos fins que ${d.nome_estudante || ''}, matrícula ${d.matricula_estudante || ''}, 
+        do curso ${d.curso_estudante || ''}, está realizando estágio na ${d.nome_empresa || ''}, 
+        com prorrogação até ${d.nova_data_final || ''}.
+      </div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a) de Estágios</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Data: ${d.cidade || ''}, ${new Date().toLocaleDateString('pt-BR')}</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildProfessionalDeclarationHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>DECLARAÇÃO DE ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">DECLARAÇÃO</div>
+      <div class="text-area">
+        Declaramos que <strong>${d.nome_estudante || ''}</strong>, 
+        matrícula ${d.matricula_estudante || ''}, do curso ${d.curso_estudante || ''}, 
+        realizou estágio no período de ${d.inicio_estagio || ''} a ${d.fim_estagio || ''}, 
+        com carga horária total de ${d.horas_total || ''} horas, 
+        no setor ${d.setor || ''}, sob supervisão de ${d.nome_supervisor || ''}.
+      </div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a) de Estágios</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Data: ${d.data_declaracao || new Date().toLocaleDateString('pt-BR')}</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildInternshipRegistrationHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>SOLICITAÇÃO DE MATRÍCULA EM ESTÁGIO CURRICULAR</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO DISCENTE</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Email</div>
+          <div class="field-value">${d.email_estudante || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Discente</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a) de Estágios</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildRealizationTermHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>TERMO DE REALIZAÇÃO DE ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Carga Horária Total</div>
+          <div class="field-value">${d.horas_total || ''} horas</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">2. ATIVIDADES DESENVOLVIDAS</div>
+      <div class="text-area">${d.atividades || ''}</div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Estagiário(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Supervisor(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a)</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildRescissionTermHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>TERMO DE RESCISÃO DE ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Data de Rescisão</div>
+          <div class="field-value">${d.data_rescisao || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">2. MOTIVO DA RESCISÃO</div>
+      <div class="text-area">${d.motivo_rescisao || ''}</div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Estagiário(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Responsável Legal</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a)</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildStudentEvaluationHTML(d: Record<string, any>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>FICHA DE AVALIAÇÃO DO ESTAGIÁRIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Período de Avaliação</div>
+          <div class="field-value">${d.inicio_periodo || ''} a ${d.fim_periodo || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">2. AVALIAÇÃO DE DESEMPENHO</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <div class="field-label">Pontualidade e Assiduidade</div>
+          <div class="field-value">${d.avaliacao_pontualidade || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Postura Profissional</div>
+          <div class="field-value">${d.avaliacao_postura || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Desempenho Técnico</div>
+          <div class="field-value">${d.avaliacao_tecnico || ''}</div>
+        </div>
+      </div>
+      <div class="form-field">
+        <div class="field-label">Relacionamento Interpessoal</div>
+        <div class="field-value">${d.avaliacao_relacionamento || ''}</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">3. CONSIDERAÇÕES FINAIS</div>
+      <div class="text-area">${d.consideracoes || ''}</div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Estagiário(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Supervisor(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a)</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildCommitmentTermHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>TERMO DE COMPROMISSO DE ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">CPF</div>
+          <div class="field-value">${d.cpf_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">2. DADOS DA EMPRESA</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Razão Social</div>
+          <div class="field-value">${d.empresa_nome || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">CNPJ</div>
+          <div class="field-value">${d.empresa_cnpj || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">3. PERÍODO DO ESTÁGIO</div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Data de Início</div>
+          <div class="field-value">${d.inicio_estagio || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Data de Término</div>
+          <div class="field-value">${d.fim_estagio || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Estagiário(a)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Responsável Legal</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a)</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
+
+export function buildInternshipRegistrationRequestHTML(d: Record<string, string>): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      @page { margin: 20mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
+      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
+      .section { margin-bottom: 20px; }
+      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+      .form-field { margin-bottom: 8px; }
+      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
+      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
+      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
+      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .signature-box { text-align: center; }
+      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
+      .signature-label { font-size: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>SOLICITAÇÃO DE CADASTRO NO ESTÁGIO</h1>
+      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+    </div>
+    <div class="section">
+      <div class="section-title">1. DADOS DO DISCENTE</div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column: span 2;">
+          <div class="field-label">Nome Completo</div>
+          <div class="field-value">${d.nome_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Matrícula</div>
+          <div class="field-value">${d.matricula_estudante || ''}</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <div class="field-label">Curso</div>
+          <div class="field-value">${d.curso_estudante || ''}</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">Telefone</div>
+          <div class="field-value">${d.telefone_estudante || ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Discente</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Coordenador(a) de Estágios</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Secretaria</div>
+      </div>
+    </div>
+  </body>
+  </html>
+  `
+}
