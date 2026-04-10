@@ -326,7 +326,8 @@ describe('qr-security', () => {
 
       // Criar assinatura similar mas garantidamente incorreta no meio da string
       const charToReplace = qr.signature[10] === 'X' ? 'Y' : 'X'
-      const wrongSignature = qr.signature.substring(0, 10) + charToReplace + qr.signature.substring(11)
+      const wrongSignature =
+        qr.signature.substring(0, 10) + charToReplace + qr.signature.substring(11)
       const tamperedQR = `${payload}.${wrongSignature}`
 
       const result = validateSecureQR(tamperedQR)
