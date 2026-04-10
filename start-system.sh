@@ -41,7 +41,7 @@ npx prisma db push --accept-data-loss
 
 # 3. Build da aplicação (garante que mudanças de código entrem em produção)
 echo "🔨 Compilando aplicação Next.js..."
-npm run build
+npm run build || { echo "❌ FALHA CRÍTICA NO BUILD: A compilação falhou! O servidor não pode ser iniciado sem um build válido."; exit 1; }
 
 # 4. Iniciar o Servidor em Produção
 echo "🖥️ Iniciando servidor Chronos na porta 5000..."
