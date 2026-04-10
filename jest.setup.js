@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom'
 
+// Fix para "act(...) is not supported in production builds of React"
+// https://github.com/testing-library/react-testing-library/issues/1195
+global.IS_REACT_ACT_ENVIRONMENT = true
+
 // Configurar variáveis de ambiente para testes
 process.env.QR_SECRET = 'test-secret-key-for-jest-tests'
 process.env.NEXTAUTH_SECRET = 'test-nextauth-secret-for-jest-tests'
@@ -144,19 +148,19 @@ if (typeof global.Request === 'undefined') {
     global.Response = fetchProps.Response
     global.Headers = fetchProps.Headers
   } catch (e) {
-    global.Request = class Request {}
-    global.Response = class Response {}
-    global.Headers = class Headers {}
+    global.Request = class Request { }
+    global.Response = class Response { }
+    global.Headers = class Headers { }
   }
 
   try {
     const { ReadableStream } = require('stream/web')
     global.ReadableStream = ReadableStream
   } catch (e) {
-    global.ReadableStream = class ReadableStream {}
+    global.ReadableStream = class ReadableStream { }
   }
 
-  global.FormData = class FormData {}
+  global.FormData = class FormData { }
 }
 
 // Polyfill Response.json static method if missing

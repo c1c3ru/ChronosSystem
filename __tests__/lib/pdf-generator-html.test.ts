@@ -64,8 +64,8 @@ describe('pdf-generator-html - builders HTML', () => {
     it('deve conter cabeçalho institucional IFCE', () => {
       const html = buildMonthlyReportHTML(mockData)
 
-      expect(html).toContain('Instituto Federal de Educação, Ciência e Tecnologia do Ceará')
-      expect(html).toContain('Campus Maracanaú')
+      expect(html).toContain('Pró-Reitoria de Extensão')
+      expect(html).toContain('IFCE Campus Maracanaú')
     })
 
     it('deve conter dados do discente', () => {
