@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import {
+  buildEntryDayKeySet,
+  countWeekdayAbsenceIncidents,
+  isLateEntryRecord,
+} from '@/lib/admin-report-metrics'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-// GET /api/reports - Dados para relatórios
+// GET /api/reports - Dados para relatórios (métricas reais a partir de registros de ponto)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,54 +21,60 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const period = parseInt(searchParams.get('period') || '30')
+    const period = parseInt(searchParams.get('period') || '30', 10)
     const userFilter = searchParams.get('user') || 'ALL'
+
+    const endDate = new Date()
+    endDate.setHours(23, 59, 59, 999)
 
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - period)
+    startDate.setHours(0, 0, 0, 0)
 
-    // Filtro de usuários
-    let userWhere = {}
-    if (userFilter !== 'ALL') {
-      userWhere = { role: userFilter }
-    }
+    const userWhere = userFilter !== 'ALL' ? { role: userFilter } : {}
 
-    // Buscar dados em paralelo
-    const [totalUsers, totalRecords, lateRecords, absences, monthlyData] = await Promise.all([
-      // Total de usuários
-      prisma.user.count({
-        where: userWhere,
-      }),
+    const userFilterClause = userFilter !== 'ALL' ? { user: { role: userFilter } } : {}
 
-      // Total de registros no período
+    const [
+      totalUsers,
+      totalRecords,
+      entryRowsForLate,
+      entryRowsForAbsence,
+      userIds,
+      monthlyData,
+    ] = await Promise.all([
+      prisma.user.count({ where: userWhere }),
+
       prisma.attendanceRecord.count({
         where: {
-          timestamp: {
-            gte: startDate,
-          },
-          ...(userFilter !== 'ALL' && {
-            user: { role: userFilter },
-          }),
+          timestamp: { gte: startDate, lte: endDate },
+          ...userFilterClause,
         },
       }),
 
-      // Registros com atraso (simulado - mais de 8:30)
-      prisma.attendanceRecord.count({
+      prisma.attendanceRecord.findMany({
         where: {
-          timestamp: {
-            gte: startDate,
-          },
           type: 'ENTRY',
-          ...(userFilter !== 'ALL' && {
-            user: { role: userFilter },
-          }),
+          timestamp: { gte: startDate, lte: endDate },
+          ...userFilterClause,
         },
+        select: { timestamp: true },
       }),
 
-      // Faltas (simulado)
-      Promise.resolve(Math.floor(Math.random() * 10)),
+      prisma.attendanceRecord.findMany({
+        where: {
+          type: 'ENTRY',
+          timestamp: { gte: startDate, lte: endDate },
+          ...userFilterClause,
+        },
+        select: { userId: true, timestamp: true },
+      }),
 
-      // Dados mensais (últimos 6 meses)
+      prisma.user.findMany({
+        where: userWhere,
+        select: { id: true },
+      }),
+
       Promise.all(
         Array.from({ length: 6 }, async (_, i) => {
           const monthStart = new Date()
@@ -74,19 +85,24 @@ export async function GET(request: NextRequest) {
           const monthEnd = new Date(monthStart)
           monthEnd.setMonth(monthEnd.getMonth() + 1)
 
-          const records = await prisma.attendanceRecord.count({
-            where: {
-              timestamp: {
-                gte: monthStart,
-                lt: monthEnd,
+          const [records, monthEntries] = await Promise.all([
+            prisma.attendanceRecord.count({
+              where: {
+                timestamp: { gte: monthStart, lt: monthEnd },
+                ...userFilterClause,
               },
-              ...(userFilter !== 'ALL' && {
-                user: { role: userFilter },
-              }),
-            },
-          })
+            }),
+            prisma.attendanceRecord.findMany({
+              where: {
+                type: 'ENTRY',
+                timestamp: { gte: monthStart, lt: monthEnd },
+                ...userFilterClause,
+              },
+              select: { timestamp: true },
+            }),
+          ])
 
-          const lateRecords = Math.floor(records * 0.1) // 10% de atrasos simulado
+          const lateRecords = monthEntries.filter((e) => isLateEntryRecord(e.timestamp)).length
 
           return {
             month: monthStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
@@ -97,12 +113,22 @@ export async function GET(request: NextRequest) {
       ),
     ])
 
+    const lateRecords = entryRowsForLate.filter((e) => isLateEntryRecord(e.timestamp)).length
+
+    const entryDayKeys = buildEntryDayKeySet(entryRowsForAbsence)
+    const absences = countWeekdayAbsenceIncidents(
+      userIds.map((u) => u.id),
+      startDate,
+      endDate,
+      entryDayKeys
+    )
+
     const reportData = {
       totalUsers,
       totalRecords,
-      lateRecords: Math.floor(lateRecords * 0.15), // 15% dos registros de entrada são atrasos
+      lateRecords,
       absences,
-      monthlyData: monthlyData.reverse(), // Ordem cronológica
+      monthlyData: monthlyData.reverse(),
     }
 
     return NextResponse.json(reportData)

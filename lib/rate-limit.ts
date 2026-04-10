@@ -25,34 +25,55 @@ interface RateLimitEntry {
 const inMemoryCache = new Map<string, RateLimitEntry>()
 
 /**
+ * Núcleo do rate limit: identificador já montado (IP, IP+usuário, etc.)
+ */
+async function runRateLimit(
+  identifier: string,
+  config: RateLimitConfig,
+  request: NextRequest
+): Promise<RateLimitResult> {
+  const ip = getClientIP(request)
+  const isProd = process.env.NODE_ENV === 'production'
+  const requireRedisInProduction = config.requireRedisInProduction ?? true
+
+  if (isRedisConnected()) {
+    return await redisRateLimit(identifier, config)
+  }
+
+  if (isProd && requireRedisInProduction) {
+    const reset = Date.now() + Math.min(config.windowMs, 60_000)
+    logger.error('Rate limiting sem Redis em produção (fail-closed)', {
+      path: request.nextUrl.pathname,
+      ip,
+    })
+    return { success: false, limit: config.maxRequests, remaining: 0, reset }
+  }
+
+  logger.debug('Using in-memory rate limiting (Redis not available)')
+  return inMemoryRateLimit(identifier, config)
+}
+
+/**
  * Rate limiter com Redis (sliding window) e fallback em memória
+ * Identificador: apenas IP + path (compartilhado por todos atrás do mesmo NAT)
  */
 export function rateLimit(config: RateLimitConfig) {
   return async (request: NextRequest): Promise<RateLimitResult> => {
     const ip = getClientIP(request)
     const identifier = `${ip}:${request.nextUrl.pathname}`
+    return runRateLimit(identifier, config, request)
+  }
+}
 
-    const isProd = process.env.NODE_ENV === 'production'
-    const requireRedisInProduction = config.requireRedisInProduction ?? true
-
-    // Tentar usar Redis primeiro
-    if (isRedisConnected()) {
-      return await redisRateLimit(identifier, config)
-    }
-
-    // Em produção, não permitir fallback silencioso em ambiente serverless
-    if (isProd && requireRedisInProduction) {
-      const reset = Date.now() + Math.min(config.windowMs, 60_000) // limita o "bloqueio" inicial a 60s
-      logger.error('Rate limiting sem Redis em produção (fail-closed)', {
-        path: request.nextUrl.pathname,
-        ip,
-      })
-      return { success: false, limit: config.maxRequests, remaining: 0, reset }
-    }
-
-    // Fallback para rate limiting em memória
-    logger.debug('Using in-memory rate limiting (Redis not available)')
-    return inMemoryRateLimit(identifier, config)
+/**
+ * Rate limiter com chave extra (ex.: userId) para não penalizar toda a rede institucional.
+ * Identificador: IP + sufixo + path
+ */
+export function rateLimitWithKey(config: RateLimitConfig) {
+  return async (request: NextRequest, key: string): Promise<RateLimitResult> => {
+    const ip = getClientIP(request)
+    const identifier = `${ip}:${key}:${request.nextUrl.pathname}`
+    return runRateLimit(identifier, config, request)
   }
 }
 
@@ -231,9 +252,15 @@ export const rateLimiters = {
     maxRequests: 3,
   }),
 
-  // QR Scan: 20 scans por minuto
+  // QR Scan (somente IP): legado / rotas sem usuário na mesma requisição
   qrScan: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
+    maxRequests: 20,
+  }),
+
+  // QR Scan com usuário autenticado: IP + userId (evita bloquear laboratório/NAT inteiro)
+  qrScanUser: rateLimitWithKey({
+    windowMs: 60 * 1000,
     maxRequests: 20,
   }),
 

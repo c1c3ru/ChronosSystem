@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateSecureQR } from '@/lib/qr-security'
 
+/** TTL do payload HMAC e do QrEvent.expiresAt (segundos) — deve ser o mesmo valor em todo o fluxo */
+const ADMIN_QR_TTL_SECONDS = 300
+
 // GET /api/machines/generate-qr?machineId=xxx - Gerar QR code seguro para máquina
 export const dynamic = 'force-dynamic'
 
@@ -41,16 +44,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Máquina inativa' }, { status: 400 })
     }
 
-    // Gerar QR code seguro
-    const qrData = generateSecureQR(machineId)
+    const qrData = generateSecureQR(machineId, ADMIN_QR_TTL_SECONDS)
+    const payload = JSON.parse(Buffer.from(qrData.payload, 'base64url').toString())
+    const expiresAt = new Date(payload.timestamp + payload.expiresIn * 1000)
 
-    // Registrar evento de geração de QR
     await prisma.qrEvent.create({
       data: {
         machineId: machineId,
         qrData: qrData.fullQR,
-        nonce: JSON.parse(Buffer.from(qrData.payload, 'base64url').toString()).nonce,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutos
+        nonce: payload.nonce,
+        expiresAt,
         used: false,
       },
     })
@@ -75,8 +78,8 @@ export async function GET(request: NextRequest) {
         name: machine.name,
         location: machine.location,
       },
-      expiresIn: 300, // 5 minutos
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      expiresIn: ADMIN_QR_TTL_SECONDS,
+      expiresAt: expiresAt.toISOString(),
     })
   } catch (error) {
     console.error('Erro ao gerar QR code:', error)
@@ -122,22 +125,23 @@ export async function POST(request: NextRequest) {
     const qrEvents = []
 
     for (const machine of machines) {
-      const qrData = generateSecureQR(machine.id)
+      const qrData = generateSecureQR(machine.id, ADMIN_QR_TTL_SECONDS)
       const payload = JSON.parse(Buffer.from(qrData.payload, 'base64url').toString())
+      const expiresAt = new Date(payload.timestamp + payload.expiresIn * 1000)
 
       qrCodes.push({
         machineId: machine.id,
         machineName: machine.name,
         location: machine.location,
         qrData: qrData.fullQR,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        expiresAt: expiresAt.toISOString(),
       })
 
       qrEvents.push({
         machineId: machine.id,
         qrData: qrData.fullQR,
         nonce: payload.nonce,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        expiresAt,
         used: false,
       })
     }
@@ -163,7 +167,7 @@ export async function POST(request: NextRequest) {
       success: true,
       qrCodes,
       count: qrCodes.length,
-      expiresIn: 300,
+      expiresIn: ADMIN_QR_TTL_SECONDS,
     })
   } catch (error) {
     console.error('Erro ao gerar QR codes em lote:', error)

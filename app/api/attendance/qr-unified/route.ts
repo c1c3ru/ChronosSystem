@@ -37,36 +37,6 @@ import { updateHourBalance } from '@/lib/hour-calculator'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
-  // Aplicar rate limiting (async)
-  const rateLimitResult = await rateLimiters.qrScan(request)
-  if (!rateLimitResult.success) {
-    const retryAfter = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
-
-    apiLogger.warn('Rate limit exceeded for QR scan', {
-      ip: request.headers.get('x-forwarded-for') || 'unknown',
-      remaining: rateLimitResult.remaining,
-      retryAfter,
-    })
-
-    return new Response(
-      JSON.stringify({
-        error: `Muitas tentativas. Tente novamente em ${Math.max(1, retryAfter)} segundos.`,
-        retryAfter,
-        code: 'RATE_LIMIT_EXCEEDED',
-      }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-          'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-          'Retry-After': retryAfter.toString(),
-        },
-      }
-    )
-  }
-
   try {
     const session = await getServerSession(authOptions)
 
@@ -80,6 +50,37 @@ export async function POST(request: NextRequest) {
           code: 'UNAUTHORIZED',
         },
         { status: 401 }
+      )
+    }
+
+    // Rate limit por IP + usuário (evita bloquear toda rede atrás do mesmo NAT)
+    const rateLimitResult = await rateLimiters.qrScanUser(request, session.user.id)
+    if (!rateLimitResult.success) {
+      const retryAfter = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+
+      apiLogger.warn('Rate limit exceeded for QR scan', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+        userId: session.user.id,
+        remaining: rateLimitResult.remaining,
+        retryAfter,
+      })
+
+      return new Response(
+        JSON.stringify({
+          error: `Muitas tentativas. Tente novamente em ${Math.max(1, retryAfter)} segundos.`,
+          retryAfter,
+          code: 'RATE_LIMIT_EXCEEDED',
+        }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+            'Retry-After': retryAfter.toString(),
+          },
+        }
       )
     }
 

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { updateHourBalance } from '@/lib/hour-calculator'
 import { z } from 'zod'
 import crypto from 'crypto'
-import { rateLimiters, withRateLimit, addRateLimitHeaders } from '@/lib/rate-limit'
+import { rateLimiters, addRateLimitHeaders } from '@/lib/rate-limit'
 import { DEFAULT_RADIUS } from '@/lib/geolocation'
 import { logger } from '@/lib/logger'
 import { AttendanceLogic, AttendanceRecordType } from '@/lib/attendance-logic'
@@ -104,17 +104,26 @@ export async function GET(request: NextRequest) {
 // POST /api/attendance - Criar registro de ponto
 export async function POST(request: NextRequest) {
   try {
-    // Aplicar rate limiting (20 registros por minuto)
-    const rateLimitResult = await rateLimiters.qrScan(request)
-    if (!rateLimitResult.success) {
-      const rateLimitResponse = await withRateLimit(() => Promise.resolve(rateLimitResult))(request)
-      if (rateLimitResponse) return rateLimitResponse
-    }
-
     const sessao = await getServerSession(authOptions)
 
     if (!sessao) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    }
+
+    const rateLimitResult = await rateLimiters.qrScanUser(request, sessao.user.id)
+    if (!rateLimitResult.success) {
+      const retryAfter = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+      return NextResponse.json(
+        {
+          error: 'Muitas tentativas. Tente novamente em alguns segundos.',
+          retryAfter,
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(retryAfter) },
+        }
+      )
     }
 
     const corpo = await request.json()
