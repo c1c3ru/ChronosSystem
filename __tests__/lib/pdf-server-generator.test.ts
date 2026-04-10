@@ -440,7 +440,7 @@ describe('pdf-server-generator - generatePDFFromSchema', () => {
 
     const browser = await (puppeteer.launch as jest.Mock).mock.results[0].value
     const page = await browser.newPage.mock.results[0].value
-    
+
     expect(page.setViewport).toHaveBeenCalledWith(
       expect.objectContaining({
         width: 1122,

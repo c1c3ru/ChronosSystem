@@ -139,35 +139,35 @@ global.TextDecoder = TextDecoder
 // Polyfill for Web API Request/Response (needed for Next.js API route tests)
 if (typeof global.Request === 'undefined') {
   try {
-    const fetchProps = require('next/dist/compiled/@edge-runtime/primitives/fetch');
-    global.Request = fetchProps.Request;
-    global.Response = fetchProps.Response;
-    global.Headers = fetchProps.Headers;
+    const fetchProps = require('next/dist/compiled/@edge-runtime/primitives/fetch')
+    global.Request = fetchProps.Request
+    global.Response = fetchProps.Response
+    global.Headers = fetchProps.Headers
   } catch (e) {
-    global.Request = class Request {};
-    global.Response = class Response {};
-    global.Headers = class Headers {};
+    global.Request = class Request {}
+    global.Response = class Response {}
+    global.Headers = class Headers {}
   }
-  
+
   try {
-    const { ReadableStream } = require('stream/web');
-    global.ReadableStream = ReadableStream;
+    const { ReadableStream } = require('stream/web')
+    global.ReadableStream = ReadableStream
   } catch (e) {
-    global.ReadableStream = class ReadableStream {};
+    global.ReadableStream = class ReadableStream {}
   }
-  
-  global.FormData = class FormData {};
+
+  global.FormData = class FormData {}
 }
 
 // Polyfill Response.json static method if missing
 if (typeof global.Response !== 'undefined' && !global.Response.json) {
-  global.Response.json = function(data, init = {}) {
+  global.Response.json = function (data, init = {}) {
     return new global.Response(JSON.stringify(data), {
       status: init.status || 200,
       headers: {
         'Content-Type': 'application/json',
-        ...(init.headers || {})
-      }
-    });
-  };
+        ...(init.headers || {}),
+      },
+    })
+  }
 }
