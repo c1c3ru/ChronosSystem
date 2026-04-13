@@ -11,7 +11,13 @@
       "Bash(ls *)",
       "Bash(echo *)",
       "Bash(git rm *)",
-      "Read(//home/deppi/Downloads/**)"
+      "Read(//home/deppi/Downloads/**)",
+      "Bash(bash *)",
+      "Bash(./node_modules/.bin/playwright *)",
+      "Bash(./node_modules/.bin/next *)",
+      "Bash(sleep *)",
+      "Bash(./node_modules/.bin/jest *)",
+      "Bash(node *)"
     ]
   },
   "$version": 3
