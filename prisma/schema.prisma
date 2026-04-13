@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -23,8 +20,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -38,60 +34,50 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          String    @default("EMPLOYEE")
-  
-  // Campos adicionais para perfil completo
-  phone             String?
-  address           String?
-  birthDate         DateTime?
-  emergencyContact  String?
-  emergencyPhone    String?
-  department        String?
-  startDate         DateTime?
-  siapeNumber       String?   // Matrícula SIAPE para controle de admins
-  profileComplete   Boolean   @default(false)
-  
-  // Campos para 2FA
-  twoFactorSecret   String?
-  twoFactorEnabled  Boolean   @default(false)
-  
-  // Campos para controle de carga horária
-  contractType      String       @default("ESTAGIO_20H") // ESTAGIO_12H, ESTAGIO_20H, ESTAGIO_30H, ESTAGIO_36H, EMPREGO_40H, EMPREGO_44H, CUSTOM
-  contractStartDate DateTime?    // Data de início do contrato
-  contractEndDate   DateTime?    // Data de fim do contrato
-  weeklyHours       Int          @default(20) // Horas semanais do contrato
-  dailyHours        Int          @default(4)  // Horas diárias do contrato
-  hourBalance       Float        @default(0)  // Saldo de horas (positivo ou negativo)
-  
-  // Campos para controle de turno e horários
-  shift             String       @default("MORNING") // MORNING (manhã), AFTERNOON (tarde), NIGHT (noite), HYBRID (híbrido)
-  shiftStartTime    String       @default("08:00") // Horário de início do turno (HH:MM)
-  shiftEndTime      String       @default("12:00") // Horário de fim do turno (HH:MM)
-  workingDaysPerWeek Int         @default(5) // Dias de trabalho por semana (para cálculo de horas diárias)
-  allowFlexibleHours Boolean     @default(false) // Permite horas flexíveis?
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts          Account[]
-  sessions          Session[]
-  attendanceRecords AttendanceRecord[]
-  auditLogs         AuditLog[]
-  justifications    Justification[]
-  reviewedJustifications Justification[] @relation("JustificationReviewer")
-  qrEvents          QrEvent[]
-  hourBalances      HourBalance[]
-  monthlyBalances   MonthlyBalance[]
-  passwordResetTokens PasswordResetToken[]
-  formDrafts        FormDraft[]
+  id                      String                   @id @default(cuid())
+  name                    String?
+  email                   String                   @unique
+  emailVerified           DateTime?
+  image                   String?
+  password                String?
+  role                    String                   @default("EMPLOYEE")
+  phone                   String?
+  address                 String?
+  birthDate               DateTime?
+  emergencyContact        String?
+  emergencyPhone          String?
+  department              String?
+  startDate               DateTime?
+  siapeNumber             String?
+  profileComplete         Boolean                  @default(false)
+  twoFactorSecret         String?
+  twoFactorEnabled        Boolean                  @default(false)
+  contractType            String                   @default("ESTAGIO_20H")
+  contractStartDate       DateTime?
+  contractEndDate         DateTime?
+  weeklyHours             Int                      @default(20)
+  dailyHours              Int                      @default(4)
+  hourBalance             Float                    @default(0)
+  shift                   String                   @default("MORNING")
+  shiftStartTime          String                   @default("08:00")
+  shiftEndTime            String                   @default("12:00")
+  workingDaysPerWeek      Int                      @default(5)
+  allowFlexibleHours      Boolean                  @default(false)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  accounts                Account[]
+  attendanceRecords       AttendanceRecord[]
+  auditLogs               AuditLog[]
+  formDrafts              FormDraft[]
+  hourBalances            HourBalance[]
+  reviewedJustifications  Justification[]          @relation("JustificationReviewer")
+  justifications          Justification[]
+  monthlyBalances         MonthlyBalance[]
+  passwordResetTokens     PasswordResetToken[]
+  qrEvents                QrEvent[]
+  sessions                Session[]
   attendanceNotifications AttendanceNotification[]
-  
+
   @@index([role])
   @@index([department])
   @@index([contractType])
@@ -99,18 +85,17 @@ model User {
 }
 
 model AttendanceNotification {
-  id          String    @id @default(cuid())
-  userId      String
-  type        String    // 'EXIT_REMINDER' | 'MISSED_EXIT'
-  sentAt      DateTime  @default(now())
+  id             String    @id @default(cuid())
+  userId         String
+  type           String
+  sentAt         DateTime  @default(now())
   acknowledgedAt DateTime?
-  expiresAt   DateTime  // 3 dias depois
-  
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("attendance_notifications")
+  expiresAt      DateTime
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
+  @@map("attendance_notifications")
 }
 
 model VerificationToken {
@@ -122,83 +107,67 @@ model VerificationToken {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   userId    String
   expires   DateTime
-  used      Boolean  @default(false)
+  used      Boolean   @default(false)
   usedAt    DateTime?
-  createdAt DateTime @default(now())
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([token])
   @@index([userId])
 }
 
 model Machine {
-  id        String   @id @default(cuid())
-  name      String
-  location  String
-  isActive  Boolean  @default(true)
-  
-  // Coordenadas para validação de geolocalização
-  latitude  Float?   // Latitude da máquina (-90 a 90)
-  longitude Float?   // Longitude da máquina (-180 a 180)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                String             @id @default(cuid())
+  name              String
+  location          String
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  latitude          Float?
+  longitude         Float?
   attendanceRecords AttendanceRecord[]
   qrEvents          QrEvent[]
 }
 
 model AttendanceRecord {
-  id        String          @id @default(cuid())
-  userId    String
-  machineId String
-  type      String
-  timestamp DateTime        @default(now())
-  
-  // Geolocalização
-  latitude  Float?
-  longitude Float?
-  
-  // Dados do QR
-  qrData    String
-  
-  // Hash para integridade
-  hash      String
-  prevHash  String?
-  
-  // Justificativa para saída antecipada
+  id            String   @id @default(cuid())
+  userId        String
+  machineId     String
+  type          String
+  timestamp     DateTime @default(now())
+  latitude      Float?
+  longitude     Float?
+  qrData        String
+  hash          String
+  prevHash      String?
   justification String?
+  machine       Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  machine Machine @relation(fields: [machineId], references: [id], onDelete: Cascade)
-
-  // Índices otimizados para queries comuns
-  @@index([userId, timestamp(sort: Desc)])           // Dashboard, histórico por usuário
-  @@index([machineId, timestamp(sort: Desc)])        // Atividades por máquina
-  @@index([userId, type, timestamp(sort: Desc)])     // Filtros por tipo (ENTRY/EXIT)
-  @@index([timestamp(sort: Desc)])                   // Atividades recentes globais
-  @@index([userId, timestamp(sort: Desc), type])     // Dashboard com filtro de tipo
-  @@index([hash])                                     // Verificação de integridade
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([machineId, timestamp(sort: Desc)])
+  @@index([userId, type, timestamp(sort: Desc)])
+  @@index([timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc), type])
+  @@index([hash])
 }
 
 model QrEvent {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   machineId String
   qrData    String
-  nonce     String   @unique
+  nonce     String    @unique
   expiresAt DateTime
-  used      Boolean  @default(false)
+  used      Boolean   @default(false)
   usedAt    DateTime?
   usedBy    String?
-  createdAt DateTime @default(now())
-
-  machine Machine @relation(fields: [machineId], references: [id])
-  user    User?   @relation(fields: [usedBy], references: [id])
+  createdAt DateTime  @default(now())
+  machine   Machine   @relation(fields: [machineId], references: [id])
+  user      User?     @relation(fields: [usedBy], references: [id])
 
   @@index([nonce])
   @@index([machineId, createdAt])
@@ -213,28 +182,26 @@ model AuditLog {
   resource  String
   details   String?
   timestamp DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId, timestamp])
   @@index([action, timestamp])
 }
 
 model Justification {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
-  type          String   // "LATE", "ABSENCE"
+  type          String
   date          DateTime
   reason        String
-  status        String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  status        String    @default("PENDING")
   adminResponse String?
   reviewedAt    DateTime?
   reviewedBy    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user     User  @relation(fields: [userId], references: [id])
-  reviewer User? @relation("JustificationReviewer", fields: [reviewedBy], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reviewer      User?     @relation("JustificationReviewer", fields: [reviewedBy], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
 
   @@index([userId, date])
   @@index([status])
@@ -242,19 +209,18 @@ model Justification {
 }
 
 model HourBalance {
-  id            String   @id @default(cuid())
-  userId        String
-  date          DateTime @default(now())
-  workedHours   Float    // Horas trabalhadas no dia
-  expectedHours Float    // Horas esperadas conforme contrato
-  balance       Float    // Diferença (positiva ou negativa)
-  weeklyBalance Float    // Saldo acumulado da semana
-  monthlyBalance Float   // Saldo acumulado do mês
-  description   String?  // Descrição adicional
-  createdAt     DateTime @default(now())
-  
-  user User @relation(fields: [userId], references: [id])
-  
+  id             String   @id @default(cuid())
+  userId         String
+  date           DateTime @default(now())
+  workedHours    Float
+  expectedHours  Float
+  balance        Float
+  weeklyBalance  Float
+  monthlyBalance Float
+  description    String?
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+
   @@index([userId, date(sort: Desc)])
   @@index([date])
 }
@@ -262,32 +228,30 @@ model HourBalance {
 model MonthlyBalance {
   id            String   @id @default(cuid())
   userId        String
-  month         Int      // 1-12
-  year          Int      // 2024
+  month         Int
+  year          Int
   totalWorked   Float
   totalExpected Float
   totalBalance  Float
-  status        String   @default("OPEN") // OPEN, CLOSED, AUDITED
+  status        String   @default("OPEN")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, month, year])
   @@index([userId, year])
 }
 
 model FormDraft {
-  id            String   @id @default(cuid())
-  userId        String
-  formType      String   // "final-report", "monthly-report", "internship-registration", etc
-  formData      Json     // Dados do formulário em JSON
-  status        String   @default("DRAFT") // "DRAFT", "SUBMITTED"
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id        String   @id @default(cuid())
+  userId    String
+  formType  String
+  formData  Json
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, formType])
   @@index([userId, formType])
   @@index([status])
@@ -298,21 +262,10 @@ model Holiday {
   date        DateTime @unique
   name        String
   description String?
-  type        String   @default("NATIONAL") // NATIONAL, STATE, MUNICIPAL, OPTIONAL
+  type        String   @default("NATIONAL")
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([date])
 }
-
-// Roles: "ADMIN", "SUPERVISOR", "EMPLOYEE"
-
-// Tipos de contrato de estágio conforme Lei 11.788/2008
-// FUNDAMENTAL_20H    - Ensino fundamental: 4h diárias, 20h semanais
-// SUPERIOR_30H       - Superior/Médio/Técnico: 6h diárias, 30h semanais  
-// ALTERNANCIA_40H    - Cursos alternância: até 40h semanais (sem aulas)
-// CUSTOM             - Personalizado (definido manualmente)
-// AttendanceTypes: "ENTRY", "EXIT"
-// JustificationTypes: "LATE", "ABSENCE"
-// JustificationStatus: "PENDING", "APPROVED", "REJECTED"
