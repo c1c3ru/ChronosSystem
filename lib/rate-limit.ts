@@ -256,18 +256,21 @@ export const rateLimiters = {
   qrScan: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
     maxRequests: 20,
+    requireRedisInProduction: false,
   }),
 
   // QR Scan com usuário autenticado: IP + userId (evita bloquear laboratório/NAT inteiro)
   qrScanUser: rateLimitWithKey({
     windowMs: 60 * 1000,
     maxRequests: 20,
+    requireRedisInProduction: false,
   }),
 
   // API Geral: 100 requests por minuto
   general: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
     maxRequests: 100,
+    requireRedisInProduction: false,
   }),
 
   // Password Reset: 3 tentativas por hora
