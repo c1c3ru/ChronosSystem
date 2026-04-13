@@ -35,83 +35,77 @@ export async function GET(request: NextRequest) {
 
     const userFilterClause = userFilter !== 'ALL' ? { user: { role: userFilter } } : {}
 
-    const [
-      totalUsers,
-      totalRecords,
-      entryRowsForLate,
-      entryRowsForAbsence,
-      userIds,
-      monthlyData,
-    ] = await Promise.all([
-      prisma.user.count({ where: userWhere }),
+    const [totalUsers, totalRecords, entryRowsForLate, entryRowsForAbsence, userIds, monthlyData] =
+      await Promise.all([
+        prisma.user.count({ where: userWhere }),
 
-      prisma.attendanceRecord.count({
-        where: {
-          timestamp: { gte: startDate, lte: endDate },
-          ...userFilterClause,
-        },
-      }),
+        prisma.attendanceRecord.count({
+          where: {
+            timestamp: { gte: startDate, lte: endDate },
+            ...userFilterClause,
+          },
+        }),
 
-      prisma.attendanceRecord.findMany({
-        where: {
-          type: 'ENTRY',
-          timestamp: { gte: startDate, lte: endDate },
-          ...userFilterClause,
-        },
-        select: { timestamp: true },
-      }),
+        prisma.attendanceRecord.findMany({
+          where: {
+            type: 'ENTRY',
+            timestamp: { gte: startDate, lte: endDate },
+            ...userFilterClause,
+          },
+          select: { timestamp: true },
+        }),
 
-      prisma.attendanceRecord.findMany({
-        where: {
-          type: 'ENTRY',
-          timestamp: { gte: startDate, lte: endDate },
-          ...userFilterClause,
-        },
-        select: { userId: true, timestamp: true },
-      }),
+        prisma.attendanceRecord.findMany({
+          where: {
+            type: 'ENTRY',
+            timestamp: { gte: startDate, lte: endDate },
+            ...userFilterClause,
+          },
+          select: { userId: true, timestamp: true },
+        }),
 
-      prisma.user.findMany({
-        where: userWhere,
-        select: { id: true },
-      }),
+        prisma.user.findMany({
+          where: userWhere,
+          select: { id: true },
+        }),
 
-      Promise.all(
-        Array.from({ length: 6 }, async (_, i) => {
-          const monthStart = new Date()
-          monthStart.setMonth(monthStart.getMonth() - i)
-          monthStart.setDate(1)
-          monthStart.setHours(0, 0, 0, 0)
+        Promise.all(
+          Array.from({ length: 6 }, async (_, i) => {
+            const monthStart = new Date()
+            monthStart.setMonth(monthStart.getMonth() - i)
+            monthStart.setDate(1)
+            monthStart.setHours(0, 0, 0, 0)
 
-          const monthEnd = new Date(monthStart)
-          monthEnd.setMonth(monthEnd.getMonth() + 1)
+            const monthEnd = new Date(monthStart)
+            monthEnd.setMonth(monthEnd.getMonth() + 1)
 
-          const [records, monthEntries] = await Promise.all([
-            prisma.attendanceRecord.count({
-              where: {
-                timestamp: { gte: monthStart, lt: monthEnd },
-                ...userFilterClause,
-              },
-            }),
-            prisma.attendanceRecord.findMany({
-              where: {
-                type: 'ENTRY',
-                timestamp: { gte: monthStart, lt: monthEnd },
-                ...userFilterClause,
-              },
-              select: { timestamp: true },
-            }),
-          ])
+            const [records, monthEntries] = await Promise.all([
+              prisma.attendanceRecord.count({
+                where: {
+                  timestamp: { gte: monthStart, lt: monthEnd },
+                  ...userFilterClause,
+                },
+              }),
+              prisma.attendanceRecord.findMany({
+                where: {
+                  type: 'ENTRY',
+                  timestamp: { gte: monthStart, lt: monthEnd },
+                  ...userFilterClause,
+                },
+                select: { timestamp: true },
+              }),
+            ])
 
-          const lateRecords = monthEntries.filter((e) => isLateEntryRecord(e.timestamp)).length
+            const lateRecords = monthEntries.filter((e) => isLateEntryRecord(e.timestamp)).length
 
-          return {
-            month: monthStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
-            records,
-            lateRecords,
-          }
-        })
-      ),
-    ])
+            return {
+              month: monthStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+              records,
+              lateRecords,
+            }
+          })
+        ),
+      ])
 
     const lateRecords = entryRowsForLate.filter((e) => isLateEntryRecord(e.timestamp)).length
 

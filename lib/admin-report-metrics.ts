@@ -42,9 +42,7 @@ function* eachDayInRange(start: Date, end: Date): Generator<Date> {
   }
 }
 
-export function buildEntryDayKeySet(
-  rows: { userId: string; timestamp: Date }[]
-): Set<string> {
+export function buildEntryDayKeySet(rows: { userId: string; timestamp: Date }[]): Set<string> {
   const s = new Set<string>()
   for (const r of rows) {
     s.add(`${r.userId}:${dateKeyFortaleza(r.timestamp)}`)
