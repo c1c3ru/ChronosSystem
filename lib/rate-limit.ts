@@ -40,13 +40,24 @@ async function runRateLimit(
     return await redisRateLimit(identifier, config)
   }
 
+  // Se Redis não está disponível e estamos em produção
   if (isProd && requireRedisInProduction) {
-    const reset = Date.now() + Math.min(config.windowMs, 60_000)
-    logger.error('Rate limiting sem Redis em produção (fail-closed)', {
-      path: request.nextUrl.pathname,
-      ip,
-    })
-    return { success: false, limit: config.maxRequests, remaining: 0, reset }
+    // Verificar se Redis foi explicitamente desabilitado (requireRedisInProduction: false)
+    // Se sim, usar fallback em memória ao invés de fail-closed
+    if (config.requireRedisInProduction === false) {
+      logger.debug('Redis não disponível em produção, usando fallback em memória', {
+        path: request.nextUrl.pathname,
+        ip,
+      })
+    } else {
+      // Fail-closed: Redis obrigatório e não disponível
+      const reset = Date.now() + Math.min(config.windowMs, 60_000)
+      logger.error('Rate limiting sem Redis em produção (fail-closed)', {
+        path: request.nextUrl.pathname,
+        ip,
+      })
+      return { success: false, limit: config.maxRequests, remaining: 0, reset }
+    }
   }
 
   logger.debug('Using in-memory rate limiting (Redis not available)')
