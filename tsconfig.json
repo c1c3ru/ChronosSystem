@@ -32,7 +32,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "__tests__/**/*.ts",
+    "__tests__/**/*.tsx",
     ".next/dev/types/**/*.ts"
   ],
+  "types": ["jest", "@testing-library/jest-dom"],
   "exclude": ["node_modules", "scripts"]
 }
