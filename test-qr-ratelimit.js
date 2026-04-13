@@ -4,12 +4,12 @@
  */
 
 console.log('\n🔒 Teste de Rate Limiting - QR Scanner')
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 
 // Configuração do rate limiting para QR Scan
 const RATE_LIMIT_CONFIG = {
-  windowMs: 60 * 1000,    // 1 minuto
-  maxRequests: 20,         // 20 tentativas por minuto
+  windowMs: 60 * 1000, // 1 minuto
+  maxRequests: 20, // 20 tentativas por minuto
 }
 
 console.log('\n📋 Configuração de Rate Limiting:')
@@ -23,9 +23,9 @@ const rateLimitCache = new Map()
 function simulateRateLimit(identifier) {
   const key = `rate_limit:${identifier}`
   const now = Date.now()
-  
+
   const entry = rateLimitCache.get(key)
-  
+
   if (!entry || now > entry.resetTime) {
     // Nova janela
     const newEntry = {
@@ -39,7 +39,7 @@ function simulateRateLimit(identifier) {
       reset: newEntry.resetTime,
     }
   }
-  
+
   if (entry.count >= RATE_LIMIT_CONFIG.maxRequests) {
     // Limite excedido!
     const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
@@ -50,7 +50,7 @@ function simulateRateLimit(identifier) {
       retryAfter,
     }
   }
-  
+
   entry.count++
   return {
     success: true,
@@ -59,9 +59,9 @@ function simulateRateLimit(identifier) {
   }
 }
 
-console.log('\n' + '=' .repeat(60))
+console.log('\n' + '='.repeat(60))
 console.log('🧪 Simulação: 25 tentativas de scan em 1 minuto')
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 
 const testIdentifier = '192.168.1.100:user123:/api/attendance/qr-unified'
 let blockedCount = 0
@@ -69,27 +69,31 @@ let successCount = 0
 
 for (let i = 1; i <= 25; i++) {
   const result = simulateRateLimit(testIdentifier)
-  
+
   if (result.success) {
     successCount++
-    console.log(`✅ Tentativa ${i.toString().padStart(2, ' ')}/25: Sucesso (restam ${result.remaining})`)
+    console.log(
+      `✅ Tentativa ${i.toString().padStart(2, ' ')}/25: Sucesso (restam ${result.remaining})`
+    )
   } else {
     blockedCount++
-    console.log(`🚫 Tentativa ${i.toString().padStart(2, ' ')}/25: BLOQUEADA (aguarde ${result.retryAfter}s)`)
+    console.log(
+      `🚫 Tentativa ${i.toString().padStart(2, ' ')}/25: BLOQUEADA (aguarde ${result.retryAfter}s)`
+    )
   }
 }
 
-console.log('\n' + '=' .repeat(60))
+console.log('\n' + '='.repeat(60))
 console.log('📊 Resultado da Simulação:')
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 console.log(`   ✅ Permitidas: ${successCount}`)
 console.log(`   🚫 Bloqueadas: ${blockedCount}`)
 console.log(`   📝 Total: ${successCount + blockedCount}`)
 
 // Explicação do problema
-console.log('\n' + '=' .repeat(60))
+console.log('\n' + '='.repeat(60))
 console.log('🔍 POR QUE aparece "Muitas tentativas"?')
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 
 console.log(`
 A mensagem "Muitas tentativas. Aguarde Xs para tentar novamente"
@@ -110,9 +114,9 @@ aparece quando:
 `)
 
 // Demonstração do debounce
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 console.log('⏱️  Efeito do Debounce de 3 segundos:')
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 
 const DEBOUNCE_TIME = 3000
 const scansPerMinute = Math.floor(60 / (DEBOUNCE_TIME / 1000))
@@ -129,9 +133,9 @@ Com debounce de 3 segundos:
   • ✅ Nunca excede o limite!
 `)
 
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 console.log('💡 SOLUÇÃO: O debounce JÁ está implementado!')
-console.log('=' .repeat(60))
+console.log('='.repeat(60))
 
 console.log(`
 Se você está vendo "Muitas tentativas", verifique:
@@ -149,6 +153,6 @@ Se você está vendo "Muitas tentativas", verifique:
    • Usuário fechando e reabrindo scanner rapidamente
 `)
 
-console.log('\n' + '=' .repeat(60))
+console.log('\n' + '='.repeat(60))
 console.log('✅ Teste concluído - Rate limiting funcionando!')
-console.log('=' .repeat(60) + '\n')
+console.log('='.repeat(60) + '\n')

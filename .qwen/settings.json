@@ -17,7 +17,16 @@
       "Bash(./node_modules/.bin/next *)",
       "Bash(sleep *)",
       "Bash(./node_modules/.bin/jest *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(redis-server *)",
+      "Bash(systemctl *)",
+      "Bash(sudo *)",
+      "Bash(dpkg *)",
+      "Bash(redis-cli *)",
+      "Bash(find *)",
+      "Bash(mv *)",
+      "Bash(pm2 *)",
+      "Bash(ss *)"
     ]
   },
   "$version": 3
