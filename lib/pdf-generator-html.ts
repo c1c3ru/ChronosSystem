@@ -409,7 +409,7 @@ export function buildProfessionalDeclarationHTML(d: Record<string, string>): str
   )
 }
 
-export function buildInternshipRegistrationHTML(d: Record<string, string>): string {
+export function buildInternshipRegistrationHTML(d: Record<string, any>): string {
   // Helper para checkbox estilizada IFCE
   function chk(label: string, checked = false): string {
     return `<span class="chk-item"><span class="chk-box">${checked ? '✕' : ''}</span>${label}</span>`
@@ -522,17 +522,17 @@ export function buildInternshipRegistrationHTML(d: Record<string, string>): stri
   <table>
     <tbody>
       ${row(
-        f(
-          'Tipo',
-          d.tipo_estagio === 'Obrigatório'
-            ? '(X) Obrigatório ( ) Não Obrigatório'
-            : '( ) Obrigatório (X) Não Obrigatório',
-          '30%'
-        ),
-        f('Data Início', fmt(d.data_inicio), '25%'),
-        f('Data Fim', fmt(d.data_fim), '25%'),
-        f('C.H. Semanal', d.carga_horaria ? `${d.carga_horaria} h` : '', '20%')
-      )}
+      f(
+        'Tipo',
+        d.tipo_estagio === 'Obrigatório'
+          ? '(X) Obrigatório ( ) Não Obrigatório'
+          : '( ) Obrigatório (X) Não Obrigatório',
+        '30%'
+      ),
+      f('Data Início', fmt(d.data_inicio), '25%'),
+      f('Data Fim', fmt(d.data_fim), '25%'),
+      f('C.H. Semanal', d.carga_horaria ? `${d.carga_horaria} h` : '', '20%')
+    )}
     </tbody>
   </table>
 
@@ -805,22 +805,22 @@ export function buildInternshipRegistrationRequestHTML(d: Record<string, string>
   <table>
     <tbody>
       ${row(
-        f(
-          'Tipo de Estágio',
-          d.tipo_estagio === 'Obrigatório'
-            ? '(X) Obrigatório ( ) Não Obrigatório'
-            : '( ) Obrigatório (X) Não Obrigatório',
-          '40%'
-        ),
-        f(
-          'Forma',
-          d.forma_estagio === 'Presencial'
-            ? '(X) Presencial ( ) Remoto'
-            : '( ) Presencial (X) Remoto',
-          '30%'
-        ),
-        f('Carga Horária Semanal', d.horas_semanais ? `${d.horas_semanais} h` : '', '30%')
-      )}
+      f(
+        'Tipo de Estágio',
+        d.tipo_estagio === 'Obrigatório'
+          ? '(X) Obrigatório ( ) Não Obrigatório'
+          : '( ) Obrigatório (X) Não Obrigatório',
+        '40%'
+      ),
+      f(
+        'Forma',
+        d.forma_estagio === 'Presencial'
+          ? '(X) Presencial ( ) Remoto'
+          : '( ) Presencial (X) Remoto',
+        '30%'
+      ),
+      f('Carga Horária Semanal', d.horas_semanais ? `${d.horas_semanais} h` : '', '30%')
+    )}
       ${row(f('Data Inicial', fmt(d.inicio_estagio)), f('Data Final Prevista', fmt(d.fim_estagio)))}
     </tbody>
   </table>

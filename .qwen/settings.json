@@ -26,7 +26,8 @@
       "Bash(find *)",
       "Bash(mv *)",
       "Bash(pm2 *)",
-      "Bash(ss *)"
+      "Bash(ss *)",
+      "Bash(npm *)"
     ]
   },
   "$version": 3
