@@ -100,17 +100,21 @@ export default function FinalReportPage() {
 
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
+        curso_estudante: raw.student_course || '',
+        empresa_nome: raw.company_name || '',
+        empresa_cnpj: raw.company_cnpj || '',
+        setor_supervisor: raw.supervisor_department || '',
         nome_supervisor: raw.supervisor_name || '',
+        cargo_supervisor: raw.supervisor_role || '',
+        horas_total: raw.total_hours || '',
+        inicio_estagio: raw.start_date || '',
+        fim_estagio: raw.end_date || '',
         nome_orientador: raw.advisor_name || '',
-        inicio_periodo: raw.period_start || '',
-        fim_periodo: raw.period_end || '',
-        horas_total: raw.hours_total || '',
-        atividades: raw.activities || '',
-        competencias: 'Competências adquiridas durante a realização das atividades propostas.', // Mock item as it's often generic or from comments
-        avaliacao: raw.comments || '', // Mapping comments to evaluation
-        conclusao: 'Estágio concluído com aproveitamento satisfactorio.',
+        atividades: raw.activities || raw.atividades_desenvolvidas || '',
+        competencias: raw.competencies || raw.aprendizados || '',
+        avaliacao: raw.evaluation || raw.avaliacao_geral || '',
+        conclusao: raw.conclusion || raw.contribuicoes || '',
       }
 
       const html = buildFinalReportHTML(htmlData)

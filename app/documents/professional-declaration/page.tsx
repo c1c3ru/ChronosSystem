@@ -97,20 +97,17 @@ export default function ProfessionalDeclarationPage() {
       const { generateHTMLPDF, buildProfessionalDeclarationHTML } =
         await import('@/lib/pdf-generator-html')
 
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
-        nome_empresa: raw.company_name || '',
-        cnpj_empresa: raw.company_cnpj || '',
-        endereco_empresa: raw.company_address || '',
-        cidade: raw.city || 'Fortaleza',
-        nome_funcionario: raw.employee_name || '',
-        cpf_funcionario: raw.employee_cpf || '',
-        ctps_funcionario: raw.employee_ctps || '',
-        serie_ctps: raw.employee_ctps_series || '',
-        data_inicio: raw.start_date || '',
-        cargo: raw.role || '',
-        horas_semanais: raw.weekly_hours || '',
-        atividades: raw.activities || '',
+        nome_estudante: raw.student_name || raw.employee_name || '',
+        matricula_estudante: raw.student_enrollment || '',
+        curso_estudante: raw.student_course || '',
+        inicio_estagio: raw.start_date || '',
+        fim_estagio: raw.end_date || '',
+        horas_total: raw.total_hours || '',
+        setor: raw.department || '',
+        nome_supervisor: raw.supervisor_name || '',
+        cargo_supervisor: raw.supervisor_role || '',
+        empresa_nome: raw.company_name || '',
       }
 
       const html = buildProfessionalDeclarationHTML(htmlData)

@@ -118,23 +118,19 @@ export default function AdditiveTermPage() {
       // Mapear campos para o gerador HTML
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
+        curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
-        motivo_aditivo: [
-          raw.additive_type_prorogation === 'true' ? 'Prorrogação' : '',
-          raw.additive_type_allowance === 'true' ? 'Valor da Bolsa' : '',
-          raw.additive_type_supervisor === 'true' ? 'Supervisor' : '',
-          raw.additive_type_schedule === 'true' ? 'Horário' : '',
-          raw.additive_type_other === 'true' ? 'Outros' : '',
-        ]
-          .filter(Boolean)
-          .join(', '),
+        empresa_cnpj: raw.company_cnpj || '',
+        empresa_telefone: raw.company_phone || '',
+        motivo_aditivo: raw.additive_reason || '',
+        justificativa: raw.justification || '',
         nova_data_fim: raw.new_end_date || '',
-        nova_carga_horaria: raw.new_schedule || '',
-        novo_valor_bolsa: raw.new_allowance_value || '',
-        novo_valor_transporte: '', // Campo opcional
-        justificativa: raw.other_changes || 'Alteração solicitada pelas partes.',
+        novo_fim: raw.new_end_date || '',
+        nova_carga_horaria: raw.new_weekly_hours || '',
+        prazo_prorrogacao: raw.extension_period || '',
+        novo_valor_bolsa: raw.new_scholarship_value || '',
+        novo_valor_transporte: raw.new_transport_aid || '',
       }
 
       const html = buildAdditiveTermHTML(htmlData)

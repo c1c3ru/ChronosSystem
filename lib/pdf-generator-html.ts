@@ -241,1517 +241,602 @@ function wrap(title: string, body: string): string {
 
 // 1. Relatório Mensal - Modelo IFCE
 export function buildMonthlyReportHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { 
-        font-family: Arial, sans-serif; 
-        font-size: 12px; 
-        line-height: 1.4;
-        margin: 0;
-        padding: 0;
-      }
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #333;
-        padding-bottom: 20px;
-      }
-      .header h1 {
-        font-size: 16px;
-        font-weight: bold;
-        margin: 0;
-        text-transform: uppercase;
-      }
-      .header h2 {
-        font-size: 14px;
-        font-weight: bold;
-        margin: 5px 0;
-      }
-      .section {
-        margin-bottom: 20px;
-      }
-      .section-title {
-        font-weight: bold;
-        font-size: 12px;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 3px;
-      }
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-field {
-        margin-bottom: 8px;
-      }
-      .field-label {
-        font-weight: bold;
-        font-size: 10px;
-        margin-bottom: 2px;
-      }
-      .field-value {
-        border: 1px solid #ccc;
-        padding: 4px;
-        min-height: 16px;
-        background: #f9f9f9;
-      }
-      .activities-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 15px 0;
-      }
-      .activities-table th,
-      .activities-table td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: left;
-        font-size: 10px;
-      }
-      .activities-table th {
-        background: #f0f0f0;
-        font-weight: bold;
-      }
-      .signature-section {
-        margin-top: 40px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-      .signature-box {
-        text-align: center;
-      }
-      .signature-line {
-        border-bottom: 1px solid #000;
-        margin: 30px 0 5px 0;
-        height: 40px;
-      }
-      .signature-label {
-        font-size: 10px;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>RELATÓRIO MENSAL DE ATIVIDADES</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
+  return wrap('RELATÓRIO MENSAL DE ATIVIDADES', `
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_estudante, '50%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '30%'))}
+      ${row(f('Empresa', d.empresa_nome, '40%'), f('CNPJ', d.empresa_cnpj, '20%'), f('Período', d.periodo_referencia || `${fmt(d.inicio_periodo || '')} a ${fmt(d.fim_periodo || '')}`, '40%'))}
+      ${row(f('Supervisor', d.nome_supervisor, '40%'), f('Cargo', d.cargo_supervisor, '30%'), f('C.H. Mensal', d.horas_mes ? `${d.horas_mes} h` : '', '30%'))}
+      ${row(f('Docente Orientador', d.nome_orientador || ''))}
+    </tbody>
+  </table>
 
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Período de Referência</div>
-          <div class="field-value">${d.periodo_referencia || ''}</div>
-        </div>
-      </div>
-    </div>
+  ${sec('1. PRINCIPAIS ATIVIDADES DESENVOLVIDAS', d.atividades || '')}
+  ${sec('2. DIFICULDADES ENCONTRADAS', d.dificuldades || '')}
+  ${sec('3. SOLUÇÕES ADOTADAS', d.solucoes || '')}
 
-    <div class="section">
-      <div class="section-title">2. DADOS DA EMPRESA</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Razão Social</div>
-          <div class="field-value">${d.empresa_nome || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">CNPJ</div>
-          <div class="field-value">${d.empresa_cnpj || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field">
-          <div class="field-label">Supervisor do Estágio</div>
-          <div class="field-value">${d.nome_supervisor || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Cargo do Supervisor</div>
-          <div class="field-value">${d.cargo_supervisor || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Setor</div>
-          <div class="field-value">${d.setor_supervisor || ''}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">3. ATIVIDADES DESENVOLVIDAS</div>
-      <table class="activities-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Atividade Desenvolvida</th>
-            <th>Horas</th>
-            <th>Observações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>${d.data_atividade1 || ''}</td>
-            <td>${d.atividade1 || ''}</td>
-            <td>${d.horas_atividade1 || ''}</td>
-            <td>${d.observacoes1 || ''}</td>
-          </tr>
-          <tr>
-            <td>${d.data_atividade2 || ''}</td>
-            <td>${d.atividade2 || ''}</td>
-            <td>${d.horas_atividade2 || ''}</td>
-            <td>${d.observacoes2 || ''}</td>
-          </tr>
-          <tr>
-            <td>${d.data_atividade3 || ''}</td>
-            <td>${d.atividade3 || ''}</td>
-            <td>${d.horas_atividade3 || ''}</td>
-            <td>${d.observacoes3 || ''}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="section-title">4. RESUMO DO PERÍODO</div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Total de Horas no Mês</div>
-          <div class="field-value">${d.total_horas || ''} horas</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Carga Horária Prevista</div>
-          <div class="field-value">${d.carga_horaria_prevista || ''} horas</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Assinatura do Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Assinatura do Supervisor(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Assinatura do Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário'], 'Relatório referente ao período de estágio supervisionado.')}
+`)
 }
 
 // 2. Relatório Final - Modelo IFCE
 export function buildFinalReportHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { 
-        font-family: Arial, sans-serif; 
-        font-size: 12px; 
-        line-height: 1.4;
-        margin: 0;
-        padding: 0;
-      }
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #333;
-        padding-bottom: 20px;
-      }
-      .header h1 {
-        font-size: 16px;
-        font-weight: bold;
-        margin: 0;
-        text-transform: uppercase;
-      }
-      .header h2 {
-        font-size: 14px;
-        font-weight: bold;
-        margin: 5px 0;
-      }
-      .section {
-        margin-bottom: 20px;
-      }
-      .section-title {
-        font-weight: bold;
-        font-size: 12px;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 3px;
-      }
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-field {
-        margin-bottom: 8px;
-      }
-      .field-label {
-        font-weight: bold;
-        font-size: 10px;
-        margin-bottom: 2px;
-      }
-      .field-value {
-        border: 1px solid #ccc;
-        padding: 4px;
-        min-height: 16px;
-        background: #f9f9f9;
-      }
-      .text-area {
-        border: 1px solid #ccc;
-        padding: 8px;
-        min-height: 60px;
-        background: #f9f9f9;
-        font-size: 10px;
-      }
-      .signature-section {
-        margin-top: 40px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-      .signature-box {
-        text-align: center;
-      }
-      .signature-line {
-        border-bottom: 1px solid #000;
-        margin: 30px 0 5px 0;
-        height: 40px;
-      }
-      .signature-label {
-        font-size: 10px;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>RELATÓRIO FINAL DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
+  return wrap('RELATÓRIO FINAL DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_estudante, '50%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '30%'))}
+      ${row(f('Empresa', d.empresa_nome, '40%'), f('CNPJ', d.empresa_cnpj, '20%'), f('Setor', d.setor_supervisor || '', '40%'))}
+      ${row(f('Supervisor', d.nome_supervisor, '40%'), f('Cargo', d.cargo_supervisor, '30%'), f('C.H. Total', d.horas_total ? `${d.horas_total} h` : '', '30%'))}
+      ${row(f('Período', `${fmt(d.inicio_estagio || '')} a ${fmt(d.fim_estagio || '')}`))}
+      ${row(f('Docente Orientador', d.nome_orientador || ''))}
+    </tbody>
+  </table>
 
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Data de Conclusão</div>
-          <div class="field-value">${d.data_conclusao || ''}</div>
-        </div>
-      </div>
-    </div>
+  ${sec('1. RESUMO DAS ATIVIDADES DESENVOLVIDAS', d.atividades || d.atividades_desenvolvidas || '')}
+  ${sec('2. COMPETÊNCIAS ADQUIRIDAS', d.competencias || d.aprendizados || '')}
+  ${sec('3. AVALIAÇÃO DO ESTÁGIO', d.avaliacao || d.avaliacao_geral || '')}
+  ${sec('4. CONCLUSÃO', d.conclusao || d.contribuicoes || '')}
 
-    <div class="section">
-      <div class="section-title">2. DADOS DO ESTÁGIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Empresa Concedente</div>
-          <div class="field-value">${d.empresa_nome || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Carga Horária Total</div>
-          <div class="field-value">${d.carga_horaria_total || ''} horas</div>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field">
-          <div class="field-label">Período do Estágio</div>
-          <div class="field-value">${d.periodo_estagio || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Supervisor</div>
-          <div class="field-value">${d.nome_supervisor || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Setor</div>
-          <div class="field-value">${d.setor_supervisor || ''}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">3. ATIVIDADES DESENVOLVIDAS</div>
-      <div class="text-area">${d.atividades_desenvolvidas || ''}</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">4. PRINCIPAIS APRENDIZADOS</div>
-      <div class="text-area">${d.aprendizados || ''}</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">5. CONTRIBUIÇÕES PARA A EMPRESA</div>
-      <div class="text-area">${d.contribuicoes || ''}</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">6. AVALIAÇÃO GERAL DO ESTÁGIO</div>
-      <div class="text-area">${d.avaliacao_geral || ''}</div>
-    </div>
-
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Assinatura do Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Assinatura do Supervisor(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Assinatura do Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador'], 'Relatório final do estágio supervisionado realizado.')}
+`)
 }
 
 // 5. Termo Aditivo - Modelo IFCE
 export function buildAdditiveTermHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { 
-        font-family: Arial, sans-serif; 
-        font-size: 12px; 
-        line-height: 1.4;
-        margin: 0;
-        padding: 0;
-      }
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #333;
-        padding-bottom: 20px;
-      }
-      .header h1 {
-        font-size: 16px;
-        font-weight: bold;
-        margin: 0;
-        text-transform: uppercase;
-      }
-      .header h2 {
-        font-size: 14px;
-        font-weight: bold;
-        margin: 5px 0;
-      }
-      .section {
-        margin-bottom: 20px;
-      }
-      .section-title {
-        font-weight: bold;
-        font-size: 12px;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 3px;
-      }
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-field {
-        margin-bottom: 8px;
-      }
-      .field-label {
-        font-weight: bold;
-        font-size: 10px;
-        margin-bottom: 2px;
-      }
-      .field-value {
-        border: 1px solid #ccc;
-        padding: 4px;
-        min-height: 16px;
-        background: #f9f9f9;
-      }
-      .text-area {
-        border: 1px solid #ccc;
-        padding: 8px;
-        min-height: 60px;
-        background: #f9f9f9;
-        font-size: 10px;
-      }
-      .signature-section {
-        margin-top: 40px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-      .signature-box {
-        text-align: center;
-      }
-      .signature-line {
-        border-bottom: 1px solid #000;
-        margin: 30px 0 5px 0;
-        height: 40px;
-      }
-      .signature-label {
-        font-size: 10px;
-        font-weight: bold;
-      }
-      .dates-section {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        margin: 20px 0;
-      }
-      .date-box {
-        text-align: center;
-      }
-      .date-line {
-        border-bottom: 1px solid #000;
-        margin: 20px 0 5px 0;
-        height: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>TERMO ADITIVO AO CONTRATO DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
+  return wrap('TERMO ADITIVO AO CONTRATO DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '40%'))}
+      ${row(f('Empresa', d.empresa_nome, '50%'), f('CNPJ', d.empresa_cnpj, '25%'), f('Telefone', d.empresa_telefone || '', '25%'))}
+    </tbody>
+  </table>
 
-    <div class="section">
-      <div class="section-title">1. IDENTIFICAÇÃO DAS PARTES</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Estagiário(a)</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Empresa Concedente</div>
-          <div class="field-value">${d.empresa_nome || ''}</div>
-        </div>
-      </div>
-    </div>
+  <div class="sec-bar">ALTERAÇÕES CONTRATUAIS</div>
+  <table>
+    <tbody>
+      ${row(f('Motivo do Aditivo', d.motivo_aditivo || d.justificativa || ''))}
+      ${row(f('Nova Data de Término', fmt(d.nova_data_fim || d.novo_fim || '')), f('Nova C.H. Semanal', d.nova_carga_horaria ? `${d.nova_carga_horaria} h` : ''), f('Período Prorrogação', d.prazo_prorrogacao || ''))}
+      ${row(f('Novo Valor Bolsa (R$)', d.novo_valor_bolsa || ''), f('Novo Aux. Transporte (R$)', d.novo_valor_transporte || ''))}
+    </tbody>
+  </table>
 
-    <div class="section">
-      <div class="section-title">2. DADOS DO TERMO ORIGINAL</div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Data de Início Original</div>
-          <div class="field-value">${d.inicio_estagio || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Data de Término Original</div>
-          <div class="field-value">${d.fim_estagio || ''}</div>
-        </div>
-      </div>
-    </div>
+  ${sec('JUSTIFICATIVA', d.justificativa || '')}
 
-    <div class="section">
-      <div class="section-title">3. NOVAS CONDIÇÕES</div>
-      <div class="form-grid">
-        <div class="form-field">
-          <div class="field-label">Nova Data de Início</div>
-          <div class="field-value">${d.novo_inicio || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Nova Data de Término</div>
-          <div class="field-value">${d.novo_fim || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Período de Prorrogação</div>
-          <div class="field-value">${d.prazo_prorrogacao || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Nova Carga Horária Semanal</div>
-          <div class="field-value">${d.nova_carga_horaria || ''} horas</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Novo Valor da Bolsa</div>
-          <div class="field-value">R$ ${d.novo_valor_bolsa || ''}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">4. JUSTIFICATIVA DA PRORROGAÇÃO</div>
-      <div class="text-area">${d.justificativa || ''}</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">5. DISPOSIÇÕES GERAIS</div>
-      <div class="text-area">
-        As demais cláusulas e condições do Termo de Compromisso de Estágio original permanecem inalteradas, 
-        mantendo-se plena validade e eficácia entre as partes. O presente Termo Aditivo passa a integrar 
-        o contrato original para todos os fins de direito.
-      </div>
-    </div>
-
-    <div class="dates-section">
-      <div class="date-box">
-        <div class="field-label">DATA DE ASSINATURA</div>
-        <div class="date-line"></div>
-      </div>
-      <div class="date-box">
-        <div class="field-label">LOCAL</div>
-        <div class="date-line">Maracanaú - CE</div>
-      </div>
-    </div>
-
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Responsável Legal<br>da Empresa</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a)<br>de Estágios</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'], 'As demais cláusulas do Termo de Compromisso permanecem inalteradas.')}
+`)
 }
 
 // 12. Pedido de Equivalência - Modelo IFCE
 export function buildEquivalenceRequestHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { 
-        font-family: Arial, sans-serif; 
-        font-size: 12px; 
-        line-height: 1.4;
-        margin: 0;
-        padding: 0;
-      }
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #333;
-        padding-bottom: 20px;
-      }
-      .header h1 {
-        font-size: 16px;
-        font-weight: bold;
-        margin: 0;
-        text-transform: uppercase;
-      }
-      .header h2 {
-        font-size: 14px;
-        font-weight: bold;
-        margin: 5px 0;
-      }
-      .section {
-        margin-bottom: 20px;
-      }
-      .section-title {
-        font-weight: bold;
-        font-size: 12px;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 3px;
-      }
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-      }
-      .form-field {
-        margin-bottom: 8px;
-      }
-      .field-label {
-        font-weight: bold;
-        font-size: 10px;
-        margin-bottom: 2px;
-      }
-      .field-value {
-        border: 1px solid #ccc;
-        padding: 4px;
-        min-height: 16px;
-        background: #f9f9f9;
-      }
-      .text-area {
-        border: 1px solid #ccc;
-        padding: 8px;
-        min-height: 60px;
-        background: #f9f9f9;
-        font-size: 10px;
-      }
-      .signature-section {
-        margin-top: 40px;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-      }
-      .signature-box {
-        text-align: center;
-      }
-      .signature-line {
-        border-bottom: 1px solid #000;
-        margin: 30px 0 5px 0;
-        height: 40px;
-      }
-      .signature-label {
-        font-size: 10px;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>PEDIDO DE APROVEITAMENTO/EQUIVALÊNCIA DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
+  return wrap('PEDIDO DE APROVEITAMENTO / EQUIVALÊNCIA DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_estudante, '50%'), f('Matrícula', d.matricula_estudante, '20%'), f('CPF', d.cpf_estudante, '30%'))}
+      ${row(f('Curso', d.curso_estudante, '40%'), f('Período', d.periodo_curso || d.semestre_atual || '', '30%'), f('C.H. Total', d.total_hours ? `${d.total_hours} h` : '', '30%'))}
+    </tbody>
+  </table>
 
-    <div class="section">
-      <div class="section-title">1. DADOS DO DISCENTE</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Período</div>
-          <div class="field-value">${d.periodo_curso || ''}</div>
-        </div>
-      </div>
-    </div>
+  <table>
+    <tbody>
+      ${row(f('Empresa / Instituição', d.empresa_nome, '50%'), f('CNPJ', d.empresa_cnpj, '25%'), f('Período', `${fmt(d.inicio_atividades || '')} a ${fmt(d.fim_atividades || '')}`, '25%'))}
+    </tbody>
+  </table>
 
-    <div class="section">
-      <div class="section-title">2. DADOS DO ESTÁGIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Empresa / Instituição</div>
-          <div class="field-value">${d.empresa_nome || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">CNPJ</div>
-          <div class="field-value">${d.empresa_cnpj || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Período das Atividades</div>
-          <div class="field-value">${d.inicio_atividades || ''} a ${d.fim_atividades || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Carga Horária Total</div>
-          <div class="field-value">${d.total_hours || ''} horas</div>
-        </div>
-      </div>
-    </div>
+  ${sec('JUSTIFICATIVA / DESCRIÇÃO DAS ATIVIDADES', d.justificativa || '')}
 
-    <div class="section">
-      <div class="section-title">3. JUSTIFICATIVA / DESCRIÇÃO DAS ATIVIDADES</div>
-      <div class="text-area">${d.justificativa || ''}</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">4. DISCIPLINAS ENVOLVIDAS</div>
-      <div class="form-grid">
-        <div class="form-field">
-          <div class="field-label">Disciplina 1</div>
-          <div class="field-value">${d.disciplina1 || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Disciplina 2</div>
-          <div class="field-value">${d.disciplina2 || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Disciplina 3</div>
-          <div class="field-value">${d.disciplina3 || ''}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Discente</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a) de Estágios</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  ${sigBlock(['Discente', 'Coordenador de Estágios'], 'Solicito o aproveitamento/equivalência das atividades descritas acima.')}
+`)
 }
 
 // Funções adicionais para compatibilidade com testes
 export function buildSemesterReportHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>RELATÓRIO SEMESTRAL DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Carga Horária Semestral</div>
-          <div class="field-value">${d.horas_semestre || ''} horas</div>
-        </div>
-      </div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Supervisor(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('RELATÓRIO SEMESTRAL DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_estudante, '50%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '30%'))}
+      ${row(f('Empresa', d.empresa_nome, '40%'), f('Supervisor', d.nome_supervisor, '30%'), f('C.H. Semestral', d.horas_semestre ? `${d.horas_semestre} h` : '', '30%'))}
+      ${row(f('Período', `${fmt(d.inicio_periodo || '')} a ${fmt(d.fim_periodo || '')}`), f('Docente Orientador', d.nome_orientador || ''))}
+    </tbody>
+  </table>
+
+  ${sec('1. ATIVIDADES DESENVOLVIDAS NO SEMESTRE', d.atividades || '')}
+  ${sec('2. DIFICULDADES E SOLUÇÕES', d.dificuldades || '')}
+  ${sec('3. RESULTADOS ALCANÇADOS', d.resultados || '')}
+
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário'], 'Relatório semestral de acompanhamento de estágio.')}
+`)
 }
 
 export function buildExtensionDeclarationHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>DECLARAÇÃO DE PRORROGAÇÃO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">DECLARAÇÃO</div>
-      <div class="text-area">
-        Declaramos para os devidos fins que ${d.nome_estudante || ''}, matrícula ${d.matricula_estudante || ''}, 
-        do curso ${d.curso_estudante || ''}, está realizando estágio na ${d.nome_empresa || ''}, 
-        com prorrogação até ${d.nova_data_final || ''}.
-      </div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a) de Estágios</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Data: ${d.cidade || ''}, ${new Date().toLocaleDateString('pt-BR')}</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('DECLARAÇÃO DE PRORROGAÇÃO DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '40%'))}
+      ${row(f('Empresa', d.nome_empresa || d.empresa_nome, '50%'), f('CNPJ', d.empresa_cnpj || '', '25%'), f('Data Término Atual', fmt(d.data_final_atual || ''), '25%'))}
+      ${row(f('Nova Data de Término', fmt(d.nova_data_final || '')))}
+    </tbody>
+  </table>
+
+  <div class="para">
+    A empresa <strong>${d.nome_empresa || d.empresa_nome || ''}</strong> declara para os devidos fins que o estágio do(a)
+    discente <strong>${d.nome_estudante || ''}</strong>, matrícula ${d.matricula_estudante || ''}, do curso
+    ${d.curso_estudante || ''}, será prorrogado até a data de <strong>${fmt(d.nova_data_final || '')}</strong>.
+  </div>
+
+  ${sigBlock(['Representante da Empresa', 'Discente Estagiário', 'Coordenador de Estágios'], 'Declaração válida para fins de comprovação de prorrogação de estágio.')}
+`)
 }
 
 export function buildProfessionalDeclarationHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>DECLARAÇÃO DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">DECLARAÇÃO</div>
-      <div class="text-area">
-        Declaramos que <strong>${d.nome_estudante || ''}</strong>, 
-        matrícula ${d.matricula_estudante || ''}, do curso ${d.curso_estudante || ''}, 
-        realizou estágio no período de ${d.inicio_estagio || ''} a ${d.fim_estagio || ''}, 
-        com carga horária total de ${d.horas_total || ''} horas, 
-        no setor ${d.setor || ''}, sob supervisão de ${d.nome_supervisor || ''}.
-      </div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a) de Estágios</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Data: ${d.data_declaracao || new Date().toLocaleDateString('pt-BR')}</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('DECLARAÇÃO DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '40%'))}
+      ${row(f('Período', `${fmt(d.inicio_estagio || '')} a ${fmt(d.fim_estagio || '')}`, '30%'), f('C.H. Total', d.horas_total ? `${d.horas_total} h` : '', '20%'), f('Setor', d.setor || '', '50%'))}
+      ${row(f('Supervisor', d.nome_supervisor, '40%'), f('Cargo', d.cargo_supervisor || '', '30%'), f('Empresa', d.empresa_nome || '', '30%'))}
+    </tbody>
+  </table>
+
+  <div class="para">
+    Declaramos que <strong>${d.nome_estudante || ''}</strong>, matriculado(a) no curso de
+    <strong>${d.curso_estudante || ''}</strong> sob o número de matrícula ${d.matricula_estudante || ''},
+    realizou estágio supervisionado nesta instituição no período de ${fmt(d.inicio_estagio || '')} a
+    ${fmt(d.fim_estagio || '')}, totalizando <strong>${d.horas_total || ''} horas</strong>.
+  </div>
+
+  ${sigBlock(['Supervisor do Estágio', 'Coordenador de Estágios IFCE'], 'Declaração emitida para fins de comprovação de atividades de estágio.')}
+`)
 }
 
 export function buildInternshipRegistrationHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>SOLICITAÇÃO DE MATRÍCULA EM ESTÁGIO CURRICULAR</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+  // Helper para checkbox estilizada IFCE
+  function chk(label: string, checked = false): string {
+    return `<span class="chk-item"><span class="chk-box">${checked ? '✕' : ''}</span>${label}</span>`
+  }
+
+  // Mapear cor/raça
+  const corRacaMap: Record<string, boolean> = {
+    amarelo: d.cor_raca === 'amarelo',
+    branco: d.cor_raca === 'branco',
+    indigena: d.cor_raca === 'indigena',
+    pardo: d.cor_raca === 'pardo',
+    preto: d.cor_raca === 'preto',
+    nao_declara: d.cor_raca === 'nao_declarar' || !d.cor_raca,
+  }
+
+  // Mapear etnia
+  const etniaMap: Record<string, boolean> = {
+    indigena: d.etnia === 'indigena',
+    quilombola: d.etnia === 'quilombola',
+    outra: d.etnia === 'outra',
+    nao_declara: d.etnia === 'nao_declarar' || !d.etnia,
+  }
+
+  // Mapear deficiências
+  const defMap: Record<string, boolean> = {
+    alta_habilidade: d.def_alta_habilidade === 'true' || d.def_alta_habilidade === true,
+    auditiva: d.def_auditiva === 'true' || d.def_auditiva === true,
+    intelectual: d.def_intelectual === 'true' || d.def_intelectual === true,
+    motora: d.def_motora === 'true' || d.def_motora === true,
+    visual_baixa: d.def_visual_baixa === 'true' || d.def_visual_baixa === true,
+    visual: d.def_visual === 'true' || d.def_visual === true,
+    surdocegueira: d.def_surdocegueira === 'true' || d.def_surdocegueira === true,
+    nenhuma:
+      !d.def_alta_habilidade &&
+      !d.def_auditiva &&
+      !d.def_intelectual &&
+      !d.def_motora &&
+      !d.def_visual_baixa &&
+      !d.def_visual &&
+      !d.def_surdocegueira,
+  }
+
+  return wrap(
+    'SOLICITAÇÃO DE MATRÍCULA EM ESTÁGIO CURRICULAR',
+    `
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_estudante, '50%'), f('Matrícula', d.matricula_estudante, '20%'), f('CPF', d.cpf_estudante, '30%'))}
+      ${row(f('Curso', d.curso_estudante, '40%'), f('Semestre Atual', d.semestre_atual, '20%'), f('Turno', d.turno, '40%'))}
+      ${row(f('Endereço', d.endereco, '40%'), f('Bairro', d.bairro, '25%'), f('Município-UF', d.municipio_uf, '35%'))}
+      ${row(f('CEP', d.cep), f('Telefone', d.telefone_estudante), f('E-mail', d.email_estudante))}
+      ${row(f('Nome Social', d.nome_social || 'N/A'))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">COR / RAÇA</div>
+  <div class="sec-body">
+    <div class="chk-group" style="flex-direction:row;flex-wrap:wrap;gap:4px 12px;">
+      ${chk('( ) Amarelo(a)', corRacaMap.amarelo)}
+      ${chk('( ) Branco(a)', corRacaMap.branco)}
+      ${chk('( ) Indígena', corRacaMap.indigena)}
+      ${chk('( ) Pardo(a)', corRacaMap.pardo)}
+      ${chk('( ) Preto(a)', corRacaMap.preto)}
+      ${chk('( ) Prefiro não declarar', corRacaMap.nao_declara)}
     </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO DISCENTE</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Email</div>
-          <div class="field-value">${d.email_estudante || ''}</div>
-        </div>
-      </div>
+  </div>
+
+  <div class="sec-bar">ETNIA</div>
+  <div class="sec-body">
+    <div class="chk-group" style="flex-direction:row;flex-wrap:wrap;gap:4px 12px;">
+      ${chk('( ) Indígena', etniaMap.indigena)}
+      ${chk('( ) Quilombola', etniaMap.quilombola)}
+      ${chk('( ) Outra', etniaMap.outra)}
+      ${chk('( ) Prefiro não declarar', etniaMap.nao_declara)}
     </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Discente</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a) de Estágios</div>
-      </div>
+    ${d.etnia_outra ? `<div style="margin-top:4px;font-size:7px;">Outra: ${d.etnia_outra}</div>` : ''}
+    ${d.comunidade_etnia ? `<div style="margin-top:2px;font-size:7px;">Comunidade: ${d.comunidade_etnia}</div>` : ''}
+  </div>
+
+  <div class="sec-bar">PESSOA COM DEFICIÊNCIA (Se houver)</div>
+  <div class="sec-body">
+    <div class="chk-group" style="flex-direction:row;flex-wrap:wrap;gap:4px 10px;">
+      ${chk('Alta habilidade/superdotação', defMap.alta_habilidade)}
+      ${chk('Deficiência auditiva', defMap.auditiva)}
+      ${chk('Deficiência intelectual', defMap.intelectual)}
+      ${chk('Deficiência motora', defMap.motora)}
+      ${chk('Def. visual/baixa visão', defMap.visual_baixa)}
+      ${chk('Deficiência visual', defMap.visual)}
+      ${chk('Surdocegueira', defMap.surdocegueira)}
+      ${chk('Nenhuma', defMap.nenhuma)}
     </div>
-  </body>
-  </html>
-  `
+  </div>
+
+  <div class="sec-bar">DADOS DA EMPRESA CONCEDENTE</div>
+  <table>
+    <tbody>
+      ${row(f('Razão Social', d.empresa_nome, '50%'), f('CNPJ', d.empresa_cnpj, '25%'), f('Telefone', d.empresa_telefone || '', '25%'))}
+      ${row(f('Endereço', d.empresa_endereco, '50%'), f('Cidade', d.empresa_cidade || '', '25%'), f('UF', d.empresa_uf || '', '25%'))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">SUPERVISOR DO ESTÁGIO</div>
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_supervisor, '40%'), f('Cargo', d.cargo_supervisor, '30%'), f('E-mail', d.email_supervisor || '', '30%'))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">INFORMAÇÕES DO ESTÁGIO</div>
+  <table>
+    <tbody>
+      ${row(
+      f(
+        'Tipo',
+        d.tipo_estagio === 'Obrigatório'
+          ? '(X) Obrigatório ( ) Não Obrigatório'
+          : '( ) Obrigatório (X) Não Obrigatório',
+        '30%'
+      ),
+      f('Data Início', fmt(d.data_inicio), '25%'),
+      f('Data Fim', fmt(d.data_fim), '25%'),
+      f('C.H. Semanal', d.carga_horaria ? `${d.carga_horaria} h` : '', '20%')
+    )}
+    </tbody>
+  </table>
+
+  ${sigBlock(['Discente', 'Coordenador(a) de Estágios'], 'Declaro que as informações acima são verdadeiras e me comprometo a atualizá-las quando necessário.')}
+`
+  )
 }
 
 export function buildRealizationTermHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>TERMO DE REALIZAÇÃO DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Carga Horária Total</div>
-          <div class="field-value">${d.horas_total || ''} horas</div>
-        </div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">2. ATIVIDADES DESENVOLVIDAS</div>
-      <div class="text-area">${d.atividades || ''}</div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Supervisor(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('TERMO DE REALIZAÇÃO DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '40%'))}
+      ${row(f('Empresa', d.empresa_nome, '40%'), f('Supervisor', d.nome_supervisor, '30%'), f('Cargo', d.cargo_supervisor || '', '30%'))}
+      ${row(f('Período', `${fmt(d.inicio_estagio || '')} a ${fmt(d.fim_estagio || '')}`, '40%'), f('C.H. Total', d.horas_total ? `${d.horas_total} h` : '', '30%'), f('C.H. Semanal', d.horas_semanais ? `${d.horas_semanais} h` : '', '30%'))}
+    </tbody>
+  </table>
+
+  ${sec('ATIVIDADES REALIZADAS', d.atividades || '')}
+
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário'], 'Termo que atesta a realização das atividades de estágio descritas.')}
+`)
 }
 
 export function buildRescissionTermHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>TERMO DE RESCISÃO DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Data de Rescisão</div>
-          <div class="field-value">${d.data_rescisao || ''}</div>
-        </div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">2. MOTIVO DA RESCISÃO</div>
-      <div class="text-area">${d.motivo_rescisao || ''}</div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Responsável Legal</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('TERMO DE RESCISÃO DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '40%'))}
+      ${row(f('Empresa', d.empresa_nome, '50%'), f('Data de Início', fmt(d.inicio_estagio || ''), '25%'), f('Data da Rescisão', fmt(d.data_rescisao || ''), '25%'))}
+    </tbody>
+  </table>
+
+  ${sec('MOTIVO DA RESCISÃO', d.motivo_rescisao || '')}
+
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'], 'Termo de rescisão do contrato de estágio.')}
+`)
 }
 
 export function buildStudentEvaluationHTML(d: Record<string, any>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>FICHA DE AVALIAÇÃO DO ESTAGIÁRIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Período de Avaliação</div>
-          <div class="field-value">${d.inicio_periodo || ''} a ${d.fim_periodo || ''}</div>
-        </div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">2. AVALIAÇÃO DE DESEMPENHO</div>
-      <div class="form-grid">
-        <div class="form-field">
-          <div class="field-label">Pontualidade e Assiduidade</div>
-          <div class="field-value">${d.avaliacao_pontualidade || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Postura Profissional</div>
-          <div class="field-value">${d.avaliacao_postura || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Desempenho Técnico</div>
-          <div class="field-value">${d.avaliacao_tecnico || ''}</div>
-        </div>
-      </div>
-      <div class="form-field">
-        <div class="field-label">Relacionamento Interpessoal</div>
-        <div class="field-value">${d.avaliacao_relacionamento || ''}</div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">3. CONSIDERAÇÕES FINAIS</div>
-      <div class="text-area">${d.consideracoes || ''}</div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Supervisor(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('FICHA DE AVALIAÇÃO DO ESTAGIÁRIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('Curso', d.curso_estudante, '40%'))}
+      ${row(f('Empresa', d.empresa_nome, '40%'), f('Supervisor', d.nome_supervisor, '30%'), f('Cargo', d.cargo_supervisor || '', '30%'))}
+      ${row(f('Período Avaliado', `${fmt(d.inicio_periodo || '')} a ${fmt(d.fim_periodo || '')}`))}
+    </tbody>
+  </table>
+
+  <table>
+    <tbody>
+      ${row(f('1. Pontualidade e Assiduidade', d.avaliacao_pontualidade || ''))}
+      ${row(f('2. Postura Profissional', d.avaliacao_postura || ''))}
+      ${row(f('3. Conhecimento Técnico', d.avaliacao_tecnico || ''))}
+      ${row(f('4. Relacionamento Interpessoal', d.avaliacao_relacionamento || ''))}
+    </tbody>
+  </table>
+
+  ${sec('5. CONSIDERAÇÕES GERAIS', d.consideracoes || d.consideracoes_finais || '')}
+
+  ${sigBlock(['Supervisor Avaliador', 'Coordenador de Estágios'], 'Avaliação de desempenho do estagiário referente ao período informado.')}
+`)
 }
 
 export function buildCommitmentTermHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>TERMO DE COMPROMISSO DE ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
-    </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO ESTAGIÁRIO</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">CPF</div>
-          <div class="field-value">${d.cpf_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">2. DADOS DA EMPRESA</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Razão Social</div>
-          <div class="field-value">${d.empresa_nome || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">CNPJ</div>
-          <div class="field-value">${d.empresa_cnpj || ''}</div>
-        </div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">3. PERÍODO DO ESTÁGIO</div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Data de Início</div>
-          <div class="field-value">${d.inicio_estagio || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Data de Término</div>
-          <div class="field-value">${d.fim_estagio || ''}</div>
-        </div>
-      </div>
-    </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Estagiário(a)</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Responsável Legal</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a)</div>
-      </div>
-    </div>
-  </body>
-  </html>
-  `
+  return wrap('TERMO DE COMPROMISSO DE ESTÁGIO', `
+  <table>
+    <tbody>
+      ${row(f('Discente', d.nome_estudante, '40%'), f('Matrícula', d.matricula_estudante, '20%'), f('CPF', d.cpf_estudante, '20%'), f('Curso', d.curso_estudante, '20%'))}
+      ${row(f('Empresa', d.empresa_nome, '40%'), f('CNPJ', d.empresa_cnpj, '20%'), f('Endereço', d.empresa_endereco || '', '40%'))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">DETALHES DO ESTÁGIO</div>
+  <table>
+    <tbody>
+      ${row(f('Início', fmt(d.inicio_estagio || '')), f('Término', fmt(d.fim_estagio || '')), f('C.H. Semanal', d.horas_semanais ? `${d.horas_semanais} h` : ''))}
+      ${row(f('Modalidade', d.modalidade_estagio === 'remoto' ? '(X) Remoto ( ) Presencial' : '( ) Remoto (X) Presencial'), f('Valor Bolsa (R$)', d.valor_bolsa || ''), f('Aux. Transporte (R$)', d.valor_transporte || ''))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">DOCENTE ORIENTADOR</div>
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_orientador || '', '50%'), f('Telefone', d.telefone_orientador || '', '25%'), f('E-mail', d.email_orientador || '', '25%'))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">SUPERVISOR DO ESTÁGIO</div>
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_supervisor, '40%'), f('Cargo', d.cargo_supervisor, '30%'), f('Telefone', d.telefone_supervisor || '', '15%'), f('E-mail', d.email_supervisor || '', '15%'))}
+    </tbody>
+  </table>
+
+  ${sec('PLANO DE ATIVIDADES', d.plano_atividades || '')}
+
+  ${sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'], 'Pelo presente Termo de Compromisso, as partes ajustam o estágio nas condições acima.')}
+`)
 }
 
 export function buildInternshipRegistrationRequestHTML(d: Record<string, string>): string {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      @page { margin: 20mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-      .header h1 { font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase; }
-      .header h2 { font-size: 14px; font-weight: bold; margin: 5px 0; }
-      .section { margin-bottom: 20px; }
-      .section-title { font-weight: bold; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-      .form-field { margin-bottom: 8px; }
-      .field-label { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-      .field-value { border: 1px solid #ccc; padding: 4px; min-height: 16px; background: #f9f9f9; }
-      .text-area { border: 1px solid #ccc; padding: 8px; min-height: 60px; background: #f9f9f9; font-size: 10px; }
-      .signature-section { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-      .signature-box { text-align: center; }
-      .signature-line { border-bottom: 1px solid #000; margin: 30px 0 5px 0; height: 40px; }
-      .signature-label { font-size: 10px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>SOLICITAÇÃO DE CADASTRO NO ESTÁGIO</h1>
-      <h2>Instituto Federal do Ceará - Campus Maracanaú</h2>
+  // Helper para checkbox estilizada IFCE
+  function chk(label: string, checked = false): string {
+    return `<span class="chk-item"><span class="chk-box">${checked ? '✕' : ''}</span>${label}</span>`
+  }
+
+  // Mapear cor/raça
+  const corRacaMap: Record<string, boolean> = {
+    amarelo: d.cor_raca === 'amarelo',
+    branco: d.cor_raca === 'branco',
+    indigena: d.cor_raca === 'indigena',
+    pardo: d.cor_raca === 'pardo',
+    preto: d.cor_raca === 'preto',
+    nao_declara: d.cor_raca === 'nao_declarar' || !d.cor_raca,
+  }
+
+  // Mapear etnia
+  const etniaMap: Record<string, boolean> = {
+    indigena: d.etnia === 'indigena',
+    quilombola: d.etnia === 'quilombola',
+    outra: d.etnia === 'outra',
+    nao_declara: d.etnia === 'nao_declarar' || !d.etnia,
+  }
+
+  // Mapear deficiências
+  const defMap: Record<string, boolean> = {
+    alta_habilidade: d.deficiencia?.includes('alta_habilidade'),
+    auditiva: d.deficiencia?.includes('auditiva'),
+    intelectual: d.deficiencia?.includes('intelectual'),
+    motora: d.deficiencia?.includes('motora'),
+    visual_baixa: d.deficiencia?.includes('visual_baixa'),
+    visual: d.deficiencia?.includes('visual'),
+    surdocegueira: d.deficiencia?.includes('surdocegueira'),
+    nenhuma: !d.deficiencia || d.deficiencia.length === 0,
+  }
+
+  // Montar grid de horários
+  const diasSemana = [
+    { key: 'segunda', label: 'SEGUNDA' },
+    { key: 'terca', label: 'TERÇA' },
+    { key: 'quarta', label: 'QUARTA' },
+    { key: 'quinta', label: 'QUINTA' },
+    { key: 'sexta', label: 'SEXTA' },
+    { key: 'sabado', label: 'SÁBADO' },
+    { key: 'domingo', label: 'DOMINGO' },
+  ]
+
+  const horarioRows = diasSemana
+    .map(
+      (dia) => `
+  <tr>
+    <td style="font-size:7px;font-weight:bold;">${dia.label}</td>
+    <td>${d[`horario_${dia.key}_inicio`] || ''}</td>
+    <td>${d[`horario_${dia.key}_fim`] || ''}</td>
+  </tr>`
+    )
+    .join('')
+
+  // Montar turnos - espera dados no formato turnos_primeira_segunda, etc.
+  const turnosPrimeira = diasSemana
+    .map(
+      (dia) => `
+    <td>${d[`turnos_primeira_${dia.key}`] === 'sim' || d[`turnos_primeira_${dia.key}`] ? '✕' : ''}</td>`
+    )
+    .join('')
+
+  const turnosSegunda = diasSemana
+    .map(
+      (dia) => `
+    <td>${d[`turnos_segunda_${dia.key}`] === 'sim' || d[`turnos_segunda_${dia.key}`] ? '✕' : ''}</td>`
+    )
+    .join('')
+
+  const turnosTerceira = diasSemana
+    .map(
+      (dia) => `
+    <td>${d[`turnos_terceira_${dia.key}`] === 'sim' || d[`turnos_terceira_${dia.key}`] ? '✕' : ''}</td>`
+    )
+    .join('')
+
+  return wrap(
+    'SOLICITAÇÃO DE CADASTRO NO ESTÁGIO',
+    `
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_estudante, '60%'), f('Matrícula', d.matricula_estudante, '15%'), f('CPF', d.cpf_estudante, '25%'))}
+      ${row(f('Curso', d.curso_estudante), f('Nome Social', d.nome_social, '50%'))}
+      ${row(f('Endereço', d.endereco, '50%'), f('Bairro', d.bairro, '25%'), f('Município-UF', d.municipio_uf, '25%'))}
+      ${row(f('CEP', d.cep), f('Telefone', d.telefone_estudante), f('E-mail Institucional', d.email_institucional))}
+      ${row(f('E-mail Pessoal', d.email_pessoal))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">COR / RAÇA</div>
+  <div class="sec-body">
+    <div class="chk-group" style="flex-direction:row;flex-wrap:wrap;gap:4px 12px;">
+      ${chk('( ) Amarelo(a)', corRacaMap.amarelo)}
+      ${chk('( ) Branco(a)', corRacaMap.branco)}
+      ${chk('( ) Indígena', corRacaMap.indigena)}
+      ${chk('( ) Pardo(a)', corRacaMap.pardo)}
+      ${chk('( ) Preto(a)', corRacaMap.preto)}
+      ${chk('( ) Prefiro não declarar', corRacaMap.nao_declara)}
     </div>
-    <div class="section">
-      <div class="section-title">1. DADOS DO DISCENTE</div>
-      <div class="form-grid">
-        <div class="form-field" style="grid-column: span 2;">
-          <div class="field-label">Nome Completo</div>
-          <div class="field-value">${d.nome_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Matrícula</div>
-          <div class="field-value">${d.matricula_estudante || ''}</div>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <div class="field-label">Curso</div>
-          <div class="field-value">${d.curso_estudante || ''}</div>
-        </div>
-        <div class="form-field">
-          <div class="field-label">Telefone</div>
-          <div class="field-value">${d.telefone_estudante || ''}</div>
-        </div>
-      </div>
+  </div>
+
+  <div class="sec-bar">ETNIA</div>
+  <div class="sec-body">
+    <div class="chk-group" style="flex-direction:row;flex-wrap:wrap;gap:4px 12px;">
+      ${chk('( ) Indígena', etniaMap.indigena)}
+      ${chk('( ) Quilombola', etniaMap.quilombola)}
+      ${chk('( ) Outra', etniaMap.outra)}
+      ${chk('( ) Prefiro não declarar', etniaMap.nao_declara)}
     </div>
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Discente</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Coordenador(a) de Estágios</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-line"></div>
-        <div class="signature-label">Secretaria</div>
-      </div>
+    ${d.etnia_outra ? `<div style="margin-top:4px;font-size:7px;">Outra: ${d.etnia_outra}</div>` : ''}
+    ${d.comunidade_etnia ? `<div style="margin-top:2px;font-size:7px;">Comunidade: ${d.comunidade_etnia}</div>` : ''}
+  </div>
+
+  <div class="sec-bar">PESSOA COM DEFICIÊNCIA (Se houver)</div>
+  <div class="sec-body">
+    <div class="chk-group" style="flex-direction:row;flex-wrap:wrap;gap:4px 10px;">
+      ${chk('Alta habilidade/superdotação', defMap.alta_habilidade)}
+      ${chk('Deficiência auditiva', defMap.auditiva)}
+      ${chk('Deficiência intelectual', defMap.intelectual)}
+      ${chk('Deficiência motora', defMap.motora)}
+      ${chk('Def. visual/baixa visão', defMap.visual_baixa)}
+      ${chk('Deficiência visual', defMap.visual)}
+      ${chk('Surdocegueira', defMap.surdocegueira)}
+      ${chk('Nenhuma', defMap.nenhuma)}
     </div>
-  </body>
-  </html>
-  `
+  </div>
+
+  <div class="sec-bar">UNIDADE CONCEDENTE / EMPRESA</div>
+  <table>
+    <tbody>
+      ${row(f('Nome Fantasia / Razão Social', d.empresa_nome, '50%'), f('CNPJ / Registro Conselho', d.empresa_cnpj, '25%'), f('Telefone', d.empresa_telefone || '', '25%'))}
+      ${row(f('Endereço', d.empresa_endereco, '40%'), f('Bairro', d.empresa_bairro, '20%'), f('Município-UF', d.empresa_municipio_uf, '20%'), f('CEP', d.empresa_cep, '20%'))}
+      ${row(f('E-mail', d.empresa_email || ''))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">RESPONSÁVEL LEGAL DA UNIDADE CONCEDENTE</div>
+  <table>
+    <tbody>
+      ${row(f('Nome', d.responsavel_legal, '50%'), f('Cargo / Qualificação', d.cargo_responsavel, '25%'), f('CPF', d.cpf_responsavel, '25%'))}
+      ${row(f('Telefone', d.telefone_responsavel || ''))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">SUPERVISOR DO ESTÁGIO NA UNIDADE CONCEDENTE</div>
+  <table>
+    <tbody>
+      ${row(f('Nome', d.nome_supervisor, '40%'), f('Cargo', d.cargo_supervisor, '30%'), f('Setor de Realização', d.setor_supervisor || d.setor_realizacao || '', '30%'))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">INFORMAÇÕES DO ESTÁGIO</div>
+  <table>
+    <tbody>
+      ${row(
+      f(
+        'Tipo de Estágio',
+        d.tipo_estagio === 'Obrigatório'
+          ? '(X) Obrigatório ( ) Não Obrigatório'
+          : '( ) Obrigatório (X) Não Obrigatório',
+        '40%'
+      ),
+      f(
+        'Forma',
+        d.forma_estagio === 'Presencial'
+          ? '(X) Presencial ( ) Remoto'
+          : '( ) Presencial (X) Remoto',
+        '30%'
+      ),
+      f('Carga Horária Semanal', d.horas_semanais ? `${d.horas_semanais} h` : '', '30%')
+    )}
+      ${row(f('Data Inicial', fmt(d.inicio_estagio)), f('Data Final Prevista', fmt(d.fim_estagio)))}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">GRADE DE HORÁRIOS</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%;background:#e0e0e0;font-size:7px;">DIA</th>
+        <th style="width:20%;background:#e0e0e0;font-size:7px;">HORÁRIO INÍCIO</th>
+        <th style="width:20%;background:#e0e0e0;font-size:7px;">HORÁRIO FINAL</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${horarioRows}
+    </tbody>
+  </table>
+
+  <div class="sec-bar">TURNOS</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="background:#e0e0e0;font-size:7px;">TURNO</th>
+        <th style="background:#e0e0e0;font-size:7px;">SEG</th>
+        <th style="background:#e0e0e0;font-size:7px;">TER</th>
+        <th style="background:#e0e0e0;font-size:7px;">QUA</th>
+        <th style="background:#e0e0e0;font-size:7px;">QUI</th>
+        <th style="background:#e0e0e0;font-size:7px;">SEX</th>
+        <th style="background:#e0e0e0;font-size:7px;">SÁB</th>
+        <th style="background:#e0e0e0;font-size:7px;">DOM</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-size:7px;font-weight:bold;">1ª TURNO</td>
+        ${turnosPrimeira}
+      </tr>
+      <tr>
+        <td style="font-size:7px;font-weight:bold;">2ª TURNO</td>
+        ${turnosSegunda}
+      </tr>
+      <tr>
+        <td style="font-size:7px;font-weight:bold;">3ª TURNO</td>
+        ${turnosTerceira}
+      </tr>
+    </tbody>
+  </table>
+
+  ${sigBlock(['Discente', 'Responsável Legal', 'Supervisor do Estágio'], 'Declaro que as informações acima são verdadeiras e me comprometo a atualizá-las quando necessário.')}
+`
+  )
 }

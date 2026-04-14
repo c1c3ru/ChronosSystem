@@ -97,15 +97,14 @@ export default function ExtensionDeclarationPage() {
       const { generateHTMLPDF, buildExtensionDeclarationHTML } =
         await import('@/lib/pdf-generator-html')
 
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
-        nome_empresa: raw.company_name || '',
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
+        curso_estudante: raw.student_course || '',
+        nome_empresa: raw.company_name || '',
+        empresa_cnpj: raw.company_cnpj || '',
         data_final_atual: raw.current_end_date || '',
         nova_data_final: raw.new_end_date || '',
-        cidade: raw.city || 'Maracanaú',
       }
 
       const html = buildExtensionDeclarationHTML(htmlData)

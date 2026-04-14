@@ -114,16 +114,19 @@ export default function EquivalenceRequestPage() {
       const { generateHTMLPDF, buildEquivalenceRequestHTML } =
         await import('@/lib/pdf-generator-html')
 
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
+        cpf_estudante: raw.student_cpf || '',
+        curso_estudante: raw.student_course || '',
+        periodo_curso: raw.course_period || '',
+        semestre_atual: raw.current_semester || '',
         empresa_nome: raw.company_name || '',
+        empresa_cnpj: raw.company_cnpj || '',
         inicio_atividades: raw.start_date || '',
         fim_atividades: raw.end_date || '',
         total_hours: raw.total_hours || '',
-        justificativa: raw.activities || '',
+        justificativa: raw.justification || '',
       }
 
       const html = buildEquivalenceRequestHTML(htmlData)

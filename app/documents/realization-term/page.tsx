@@ -96,20 +96,18 @@ export default function RealizationTermPage() {
       const raw: any = { ...formData }
       const { generateHTMLPDF, buildRealizationTermHTML } = await import('@/lib/pdf-generator-html')
 
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
-        cpf_estudante: raw.student_cpf || '',
-        rg_estudante: raw.student_rg || '',
+        curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        inicio_estagio: raw.internship_start_date || '',
-        fim_estagio: raw.internship_end_date || '',
+        nome_supervisor: raw.supervisor_name || '',
+        cargo_supervisor: raw.supervisor_role || '',
+        inicio_estagio: raw.start_date || '',
+        fim_estagio: raw.end_date || '',
         horas_total: raw.total_hours || '',
+        horas_semanais: raw.weekly_hours || '',
         atividades: raw.activities || '',
-        avaliacao: raw.performance_evaluation || '',
       }
 
       const html = buildRealizationTermHTML(htmlData)

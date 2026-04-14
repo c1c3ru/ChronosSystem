@@ -99,16 +99,12 @@ export default function RescissionTermPage() {
       // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
-        cpf_estudante: raw.student_cpf || '',
-        rg_estudante: raw.student_rg || '',
+        curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        data_inicio_original: raw.internship_start_date || '',
-        data_fim_original: raw.internship_end_date || '',
+        inicio_estagio: raw.start_date || '',
         data_rescisao: raw.rescission_date || '',
-        motivo_rescisao: raw.rescission_reason || 'Encerramento por interesse das partes.',
+        motivo_rescisao: raw.rescission_reason || '',
       }
 
       const html = buildRescissionTermHTML(htmlData)

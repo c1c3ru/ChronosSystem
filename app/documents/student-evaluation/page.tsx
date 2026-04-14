@@ -99,35 +99,20 @@ export default function StudentEvaluationPage() {
       const { generateHTMLPDF, buildStudentEvaluationHTML } =
         await import('@/lib/pdf-generator-html')
 
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
+        curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
-        nome_supervisor: raw.company_supervisor || '',
-        data_inicio: raw.period_start || '',
-        data_fim: raw.period_end || '',
-        notas: {
-          assiduidade: raw.eval_assiduity || '',
-          pontualidade: raw.eval_punctuality || '',
-          responsabilidade: raw.eval_responsibility || '',
-          disciplina: raw.eval_discipline || '',
-          cooperacao: raw.eval_cooperation || '',
-          iniciativa: raw.eval_initiative || '',
-          proatividade: raw.eval_proactivity || '',
-          comunicacao: raw.eval_communication || '',
-          relacionamento: raw.eval_relationship || '',
-          conhecimento: raw.eval_technical_knowledge || '',
-          aprendizagem: raw.eval_learning_capacity || '',
-          produtividade: raw.eval_productivity || '',
-          qualidade: raw.eval_quality || '',
-          organizacao: raw.eval_organization || '',
-          criatividade: raw.eval_creativity || '',
-        },
-        observacoes: raw.observations || '',
-        recomendacao:
-          raw.recommendation === 'sim' ? 'SIM' : raw.recommendation === 'nao' ? 'NÃO' : '',
+        nome_supervisor: raw.supervisor_name || '',
+        cargo_supervisor: raw.supervisor_role || '',
+        inicio_periodo: raw.start_date || '',
+        fim_periodo: raw.end_date || '',
+        avaliacao_pontualidade: raw.evaluation_punctuality || '',
+        avaliacao_postura: raw.evaluation_behavior || '',
+        avaliacao_tecnico: raw.evaluation_technical || '',
+        avaliacao_relacionamento: raw.evaluation_relationship || '',
+        consideracoes: raw.considerations || '',
       }
 
       const html = buildStudentEvaluationHTML(htmlData)

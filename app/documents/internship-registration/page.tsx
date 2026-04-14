@@ -120,17 +120,50 @@ export default function InternshipRegistrationPage() {
 
       // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
+        // Dados Pessoais
         nome_estudante: raw.student_name || '',
+        nome_social: raw.student_social_name || '',
         curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
         cpf_estudante: raw.student_cpf || '',
         email_estudante: raw.student_email_institutional || raw.student_email_personal || '',
         telefone_estudante: raw.student_phone || '',
+        endereco: raw.student_address || '',
+        bairro: raw.student_neighborhood || '',
+        municipio_uf: raw.student_city_uf || '',
+        cep: raw.student_zip || '',
+        semestre_atual: raw.student_semester || '',
+        turno: raw.student_shift || '',
+
+        // Cor/Raça e Etnia
+        cor_raca: raw.student_race || '',
+        etnia: raw.student_ethnicity || '',
+        etnia_outra: raw.student_ethnicity_community || '',
+        comunidade_etnia: raw.student_ethnicity_community || '',
+
+        // Deficiências
+        def_alta_habilidade: raw.student_disability === 'alta_habilidade',
+        def_auditiva: raw.student_disability === 'auditiva',
+        def_intelectual: raw.student_disability === 'intelectual',
+        def_motora: raw.student_disability === 'motora',
+        def_visual_baixa: raw.student_disability === 'visual_baixa',
+        def_visual: raw.student_disability === 'visual',
+        def_surdocegueira: raw.student_disability === 'surdocegueira',
+
+        // Dados da Empresa
         empresa_nome: raw.company_name || '',
         empresa_cnpj: raw.company_cnpj || '',
         empresa_endereco: raw.company_address || '',
+        empresa_cidade: raw.company_city || '',
+        empresa_uf: raw.company_state || '',
+        empresa_telefone: raw.company_phone || '',
+
+        // Supervisor
         nome_supervisor: raw.company_supervisor || '',
         cargo_supervisor: raw.company_supervisor_role || '',
+        email_supervisor: raw.company_supervisor_email || '',
+
+        // Estágio
         tipo_estagio: raw.internship_type === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
         data_inicio: raw.start_date || '',
         data_fim: raw.end_date || '',

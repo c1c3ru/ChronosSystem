@@ -100,16 +100,17 @@ export default function SemesterReportPage() {
 
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
         matricula_estudante: raw.student_enrollment || '',
+        curso_estudante: raw.student_course || '',
+        empresa_nome: raw.company_name || '',
         nome_supervisor: raw.supervisor_name || '',
+        horas_semestre: raw.semester_hours || '',
+        inicio_periodo: raw.start_date || '',
+        fim_periodo: raw.end_date || '',
         nome_orientador: raw.advisor_name || '',
-        inicio_periodo: raw.period_start || '',
-        fim_periodo: raw.period_end || '',
-        horas_semestre: raw.hours_semester || '',
         atividades: raw.activities || '',
-        dificuldades: raw.difficulties || '', // Semester report usually has these from the builder
-        resultados: raw.comments || '', // Mapping comments to results if needed
+        dificuldades: raw.difficulties || '',
+        resultados: raw.results || '',
       }
 
       const html = buildSemesterReportHTML(htmlData)

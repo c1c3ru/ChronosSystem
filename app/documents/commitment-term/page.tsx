@@ -164,24 +164,26 @@ export default function CommitmentTermPage() {
       // Mapear campos para o gerador HTML seguindo as chaves do estado formData
       const htmlData = {
         nome_estudante: raw.student_name || '',
-        curso_estudante: raw.student_course || '',
-        matricula_estudante: raw.student_id || '',
+        matricula_estudante: raw.student_enrollment || '',
         cpf_estudante: raw.student_cpf || '',
-        rg_estudante: '', // RG não está no estado original mas o builder aceita se houver
-        data_nascimento: '', // Opcional
+        curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
         empresa_cnpj: raw.company_cnpj || '',
         empresa_endereco: raw.company_address || '',
-        empresa_setor: '', // Opcional
-        area_atuacao: '', // Opcional
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_education || '',
-        nome_orientador: raw.advisor_name || '',
         inicio_estagio: raw.start_date || '',
         fim_estagio: raw.end_date || '',
         horas_semanais: raw.weekly_hours || '',
-        valor_bolsa: raw.has_grant === 'true' ? raw.grant_value : 'Inexistente',
-        valor_transporte: raw.has_transport === 'true' ? raw.transport_value : 'Inexistente',
+        modalidade_estagio: raw.internship_modality || raw.modality || '',
+        valor_bolsa: raw.scholarship_value || raw.valor_bolsa || '',
+        valor_transporte: raw.transport_aid || raw.valor_transporte || '',
+        nome_orientador: raw.advisor_name || '',
+        telefone_orientador: raw.advisor_phone || '',
+        email_orientador: raw.advisor_email || '',
+        nome_supervisor: raw.supervisor_name || '',
+        cargo_supervisor: raw.supervisor_role || '',
+        telefone_supervisor: raw.supervisor_phone || '',
+        email_supervisor: raw.supervisor_email || '',
+        plano_atividades: raw.activity_plan || '',
       }
 
       const html = buildCommitmentTermHTML(htmlData)
