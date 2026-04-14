@@ -29,10 +29,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          # cache: "npm" # Cache might behave differently on self-hosted
+          cache: "npm" # Re-enable cache for npm dependencies
 
-      - name: 📦 Install
-        run: npm install --legacy-peer-deps
+      - name: 📦 Install Dependencies
+        run: npm install # Use default install, resolve peer-deps if necessary
 
       - name: 🏗️ Prisma Generate
         run: npx prisma generate
@@ -64,13 +64,22 @@ jobs:
       - name: ⬇️ Checkout
         uses: actions/checkout@v4
 
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
       - name: 📋 Audit Dependencies
         run: npm audit --audit-level=high
 
   deploy-production:
-    name: 🌍 Local Deploy (Production)
+    name: 🌍 Local Deploy (Production )
     runs-on: self-hosted
-    needs: [quality-gate]
+    needs: [quality-gate, security-audit] # Ensure security audit also passes before deploy
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
@@ -85,7 +94,7 @@ jobs:
           git reset --hard origin/main
 
           echo "📦 Installing production dependencies..."
-          npm install --production --legacy-peer-deps
+          npm install --production
 
           echo "🚀 Restarting system..."
           chmod +x ./start-system.sh
