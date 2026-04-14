@@ -96,9 +96,7 @@ jobs:
           echo "📦 Installing production dependencies..."
           npm install --production
 
-          # Ensure schema.prisma uses sqlite for CI environment
-          sed -i 's/provider = "postgresql"/provider = "sqlite"/g' prisma/schema.prisma
-          sed -i 's/formData  Json/formData  String/g' prisma/schema.prisma
+          # schema.prisma is already configured for sqlite in the repository
           npx prisma generate
 
           echo "🚀 Restarting system..."
