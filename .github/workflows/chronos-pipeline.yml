@@ -55,7 +55,7 @@ jobs:
           file: ./coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ github.repository }}
-          fail_ci_if_error: false
+          fail_ci_if_if_error: false
 
   security-audit:
     name: 🔒 Security Audit
@@ -95,6 +95,10 @@ jobs:
 
           echo "📦 Installing production dependencies..."
           npm install --production
+
+          # Ensure schema.prisma uses sqlite for CI environment
+          sed -i 's/provider = "postgresql"/provider = "sqlite"/g' prisma/schema.prisma
+          npx prisma generate
 
           echo "🚀 Restarting system..."
           chmod +x ./start-system.sh
