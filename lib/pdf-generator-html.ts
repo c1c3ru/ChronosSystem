@@ -921,3 +921,5 @@ export function buildInternshipRegistrationRequestHTML(d: Record<string, string>
 `
   )
 }
+
+// Test comment for CI/CD validation
