@@ -353,5 +353,5 @@ export async function generatePDFBlob(
   options: { filename?: string; landscape?: boolean } = {}
 ): Promise<Blob> {
   const buffer = await generatePDFFromSchema(schema, data, options)
-  return new Blob([buffer], { type: 'application/pdf' })
+  return new Blob([new Uint8Array(buffer)], { type: 'application/pdf' })
 }
