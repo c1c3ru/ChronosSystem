@@ -2,7 +2,12 @@
 
 import React, { useState } from 'react'
 import { FormPDFExport } from '@/components/FormPDFExport'
-import { OfficialFormTemplate, FormTable, FormField, FormInput } from '@/components/OfficialFormTemplate'
+import {
+  OfficialFormTemplate,
+  FormTable,
+  FormField,
+  FormInput,
+} from '@/components/OfficialFormTemplate'
 
 interface InternshipRegistrationFormProps {
   userId?: string
@@ -133,7 +138,10 @@ export function InternshipRegistrationForm({
   return (
     <div className="w-full max-w-[210mm] mx-auto bg-white">
       <div className="mb-4 flex justify-end no-print">
-        <FormPDFExport formId="internship-registration-form" fileName="solicitacao-cadastro-estagio" />
+        <FormPDFExport
+          formId="internship-registration-form"
+          fileName="solicitacao-cadastro-estagio"
+        />
       </div>
 
       <OfficialFormTemplate
@@ -146,7 +154,12 @@ export function InternshipRegistrationForm({
           <tbody>
             <tr>
               <FormField label="NOME" colSpan={3}>
-                <FormInput type="text" name="studentName" value={formData.studentName} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="studentName"
+                  value={formData.studentName}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="CPF">
                 <FormInput type="text" name="cpf" value={formData.cpf} onChange={handleChange} />
@@ -154,42 +167,92 @@ export function InternshipRegistrationForm({
             </tr>
             <tr>
               <FormField label="NOME SOCIAL" colSpan={4}>
-                <FormInput type="text" name="socialName" value={formData.socialName} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="socialName"
+                  value={formData.socialName}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="CURSO" colSpan={3}>
-                <FormInput type="text" name="course" value={formData.course} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="MATRÍCULA">
-                <FormInput type="text" name="registration" value={formData.registration} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="registration"
+                  value={formData.registration}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)" colSpan={3}>
-                <FormInput type="text" name="address" value={formData.address} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="BAIRRO/DISTRITO">
-                <FormInput type="text" name="neighborhood" value={formData.neighborhood} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="neighborhood"
+                  value={formData.neighborhood}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="MUNICÍPIO-UF" colSpan={2}>
-                <FormInput type="text" name="cityState" value={formData.cityState} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="cityState"
+                  value={formData.cityState}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="CEP">
-                <FormInput type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="DDD + TELEFONE">
-                <FormInput type="text" name="phone" value={formData.phone} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="E-MAIL INSTITUCIONAL" colSpan={2}>
-                <FormInput type="email" name="email" value={formData.email} onChange={handleChange} />
+                <FormInput
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="E-MAIL PESSOAL" colSpan={2}>
-                <FormInput type="email" name="personalEmail" value={formData.personalEmail} onChange={handleChange} />
+                <FormInput
+                  type="email"
+                  name="personalEmail"
+                  value={formData.personalEmail}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
           </tbody>
@@ -253,7 +316,9 @@ export function InternshipRegistrationForm({
                     name="deficiencyType"
                     value={option}
                     checked={formData.deficiencyType.includes(option)}
-                    onChange={(e) => handleCheckboxGroup('deficiencyType', option, e.target.checked)}
+                    onChange={(e) =>
+                      handleCheckboxGroup('deficiencyType', option, e.target.checked)
+                    }
                     className="h-2.5 w-2.5 flex-shrink-0"
                   />
                   <span>{option}</span>
@@ -267,7 +332,12 @@ export function InternshipRegistrationForm({
           <tbody>
             <tr>
               <FormField label="RAZÃO SOCIAL" colSpan={4}>
-                <FormInput type="text" name="companyName" value={formData.companyName} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
@@ -282,10 +352,20 @@ export function InternshipRegistrationForm({
             </tr>
             <tr>
               <FormField label="CNPJ OU REGISTRO NO CONSELHO">
-                <FormInput type="text" name="companyCNPJ" value={formData.companyCNPJ} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="companyCNPJ"
+                  value={formData.companyCNPJ}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)" colSpan={3}>
-                <FormInput type="text" name="companyAddress" value={formData.companyAddress} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="companyAddress"
+                  value={formData.companyAddress}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
@@ -306,15 +386,30 @@ export function InternshipRegistrationForm({
                 />
               </FormField>
               <FormField label="CEP">
-                <FormInput type="text" name="companyZipCode" value={formData.companyZipCode} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="companyZipCode"
+                  value={formData.companyZipCode}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="DDD + TELEFONE" colSpan={2}>
-                <FormInput type="text" name="companyPhone" value={formData.companyPhone} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="companyPhone"
+                  value={formData.companyPhone}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="E-MAIL" colSpan={2}>
-                <FormInput type="email" name="companyEmail" value={formData.companyEmail} onChange={handleChange} />
+                <FormInput
+                  type="email"
+                  name="companyEmail"
+                  value={formData.companyEmail}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
@@ -354,24 +449,52 @@ export function InternshipRegistrationForm({
               </FormField>
             </tr>
             <tr>
-              <FormField label="SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO" colSpan={4}>
-                <FormInput type="text" name="supervisorName" value={formData.supervisorName} onChange={handleChange} />
+              <FormField
+                label="SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO"
+                colSpan={4}
+              >
+                <FormInput
+                  type="text"
+                  name="supervisorName"
+                  value={formData.supervisorName}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="CARGO/QUALIFICAÇÃO" colSpan={2}>
-                <FormInput type="text" name="supervisorRole" value={formData.supervisorRole} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="supervisorRole"
+                  value={formData.supervisorRole}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="CPF">
-                <FormInput type="text" name="supervisorCPF" value={formData.supervisorCPF} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="supervisorCPF"
+                  value={formData.supervisorCPF}
+                  onChange={handleChange}
+                />
               </FormField>
               <FormField label="DDD + TELEFONE">
-                <FormInput type="text" name="supervisorPhone" value={formData.supervisorPhone} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="supervisorPhone"
+                  value={formData.supervisorPhone}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
             <tr>
               <FormField label="SETOR DE REALIZAÇÃO DO ESTÁGIO" colSpan={4}>
-                <FormInput type="text" name="sector" value={formData.sector} onChange={handleChange} />
+                <FormInput
+                  type="text"
+                  name="sector"
+                  value={formData.sector}
+                  onChange={handleChange}
+                />
               </FormField>
             </tr>
           </tbody>
@@ -481,7 +604,10 @@ export function InternshipRegistrationForm({
           <div className="grid grid-cols-[28px_repeat(7,1fr)] border-b border-black text-[6pt] uppercase text-center leading-tight font-bold">
             <div className="border-r border-black"></div>
             {weekdays.map((day, index) => (
-              <div key={day} className={`py-0.5 ${index < weekdays.length - 1 ? 'border-r border-black' : ''}`}>
+              <div
+                key={day}
+                className={`py-0.5 ${index < weekdays.length - 1 ? 'border-r border-black' : ''}`}
+              >
                 {day}
               </div>
             ))}
@@ -492,7 +618,11 @@ export function InternshipRegistrationForm({
             {weekdays.map((day, index) => (
               <React.Fragment key={`${day}-sub`}>
                 <div className="py-0.5 border-r border-black">INÍCIO</div>
-                <div className={`py-0.5 ${index < weekdays.length - 1 ? 'border-r border-black' : ''}`}>FINAL</div>
+                <div
+                  className={`py-0.5 ${index < weekdays.length - 1 ? 'border-r border-black' : ''}`}
+                >
+                  FINAL
+                </div>
               </React.Fragment>
             ))}
           </div>
@@ -502,22 +632,30 @@ export function InternshipRegistrationForm({
               key={shift}
               className={`grid grid-cols-[28px_repeat(14,1fr)] ${rowIndex < 2 ? 'border-b border-black' : ''}`}
             >
-              <div className="border-r border-black flex items-center justify-center text-[6pt] font-bold py-1">{shift}</div>
+              <div className="border-r border-black flex items-center justify-center text-[6pt] font-bold py-1">
+                {shift}
+              </div>
               {weekdays.map((day, dayIndex) => (
                 <React.Fragment key={`${shift}-${day}`}>
                   <div className="border-r border-black h-5 px-0.5 flex items-center">
                     <FormInput
                       type="text"
                       value={formData.schedule[rowIndex][dayIndex].start}
-                      onChange={(e) => handleScheduleChange(rowIndex, dayIndex, 'start', e.target.value)}
+                      onChange={(e) =>
+                        handleScheduleChange(rowIndex, dayIndex, 'start', e.target.value)
+                      }
                       className="text-center text-[6.5pt]"
                     />
                   </div>
-                  <div className={`${dayIndex < weekdays.length - 1 ? 'border-r border-black' : ''} h-5 px-0.5 flex items-center`}>
+                  <div
+                    className={`${dayIndex < weekdays.length - 1 ? 'border-r border-black' : ''} h-5 px-0.5 flex items-center`}
+                  >
                     <FormInput
                       type="text"
                       value={formData.schedule[rowIndex][dayIndex].end}
-                      onChange={(e) => handleScheduleChange(rowIndex, dayIndex, 'end', e.target.value)}
+                      onChange={(e) =>
+                        handleScheduleChange(rowIndex, dayIndex, 'end', e.target.value)
+                      }
                       className="text-center text-[6.5pt]"
                     />
                   </div>
@@ -537,7 +675,10 @@ export function InternshipRegistrationForm({
                 {rowLabel}
               </div>
               {Array.from({ length: 14 }).map((_, cellIndex) => (
-                <div key={`${rowLabel}-${cellIndex}`} className={`h-4 ${cellIndex < 13 ? 'border-r border-black' : ''}`} />
+                <div
+                  key={`${rowLabel}-${cellIndex}`}
+                  className={`h-4 ${cellIndex < 13 ? 'border-r border-black' : ''}`}
+                />
               ))}
             </div>
           ))}

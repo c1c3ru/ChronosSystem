@@ -213,7 +213,9 @@ export class PDFTemplateBuilder {
 
   private buildTableSection(section: PDFTableSection): string {
     const processedHeaders = section.headers.map((h) => this.replacePlaceholders(h))
-    const processedRows = section.rows.map((row) => row.map((cell) => this.replacePlaceholders(cell)))
+    const processedRows = section.rows.map((row) =>
+      row.map((cell) => this.replacePlaceholders(cell))
+    )
 
     return `
       <div class="pdf-section">
@@ -244,9 +246,7 @@ export class PDFTemplateBuilder {
   }
 
   private buildListSection(section: PDFListSection): string {
-    const items = section.items
-      .map((item) => `<li>${this.replacePlaceholders(item)}</li>`)
-      .join('')
+    const items = section.items.map((item) => `<li>${this.replacePlaceholders(item)}</li>`).join('')
 
     return `
       <div class="pdf-section">

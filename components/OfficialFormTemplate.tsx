@@ -31,13 +31,21 @@ export function OfficialHeader({
       <div className="official-header-row">
         {showLogos && (
           <div className="official-header-logo left">
-            <img src="/assets/logoifce.png" alt="Logo IFCE" width="58" height="58" className="object-contain" />
+            <img
+              src="/assets/logoifce.png"
+              alt="Logo IFCE"
+              width="58"
+              height="58"
+              className="object-contain"
+            />
           </div>
         )}
 
         <div className="official-header-center">
           <div className="official-header-line strong">PRÓ-REITORIA DE EXTENSÃO</div>
-          <div className="official-header-line">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</div>
+          <div className="official-header-line">
+            COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
+          </div>
           <div className="official-header-line campus">IFCE Campus {campus}</div>
           <div className="official-header-line">{sector}</div>
           {title && <div className="official-header-title">{title}</div>}
@@ -83,8 +91,8 @@ export function OfficialFormTemplate({
 
       <div className="mt-2 pt-1 text-[7pt] leading-tight">
         <p>
-          <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser iniciadas
-          após o cadastro do Termo de Compromisso de Estágio no sistema competente.
+          <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser
+          iniciadas após o cadastro do Termo de Compromisso de Estágio no sistema competente.
         </p>
       </div>
     </div>
@@ -98,7 +106,9 @@ export function FormTable({
   children: ReactNode
   className?: string
 }) {
-  return <table className={`w-full official-form-table text-[8pt] mb-1 ${className}`}>{children}</table>
+  return (
+    <table className={`w-full official-form-table text-[8pt] mb-1 ${className}`}>{children}</table>
+  )
 }
 
 export function FormHeaderCell({
