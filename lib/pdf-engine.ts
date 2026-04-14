@@ -257,7 +257,7 @@ export async function generateHTMLPDF(html: string, filename: string): Promise<v
 
   const iframe = document.createElement('iframe')
   iframe.style.cssText =
-    'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;background:#fff;'
+    'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;background:#fff !important;'
   document.body.appendChild(iframe)
 
   const doc = iframe.contentDocument || iframe.contentWindow?.document
@@ -266,11 +266,51 @@ export async function generateHTMLPDF(html: string, filename: string): Promise<v
     throw new Error('iframe falhou')
   }
 
+  // Injeta CSS que força modo claro/impressão ANTES do conteúdo
+  const printOverrideCSS = `
+    <style>
+      html, body { 
+        background: #fff !important; 
+        color: #000 !important; 
+        margin: 0 !important; 
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      * { 
+        box-sizing: border-box !important;
+        text-shadow: none !important;
+        background-color: transparent !important;
+      }
+      body * {
+        color: #000 !important;
+      }
+      table, td, th {
+        border-color: #000 !important;
+      }
+      .sec-bar, .sec-body, .hdr, .doc-title, .sig-date-box {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .sec-bar {
+        background: #c0c0c0 !important;
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+    </style>
+  `
+
   doc.open()
-  doc.write(html)
+  doc.write(printOverrideCSS + html)
   doc.close()
 
-  await new Promise((resolve) => setTimeout(resolve, 1200))
+  // Força fundo branco no body do iframe
+  if (doc.body) {
+    doc.body.style.background = '#fff'
+    doc.body.style.color = '#000'
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 1500))
 
   const opt = {
     margin: [6, 6, 6, 6] as [number, number, number, number],
