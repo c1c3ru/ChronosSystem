@@ -18,149 +18,198 @@ function fmt(d?: string): string {
 
 // ─── CSS PADRÃO IFCE (baseado no formulário oficial) ────────────────────────
 const CSS = `
-  @page { margin: 12mm 15mm 12mm 15mm; size: A4 portrait; }
+  @page { margin: 10mm 12mm 12mm 12mm; size: A4 portrait; }
   html, body { margin:0; padding:0; background:#fff; }
   * { box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; font-size:8px; color:#000; }
-  body { padding:12px 16px; background:#fff; }
+  body { padding:8px 10px 10px 10px; background:#fff; }
 
-  /* ── Cabeçalho institucional (padrão IFCE oficial) ── */
+  .page {
+    width:100%;
+    background:#fff;
+  }
+
+  /* ── Cabeçalho institucional ── */
   .hdr {
     display:flex;
     align-items:center;
     justify-content:space-between;
-    margin-bottom:3px;
-    gap:6px;
+    gap:8px;
+    margin-bottom:6px;
   }
-  .hdr-logo { width:52px; height:52px; object-fit:contain; flex-shrink:0; }
+  .hdr-logo { width:54px; height:54px; object-fit:contain; flex-shrink:0; }
   .hdr-txt {
-    text-align:center;
     flex:1;
-    line-height:1.45;
-    padding:0 6px;
-  }
-  .hdr-txt .pro-reitoria {
-    font-size:8px;
-    font-weight:bold;
-    text-transform:uppercase;
-  }
-  .hdr-txt .coordenacao {
-    font-size:7px;
-    text-transform:uppercase;
-  }
-  .hdr-txt .campus-line {
-    font-size:8px;
-    font-weight:bold;
-  }
-  .hdr-txt .setor-line {
-    font-size:7px;
-  }
-  hr.hdr-line { border:none; border-top:1.5px solid #000; margin:5px 0 6px 0; }
-
-  /* ── Título do documento (sem fundo cinza, apenas negrito/maiúsculo) ── */
-  .doc-title {
     text-align:center;
-    font-size:10px;
-    font-weight:bold;
-    text-transform:uppercase;
-    text-decoration:underline;
-    margin-bottom:7px;
-    letter-spacing:0.4px;
+    line-height:1.2;
+    padding:0 4px;
   }
-
-  /* ── Tabelas de campos ── */
-  table { width:100%; border-collapse:collapse; margin-bottom:0; }
-  td, th { border:1px solid #000; padding:2px 4px; vertical-align:top; }
-  .lbl {
-    font-size:6px;
-    font-weight:bold;
+  .hdr-txt .pro-reitoria,
+  .hdr-txt .coordenacao,
+  .hdr-txt .campus-line,
+  .hdr-txt .setor-line {
     text-transform:uppercase;
     color:#000;
+  }
+  .hdr-txt .pro-reitoria { font-size:9px; font-weight:bold; }
+  .hdr-txt .coordenacao { font-size:8px; }
+  .hdr-txt .campus-line { font-size:9px; font-weight:bold; margin-top:2px; }
+  .hdr-txt .setor-line { font-size:8px; }
+  hr.hdr-line { border:none; border-top:1px solid #000; margin:4px 0 6px 0; }
+
+  /* ── Título do documento ── */
+  .doc-title {
+    text-align:center;
+    font-size:11px;
+    font-weight:bold;
+    text-transform:uppercase;
+    margin:2px 0 8px 0;
+    letter-spacing:0.2px;
+  }
+
+  /* ── Tabelas e células ── */
+  table { width:100%; border-collapse:collapse; table-layout:fixed; margin:0; }
+  td, th { border:1px solid #000; padding:2px 3px; vertical-align:top; }
+  th { background:#d9d9d9; font-size:6.5px; font-weight:bold; text-transform:uppercase; }
+  .lbl {
+    font-size:5.8px;
+    font-weight:bold;
+    text-transform:uppercase;
     display:block;
+    line-height:1.05;
     margin-bottom:1px;
   }
-  .val { font-size:8px; min-height:12px; display:block; }
+  .val {
+    font-size:8px;
+    min-height:12px;
+    display:block;
+    line-height:1.2;
+    word-break:break-word;
+  }
 
-  /* ── Checkbox style (radio IFCE) ── */
+  /* ── Opções e marcações ── */
   .chk-group {
     display:flex;
     flex-direction:column;
     gap:1px;
-    font-size:7px;
-    padding:2px 0;
+    font-size:6.8px;
+    line-height:1.2;
+    padding:1px 0;
   }
-  .chk-item { display:flex; align-items:center; gap:3px; }
+  .chk-item { display:flex; align-items:flex-start; gap:3px; }
   .chk-box {
-    width:8px; height:8px;
+    width:8px;
+    height:8px;
     border:1px solid #000;
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     flex-shrink:0;
+    font-size:7px;
+    line-height:1;
   }
 
-  /* ── Seções com barra cinza ── */
+  /* ── Seções ── */
   .sec-bar {
-    background:#c0c0c0;
-    font-weight:bold;
-    font-size:7px;
-    text-transform:uppercase;
+    background:#d9d9d9;
     border:1px solid #000;
     border-bottom:none;
     padding:2px 4px;
-    margin-top:5px;
+    margin-top:4px;
+    font-size:6.5px;
+    font-weight:bold;
+    text-transform:uppercase;
+    line-height:1.1;
   }
   .sec-body {
     border:1px solid #000;
-    padding:5px;
-    min-height:50px;
+    padding:4px;
+    min-height:42px;
     font-size:8px;
-    line-height:1.5;
+    line-height:1.35;
     white-space:pre-wrap;
-    margin-bottom:5px;
+    margin-bottom:4px;
     background:#fff;
   }
 
-  /* ── Área de assinaturas ── */
-  .sig-area {
-    margin-top:30px;
+  .triple-box {
+    display:grid;
+    grid-template-columns:1fr 1fr 1.25fr;
     border:1px solid #000;
-    padding:5px;
-    min-height:40px;
+    margin-bottom:4px;
   }
-  .sigs { display:flex; justify-content:space-around; margin-top:20px; }
-  .sig { text-align:center; width:45%; }
-  .sig-line {
-    border-top:1px solid #000;
-    padding-top:3px;
+  .triple-box-head {
+    background:#d9d9d9;
+    border-bottom:1px solid #000;
+    font-size:6.3px;
+    font-weight:bold;
+    text-transform:uppercase;
+    text-align:center;
+    padding:2px 3px;
+    line-height:1.1;
+  }
+  .triple-box-head:not(:last-child),
+  .triple-box-body:not(:last-child) { border-right:1px solid #000; }
+  .triple-box-body { padding:4px; }
+
+  /* ── Assinaturas ── */
+  .sig-date-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    margin-top:6px;
+    border:1px solid #000;
+    border-bottom:none;
+  }
+  .sig-date-box {
+    padding:3px 6px;
+    min-height:18px;
     font-size:7px;
     font-weight:bold;
     text-transform:uppercase;
-    margin-top:22px;
-  }
-  .sig-date-row {
     display:flex;
-    justify-content:space-between;
-    gap:8px;
-    margin-top:10px;
+    align-items:center;
+    gap:6px;
   }
-  .sig-date-box {
-    border:1px solid #000;
-    padding:2px 4px;
+  .sig-date-box + .sig-date-box { border-left:1px solid #000; }
+  .sig-date-label { font-size:7px; font-weight:bold; display:inline; }
+  .sig-date-val {
     flex:1;
-    font-size:7px;
+    display:inline-block;
+    text-align:center;
+    letter-spacing:0.5px;
+    min-height:10px;
   }
-  .sig-date-label { font-size:6px; font-weight:bold; display:block; }
-  .sig-date-val { font-size:7.5px; min-height:12px; display:block; }
+  .sigs {
+    display:grid;
+    grid-template-columns:repeat(var(--sig-cols, 2), 1fr);
+    border:1px solid #000;
+    min-height:62px;
+  }
+  .sig {
+    text-align:center;
+    padding:24px 6px 6px 6px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .sig + .sig { border-left:1px solid #000; }
+  .sig-line {
+    border-top:1px solid #000;
+    padding-top:3px;
+    width:100%;
+    font-size:6.5px;
+    font-weight:bold;
+    text-transform:uppercase;
+  }
 
-  /* ── Observação de rodapé ── */
+  /* ── Observação e texto corrido ── */
   .obs {
-    font-size:7px;
-    font-style:italic;
-    margin-top:10px;
-    line-height:1.4;
+    font-size:6.8px;
+    margin-top:5px;
+    line-height:1.3;
   }
-  .obs strong { font-size:7px; }
-
-  /* ── Parágrafos de texto corrido ── */
-  .para { font-size:8.5px; text-align:justify; line-height:1.6; margin-bottom:8px; }
+  .obs strong { font-size:6.8px; }
+  .para { font-size:8px; text-align:justify; line-height:1.4; margin:4px 0; }
   .bold { font-weight:bold; }
   .right { text-align:right; }
 `
@@ -201,10 +250,9 @@ function sec(title: string, content?: string): string {
  * seguida das linhas de assinaturas
  */
 function sigs(...labels: string[]): string {
-  const cols = labels.length <= 2 ? '48%' : '30%'
   return `
-  <div class="sigs">
-    ${labels.map((l) => `<div class="sig" style="width:${cols}"><div class="sig-line">${l}</div></div>`).join('')}
+  <div class="sigs" style="--sig-cols:${labels.length}">
+    ${labels.map((l) => `<div class="sig"><div class="sig-line">${l}</div></div>`).join('')}
   </div>`
 }
 
@@ -214,14 +262,14 @@ function sigs(...labels: string[]): string {
  */
 function sigBlock(sigLabels: string[], obs?: string): string {
   const datesRow = `
-  <div class="sig-date-row" style="margin-top:25px;">
+  <div class="sig-date-row">
     <div class="sig-date-box">
       <span class="sig-date-label">SOLICITAÇÃO EM</span>
-      <span class="sig-date-val">____/____/________</span>
+      <span class="sig-date-val">____/____/______</span>
     </div>
     <div class="sig-date-box">
       <span class="sig-date-label">AUTORIZAÇÃO EM</span>
-      <span class="sig-date-val">____/____/________</span>
+      <span class="sig-date-val">____/____/______</span>
     </div>
   </div>`
   const lines = sigs(...sigLabels)
@@ -232,7 +280,7 @@ function sigBlock(sigLabels: string[], obs?: string): string {
 function wrap(title: string, body: string): string {
   return `<!DOCTYPE html><html lang="pt-BR">
   <head><meta charset="UTF-8"><style>${CSS}</style></head>
-  <body>${hdr()}<div class="doc-title">${title}</div>${body}</body></html>`
+  <body><div class="page">${hdr()}<div class="doc-title">${title}</div>${body}</div></body></html>`
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
