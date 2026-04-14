@@ -246,7 +246,7 @@ model FormDraft {
   id        String   @id @default(cuid())
   userId    String
   formType  String
-  formData  Json
+  formData  String // Alterar de Json para String
   status    String   @default("DRAFT")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -256,6 +256,7 @@ model FormDraft {
   @@index([userId, formType])
   @@index([status])
 }
+
 
 model Holiday {
   id          String   @id @default(cuid())
