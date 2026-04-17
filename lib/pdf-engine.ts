@@ -266,7 +266,7 @@ export async function generateHTMLPDF(html: string, filename: string): Promise<v
     throw new Error('iframe falhou')
   }
 
-  // Injeta CSS que força modo claro/impressão ANTES do conteúdo
+  // Injeta CSS que força modo claro/impressão
   const printOverrideCSS = `
     <style>
       html, body { 
@@ -293,24 +293,35 @@ export async function generateHTMLPDF(html: string, filename: string): Promise<v
         color: #000 !important;
       }
       .sec-bar {
-        background: #c0c0c0 !important;
+        background: #d9d9d9 !important;
         -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
     </style>
   `
 
-  doc.open()
-  doc.write(printOverrideCSS + html)
-  doc.close()
-
-  // Força fundo branco no body do iframe
-  if (doc.body) {
-    doc.body.style.background = '#fff'
-    doc.body.style.color = '#000'
+  // Se o HTML já for um documento completo, injetamos o CSS no head
+  let finalHtml = ''
+  if (html.includes('<head>')) {
+    finalHtml = html.replace('<head>', `<head>${printOverrideCSS}`)
+  } else {
+    finalHtml = printOverrideCSS + html
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1500))
+  // Usar srcdoc em vez de doc.write (que está depreciado)
+  await new Promise<void>((resolve) => {
+    iframe.onload = () => {
+      // Pequeno delay adicional para garantir que fontes e assets internos renderizem
+      setTimeout(resolve, 500)
+    }
+    iframe.srcdoc = finalHtml
+  })
+
+  // Força fundo branco no body do iframe
+  if (iframe.contentDocument?.body) {
+    iframe.contentDocument.body.style.background = '#fff'
+    iframe.contentDocument.body.style.color = '#000'
+  }
 
   const opt = {
     margin: [6, 6, 6, 6] as [number, number, number, number],

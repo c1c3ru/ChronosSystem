@@ -217,22 +217,22 @@ const CSS = `
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function hdr(): string {
   return `
-  <div class="hdr">
-    <img src="${LOGO_IFCE_BASE64}" class="hdr-logo" alt="Logo IFCE"/>
-    <div class="hdr-txt">
-      <div class="pro-reitoria">Pró-Reitoria de Extensão</div>
-      <div class="coordenacao">Coordenação de Estágios e Acompanhamento de Egressos</div>
-      <div class="campus-line">IFCE Campus Maracanaú</div>
-      <div class="setor-line">Setor de Acompanhamento de Estágio</div>
+  <div class="hdr" style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:10px;">
+    <img src="${LOGO_IFCE_BASE64}" class="hdr-logo" style="width:54px; height:54px; object-fit:contain;" alt="Logo IFCE"/>
+    <div class="hdr-txt" style="flex:1; text-align:center;">
+      <div class="pro-reitoria" style="font-weight:bold; font-size:9px;">Pró-Reitoria de Extensão</div>
+      <div class="coordenacao" style="font-size:8px;">Coordenação de Estágios e Acompanhamento de Egressos</div>
+      <div class="campus-line" style="font-weight:bold; font-size:9px;">IFCE Campus Maracanaú</div>
+      <div class="setor-line" style="font-size:8px;">Setor de Acompanhamento de Estágio</div>
     </div>
-    <img src="${BRASAO_BASE64}" class="hdr-logo" alt="Brasão República"/>
+    <img src="${BRASAO_BASE64}" class="hdr-logo" style="width:54px; height:54px; object-fit:contain;" alt="Brasão República"/>
   </div>
-  <hr class="hdr-line"/>`
+  <hr class="hdr-line" style="border:none; border-top:1px solid #000; margin:4px 0 6px 0;"/>`
 }
 
 function f(label: string, value?: string, pct?: string): string {
   const w = pct ? ` style="width:${pct}"` : ''
-  return `<td${w}><span class="lbl">${label}</span><span class="val">${value || ''}</span></td>`
+  return `<td${w} style="border: 1px solid #000; padding: 2px 3px; vertical-align: top;"><span class="lbl" style="font-weight:bold; text-transform:uppercase; font-size:5.8px; display:block; margin-bottom:1px;">${label}</span><span class="val" style="display:block; font-size:8px; min-height:12px;">${value || ''}</span></td>`
 }
 
 function row(...cells: string[]): string {
@@ -240,8 +240,8 @@ function row(...cells: string[]): string {
 }
 
 function sec(title: string, content?: string): string {
-  return `<div class="sec-bar">${title}</div>
-  <div class="sec-body">${content || ''}</div>`
+  return `<div class="sec-bar" style="background:#d9d9d9; border:1px solid #000; padding:2px 4px; margin-top:4px; font-weight:bold; text-transform:uppercase; font-size:6.5px;">${title}</div>
+  <div class="sec-body" style="border:1px solid #000; padding:4px; min-height:42px; font-size:8px; white-space:pre-wrap; background:#fff; margin-bottom:4px;">${content || ''}</div>`
 }
 
 /**
