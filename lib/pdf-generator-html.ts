@@ -44,17 +44,19 @@ const CSS = `
     padding:0 4px;
   }
   .hdr-txt .pro-reitoria,
-  .hdr-txt .coordenacao,
+  .hdr-txt .coordenacao {
+    text-transform:uppercase;
+    color:#000;
+  }
   .hdr-txt .campus-line,
   .hdr-txt .setor-line {
-    text-transform:uppercase;
+    text-transform:none;
     color:#000;
   }
   .hdr-txt .pro-reitoria { font-size:9px; font-weight:bold; }
   .hdr-txt .coordenacao { font-size:8px; }
-  .hdr-txt .campus-line { font-size:9px; font-weight:bold; margin-top:2px; }
+  .hdr-txt .campus-line { font-size:9px; font-weight:normal; margin-top:0px; }
   .hdr-txt .setor-line { font-size:8px; }
-  hr.hdr-line { border:none; border-top:1px solid #000; margin:4px 0 6px 0; }
 
   /* ── Título do documento ── */
   .doc-title {
@@ -220,14 +222,14 @@ function hdr(): string {
   <div class="hdr" style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:10px;">
     <img src="${LOGO_IFCE_BASE64}" class="hdr-logo" style="width:54px; height:54px; object-fit:contain;" alt="Logo IFCE"/>
     <div class="hdr-txt" style="flex:1; text-align:center;">
-      <div class="pro-reitoria" style="font-weight:bold; font-size:9px;">Pró-Reitoria de Extensão</div>
-      <div class="coordenacao" style="font-size:8px;">Coordenação de Estágios e Acompanhamento de Egressos</div>
-      <div class="campus-line" style="font-weight:bold; font-size:9px;">IFCE Campus Maracanaú</div>
-      <div class="setor-line" style="font-size:8px;">Setor de Acompanhamento de Estágio</div>
+      <div class="pro-reitoria" style="font-weight:bold; font-size:9px; text-transform:uppercase;">PRÓ-REITORIA DE EXTENSÃO</div>
+      <div class="coordenacao" style="font-size:8px; text-transform:uppercase;">COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS</div>
+      <div style="height:6px;"></div>
+      <div class="campus-line" style="font-weight:normal; font-size:9px; text-transform:none;">IFCE Campus Maracanaú</div>
+      <div class="setor-line" style="font-size:8px; text-transform:none;">Setor de Acompanhamento de Estágio</div>
     </div>
     <img src="${BRASAO_BASE64}" class="hdr-logo" style="width:54px; height:54px; object-fit:contain;" alt="Brasão República"/>
-  </div>
-  <hr class="hdr-line" style="border:none; border-top:1px solid #000; margin:4px 0 6px 0;"/>`
+  </div>`
 }
 
 function f(label: string, value?: string, pct?: string): string {

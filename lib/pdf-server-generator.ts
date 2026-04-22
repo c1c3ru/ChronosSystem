@@ -183,14 +183,14 @@ export class PDFTemplateBuilder {
       <div class="pdf-header ph">
         ${showLogo ? `<img src="${logo}" alt="Logo IFCE" class="ph-logo" />` : '<div class="ph-logo"></div>'}
         <div class="ph-center">
-          ${institution ? `<div class="ph-line strong">${institution}</div>` : ''}
-          ${subInstitution ? `<div class="ph-line normal">${subInstitution}</div>` : ''}
-          ${department ? `<div class="ph-line normal">${department}</div>` : ''}
-          ${campus ? `<div class="ph-line strong">${campus}</div>` : ''}
+          ${institution ? `<div class="ph-line strong" style="text-transform:uppercase;">${institution}</div>` : ''}
+          ${subInstitution ? `<div class="ph-line normal" style="text-transform:uppercase;">${subInstitution}</div>` : ''}
+          <div style="height:6px;"></div>
+          ${campus ? `<div class="ph-line normal" style="font-weight:normal; text-transform:none;">${campus}</div>` : ''}
+          ${department ? `<div class="ph-line normal" style="text-transform:none;">${department}</div>` : ''}
         </div>
         ${showBrasao ? `<img src="${brasao}" alt="Brasão" class="ph-logo" />` : '<div class="ph-logo"></div>'}
       </div>
-      <hr class="pdf-rule" />
     `
   }
 

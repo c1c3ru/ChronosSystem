@@ -3,11 +3,10 @@ import type { PDFDocumentSchema } from './schema'
 const DEFAULT_HEADER = {
   showLogo: true,
   showBrasao: true,
-  institution: 'Instituto Federal de Educação, Ciência e Tecnologia do Ceará',
-  subInstitution: 'Pró-Reitoria de Extensão',
-  department:
-    'Diretoria de Extensão e Relações Empresariais / Coordenadoria de Estágios e Acompanhamento de Egressos de Maracanaú',
-  campus: 'Campus Maracanaú',
+  institution: 'PRÓ-REITORIA DE EXTENSÃO',
+  subInstitution: 'COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS',
+  campus: 'IFCE Campus Maracanaú',
+  department: 'Setor de Acompanhamento de Estágio',
 }
 
 export function buildMonthlyReportSchema(): PDFDocumentSchema {

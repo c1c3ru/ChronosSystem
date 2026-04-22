@@ -35,7 +35,7 @@ describe('pdf-schemas/templates', () => {
     it('deve conter header padrão do IFCE', () => {
       const schema = buildMonthlyReportSchema()
       expect(schema.header).toBeDefined()
-      expect(schema.header?.institution).toContain('Instituto Federal')
+      expect(schema.header?.institution).toContain('PRÓ-REITORIA DE EXTENSÃO')
       expect(schema.header?.showLogo).toBe(true)
       expect(schema.header?.showBrasao).toBe(true)
     })
@@ -332,7 +332,7 @@ describe('pdf-schemas/templates', () => {
       const schema = builder()
 
       expect(schema.header).toBeDefined()
-      expect(schema.header?.institution).toContain('Instituto Federal')
+      expect(schema.header?.institution).toContain('PRÓ-REITORIA DE EXTENSÃO')
     })
   })
 
