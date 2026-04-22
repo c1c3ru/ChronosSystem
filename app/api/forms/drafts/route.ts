@@ -100,9 +100,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Correção do erro de tipo: Garantimos que formData seja string antes do parse
-    const rawData = typeof draft.formData === 'string'
-      ? draft.formData
-      : JSON.stringify(draft.formData)
+    const rawData =
+      typeof draft.formData === 'string' ? draft.formData : JSON.stringify(draft.formData)
 
     const parsedDraft = { ...draft, formData: JSON.parse(rawData) }
 
