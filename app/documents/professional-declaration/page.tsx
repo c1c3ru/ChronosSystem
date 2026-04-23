@@ -164,12 +164,6 @@ export default function ProfessionalDeclarationPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           {/* Dados da Empresa */}
           <Card variant="elevated">

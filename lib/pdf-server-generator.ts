@@ -12,6 +12,7 @@ import type {
   FormDataMap,
 } from './pdf-schemas/schema'
 import puppeteer from 'puppeteer'
+import { LOGO_IFCE_BASE64, BRASAO_BASE64 } from './pdf-assets'
 
 export class PDFTemplateBuilder {
   schema: PDFDocumentSchema
@@ -176,8 +177,8 @@ export class PDFTemplateBuilder {
       campus,
     } = this.schema.header
 
-    const logo = process.env.NEXT_PUBLIC_LOGO_IFCE_BASE64 || ''
-    const brasao = process.env.NEXT_PUBLIC_BRASAO_BASE64 || ''
+    const logo = LOGO_IFCE_BASE64
+    const brasao = BRASAO_BASE64
 
     return `
       <div class="pdf-header ph">
@@ -326,7 +327,7 @@ export async function generatePDFFromSchema(
     const templateBuilder = new PDFTemplateBuilder(schema, data)
     const htmlContent = templateBuilder.buildHTML()
 
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
+    await page.setContent(htmlContent, { waitUntil: 'load' })
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     const pdfBuffer = await page.pdf({

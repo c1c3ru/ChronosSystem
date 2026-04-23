@@ -108,8 +108,8 @@ export default function FinalReportPage() {
         nome_supervisor: raw.supervisor_name || '',
         cargo_supervisor: raw.supervisor_role || '',
         horas_total: raw.total_hours || '',
-        inicio_estagio: raw.start_date || '',
-        fim_estagio: raw.end_date || '',
+        inicio_estagio: raw.period_start || raw.start_date || '',
+        fim_estagio: raw.period_end || raw.end_date || '',
         nome_orientador: raw.advisor_name || '',
         atividades: raw.activities || raw.atividades_desenvolvidas || '',
         competencias: raw.competencies || raw.aprendizados || '',
@@ -189,12 +189,6 @@ export default function FinalReportPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           <Card variant="elevated">
             <CardHeader>

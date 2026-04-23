@@ -105,9 +105,10 @@ export default function MonthlyReportPage() {
         empresa_cnpj: raw.company_cnpj || '',
         nome_supervisor: raw.supervisor_name || '',
         cargo_supervisor: raw.supervisor_role || '',
-        horas_mes: raw.monthly_hours || '',
-        inicio_periodo: raw.start_date || '',
-        fim_periodo: raw.end_date || '',
+        horas_mes: raw.hours_month || raw.monthly_hours || '',
+        horas_total: raw.hours_total || '',
+        inicio_periodo: raw.period_start || raw.start_date || '',
+        fim_periodo: raw.period_end || raw.end_date || '',
         periodo_referencia: raw.period_reference || '',
         nome_orientador: raw.advisor_name || '',
         atividades: raw.activities || '',
@@ -169,12 +170,6 @@ export default function MonthlyReportPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           <Card variant="elevated">
             <CardHeader>

@@ -184,12 +184,6 @@ export default function EquivalenceRequestPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              // Checkboxes precisam ser tratados manualmente
-            }
-          }}
         >
           {/* Dados do Discente */}
           <Card variant="elevated">

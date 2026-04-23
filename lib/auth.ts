@@ -90,7 +90,9 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID!,
       clientSecret: GOOGLE_CLIENT_SECRET!,
-      // Removido allowDangerousEmailAccountLinking por segurança
+      // Permite vincular conta Google ao email já cadastrado via credenciais
+      // Seguro para emails institucionais IFCE (@ifce.edu.br)
+      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: 'consent',

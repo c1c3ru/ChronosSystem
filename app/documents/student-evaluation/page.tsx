@@ -106,8 +106,8 @@ export default function StudentEvaluationPage() {
         empresa_nome: raw.company_name || '',
         nome_supervisor: raw.supervisor_name || '',
         cargo_supervisor: raw.supervisor_role || '',
-        inicio_periodo: raw.start_date || '',
-        fim_periodo: raw.end_date || '',
+        inicio_periodo: raw.period_start || raw.start_date || '',
+        fim_periodo: raw.period_end || raw.end_date || '',
         avaliacao_pontualidade: raw.evaluation_punctuality || '',
         avaliacao_postura: raw.evaluation_behavior || '',
         avaliacao_tecnico: raw.evaluation_technical || '',
@@ -190,12 +190,6 @@ export default function StudentEvaluationPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           {/* Dados do Estagiário */}
           <Card variant="elevated">

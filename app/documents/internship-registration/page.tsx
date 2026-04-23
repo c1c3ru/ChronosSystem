@@ -225,12 +225,6 @@ export default function InternshipRegistrationPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           {/* 1. Dados do Discente */}
           <Card variant="elevated">

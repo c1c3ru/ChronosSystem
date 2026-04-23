@@ -102,7 +102,7 @@ export default function RescissionTermPage() {
         matricula_estudante: raw.student_enrollment || '',
         curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
-        inicio_estagio: raw.start_date || '',
+        inicio_estagio: raw.internship_start_date || raw.start_date || '',
         data_rescisao: raw.rescission_date || '',
         motivo_rescisao: raw.rescission_reason || '',
       }
@@ -161,12 +161,6 @@ export default function RescissionTermPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           {/* Dados do Estagiário */}
           <Card variant="elevated">

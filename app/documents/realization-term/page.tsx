@@ -103,8 +103,8 @@ export default function RealizationTermPage() {
         empresa_nome: raw.company_name || '',
         nome_supervisor: raw.supervisor_name || '',
         cargo_supervisor: raw.supervisor_role || '',
-        inicio_estagio: raw.start_date || '',
-        fim_estagio: raw.end_date || '',
+        inicio_estagio: raw.internship_start_date || raw.start_date || '',
+        fim_estagio: raw.internship_end_date || raw.end_date || '',
         horas_total: raw.total_hours || '',
         horas_semanais: raw.weekly_hours || '',
         atividades: raw.activities || '',
@@ -164,12 +164,6 @@ export default function RealizationTermPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           {/* Dados do Estagiário */}
           <Card variant="elevated">

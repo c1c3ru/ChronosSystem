@@ -186,13 +186,6 @@ export default function AdditiveTermPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              // Checkboxes precisam ser tratados manualmente no onChange do form se quisermos atualizar o estado em tempo real corretamente
-              // Mas o handleInputChange já faz isso para cada input
-            }
-          }}
         >
           {/* Identificação das Partes */}
           <Card variant="elevated">

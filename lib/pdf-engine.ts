@@ -280,19 +280,26 @@ export async function generateHTMLPDF(html: string, filename: string): Promise<v
       * { 
         box-sizing: border-box !important;
         text-shadow: none !important;
-        background-color: transparent !important;
       }
       body * {
         color: #000 !important;
       }
+      /* Reverter apenas backgrounds de dark-mode — NÃO usar transparent global */
+      [class*="bg-slate-"], [class*="bg-neutral-"], [class*="bg-zinc-"],
+      [class*="bg-gray-"], [class*="bg-black"], [class*="from-slate-"],
+      [class*="to-slate-"], [class*="backdrop-"] {
+        background: #fff !important;
+        background-color: #fff !important;
+        background-image: none !important;
+      }
       table, td, th {
         border-color: #000 !important;
       }
-      .sec-bar, .sec-body, .hdr, .doc-title, .sig-date-box {
+      .page, .hdr, .hdr-txt, .doc-title, .sig-date-box, .sec-body, .para {
         background: #fff !important;
         color: #000 !important;
       }
-      .sec-bar {
+      .sec-bar, th, [class*="d9d9d9"] {
         background: #d9d9d9 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;

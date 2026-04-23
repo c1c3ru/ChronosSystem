@@ -104,9 +104,9 @@ export default function SemesterReportPage() {
         curso_estudante: raw.student_course || '',
         empresa_nome: raw.company_name || '',
         nome_supervisor: raw.supervisor_name || '',
-        horas_semestre: raw.semester_hours || '',
-        inicio_periodo: raw.start_date || '',
-        fim_periodo: raw.end_date || '',
+        horas_semestre: raw.hours_semester || raw.semester_hours || '',
+        inicio_periodo: raw.period_start || raw.start_date || '',
+        fim_periodo: raw.period_end || raw.end_date || '',
         nome_orientador: raw.advisor_name || '',
         atividades: raw.activities || '',
         dificuldades: raw.difficulties || '',
@@ -178,12 +178,6 @@ export default function SemesterReportPage() {
         <form
           ref={formRef}
           className="space-y-6"
-          onChange={() => {
-            if (formRef.current) {
-              const data = new FormData(formRef.current)
-              setFormData(Object.fromEntries(data.entries()))
-            }
-          }}
         >
           <Card variant="elevated">
             <CardHeader>
