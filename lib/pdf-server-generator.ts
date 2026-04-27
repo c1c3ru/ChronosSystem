@@ -356,3 +356,48 @@ export async function generatePDFBlob(
   const buffer = await generatePDFFromSchema(schema, data, options)
   return new Blob([new Uint8Array(buffer)], { type: 'application/pdf' })
 }
+
+/**
+ * Generate PDF directly from HTML string
+ */
+export async function generatePDFFromHTML(
+  html: string,
+  options: { filename?: string; landscape?: boolean } = {}
+): Promise<Buffer> {
+  const { landscape = false } = options
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
+
+  try {
+    const page = await browser.newPage()
+
+    await page.setViewport({
+      width: landscape ? 1122 : 794,
+      height: landscape ? 794 : 1123,
+      deviceScaleFactor: 2,
+    })
+
+    await page.setContent(html, { waitUntil: 'networkidle0' })
+    // Extra delay to ensure fonts/images are fully rendered
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      landscape,
+      printBackground: true,
+      margin: {
+        top: '10mm',
+        right: '12mm',
+        bottom: '12mm',
+        left: '12mm',
+      },
+    })
+
+    return Buffer.from(pdfBuffer)
+  } finally {
+    await browser.close()
+  }
+}

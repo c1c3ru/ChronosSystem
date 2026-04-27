@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generatePDFFromSchema } from '@/lib/pdf-server-generator'
+import { generatePDFFromSchema, generatePDFFromHTML } from '@/lib/pdf-server-generator'
 import {
   buildMonthlyReportSchema,
   buildFinalReportSchema,
@@ -16,14 +16,27 @@ import {
   buildStudentEvaluationSchema,
 } from '@/lib/pdf-schemas/templates'
 
-// POST /api/pdf/generate - Generate PDF from JSON schema and data
+// POST /api/pdf/generate - Generate PDF from JSON schema and data or HTML
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { documentType, data, options } = body
+    const { documentType, data, options, html, filename } = body
+
+    if (html) {
+      // Support legacy/unified generatePDFServer which passes raw HTML
+      const pdfBuffer = await generatePDFFromHTML(html, { ...options, filename })
+      
+      return new NextResponse(new Uint8Array(pdfBuffer), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${filename || options?.filename || 'document.pdf'}"`,
+        },
+      })
+    }
 
     if (!documentType || !data) {
-      return NextResponse.json({ error: 'documentType and data are required' }, { status: 400 })
+      return NextResponse.json({ error: 'documentType and data (or html) are required' }, { status: 400 })
     }
 
     // Map document types to their schema builders
