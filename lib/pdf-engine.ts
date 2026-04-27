@@ -146,6 +146,20 @@ export async function generatePDFClient(
     throw new Error('generatePDFClient só pode ser executado no navegador')
   }
 
+  // Sincronizar os valores dos inputs nativos para os atributos do DOM 
+  // para que cloneNode preserve os dados preenchidos pelo usuário
+  const inputs = element.querySelectorAll('input, textarea, select')
+  inputs.forEach((input: any) => {
+    if (input.type === 'checkbox' || input.type === 'radio') {
+      if (input.checked) input.setAttribute('checked', 'checked')
+      else input.removeAttribute('checked')
+    } else if (input.tagName === 'TEXTAREA') {
+      input.innerHTML = input.value
+    } else {
+      input.setAttribute('value', input.value)
+    }
+  })
+
   const html2pdf = (await import('html2pdf.js')).default
 
   const pdfOptions = {
