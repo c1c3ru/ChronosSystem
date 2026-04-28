@@ -34,7 +34,7 @@ export class QRScannerTestHelper {
 
       // Mock do BarcodeDetector se não existir
       if (!window.BarcodeDetector) {
-        ;(window as any).BarcodeDetector = class {
+        ;(window as Window & typeof globalThis & { BarcodeDetector?: unknown }).BarcodeDetector = class {
           constructor() {}
           async detect() {
             return []
@@ -125,13 +125,18 @@ export class QRScannerTestHelper {
       document.dispatchEvent(event)
 
       // 2. Tentar chamar função global se existir
-      if ((window as any).onScan) {
-        ;(window as any).onScan(code)
+      const win = window as Window & typeof globalThis & { 
+        onScan?: (c: string) => void, 
+        processQrCode?: (c: string) => void 
+      }
+      
+      if (win.onScan) {
+        win.onScan(code)
       }
 
       // 3. Tentar chamar processQrCode se existir
-      if ((window as any).processQrCode) {
-        ;(window as any).processQrCode(code)
+      if (win.processQrCode) {
+        win.processQrCode(code)
       }
 
       // 4. Log para debug

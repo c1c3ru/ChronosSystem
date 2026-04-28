@@ -90,34 +90,7 @@ export default function ProfessionalDeclarationPage() {
   }
 
   const handleGeneratePDF = async () => {
-    try {
-      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildProfessionalDeclarationHTML } =
-        await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || raw.employee_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        inicio_estagio: raw.start_date || '',
-        fim_estagio: raw.end_date || '',
-        horas_total: raw.total_hours || '',
-        setor: raw.department || '',
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_role || '',
-        empresa_nome: raw.company_name || '',
-      }
-
-      const html = buildProfessionalDeclarationHTML(htmlData)
-      await generateHTMLPDF(html, 'declaracao-profissional.pdf')
-
-      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error)
-      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
-    }
+    toast.info('Geração de PDF deste formulário está em migração para o novo motor.', { id: 'pdf-generation' })
   }
 
   return (

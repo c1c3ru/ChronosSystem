@@ -94,35 +94,40 @@ export default function StudentEvaluationPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildStudentEvaluationHTML } =
-        await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_role || '',
-        inicio_periodo: raw.period_start || raw.start_date || '',
-        fim_periodo: raw.period_end || raw.end_date || '',
-        avaliacao_pontualidade: raw.evaluation_punctuality || '',
-        avaliacao_postura: raw.evaluation_behavior || '',
-        avaliacao_tecnico: raw.evaluation_technical || '',
-        avaliacao_relacionamento: raw.evaluation_relationship || '',
-        consideracoes: raw.considerations || '',
-      }
-
-      const html = buildStudentEvaluationHTML(htmlData)
-      await generateHTMLPDF(html, 'avaliacao-estudante.pdf')
-
+      const { buildStudentEvaluationDoc } = await import('@/lib/pdf-templates/student-evaluation.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildStudentEvaluationDoc({
+        student_name: formData.student_name,
+        student_course: formData.student_course,
+        student_enrollment: formData.student_enrollment,
+        company_name: formData.company_name,
+        company_supervisor: formData.company_supervisor,
+        period_start: formData.period_start,
+        period_end: formData.period_end,
+        evaluation_date: formData.evaluation_date,
+        observations: formData.observations,
+        recommendation: formData.recommendation,
+        eval_assiduity: formData.eval_assiduity,
+        eval_punctuality: formData.eval_punctuality,
+        eval_responsibility: formData.eval_responsibility,
+        eval_discipline: formData.eval_discipline,
+        eval_cooperation: formData.eval_cooperation,
+        eval_initiative: formData.eval_initiative,
+        eval_proactivity: formData.eval_proactivity,
+        eval_communication: formData.eval_communication,
+        eval_relationship: formData.eval_relationship,
+        eval_technical_knowledge: formData.eval_technical_knowledge,
+        eval_learning_capacity: formData.eval_learning_capacity,
+        eval_productivity: formData.eval_productivity,
+        eval_quality: formData.eval_quality,
+        eval_organization: formData.eval_organization,
+        eval_creativity: formData.eval_creativity,
+      })
+      await generatePDF(doc, { filename: 'avaliacao-estudante.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
-      console.error('❌ Erro detalhado ao gerar PDF:', error)
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      toast.error(`Erro: ${errorMessage}`, { id: 'pdf-generation', duration: 10000 })
+      console.error('Erro ao gerar PDF:', error)
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 

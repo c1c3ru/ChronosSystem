@@ -36,9 +36,8 @@ export function FormPDFExport({
         return
       }
 
-      // Gerar PDF usando o client-side unificado que agora preserva os dados
-      const { printElementAsPDF } = await import('@/lib/pdf-generator')
-      await printElementAsPDF(element, { filename: fileName })
+      // Módulo legado removido. Exportação em migração.
+      alert('Funcionalidade de PDF em migração para o novo motor.')
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
       alert('Erro ao gerar PDF. Tente novamente.')

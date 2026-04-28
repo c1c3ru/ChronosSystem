@@ -113,71 +113,55 @@ export default function InternshipRegistrationPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
+      const { buildInternshipRegistrationDoc } = await import('@/lib/pdf-templates/internship-registration.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
       const raw: any = { ...formData }
-      const { generateHTMLPDF, buildInternshipRegistrationHTML } =
-        await import('@/lib/pdf-generator-html')
-
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
-      const htmlData = {
-        // Dados Pessoais
-        nome_estudante: raw.student_name || '',
-        nome_social: raw.student_social_name || '',
-        curso_estudante: raw.student_course || '',
-        matricula_estudante: raw.student_enrollment || '',
-        cpf_estudante: raw.student_cpf || '',
-        email_estudante: raw.student_email_institutional || raw.student_email_personal || '',
-        telefone_estudante: raw.student_phone || '',
-        endereco: raw.student_address || '',
-        bairro: raw.student_neighborhood || '',
-        municipio_uf: raw.student_city_uf || '',
-        cep: raw.student_zip || '',
-        semestre_atual: raw.student_semester || '',
-        turno: raw.student_shift || '',
-
-        // Cor/Raça e Etnia
-        cor_raca: raw.student_race || '',
-        etnia: raw.student_ethnicity || '',
-        etnia_outra: raw.student_ethnicity_community || '',
-        comunidade_etnia: raw.student_ethnicity_community || '',
-
-        // Deficiências
-        def_alta_habilidade: raw.student_disability === 'alta_habilidade',
-        def_auditiva: raw.student_disability === 'auditiva',
-        def_intelectual: raw.student_disability === 'intelectual',
-        def_motora: raw.student_disability === 'motora',
-        def_visual_baixa: raw.student_disability === 'visual_baixa',
-        def_visual: raw.student_disability === 'visual',
-        def_surdocegueira: raw.student_disability === 'surdocegueira',
-
-        // Dados da Empresa
-        empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        empresa_endereco: raw.company_address || '',
-        empresa_cidade: raw.company_city || '',
-        empresa_uf: raw.company_state || '',
-        empresa_telefone: raw.company_phone || '',
-
-        // Supervisor
-        nome_supervisor: raw.company_supervisor || '',
-        cargo_supervisor: raw.company_supervisor_role || '',
-        email_supervisor: raw.company_supervisor_email || '',
-
-        // Estágio
-        tipo_estagio: raw.internship_type === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
-        data_inicio: raw.start_date || '',
-        data_fim: raw.end_date || '',
-        carga_horaria: raw.weekly_hours || '',
-      }
-
-      const html = buildInternshipRegistrationHTML(htmlData)
-      await generateHTMLPDF(html, 'cadastro-estagio.pdf')
-
+      const doc = await buildInternshipRegistrationDoc({
+        student_name: raw.student_name,
+        student_social_name: raw.student_social_name,
+        student_course: raw.student_course,
+        student_enrollment: raw.student_enrollment,
+        student_cpf: raw.student_cpf,
+        student_email_institutional: raw.student_email_institutional,
+        student_email_personal: raw.student_email_personal,
+        student_phone: raw.student_phone,
+        student_address: raw.student_address,
+        student_neighborhood: raw.student_neighborhood,
+        student_city_uf: raw.student_city_uf,
+        student_zip: raw.student_zip,
+        student_race: raw.student_race,
+        student_ethnicity: raw.student_ethnicity,
+        student_ethnicity_community: raw.student_ethnicity_community,
+        student_disability: raw.student_disability,
+        company_name: raw.company_name,
+        company_fantasy_name: raw.company_fantasy_name,
+        company_cnpj: raw.company_cnpj,
+        company_phone: raw.company_phone,
+        company_address: raw.company_address,
+        company_neighborhood: raw.company_neighborhood,
+        company_city_uf: raw.company_city_uf,
+        company_zip: raw.company_zip,
+        company_email: raw.company_email,
+        company_representative: raw.company_representative,
+        company_representative_role: raw.company_representative_role,
+        company_representative_cpf: raw.company_representative_cpf,
+        company_representative_phone: raw.company_representative_phone,
+        company_supervisor: raw.company_supervisor,
+        company_supervisor_role: raw.company_supervisor_role,
+        company_supervisor_cpf: raw.company_supervisor_cpf,
+        company_supervisor_phone: raw.company_supervisor_phone,
+        company_sector: raw.company_sector,
+        internship_type: raw.internship_type,
+        internship_mode: raw.internship_mode,
+        start_date: raw.start_date,
+        end_date: raw.end_date,
+        weekly_hours: raw.weekly_hours,
+      })
+      await generatePDF(doc, { filename: 'cadastro-estagio.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
-      console.error('❌ Erro detalhado ao gerar PDF:', error)
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      toast.error(`Erro: ${errorMessage}`, { id: 'pdf-generation', duration: 10000 })
+      console.error('Erro ao gerar PDF:', error)
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 

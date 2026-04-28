@@ -90,40 +90,7 @@ export default function MonthlyReportPage() {
   }
 
   const handleGeneratePDF = async () => {
-    try {
-      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildMonthlyReportHTML } = await import('@/lib/pdf-generator-html')
-
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_role || '',
-        horas_mes: raw.hours_month || raw.monthly_hours || '',
-        horas_total: raw.hours_total || '',
-        inicio_periodo: raw.period_start || raw.start_date || '',
-        fim_periodo: raw.period_end || raw.end_date || '',
-        periodo_referencia: raw.period_reference || '',
-        nome_orientador: raw.advisor_name || '',
-        atividades: raw.activities || '',
-        dificuldades: raw.difficulties || '',
-        solucoes: raw.solutions || '',
-      }
-
-      const html = buildMonthlyReportHTML(htmlData)
-      await generateHTMLPDF(html, 'relatorio-mensal.pdf')
-
-      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error)
-      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
-    }
+    toast.info('Geração de PDF deste formulário está em migração para o novo motor.', { id: 'pdf-generation' })
   }
 
   return (

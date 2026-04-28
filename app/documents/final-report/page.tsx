@@ -94,32 +94,36 @@ export default function FinalReportPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildFinalReportHTML } = await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        setor_supervisor: raw.supervisor_department || '',
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_role || '',
-        horas_total: raw.total_hours || '',
-        inicio_estagio: raw.period_start || raw.start_date || '',
-        fim_estagio: raw.period_end || raw.end_date || '',
-        nome_orientador: raw.advisor_name || '',
-        atividades: raw.activities || raw.atividades_desenvolvidas || '',
-        competencias: raw.competencies || raw.aprendizados || '',
-        avaliacao: raw.evaluation || raw.avaliacao_geral || '',
-        conclusao: raw.conclusion || raw.contribuicoes || '',
-      }
-
-      const html = buildFinalReportHTML(htmlData)
-      await generateHTMLPDF(html, 'relatorio-final.pdf')
-
+      const { buildFinalReportDoc } = await import('@/lib/pdf-templates/final-report.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildFinalReportDoc({
+        student_name: formData.student_name,
+        student_course: formData.student_course,
+        student_enrollment: formData.student_enrollment,
+        supervisor_name: formData.supervisor_name,
+        advisor_name: formData.advisor_name,
+        period_start: formData.period_start,
+        period_end: formData.period_end,
+        hours_total: formData.hours_total,
+        activities: formData.activities,
+        comments: formData.comments,
+        eval_assiduity: formData.eval_assiduity,
+        eval_punctuality: formData.eval_punctuality,
+        eval_responsibility: formData.eval_responsibility,
+        eval_discipline: formData.eval_discipline,
+        eval_cooperation: formData.eval_cooperation,
+        eval_initiative: formData.eval_initiative,
+        eval_proactivity: formData.eval_proactivity,
+        eval_communication: formData.eval_communication,
+        eval_relationship: formData.eval_relationship,
+        eval_technical_knowledge: formData.eval_technical_knowledge,
+        eval_learning_capacity: formData.eval_learning_capacity,
+        eval_productivity: formData.eval_productivity,
+        eval_quality: formData.eval_quality,
+        eval_organization: formData.eval_organization,
+        eval_creativity: formData.eval_creativity,
+      })
+      await generatePDF(doc, { filename: 'relatorio-final.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)

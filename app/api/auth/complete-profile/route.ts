@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     // Obter horários padrão do turno
     const finalShift = shift || 'MORNING'
-    const shiftTimes = getShiftStartTime(finalShift as any)
+    const shiftTimes = getShiftStartTime(finalShift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
 
     // Atualizar usuário
     const updatedUser = await prisma.user.update({

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
 
@@ -120,7 +120,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.password = await bcrypt.hash(validatedData.password, 10)
     }
 
-    const user = await (prisma.user as any).update({
+    const user = await prisma.user.update({
       where: { id },
       data: updateData,
       select: {

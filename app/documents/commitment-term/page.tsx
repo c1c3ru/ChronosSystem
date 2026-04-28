@@ -158,36 +158,65 @@ export default function CommitmentTermPage() {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildCommitmentTermHTML } = await import('@/lib/pdf-generator-html')
+      const { buildCommitmentTermDoc } = await import('@/lib/pdf-templates/commitment-term.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
 
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        cpf_estudante: raw.student_cpf || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        empresa_endereco: raw.company_address || '',
-        inicio_estagio: raw.start_date || '',
-        fim_estagio: raw.end_date || '',
-        horas_semanais: raw.weekly_hours || '',
-        modalidade_estagio: raw.internship_modality || raw.modality || '',
-        valor_bolsa: raw.scholarship_value || raw.valor_bolsa || '',
-        valor_transporte: raw.transport_aid || raw.valor_transporte || '',
-        nome_orientador: raw.advisor_name || '',
-        telefone_orientador: raw.advisor_phone || '',
-        email_orientador: raw.advisor_email || '',
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_role || '',
-        telefone_supervisor: raw.supervisor_phone || '',
-        email_supervisor: raw.supervisor_email || '',
-        plano_atividades: raw.activity_plan || '',
-      }
+      const doc = await buildCommitmentTermDoc({
+        // Instituição
+        company_name: formData.company_name,
+        company_fantasy_name: formData.company_fantasy_name,
+        company_cnpj: formData.company_cnpj,
+        company_address: formData.company_address,
+        company_neighborhood: formData.company_neighborhood,
+        company_city_state: formData.company_city_state,
+        company_zip: formData.company_zip,
+        company_phone: formData.company_phone,
+        company_email: formData.company_email,
+        company_representative: formData.company_representative,
+        company_representative_role: formData.company_representative_role,
+        company_representative_cpf: formData.company_representative_cpf,
+        company_representative_phone: formData.company_representative_phone,
+        // Discente
+        student_name: formData.student_name,
+        student_cpf: formData.student_cpf,
+        student_social_name: formData.student_social_name,
+        student_course: formData.student_course,
+        student_id: formData.student_id,
+        student_address: formData.student_address,
+        student_neighborhood: formData.student_neighborhood,
+        student_city_state: formData.student_city_state,
+        student_zip: formData.student_zip,
+        student_phone: formData.student_phone,
+        student_email_institutional: formData.student_email_institutional,
+        student_email_personal: formData.student_email_personal,
+        // Estágio
+        modality: formData.modality,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        weekly_hours: formData.weekly_hours,
+        insurance_policy: formData.insurance_policy,
+        insurance_company: formData.insurance_company,
+        grant_value: formData.grant_value,
+        transport_value: formData.transport_value,
+        has_grant: formData.has_grant,
+        has_transport: formData.has_transport,
+        // Orientador
+        advisor_name: formData.advisor_name,
+        advisor_siape: formData.advisor_siape,
+        advisor_phone: formData.advisor_phone,
+        advisor_email: formData.advisor_email,
+        // Supervisor
+        supervisor_name: formData.supervisor_name,
+        supervisor_education: formData.supervisor_education,
+        supervisor_cpf: formData.supervisor_cpf,
+        supervisor_phone: formData.supervisor_phone,
+        supervisor_email: formData.supervisor_email,
+        // Plano
+        activities_description: formData.activities_description,
+        expected_results: formData.expected_results,
+      })
 
-      const html = buildCommitmentTermHTML(htmlData)
-      await generateHTMLPDF(html, 'termo-compromisso.pdf')
+      await generatePDF(doc, { filename: 'termo-compromisso.pdf' })
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {

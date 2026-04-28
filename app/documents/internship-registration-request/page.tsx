@@ -223,108 +223,46 @@ export default function InternshipRegistrationRequestPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildInternshipRegistrationRequestHTML } =
-        await import('@/lib/pdf-generator-html')
-
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
-      const htmlData = {
-        // Dados Pessoais
-        nome_estudante: raw.nome || '',
-        nome_social: raw.nome_social || '',
-        curso_estudante: raw.curso || '',
-        matricula_estudante: raw.matricula || '',
-        cpf_estudante: raw.cpf || '',
-        email_institucional: raw.email_institucional || '',
-        email_pessoal: raw.email_pessoal || '',
-        telefone_estudante: raw.telefone || '',
-        endereco: raw.endereco || '',
-        bairro: raw.bairro || '',
-        municipio_uf: raw.municipio_uf || '',
-        cep: raw.cep || '',
-
-        // Cor/Raça e Etnia
-        cor_raca: raw.cor_raca || '',
-        etnia: raw.etnia || '',
-        etnia_outra: raw.etnia_outra || '',
-        comunidade_etnia: raw.comunidade_etnia || '',
-
-        // Deficiências (array)
-        deficiencia: raw.deficiencia || [],
-
-        // Dados da Empresa
-        empresa_nome: raw.nome_fantasia_pf || '',
-        empresa_cnpj: raw.cnpj_registro_conselho || '',
-        empresa_endereco: raw.endereco_pf || '',
-        empresa_bairro: raw.bairro_pf || '',
-        empresa_municipio_uf: raw.municipio_uf_pf || '',
-        empresa_cep: raw.cep_pf || '',
-        empresa_telefone: raw.telefone_pf || '',
-        empresa_email: raw.email_pf || '',
-
-        // Responsável Legal
-        responsavel_legal: raw.responsavel_legal || '',
-        cargo_responsavel: raw.cargo_qualificacao || '',
-        cpf_responsavel: raw.cpf_responsavel || '',
-        telefone_responsavel: raw.telefone_responsavel || '',
-
-        // Supervisor
-        nome_supervisor: raw.supervisor_nome || '',
-        cargo_supervisor: raw.supervisor_cargo || '',
-        setor_realizacao: raw.setor_realizacao || '',
-        setor_supervisor: raw.setor_realizacao || '',
-
-        // Estágio
-        tipo_estagio: raw.tipo_estagio === 'obrigatorio' ? 'Obrigatório' : 'Não Obrigatório',
-        forma_estagio: raw.forma_estagio === 'presencial' ? 'Presencial' : 'Remoto',
-        inicio_estagio: raw.data_inicial || '',
-        fim_estagio: raw.data_final_prevista || '',
-        horas_semanais: raw.carga_horaria_semanal || '',
-
-        // Horários - achatados para o builder
-        horario_segunda_inicio: raw.horarios?.segunda_feira?.inicio || '',
-        horario_segunda_fim: raw.horarios?.segunda_feira?.final || '',
-        horario_terca_inicio: raw.horarios?.terca_feira?.inicio || '',
-        horario_terca_fim: raw.horarios?.terca_feira?.final || '',
-        horario_quarta_inicio: raw.horarios?.quarta_feira?.inicio || '',
-        horario_quarta_fim: raw.horarios?.quarta_feira?.final || '',
-        horario_quinta_inicio: raw.horarios?.quinta_feira?.inicio || '',
-        horario_quinta_fim: raw.horarios?.quinta_feira?.final || '',
-        horario_sexta_inicio: raw.horarios?.sexta_feira?.inicio || '',
-        horario_sexta_fim: raw.horarios?.sexta_feira?.final || '',
-        horario_sabado_inicio: raw.horarios?.sabado?.inicio || '',
-        horario_sabado_fim: raw.horarios?.sabado?.final || '',
-        horario_domingo_inicio: raw.horarios?.domingo?.inicio || '',
-        horario_domingo_fim: raw.horarios?.domingo?.final || '',
-
-        // Turnos - achatados para o builder
-        turnos_primeira_segunda: raw.turnos?.primeira?.segunda || '',
-        turnos_primeira_terca: raw.turnos?.primeira?.terca || '',
-        turnos_primeira_quarta: raw.turnos?.primeira?.quarta || '',
-        turnos_primeira_quinta: raw.turnos?.primeira?.quinta || '',
-        turnos_primeira_sexta: raw.turnos?.primeira?.sexta || '',
-        turnos_primeira_sabado: raw.turnos?.primeira?.sabado || '',
-        turnos_primeira_domingo: raw.turnos?.primeira?.domingo || '',
-        turnos_segunda_segunda: raw.turnos?.segunda?.segunda || '',
-        turnos_segunda_terca: raw.turnos?.segunda?.terca || '',
-        turnos_segunda_quarta: raw.turnos?.segunda?.quarta || '',
-        turnos_segunda_quinta: raw.turnos?.segunda?.quinta || '',
-        turnos_segunda_sexta: raw.turnos?.segunda?.sexta || '',
-        turnos_segunda_sabado: raw.turnos?.segunda?.sabado || '',
-        turnos_segunda_domingo: raw.turnos?.segunda?.domingo || '',
-        turnos_terceira_segunda: raw.turnos?.terceira?.segunda || '',
-        turnos_terceira_terca: raw.turnos?.terceira?.terca || '',
-        turnos_terceira_quarta: raw.turnos?.terceira?.quarta || '',
-        turnos_terceira_quinta: raw.turnos?.terceira?.quinta || '',
-        turnos_terceira_sexta: raw.turnos?.terceira?.sexta || '',
-        turnos_terceira_sabado: raw.turnos?.terceira?.sabado || '',
-        turnos_terceira_domingo: raw.turnos?.terceira?.domingo || '',
-      }
-
-      const html = buildInternshipRegistrationRequestHTML(htmlData)
-      await generateHTMLPDF(html, 'solicitacao-cadastro-estagio.pdf')
-
+      const { buildInternshipRegistrationRequestDoc } = await import('@/lib/pdf-templates/internship-registration-request.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildInternshipRegistrationRequestDoc({
+        nome: formData.nome,
+        cpf: formData.cpf,
+        nome_social: formData.nome_social,
+        curso: formData.curso,
+        matricula: formData.matricula,
+        endereco: formData.endereco,
+        bairro: formData.bairro,
+        municipio_uf: formData.municipio_uf,
+        cep: formData.cep,
+        telefone: formData.telefone,
+        email_institucional: formData.email_institucional,
+        email_pessoal: formData.email_pessoal,
+        cor_raca: formData.cor_raca,
+        etnia: formData.etnia,
+        deficiencia: formData.deficiencia,
+        nome_fantasia_pf: formData.nome_fantasia_pf,
+        cnpj_registro_conselho: formData.cnpj_registro_conselho,
+        endereco_pf: formData.endereco_pf,
+        bairro_pf: formData.bairro_pf,
+        municipio_uf_pf: formData.municipio_uf_pf,
+        cep_pf: formData.cep_pf,
+        telefone_pf: formData.telefone_pf,
+        email_pf: formData.email_pf,
+        responsavel_legal: formData.responsavel_legal,
+        cargo_qualificacao: formData.cargo_qualificacao,
+        cpf_responsavel: formData.cpf_responsavel,
+        telefone_responsavel: formData.telefone_responsavel,
+        supervisor_nome: formData.supervisor_nome,
+        supervisor_cargo: formData.supervisor_cargo,
+        setor_realizacao: formData.setor_realizacao,
+        tipo_estagio: formData.tipo_estagio,
+        forma_estagio: formData.forma_estagio,
+        data_inicial: formData.data_inicial,
+        carga_horaria_semanal: formData.carga_horaria_semanal,
+        data_final_prevista: formData.data_final_prevista,
+      })
+      await generatePDF(doc, { filename: 'solicitacao-cadastro-estagio.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)

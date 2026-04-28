@@ -542,7 +542,7 @@ export default function JustificationsPage() {
                                             email: user.email,
                                             role: 'EMPLOYEE',
                                           },
-                                        } as any)
+                                        } as unknown as Justification)
                                       }
                                     }}
                                   >

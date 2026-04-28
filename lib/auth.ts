@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { authLogger } from '@/lib/logger'
 
@@ -175,13 +175,13 @@ export const authOptions: NextAuthOptions = {
             profileData: {
               name: profile?.name,
               email: profile?.email,
-              picture: (profile as any)?.picture,
-              email_verified: (profile as any)?.email_verified,
+              picture: (profile as unknown as { picture?: string })?.picture,
+              email_verified: (profile as unknown as { email_verified?: boolean })?.email_verified,
             },
           })
 
           // Verificar se o email foi verificado pelo Google
-          if (!(profile as any)?.email_verified) {
+          if (!(profile as unknown as { email_verified?: boolean })?.email_verified) {
             authLogger.security('Google login blocked - email not verified', { email: user.email })
             return false
           }

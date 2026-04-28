@@ -52,7 +52,7 @@ export default function PasswordResetPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
   useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       loadUsers()
       loadActiveTokens()
     }
@@ -251,7 +251,7 @@ export default function PasswordResetPage() {
   }
 
   // Fallback visual caso o middleware falhe e o usuário não tenha permissão
-  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4 text-center">
         <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
@@ -449,7 +449,7 @@ export default function PasswordResetPage() {
               <Clock className="h-5 w-5 mr-2" />
               Tokens Ativos
             </h2>
-            <button onClick={loadActiveTokens} className="text-blue-600 hover:text-blue-700">
+            <button onClick={loadActiveTokens} className="text-blue-600 hover:text-blue-700" title="Atualizar Tokens" aria-label="Atualizar Tokens">
               <RefreshCw className="h-4 w-4" />
             </button>
           </div>
@@ -472,6 +472,7 @@ export default function PasswordResetPage() {
                       <div className="flex items-center flex-1">
                         <input
                           type="checkbox"
+                          aria-label={`Selecionar token de ${token.user.name}`}
                           checked={selectedTokens.includes(token.id)}
                           onChange={(e) => {
                             if (e.target.checked) {

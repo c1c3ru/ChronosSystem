@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar dados do usuário
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         hourBalance: true,
         startDate: true,
         department: true,
-      } as any,
+      }
     })
 
     if (!user) {
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       user,
       availableContracts: CONTRACT_CONFIGS,
       currentConfig:
-        CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS] ||
+        CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS] ||
         CONTRACT_CONFIGS.CUSTOM,
     })
   } catch (error) {
@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Buscar usuário
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
     })
 
@@ -148,13 +148,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Atualizar contrato do usuário
-    const updatedUser = await (prisma.user as any).update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         contractType,
         dailyHours,
         weeklyHours,
-      } as any,
+      }
     })
 
     // Log de auditoria
@@ -172,9 +172,9 @@ export async function PUT(request: NextRequest) {
       user: {
         id: updatedUser.id,
         name: updatedUser.name,
-        contractType: (updatedUser as any).contractType,
-        dailyHours: (updatedUser as any).dailyHours,
-        weeklyHours: (updatedUser as any).weeklyHours,
+        contractType: updatedUser.contractType,
+        dailyHours: updatedUser.dailyHours,
+        weeklyHours: updatedUser.weeklyHours,
       },
       config: CONTRACT_CONFIGS[contractType as keyof typeof CONTRACT_CONFIGS],
     })

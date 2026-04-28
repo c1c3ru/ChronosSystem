@@ -86,7 +86,7 @@ export default function CompleteProfilePage() {
     }
 
     // Se o perfil já está completo, redirecionar
-    if ((session.user as any).profileComplete) {
+    if (session.user.profileComplete) {
       console.log('🔄 Perfil já completo, redirecionando...')
       setHasRedirected(true)
       const role = session.user.role
@@ -964,7 +964,7 @@ export default function CompleteProfilePage() {
               {/* Configuração de Turno - Apenas para funcionários */}
               {effectiveRole === 'EMPLOYEE' && (
                 <ShiftConfigForm
-                  shift={(profileData.shift as any) || 'MORNING'}
+                  shift={(profileData.shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID') || 'MORNING'}
                   shiftStartTime={profileData.shiftStartTime || '08:00'}
                   shiftEndTime={profileData.shiftEndTime || '12:00'}
                   workingDaysPerWeek={profileData.workingDaysPerWeek || 5}
@@ -998,7 +998,7 @@ export default function CompleteProfilePage() {
                   type="submit"
                   disabled={loading || redirecting}
                   className="w-full sm:w-auto sm:min-w-[150px]"
-                  onClick={(e) => {
+                  onClick={() => {
                     console.log('🖱️ BOTÃO SALVAR CLICADO!')
                     console.log('📊 Estado atual:', { loading, redirecting, profileData })
                     console.log('📝 Dados do formulário no clique:', profileData)

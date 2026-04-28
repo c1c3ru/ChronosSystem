@@ -141,7 +141,7 @@ export default function AttendanceLogicDemo() {
   }
 
   // Fallback visual caso o middleware falhe e o usuário não tenha permissão
-  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
         <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>

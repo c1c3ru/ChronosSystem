@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       sent: 0,
       skipped: 0,
       failed: 0,
-      details: [] as any[],
+      details: [] as Record<string, unknown>[],
     }
 
     // Para cada funcionário, verificar pendências

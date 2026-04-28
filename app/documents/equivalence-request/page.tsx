@@ -109,34 +109,35 @@ export default function EquivalenceRequestPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildEquivalenceRequestHTML } =
-        await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        cpf_estudante: raw.student_cpf || '',
-        curso_estudante: raw.student_course || '',
-        periodo_curso: raw.course_period || '',
-        semestre_atual: raw.current_semester || '',
-        empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        inicio_atividades: raw.start_date || '',
-        fim_atividades: raw.end_date || '',
-        total_hours: raw.total_hours || '',
-        justificativa: raw.justification || '',
-      }
-
-      const html = buildEquivalenceRequestHTML(htmlData)
-      await generateHTMLPDF(html, 'solicitacao-equivalencia.pdf')
-
+      const { buildEquivalenceRequestDoc } = await import('@/lib/pdf-templates/equivalence-request.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildEquivalenceRequestDoc({
+        student_name: formData.student_name,
+        student_enrollment: formData.student_enrollment,
+        student_course: formData.student_course,
+        student_address: formData.student_address,
+        student_phone: formData.student_phone,
+        student_email: formData.student_email,
+        company_name: formData.company_name,
+        company_address: formData.company_address,
+        company_phone: formData.company_phone,
+        company_email: formData.company_email,
+        company_supervisor: formData.company_supervisor,
+        activities: formData.activities,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        total_hours: formData.total_hours,
+        doc_work_card: formData.doc_work_card,
+        doc_service_declaration: formData.doc_service_declaration,
+        doc_activities_declaration: formData.doc_activities_declaration,
+        doc_other: formData.doc_other,
+        doc_other_desc: formData.doc_other_desc,
+      })
+      await generatePDF(doc, { filename: 'solicitacao-equivalencia.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
-      console.error('❌ Erro detalhado ao gerar PDF:', error)
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      toast.error(`Erro: ${errorMessage}`, { id: 'pdf-generation', duration: 10000 })
+      console.error('Erro ao gerar PDF:', error)
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
     }
   }
 

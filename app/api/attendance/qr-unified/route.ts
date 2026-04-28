@@ -440,7 +440,7 @@ export async function POST(request: NextRequest) {
       analysis: {
         reason: attendanceAnalysis.reason,
         confidence: attendanceAnalysis.confidence,
-        suggestions: (attendanceAnalysis as any).suggestions || [],
+        suggestions: (attendanceAnalysis as { suggestions?: string[] }).suggestions || [],
         warnings: validation.warnings,
       },
       machine: {

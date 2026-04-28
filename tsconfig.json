@@ -4,6 +4,7 @@
     "lib": ["dom", "dom.iterable", "es2017"],
     "allowJs": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -35,6 +36,5 @@
     "__tests__/**/*.tsx",
     ".next/dev/types/**/*.ts"
   ],
-  "types": ["jest", "@testing-library/jest-dom"],
   "exclude": ["node_modules", "scripts"]
 }

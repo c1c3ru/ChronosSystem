@@ -92,24 +92,19 @@ export default function ExtensionDeclarationPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildExtensionDeclarationHTML } =
-        await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        nome_empresa: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        data_final_atual: raw.current_end_date || '',
-        nova_data_final: raw.new_end_date || '',
-      }
-
-      const html = buildExtensionDeclarationHTML(htmlData)
-      await generateHTMLPDF(html, 'declaracao-prorrogacao.pdf')
-
+      const { buildExtensionDeclarationDoc } = await import('@/lib/pdf-templates/extension-declaration.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildExtensionDeclarationDoc({
+        company_name: formData.company_name,
+        student_name: formData.student_name,
+        student_course: formData.student_course,
+        student_enrollment: formData.student_enrollment,
+        current_start_date: formData.current_start_date,
+        current_end_date: formData.current_end_date,
+        new_end_date: formData.new_end_date,
+        city: formData.city,
+      })
+      await generatePDF(doc, { filename: 'declaracao-prorrogacao.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)

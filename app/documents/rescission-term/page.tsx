@@ -92,24 +92,31 @@ export default function RescissionTermPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildRescissionTermHTML } = await import('@/lib/pdf-generator-html')
-
-      // Mapear campos para o gerador HTML seguindo as chaves do estado formData
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        inicio_estagio: raw.internship_start_date || raw.start_date || '',
-        data_rescisao: raw.rescission_date || '',
-        motivo_rescisao: raw.rescission_reason || '',
-      }
-
-      const html = buildRescissionTermHTML(htmlData)
-      await generateHTMLPDF(html, 'termo-rescisao.pdf')
-
+      const { buildRescissionTermDoc } = await import('@/lib/pdf-templates/rescission-term.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildRescissionTermDoc({
+        student_name: formData.student_name,
+        student_cpf: formData.student_cpf,
+        student_rg: formData.student_rg,
+        student_course: formData.student_course,
+        student_enrollment: formData.student_enrollment,
+        student_address: formData.student_address,
+        student_phone: formData.student_phone,
+        student_email: formData.student_email,
+        company_name: formData.company_name,
+        company_cnpj: formData.company_cnpj,
+        company_phone: formData.company_phone,
+        company_address: formData.company_address,
+        company_representative: formData.company_representative,
+        company_representative_cpf: formData.company_representative_cpf,
+        internship_start_date: formData.internship_start_date,
+        internship_end_date: formData.internship_end_date,
+        original_term_date: formData.original_term_date,
+        rescission_date: formData.rescission_date,
+        rescission_reason: formData.rescission_reason,
+        city: formData.city,
+      })
+      await generatePDF(doc, { filename: 'termo-rescisao.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)

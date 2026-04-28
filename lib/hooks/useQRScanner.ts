@@ -67,7 +67,7 @@ export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
       if ('BarcodeDetector' in window) {
         try {
           if (!barcodeDetectorRef.current) {
-            barcodeDetectorRef.current = new (window as any).BarcodeDetector({
+            barcodeDetectorRef.current = new (window as Window & typeof globalThis & { BarcodeDetector: new (opts?: unknown) => unknown }).BarcodeDetector({
               formats: ['qr_code'],
             })
           }

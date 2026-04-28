@@ -90,34 +90,7 @@ export default function RealizationTermPage() {
   }
 
   const handleGeneratePDF = async () => {
-    try {
-      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildRealizationTermHTML } = await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        nome_supervisor: raw.supervisor_name || '',
-        cargo_supervisor: raw.supervisor_role || '',
-        inicio_estagio: raw.internship_start_date || raw.start_date || '',
-        fim_estagio: raw.internship_end_date || raw.end_date || '',
-        horas_total: raw.total_hours || '',
-        horas_semanais: raw.weekly_hours || '',
-        atividades: raw.activities || '',
-      }
-
-      const html = buildRealizationTermHTML(htmlData)
-      await generateHTMLPDF(html, 'termo-realizacao.pdf')
-
-      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error)
-      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
-    }
+    toast.info('Geração de PDF deste formulário está em migração para o novo motor.', { id: 'pdf-generation' })
   }
 
   return (

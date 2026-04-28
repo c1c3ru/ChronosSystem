@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { FormPDFExport } from '@/components/FormPDFExport'
+import { PDFMakeExport } from '@/components/PDFMakeExport'
+import { buildAttendanceDeclarationPdfMake } from '@/lib/pdf-schemas/pdfmake-attendance-declaration'
 import {
   OfficialFormTemplate,
   FormTable,
@@ -50,9 +51,9 @@ export function AttendanceDeclarationForm({
   return (
     <div className="w-full max-w-[210mm] mx-auto bg-white">
       <div className="mb-4 flex justify-end no-print">
-        <FormPDFExport
-          formId="attendance-declaration-form"
-          fileName="declaracao-participacao-extensao"
+        <PDFMakeExport
+          fileName="declaracao-participacao-extensao.pdf"
+          documentDefinitionGenerator={() => buildAttendanceDeclarationPdfMake(formData)}
         />
       </div>
 

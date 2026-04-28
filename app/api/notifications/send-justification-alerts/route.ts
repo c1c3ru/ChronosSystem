@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       sent: 0,
       failed: 0,
       skipped: 0,
-      details: [] as any[],
+      details: [] as Record<string, unknown>[],
     }
 
     // Para cada usuário, verificar pendências e enviar email

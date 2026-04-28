@@ -113,10 +113,11 @@ export default function AdditiveTermPage() {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
       const raw: any = { ...formData }
-      const { generateHTMLPDF, buildAdditiveTermHTML } = await import('@/lib/pdf-generator-html')
 
-      // Mapear campos para o gerador HTML
-      const htmlData = {
+      const { buildAdditiveTermDoc } = await import('@/lib/pdf-templates/additive-term.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+
+      const doc = await buildAdditiveTermDoc({
         nome_estudante: raw.student_name || '',
         matricula_estudante: raw.student_enrollment || '',
         curso_estudante: raw.student_course || '',
@@ -126,15 +127,13 @@ export default function AdditiveTermPage() {
         motivo_aditivo: raw.additive_reason || '',
         justificativa: raw.justification || '',
         nova_data_fim: raw.new_end_date || '',
-        novo_fim: raw.new_end_date || '',
         nova_carga_horaria: raw.new_weekly_hours || '',
         prazo_prorrogacao: raw.extension_period || '',
         novo_valor_bolsa: raw.new_scholarship_value || '',
         novo_valor_transporte: raw.new_transport_aid || '',
-      }
+      })
 
-      const html = buildAdditiveTermHTML(htmlData)
-      await generateHTMLPDF(html, 'termo-aditivo.pdf')
+      await generatePDF(doc, { filename: 'termo-aditivo.pdf' })
 
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {

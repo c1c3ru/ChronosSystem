@@ -94,28 +94,30 @@ export default function SemesterReportPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const raw: any = { ...formData }
-      const { generateHTMLPDF, buildSemesterReportHTML } = await import('@/lib/pdf-generator-html')
-
-      const htmlData = {
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        nome_supervisor: raw.supervisor_name || '',
-        horas_semestre: raw.hours_semester || raw.semester_hours || '',
-        inicio_periodo: raw.period_start || raw.start_date || '',
-        fim_periodo: raw.period_end || raw.end_date || '',
-        nome_orientador: raw.advisor_name || '',
-        atividades: raw.activities || '',
-        dificuldades: raw.difficulties || '',
-        resultados: raw.results || '',
-      }
-
-      const html = buildSemesterReportHTML(htmlData)
-      await generateHTMLPDF(html, 'relatorio-semestral.pdf')
-
+      const { buildSemesterReportDoc } = await import('@/lib/pdf-templates/semester-report.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildSemesterReportDoc({
+        student_name: formData.student_name,
+        student_course: formData.student_course,
+        student_enrollment: formData.student_enrollment,
+        supervisor_name: formData.supervisor_name,
+        advisor_name: formData.advisor_name,
+        period_start: formData.period_start,
+        period_end: formData.period_end,
+        hours_semester: formData.hours_semester,
+        hours_total: formData.hours_total,
+        activities: formData.activities,
+        comments: formData.comments,
+        criteria_1: formData.criteria_1,
+        criteria_2: formData.criteria_2,
+        criteria_3: formData.criteria_3,
+        criteria_4: formData.criteria_4,
+        criteria_5: formData.criteria_5,
+        criteria_6: formData.criteria_6,
+        criteria_7: formData.criteria_7,
+        criteria_8: formData.criteria_8,
+      })
+      await generatePDF(doc, { filename: 'relatorio-semestral.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)

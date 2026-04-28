@@ -107,8 +107,8 @@ export default function QRDiagnosticPage() {
 
     // 6. Verificar BarcodeDetector
     results.barcodeDetector = {
-      status: !!(window as any).BarcodeDetector,
-      message: (window as any).BarcodeDetector
+      status: !!(window as Window & typeof globalThis & { BarcodeDetector?: unknown }).BarcodeDetector,
+      message: (window as Window & typeof globalThis & { BarcodeDetector?: unknown }).BarcodeDetector
         ? '✅ BarcodeDetector nativo disponível (mais rápido)'
         : '⚠️ BarcodeDetector não disponível (usará jsQR como fallback)',
     }

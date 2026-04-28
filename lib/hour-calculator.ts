@@ -91,10 +91,10 @@ export async function calculateHourBalance(
 
     // Obter configuração do contrato
     const contractConfig =
-      CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS] ||
+      CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS] ||
       CONTRACT_CONFIGS.CUSTOM
     const expectedHours =
-      (user as any).contractType === 'CUSTOM' ? (user as any).dailyHours : contractConfig.dailyHours
+      user.contractType === 'CUSTOM' ? user.dailyHours : contractConfig.dailyHours
 
     // Calcular saldo do dia
     const dailyBalance = workedHours - expectedHours
