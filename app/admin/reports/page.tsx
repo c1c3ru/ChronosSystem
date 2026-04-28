@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -42,14 +42,7 @@ export default function ReportsPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load report data
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadReportData()
-    }
-  }, [session, selectedPeriod, selectedUser])
-
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/reports?period=${selectedPeriod}&user=${selectedUser}`)
@@ -63,7 +56,14 @@ export default function ReportsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedPeriod, selectedUser])
+
+  // Load report data
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadReportData()
+    }
+  }, [session, loadReportData])
 
   const downloadReport = async (format: 'pdf' | 'csv') => {
     try {
@@ -260,11 +260,13 @@ export default function ReportsPage() {
                         <span className="text-sm text-neutral-400">{month.records} registros</span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
+                        {/* eslint-disable-next-line react/forbid-component-props */}
                         <div
-                          className="bg-primary h-2 rounded-full"
+                          className="bg-primary h-2 rounded-full transition-all duration-500"
+                          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                           style={{
-                            width: `${Math.min((month.records / Math.max(...reportData.monthlyData.map((m) => m.records))) * 100, 100)}%`,
-                          }}
+                            width: `${Math.min((month.records / Math.max(...(reportData?.monthlyData?.map((m) => m.records) || [1]))) * 100, 100)}%`,
+                          } as React.CSSProperties}
                         />
                       </div>
                       {month.lateRecords > 0 && (

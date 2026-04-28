@@ -46,14 +46,14 @@ export default function EditMachinePage({ params }: { params: Promise<{ id: stri
     if (!session) {
       signIn()
     }
-  }, [status])
+  }, [status, session])
 
   // Check if user is admin or supervisor
   useEffect(() => {
     if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       router.push('/employee')
     }
-  }, [session])
+  }, [session, router])
 
   // Load machine data
   useEffect(() => {

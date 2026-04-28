@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -48,14 +48,7 @@ export default function DetailedReportsPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load detailed records
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadDetailedRecords()
-    }
-  }, [session])
-
-  const loadDetailedRecords = async (page: number = 1) => {
+  const loadDetailedRecords = useCallback(async (page: number = 1) => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -79,7 +72,14 @@ export default function DetailedReportsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, dateFilter, typeFilter, userFilter])
+
+  // Load detailed records
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadDetailedRecords()
+    }
+  }, [session, loadDetailedRecords])
 
   // Registros já vêm filtrados da API
   const filteredRecords = records

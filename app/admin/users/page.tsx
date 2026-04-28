@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -58,14 +58,7 @@ export default function UsersPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load users data
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadUsers()
-    }
-  }, [session])
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/users')
@@ -79,7 +72,14 @@ export default function UsersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Load users data
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadUsers()
+    }
+  }, [session, loadUsers])
 
   const handleDeleteUser = async (userId: string, userName: string) => {
     if (

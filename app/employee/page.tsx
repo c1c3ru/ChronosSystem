@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -248,24 +248,7 @@ export default function EmployeePage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load employee data
-  useEffect(() => {
-    if (session) {
-      loadEmployeeData()
-    }
-  }, [session])
-
-  // 🎯 Cooldown timer - conta regressiva após registro
-  useEffect(() => {
-    if (cooldownSeconds > 0) {
-      const timer = setTimeout(() => {
-        setCooldownSeconds(cooldownSeconds - 1)
-      }, 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [cooldownSeconds])
-
-  const loadEmployeeData = async () => {
+  const loadEmployeeData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -329,7 +312,14 @@ export default function EmployeePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Load employee data
+  useEffect(() => {
+    if (session) {
+      loadEmployeeData()
+    }
+  }, [session, loadEmployeeData])
 
   const startScanning = () => {
     console.log('📷 [QR] Abrindo scanner nativo...')

@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -87,14 +87,7 @@ export default function AdminPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load dashboard data
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadDashboardData()
-    }
-  }, [session])
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -140,7 +133,14 @@ export default function AdminPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Load dashboard data
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadDashboardData()
+    }
+  }, [session, loadDashboardData])
 
   const deleteRecord = async (recordId: string, recordType: 'ENTRY' | 'EXIT') => {
     if (

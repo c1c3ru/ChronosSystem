@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
@@ -49,32 +49,23 @@ export default function PasswordResetPage() {
   const [isSendingEmails, setIsSendingEmails] = useState(false)
   const [customMessage, setCustomMessage] = useState('')
 
-  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
-  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadUsers()
-      loadActiveTokens()
-    }
-  }, [session, status])
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       const response = await fetch('/api/users')
       const data = await response.json()
 
       if (response.ok) {
         // Filtrar apenas usuários com senha (não só Google)
-        const usersWithPassword = data.users.filter((user: any) => user.password !== null)
+        const usersWithPassword = data.users.filter((user: { password?: string | null }) => user.password !== null)
         setUsers(usersWithPassword)
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error)
       toast.error('Erro ao carregar usuários')
     }
-  }
+  }, [])
 
-  const loadActiveTokens = async () => {
+  const loadActiveTokens = useCallback(async () => {
     try {
       setIsLoadingTokens(true)
       const response = await fetch('/api/admin/password-reset')
@@ -89,7 +80,16 @@ export default function PasswordResetPage() {
     } finally {
       setIsLoadingTokens(false)
     }
-  }
+  }, [])
+
+  // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
+  // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadUsers()
+      loadActiveTokens()
+    }
+  }, [session, loadUsers, loadActiveTokens])
 
   const handleMassReset = async () => {
     if (!reason.trim()) {
