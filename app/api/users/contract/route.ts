@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tipo de contrato é obrigatório' }, { status: 400 })
     }
 
-    let validation = {
+    const validation = {
       isValid: true,
       errors: [] as string[],
       warnings: [] as string[],

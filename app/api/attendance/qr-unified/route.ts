@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
       qrPreview: qrData.substring(0, 20) + '...',
     })
 
-    let machineId: string
     let isSecureQR = false
     let qrEvent: any = null
 
@@ -131,7 +130,7 @@ export async function POST(request: NextRequest) {
     })
 
     isSecureQR = true
-    machineId = secureValidation.payload.machineId
+    const machineId = secureValidation.payload.machineId
     const { nonce } = secureValidation.payload
 
     // VERIFICAÇÃO ATÔMICA: Marcar como usado E verificar se já estava usado em um único passo

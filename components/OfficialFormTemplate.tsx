@@ -1,6 +1,7 @@
 'use client'
 
 import React, { ReactNode } from 'react'
+import Image from 'next/image'
 import './official-forms.css'
 
 interface OfficialFormTemplateProps {
@@ -31,11 +32,11 @@ export function OfficialHeader({
       <div className="official-header-row">
         {showLogos && (
           <div className="official-header-logo left">
-            <img
+            <Image
               src="/assets/logoifce.png"
               alt="Logo IFCE"
-              width="58"
-              height="58"
+              width={58}
+              height={58}
               className="object-contain"
             />
           </div>
@@ -54,11 +55,11 @@ export function OfficialHeader({
 
         {showLogos && (
           <div className="official-header-logo right">
-            <img
+            <Image
               src="/assets/brasao.png"
               alt="Brasão da República"
-              width="58"
-              height="58"
+              width={58}
+              height={58}
               className="object-contain"
             />
           </div>

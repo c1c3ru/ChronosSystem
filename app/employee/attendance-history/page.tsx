@@ -467,7 +467,7 @@ export default function AttendanceHistoryPage() {
 
             <div className="flex items-center space-x-2">
               {Array.from({ length: Math.min(5, pagination.totalPages) }).map((_, i) => {
-                let pageNum = pagination.page - 2 + i
+                const pageNum = pagination.page - 2 + i
                 if (pageNum < 1 || pageNum > pagination.totalPages) return null
 
                 return (

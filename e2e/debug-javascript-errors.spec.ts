@@ -5,9 +5,9 @@ test.describe('Debug JavaScript Errors', () => {
     console.log(' Investigando erros JavaScript...')
 
     // Capturar todos os logs e erros
-    let allLogs: any[] = []
-    let pageErrors: any[] = []
-    let failedRequests: any[] = []
+    const allLogs: any[] = []
+    const pageErrors: any[] = []
+    const failedRequests: any[] = []
 
     page.on('console', (msg) => {
       const log = {

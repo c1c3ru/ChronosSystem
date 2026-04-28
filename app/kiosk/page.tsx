@@ -323,6 +323,7 @@ export default function KioskPage() {
               ) : qrCodeUrl ? (
                 <div className="flex flex-col items-center">
                   <div className="bg-white p-6 rounded-2xl mb-4 shadow-2xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={qrCodeUrl}
                       alt="QR Code para registro de ponto"

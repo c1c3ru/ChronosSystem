@@ -256,6 +256,7 @@ export function TwoFactorSetup() {
             {/* QR Code */}
             <div className="text-center space-y-4">
               <div className="inline-block p-4 bg-white rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={setup.qrCodeUrl} alt="QR Code para 2FA" className="w-48 h-48" />
               </div>
 
