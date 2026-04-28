@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(machines)
-  } catch (error) {
+  } catch (error: unknown) {
     return handleApiError(error, { route: '/api/machines', method: 'GET' })
   }
 }
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     await MachineCache.invalidateAll()
 
     return NextResponse.json(machine, { status: 201 })
-  } catch (error) {
+  } catch (error: unknown) {
     return handleApiError(error, {
       route: '/api/machines',
       method: 'POST',

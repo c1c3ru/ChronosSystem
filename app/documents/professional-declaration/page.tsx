@@ -6,6 +6,8 @@ import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft, Save, FileText, Download, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { PDFMakeExport } from '@/components/PDFMakeExport'
+import { buildProfessionalDeclarationDoc } from '@/lib/pdf-templates/professional-declaration.pdf'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
@@ -89,10 +91,6 @@ export default function ProfessionalDeclarationPage() {
     setIsSaving(false)
   }
 
-  const handleGeneratePDF = async () => {
-    toast.info('Geração de PDF deste formulário está em migração para o novo motor.', { id: 'pdf-generation' })
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -111,10 +109,11 @@ export default function ProfessionalDeclarationPage() {
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Gerar PDF
-            </Button>
+            <PDFMakeExport 
+              fileName="declaracao-profissional.pdf"
+              buttonText="Gerar PDF"
+              documentDefinitionGenerator={() => buildProfessionalDeclarationDoc(formData)}
+            />
           </div>
         </div>
 

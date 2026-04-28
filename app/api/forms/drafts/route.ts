@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const saveDraftSchema = z.object({
   formType: z.string(),
-  formData: z.record(z.any()),
+  formData: z.record(z.unknown()),
 })
 
 /**
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, draft }, { status: 200 })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao salvar rascunho:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 })
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     const parsedDraft = { ...draft, formData: JSON.parse(rawData) }
 
     return NextResponse.json(parsedDraft, { status: 200 })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao recuperar rascunho:', error)
     return NextResponse.json({ error: 'Erro ao recuperar rascunho' }, { status: 500 })
   }
@@ -146,7 +146,7 @@ export async function DELETE(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, message: 'Removido' }, { status: 200 })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao remover rascunho:', error)
     return NextResponse.json({ error: 'Erro ao remover rascunho' }, { status: 500 })
   }

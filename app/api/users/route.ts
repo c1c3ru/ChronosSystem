@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     await UserCache.setList(response.users, cacheKey)
 
     return NextResponse.json(response)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar usuários:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
     await UserCache.invalidateAll()
 
     return NextResponse.json(user, { status: 201 })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {

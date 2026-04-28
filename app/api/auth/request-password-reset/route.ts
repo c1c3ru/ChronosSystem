@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       message:
         'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {

@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json(formattedInterns)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar overview de estagiários:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

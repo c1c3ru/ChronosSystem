@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       exists: false,
       message: 'Usuário não encontrado',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao verificar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

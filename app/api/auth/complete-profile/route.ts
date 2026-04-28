@@ -148,14 +148,14 @@ export async function POST(request: NextRequest) {
       redirectUrl: redirectUrl,
       forceReload: true, // Flag para forçar reload completo
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     authLogger.error('Error completing profile', {
       userId: 'unknown',
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      error: errorMessage,
+      stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined,
     })
 
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
     return NextResponse.json(
       {
         error: 'Erro ao salvar perfil',

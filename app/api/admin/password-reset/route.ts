@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Reset em massa
-async function handleMassReset(request: NextRequest, session: any, body: any) {
+async function handleMassReset(request: NextRequest, session: { user: { id: string } }, body: unknown) {
   try {
     const validatedData = massResetSchema.parse(body)
 
@@ -136,7 +136,7 @@ async function handleMassReset(request: NextRequest, session: any, body: any) {
 }
 
 // Reset individual
-async function handleIndividualReset(request: NextRequest, session: any, body: any) {
+async function handleIndividualReset(request: NextRequest, session: { user: { id: string } }, body: unknown) {
   try {
     const validatedData = individualResetSchema.parse(body)
 
@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      activeTokens: activeTokens.map((token: any) => ({
+      activeTokens: activeTokens.map((token: { id: string; token: string; expires: Date; createdAt: Date; user: unknown }) => ({
         id: token.id,
         token: token.token,
         expires: token.expires,

@@ -149,9 +149,9 @@ async function redisRateLimit(
       remaining,
       reset: resetTime,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Redis rate limit error, falling back to in-memory', {
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       identifier,
     })
     return inMemoryRateLimit(identifier, config)

@@ -25,12 +25,12 @@ export async function GET(request: NextRequest) {
 
     // Extrair emails únicos das tentativas
     const emailsFromLogs = unauthorizedAttempts
-      .map((log: any) => {
+      .map((log: { details: string | null }) => {
         if (!log.details) return null
         const match = log.details.match(/não autorizada: (.+)$/)
         return match ? match[1] : null
       })
-      .filter((email: any) => email !== null)
+      .filter((email: string | null): email is string => email !== null)
 
     // Remover duplicatas e emails que já existem no sistema
     const uniqueEmails = Array.from(new Set(emailsFromLogs))
@@ -46,13 +46,13 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const existingEmails = existingUsers.map((user: any) => user.email)
-    const pendingEmails = uniqueEmails.filter((email: any) => !existingEmails.includes(email))
+    const existingEmails = existingUsers.map((user: { email: string }) => user.email)
+    const pendingEmails = uniqueEmails.filter((email: string) => !existingEmails.includes(email))
 
     // Agrupar tentativas por email
-    const pendingUsers = pendingEmails.map((email: any) => {
+    const pendingUsers = pendingEmails.map((email: string) => {
       const attempts = unauthorizedAttempts.filter(
-        (log: any) => log.details && log.details.includes(email)
+        (log: { details: string | null }) => log.details && log.details.includes(email)
       )
 
       return {
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       ),
       totalAttempts: unauthorizedAttempts.length,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar usuários pendentes:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         department: newUser.department,
       },
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao autorizar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

@@ -6,6 +6,8 @@ import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { PDFMakeExport } from '@/components/PDFMakeExport'
+import { buildMonthlyReportDoc } from '@/lib/pdf-templates/monthly-report.pdf'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
@@ -89,10 +91,6 @@ export default function MonthlyReportPage() {
     setIsSaving(false)
   }
 
-  const handleGeneratePDF = async () => {
-    toast.info('Geração de PDF deste formulário está em migração para o novo motor.', { id: 'pdf-generation' })
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -111,10 +109,11 @@ export default function MonthlyReportPage() {
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Gerar PDF
-            </Button>
+            <PDFMakeExport 
+              fileName="relatorio-mensal.pdf"
+              buttonText="Gerar PDF"
+              documentDefinitionGenerator={() => buildMonthlyReportDoc(formData)}
+            />
           </div>
         </div>
 

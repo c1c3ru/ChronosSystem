@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Agrupar justificativas por usuário e data
-    const justificationMap = new Map<string, Map<string, any>>()
+    const justificationMap = new Map<string, Map<string, unknown>>()
     justifications.forEach((j) => {
       if (!justificationMap.has(j.userId)) {
         justificationMap.set(j.userId, new Map())
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Agrupar registros por usuário e data
-    const userDateRecords = new Map<string, Map<string, { entry: any; exit: any }>>()
+    const userDateRecords = new Map<string, Map<string, { entry: unknown; exit: unknown }>>()
     records.forEach((record) => {
       const dateKey = record.timestamp.toISOString().split('T')[0]
       if (!userDateRecords.has(record.userId)) {
@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
 
     // 5. Analisar cada usuário
     const overview = employees.map((employee) => {
-      const missingDates: any[] = []
-      const pendingDates: any[] = []
+      const missingDates: unknown[] = []
+      const pendingDates: unknown[] = []
 
       const userJMap = justificationMap.get(employee.id) || new Map()
       const userRMap = userDateRecords.get(employee.id) || new Map()
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
           )
 
           if (analysis.requiresJustification) {
-            const justification = userJMap.get(dateKey)
+            const justification = userJMap.get(dateKey) as { status: string; id: string; reason: string } | undefined
             if (!justification) {
               missingDates.push({
                 date: dateKey,
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
     )
 
     return NextResponse.json(filteredOverview)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro no overview de justificativas:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

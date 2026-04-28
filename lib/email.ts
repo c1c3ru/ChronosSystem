@@ -63,8 +63,8 @@ export class EmailService {
 
       logger.info('Email sent successfully', { id: data?.id })
       return true
-    } catch (error: any) {
-      logger.error('Unexpected error sending email', { error: error.message })
+    } catch (error: unknown) {
+      logger.error('Unexpected error sending email', { error: error instanceof Error ? error.message : String(error) })
       return false
     }
   }

@@ -47,7 +47,7 @@ function obterNomeDia(data: Date): string {
 }
 
 // Determinação de Tipo
-export function determinarTipoRegistro(contexto: any) {
+export function determinarTipoRegistro(contexto: Record<string, any>) {
   const horaAtual = contexto.horaAtual || contexto.currentTime || new Date()
   const ultimoRegistro = contexto.ultimoRegistro || contexto.lastRecord
   const horarioTrabalho =
@@ -95,7 +95,7 @@ export function determinarTipoRegistro(contexto: any) {
 }
 
 // Validação
-export async function validarRegistro(contexto: any, tipoSolicitado: string) {
+export async function validarRegistro(contexto: Record<string, any>, tipoSolicitado: string) {
   const data = contexto.horaAtual || contexto.currentTime || new Date()
   const ultimoPonto = contexto.ultimoRegistro || contexto.lastRecord
   const possuiAutorizacao = contexto.hasAuthorization || contexto.possuiAutorizacao || false
@@ -171,8 +171,8 @@ export function detectarSaidaAntecipada(
 // Análise Diária
 export function analisarDiaParaJustificativa(
   data: Date,
-  entradaParams: any = null,
-  saidaParams: any = null,
+  entradaParams: unknown = null,
+  saidaParams: unknown = null,
   horario: HorarioTrabalho = HORARIO_TRABALHO_PADRAO,
   ehDiaTrabalho: boolean = true
 ) {
@@ -198,8 +198,8 @@ export function analisarDiaParaJustificativa(
       requiresJustification = true
       justificationReason = 'Falta de registro de saída'
     } else {
-      const dEntrada = new Date(entradaParams.timestamp || entradaParams.createdAt || entradaParams)
-      const dSaida = new Date(saidaParams.timestamp || saidaParams.createdAt || saidaParams)
+      const dEntrada = new Date((entradaParams as any).timestamp || (entradaParams as any).createdAt || entradaParams)
+      const dSaida = new Date((saidaParams as any).timestamp || (saidaParams as any).createdAt || saidaParams)
 
       lateArrival = detectarAtraso(dEntrada, horario)
       earlyDeparture = detectarSaidaAntecipada(dEntrada, dSaida, horario)
@@ -252,7 +252,7 @@ export class AttendanceLogic {
   /**
    * Determina o tipo de registro (entrada/saída) baseado no contexto
    */
-  determineRecordType(context: any) {
+  determineRecordType(context: Record<string, any>) {
     return determinarTipoRegistro(context)
   }
 
@@ -261,7 +261,7 @@ export class AttendanceLogic {
    */
   async validateRecord(
     type: AttendanceRecordType,
-    lastRecord: any,
+    lastRecord: unknown,
     date: Date = new Date(),
     hasAuthorization: boolean = false
   ) {
@@ -278,14 +278,14 @@ export class AttendanceLogic {
   /**
    * Valida a proximidade do usuário em relação à máquina
    */
-  validarProximidade(userLocation: any, machineLocation: any, maxRadius: number) {
-    return validateProximity(userLocation, machineLocation, maxRadius)
+  validarProximidade(userLocation: unknown, machineLocation: unknown, maxRadius: number) {
+    return validateProximity(userLocation as any, machineLocation as any, maxRadius)
   }
 
   /**
    * Detecta anomalias em uma sequência de registros
    */
-  detectSequenceAnomaly(records: any[]) {
+  detectSequenceAnomaly(records: Record<string, any>[]) {
     const anomalies: string[] = []
 
     // Verificar registros duplicados em sequência

@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       expiresIn: ADMIN_QR_TTL_SECONDS,
       expiresAt: expiresAt.toISOString(),
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao gerar QR code:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
       count: qrCodes.length,
       expiresIn: ADMIN_QR_TTL_SECONDS,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao gerar QR codes em lote:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

@@ -140,7 +140,11 @@ export default function EmployeePage() {
       // Verificar se há política de permissões bloqueando
       if (typeof document !== 'undefined') {
         try {
-          const doc = document as Document & { startViewTransition?: (cb: () => void) => void }
+          const doc = document as Document & {
+            startViewTransition?: (cb: () => void) => void
+            featurePolicy?: { allowsFeature: (feature: string) => boolean }
+            permissionsPolicy?: { allowsFeature: (feature: string) => boolean }
+          }
           const permissionsPolicy = doc.featurePolicy || doc.permissionsPolicy
           if (permissionsPolicy && typeof permissionsPolicy.allowsFeature === 'function') {
             if (!permissionsPolicy.allowsFeature('camera')) {

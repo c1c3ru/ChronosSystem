@@ -55,8 +55,8 @@ export async function getCache<T>(key: string): Promise<T | null> {
     const parsed = JSON.parse(value) as T
     logger.info(`[Cache] Hit: ${key}`)
     return parsed
-  } catch (error: any) {
-    logger.error(`[Cache] Error getting key "${key}"`, { error: error.message })
+  } catch (error: unknown) {
+    logger.error(`[Cache] Error getting key "${key}"`, { error: error instanceof Error ? error.message : String(error) })
     return null
   }
 }
@@ -76,8 +76,8 @@ export async function setCache<T>(key: string, value: T, ttlSeconds: number): Pr
     await client.setex(key, ttlSeconds, serialized)
     logger.info(`[Cache] Set: ${key} (TTL: ${ttlSeconds}s)`)
     return true
-  } catch (error: any) {
-    logger.error(`[Cache] Error setting key "${key}"`, { error: error.message })
+  } catch (error: unknown) {
+    logger.error(`[Cache] Error setting key "${key}"`, { error: error instanceof Error ? error.message : String(error) })
     return false
   }
 }
@@ -96,8 +96,8 @@ export async function deleteCache(key: string): Promise<boolean> {
     await client.del(key)
     logger.info(`[Cache] Deleted: ${key}`)
     return true
-  } catch (error: any) {
-    logger.error(`[Cache] Error deleting key "${key}"`, { error: error.message })
+  } catch (error: unknown) {
+    logger.error(`[Cache] Error deleting key "${key}"`, { error: error instanceof Error ? error.message : String(error) })
     return false
   }
 }
@@ -119,8 +119,8 @@ export async function deleteCachePattern(pattern: string): Promise<boolean> {
       logger.info(`[Cache] Deleted pattern: ${pattern} (${keys.length} keys)`)
     }
     return true
-  } catch (error: any) {
-    logger.error(`[Cache] Error deleting pattern "${pattern}"`, { error: error.message })
+  } catch (error: unknown) {
+    logger.error(`[Cache] Error deleting pattern "${pattern}"`, { error: error instanceof Error ? error.message : String(error) })
     return false
   }
 }
@@ -139,7 +139,7 @@ export const UserCache = {
   /**
    * Set user in cache
    */
-  async set(userId: string, user: any) {
+  async set(userId: string, user: unknown) {
     return setCache(`${CachePrefix.USER}:${userId}`, user, CacheTTL.USER)
   },
 
@@ -160,7 +160,7 @@ export const UserCache = {
   /**
    * Set users list in cache
    */
-  async setList(data: any, cacheKey: string = 'default') {
+  async setList(data: unknown, cacheKey: string = 'default') {
     return setCache(`${CachePrefix.USERS_LIST}:${cacheKey}`, data, CacheTTL.USERS_LIST)
   },
 
@@ -187,7 +187,7 @@ export const AttendanceCache = {
   /**
    * Set attendance record in cache
    */
-  async set(recordId: string, record: any) {
+  async set(recordId: string, record: unknown) {
     return setCache(`${CachePrefix.ATTENDANCE}:${recordId}`, record, CacheTTL.ATTENDANCE)
   },
 
@@ -201,7 +201,7 @@ export const AttendanceCache = {
   /**
    * Set attendance list in cache
    */
-  async setList(data: any, cacheKey: string) {
+  async setList(data: unknown, cacheKey: string) {
     return setCache(`${CachePrefix.ATTENDANCE_LIST}:${cacheKey}`, data, CacheTTL.ATTENDANCE_LIST)
   },
 
@@ -236,7 +236,7 @@ export const MachineCache = {
   /**
    * Set machine in cache
    */
-  async set(machineId: string, machine: any) {
+  async set(machineId: string, machine: unknown) {
     return setCache(`${CachePrefix.MACHINES}:${machineId}`, machine, CacheTTL.MACHINES)
   },
 
@@ -250,7 +250,7 @@ export const MachineCache = {
   /**
    * Set active machines in cache
    */
-  async setActive(machines: any[]) {
+  async setActive(machines: unknown[]) {
     return setCache(CachePrefix.MACHINES_ACTIVE, machines, CacheTTL.MACHINES_ACTIVE)
   },
 
@@ -277,7 +277,7 @@ export const JustificationCache = {
   /**
    * Set justification in cache
    */
-  async set(justificationId: string, justification: any) {
+  async set(justificationId: string, justification: unknown) {
     return setCache(
       `${CachePrefix.JUSTIFICATIONS}:${justificationId}`,
       justification,
@@ -295,7 +295,7 @@ export const JustificationCache = {
   /**
    * Set pending justifications in cache
    */
-  async setPending(justifications: any[]) {
+  async setPending(justifications: unknown[]) {
     return setCache(
       CachePrefix.JUSTIFICATIONS_PENDING,
       justifications,
@@ -326,7 +326,7 @@ export const HourBalanceCache = {
   /**
    * Set hour balance in cache
    */
-  async set(userId: string, date: string, balance: any) {
+  async set(userId: string, date: string, balance: unknown) {
     return setCache(`${CachePrefix.HOUR_BALANCE}:${userId}:${date}`, balance, CacheTTL.HOUR_BALANCE)
   },
 

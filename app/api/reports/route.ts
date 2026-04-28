@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(reportData)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar dados do relatório:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Senha alterada com sucesso',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
       expires: resetToken.expires,
       createdAt: resetToken.createdAt,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {

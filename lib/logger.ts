@@ -18,7 +18,7 @@ interface LogContext {
   action?: string
   resource?: string
   timestamp?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface LogEntry {
@@ -233,10 +233,10 @@ export function withPerformanceLogging<T>(
 /**
  * Decorator para logging automático de métodos
  */
-export function logMethod(target: any, propertyName: string, descriptor: PropertyDescriptor) {
+export function logMethod(target: object, propertyName: string, descriptor: PropertyDescriptor) {
   const method = descriptor.value
 
-  descriptor.value = function (...args: any[]) {
+  descriptor.value = function (...args: unknown[]) {
     const className = target.constructor.name
     const methodName = `${className}.${propertyName}`
 
@@ -265,10 +265,10 @@ export function logMethod(target: any, propertyName: string, descriptor: Propert
 
       logger.debug(`${methodName} completed successfully`)
       return result
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`${methodName} failed`, {
         method: methodName,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       })
       throw error
     }

@@ -52,8 +52,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(record)
-  } catch (error: any) {
-    apiLogger.error('Error fetching attendance record', { error: error.message })
+  } catch (error: unknown) {
+    apiLogger.error('Error fetching attendance record', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -111,8 +111,8 @@ export async function DELETE(
     // Atualizar saldo de horas do usuário afetado
     try {
       await updateHourBalance(record.userId)
-    } catch (hourError: any) {
-      apiLogger.error('Error updating hour balance after deletion', { error: hourError.message })
+    } catch (hourError: unknown) {
+      apiLogger.error('Error updating hour balance after deletion', { error: hourError instanceof Error ? hourError.message : String(hourError) })
     }
 
     // Log de auditoria
@@ -142,8 +142,8 @@ export async function DELETE(
         machine: record.machine,
       },
     })
-  } catch (error: any) {
-    apiLogger.error('Error deleting attendance record', { error: error.message })
+  } catch (error: unknown) {
+    apiLogger.error('Error deleting attendance record', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -178,7 +178,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Apenas permitir atualizar timestamp e tipo
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
 
     if (body.timestamp) {
       updateData.timestamp = new Date(body.timestamp)
@@ -215,8 +215,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     // Atualizar saldo de horas do usuário afetado
     try {
       await updateHourBalance(record.userId)
-    } catch (hourError: any) {
-      apiLogger.error('Error updating hour balance after update', { error: hourError.message })
+    } catch (hourError: unknown) {
+      apiLogger.error('Error updating hour balance after update', { error: hourError instanceof Error ? hourError.message : String(hourError) })
     }
 
     // Log de auditoria
@@ -239,8 +239,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       message: 'Registro atualizado com sucesso',
       updatedRecord,
     })
-  } catch (error: any) {
-    apiLogger.error('Error updating attendance record', { error: error.message })
+  } catch (error: unknown) {
+    apiLogger.error('Error updating attendance record', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

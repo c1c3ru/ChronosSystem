@@ -91,11 +91,11 @@ export async function GET(request: NextRequest) {
 
     // Calcular estatísticas
     const totalWorkedHours = hourBalances.reduce(
-      (sum: number, record: any) => sum + record.workedHours,
+      (sum: number, record: { workedHours: number }) => sum + record.workedHours,
       0
     )
     const totalExpectedHours = hourBalances.reduce(
-      (sum: number, record: any) => sum + record.expectedHours,
+      (sum: number, record: { expectedHours: number }) => sum + record.expectedHours,
       0
     )
     const currentBalance = user.hourBalance
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
       records: hourBalances,
       attendanceRecords: attendanceRecords.length,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [HOUR-BALANCE] Erro ao buscar saldo:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
         totalBalance: totalBalance._sum.balance || 0,
       },
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [HOUR-BALANCE] Erro ao calcular saldo:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

@@ -22,7 +22,12 @@ export function formatTime(date: Date | string) {
   }).format(new Date(date))
 }
 
-export function calculateWorkHours(entries: any[]) {
+interface WorkEntry {
+  type: 'ENTRY' | 'EXIT'
+  timestamp: string | Date
+}
+
+export function calculateWorkHours(entries: WorkEntry[]) {
   let totalMinutes = 0
 
   for (let i = 0; i < entries.length; i += 2) {

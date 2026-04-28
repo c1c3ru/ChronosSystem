@@ -48,14 +48,14 @@ class ApiClient {
     return this.request(`/users/${id}`)
   }
 
-  async createUser(userData: any) {
+  async createUser(userData: unknown) {
     return this.request('/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     })
   }
 
-  async updateUser(id: string, userData: any) {
+  async updateUser(id: string, userData: unknown) {
     return this.request(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
@@ -78,14 +78,14 @@ class ApiClient {
     return this.request(`/machines/${id}`)
   }
 
-  async createMachine(machineData: any) {
+  async createMachine(machineData: unknown) {
     return this.request('/machines', {
       method: 'POST',
       body: JSON.stringify(machineData),
     })
   }
 
-  async updateMachine(id: string, machineData: any) {
+  async updateMachine(id: string, machineData: unknown) {
     return this.request(`/machines/${id}`, {
       method: 'PUT',
       body: JSON.stringify(machineData),
@@ -119,7 +119,7 @@ class ApiClient {
     return this.request(`/attendance${query ? `?${query}` : ''}`)
   }
 
-  async createAttendanceRecord(recordData: any) {
+  async createAttendanceRecord(recordData: unknown) {
     return this.request('/attendance', {
       method: 'POST',
       body: JSON.stringify(recordData),
@@ -158,7 +158,7 @@ export const apiClient = new ApiClient()
 import { useState, useEffect } from 'react'
 
 export function useUsers(params?: Parameters<typeof apiClient.getUsers>[0]) {
-  const [users, setUsers] = useState<any>(null)
+  const [users, setUsers] = useState<unknown>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -177,6 +177,7 @@ export function useUsers(params?: Parameters<typeof apiClient.getUsers>[0]) {
     }
 
     fetchUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(params)])
 
   const refetch = async () => {
@@ -196,7 +197,7 @@ export function useUsers(params?: Parameters<typeof apiClient.getUsers>[0]) {
 }
 
 export function useMachines(activeOnly?: boolean) {
-  const [machines, setMachines] = useState<any[]>([])
+  const [machines, setMachines] = useState<unknown[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -215,13 +216,14 @@ export function useMachines(activeOnly?: boolean) {
 
   useEffect(() => {
     fetchMachines()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeOnly])
 
   return { machines, loading, error, refetch: fetchMachines }
 }
 
 export function useDashboardStats() {
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<unknown>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -246,7 +248,7 @@ export function useDashboardStats() {
 }
 
 export function useRecentActivity(limit?: number) {
-  const [activity, setActivity] = useState<any[]>([])
+  const [activity, setActivity] = useState<unknown[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -265,6 +267,7 @@ export function useRecentActivity(limit?: number) {
 
   useEffect(() => {
     fetchActivity()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit])
 
   return { activity, loading, error, refetch: fetchActivity }

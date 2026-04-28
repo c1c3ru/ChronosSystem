@@ -272,7 +272,7 @@ export const getColorWithOpacity = (color: string, opacity: number) => {
     .padStart(2, '0')}`
 }
 
-export const getResponsiveValue = (values: Record<string, any>, breakpoint: string) => {
+export const getResponsiveValue = (values: Record<string, unknown>, breakpoint: string) => {
   const breakpointOrder = ['sm', 'md', 'lg', 'xl', '2xl']
   const currentIndex = breakpointOrder.indexOf(breakpoint)
 

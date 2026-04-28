@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(records)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar registros detalhados:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

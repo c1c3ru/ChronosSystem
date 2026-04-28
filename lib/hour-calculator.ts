@@ -118,7 +118,7 @@ export async function calculateHourBalance(
     })
 
     const weeklyBalance =
-      weeklyRecords.reduce((sum: number, record: any) => sum + record.balance, 0) + dailyBalance
+      weeklyRecords.reduce((sum: number, record: { balance: number }) => sum + record.balance, 0) + dailyBalance
 
     // Calcular saldo mensal
     const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
@@ -135,7 +135,7 @@ export async function calculateHourBalance(
     })
 
     const monthlyBalance =
-      monthlyRecords.reduce((sum: number, record: any) => sum + record.balance, 0) + dailyBalance
+      monthlyRecords.reduce((sum: number, record: { balance: number }) => sum + record.balance, 0) + dailyBalance
 
     return {
       workedHours,
@@ -236,18 +236,18 @@ export async function calculateHourStatistics(userId: string, startDate: Date, e
       orderBy: { date: 'asc' },
     })
 
-    const totalWorked = records.reduce((sum: number, record: any) => sum + record.workedHours, 0)
+    const totalWorked = records.reduce((sum: number, record: { workedHours: number }) => sum + record.workedHours, 0)
     const totalExpected = records.reduce(
-      (sum: number, record: any) => sum + record.expectedHours,
+      (sum: number, record: { expectedHours: number }) => sum + record.expectedHours,
       0
     )
-    const totalBalance = records.reduce((sum: number, record: any) => sum + record.balance, 0)
+    const totalBalance = records.reduce((sum: number, record: { balance: number }) => sum + record.balance, 0)
 
-    const daysWorked = records.filter((record: any) => record.workedHours > 0).length
+    const daysWorked = records.filter((record: { workedHours: number }) => record.workedHours > 0).length
     const averageDaily = daysWorked > 0 ? totalWorked / daysWorked : 0
 
-    const positiveBalanceDays = records.filter((record: any) => record.balance > 0).length
-    const negativeBalanceDays = records.filter((record: any) => record.balance < 0).length
+    const positiveBalanceDays = records.filter((record: { balance: number }) => record.balance > 0).length
+    const negativeBalanceDays = records.filter((record: { balance: number }) => record.balance < 0).length
 
     return {
       period: {

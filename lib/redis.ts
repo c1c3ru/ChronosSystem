@@ -75,8 +75,8 @@ function initializeRedis(): Redis | null {
     })
 
     return client
-  } catch (error: any) {
-    logger.error('Failed to initialize Redis client', { error: error.message })
+  } catch (error: unknown) {
+    logger.error('Failed to initialize Redis client', { error: error instanceof Error ? error.message : String(error) })
     return null
   }
 }
@@ -106,8 +106,8 @@ export async function closeRedis(): Promise<void> {
     try {
       await redisClient.quit()
       logger.info('Redis connection closed gracefully')
-    } catch (error: any) {
-      logger.error('Error closing Redis connection', { error: error.message })
+    } catch (error: unknown) {
+      logger.error('Error closing Redis connection', { error: error instanceof Error ? error.message : String(error) })
     } finally {
       redisClient = null
       isRedisAvailable = false
@@ -133,8 +133,8 @@ export async function redisHealthCheck(): Promise<{ healthy: boolean; message: s
       return { healthy: true, message: 'Redis connection healthy' }
     }
     return { healthy: false, message: 'Redis ping failed' }
-  } catch (error: any) {
-    return { healthy: false, message: `Redis health check failed: ${error.message}` }
+  } catch (error: unknown) {
+    return { healthy: false, message: `Redis health check failed: ${error instanceof Error ? error.message : String(error)}` }
   }
 }
 

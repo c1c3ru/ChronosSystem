@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Construir filtros
-    const where: any = {}
+    const where: Record<string, unknown> = {}
+    const timestampFilter: Record<string, unknown> = {}
 
     if (userId && (canViewAll || userId === session.user.id)) {
       where.userId = userId
@@ -57,9 +58,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (startDate || endDate) {
-      where.timestamp = {}
-      if (startDate) where.timestamp.gte = new Date(startDate)
-      if (endDate) where.timestamp.lte = new Date(endDate)
+      if (startDate) timestampFilter.gte = new Date(startDate)
+      if (endDate) timestampFilter.lte = new Date(endDate)
+      where.timestamp = timestampFilter
     }
 
     const [records, total] = await Promise.all([
@@ -95,8 +96,8 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
     })
-  } catch (error) {
-    logger.error('Erro ao buscar registros de ponto', { error })
+  } catch (error: unknown) {
+    logger.error('Erro ao buscar registros de ponto', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

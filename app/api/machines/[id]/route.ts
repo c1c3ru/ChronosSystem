@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(machine)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar máquina:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -96,7 +96,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     })
 
     return NextResponse.json(machine)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
@@ -169,7 +169,7 @@ export async function DELETE(
     })
 
     return NextResponse.json({ message: 'Máquina deletada com sucesso' })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao deletar máquina:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

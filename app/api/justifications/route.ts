@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
     apiLogger.debug('Justifications fetched', { count: justifications.length })
 
     return NextResponse.json(justifications)
-  } catch (error: any) {
-    apiLogger.error('Error fetching justifications', { error: error.message })
+  } catch (error: unknown) {
+    apiLogger.error('Error fetching justifications', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(justification)
-  } catch (error: any) {
-    apiLogger.error('Error creating justification', { error: error.message })
+  } catch (error: unknown) {
+    apiLogger.error('Error creating justification', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

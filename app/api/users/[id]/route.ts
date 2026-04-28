@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(user)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Preparar dados para atualização
-    const updateData: any = { ...validatedData }
+    const updateData: Record<string, unknown> = { ...validatedData } as Record<string, unknown>
 
     // Hash da senha se fornecida
     if (validatedData.password) {
@@ -147,7 +147,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await UserCache.invalidateAll()
 
     return NextResponse.json(user)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
@@ -212,7 +212,7 @@ export async function DELETE(
     await UserCache.invalidateAll()
 
     return NextResponse.json({ message: 'Usuário deletado com sucesso' })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao deletar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

@@ -150,8 +150,8 @@ export async function POST(request: NextRequest) {
 
       return response
     }
-  } catch (error: any) {
-    authLogger.error('Error verifying 2FA', { error: error.message })
+  } catch (error: unknown) {
+    authLogger.error('Error verifying 2FA', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

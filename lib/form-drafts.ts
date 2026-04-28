@@ -19,13 +19,13 @@ export type FormType =
 
 export interface FormDraftData {
   formType: FormType
-  formData: Record<string, any>
+  formData: Record<string, unknown>
 }
 
 /**
  * Salva um rascunho de formulário localmente (localStorage)
  */
-export function saveDraftLocally(formType: FormType, formData: Record<string, any>): void {
+export function saveDraftLocally(formType: FormType, formData: Record<string, unknown>): void {
   if (typeof window === 'undefined') return // Skip on server
 
   try {
@@ -45,7 +45,7 @@ export function saveDraftLocally(formType: FormType, formData: Record<string, an
 /**
  * Recupera um rascunho salvo localmente
  */
-export function getDraftLocally(formType: FormType): Record<string, any> | null {
+export function getDraftLocally(formType: FormType): Record<string, unknown> | null {
   if (typeof window === 'undefined') return null // Skip on server
 
   try {
@@ -82,7 +82,7 @@ export function removeDraftLocally(formType: FormType): void {
  */
 export async function saveDraftToServer(
   formType: FormType,
-  formData: Record<string, any>
+  formData: Record<string, unknown>
 ): Promise<{ success: boolean; message: string }> {
   try {
     const response = await fetch('/api/forms/drafts', {
@@ -112,7 +112,7 @@ export async function saveDraftToServer(
 /**
  * Recupera um rascunho do servidor
  */
-export async function getDraftFromServer(formType: FormType): Promise<Record<string, any> | null> {
+export async function getDraftFromServer(formType: FormType): Promise<Record<string, unknown> | null> {
   try {
     const response = await fetch(`/api/forms/drafts?formType=${formType}`)
 
@@ -134,7 +134,7 @@ export async function getDraftFromServer(formType: FormType): Promise<Record<str
 /**
  * Salva rascunho localmente e no servidor
  */
-export async function saveDraft(formType: FormType, formData: Record<string, any>): Promise<void> {
+export async function saveDraft(formType: FormType, formData: Record<string, unknown>): Promise<void> {
   // Salva localmente primeiro (mais rápido)
   saveDraftLocally(formType, formData)
 
@@ -149,7 +149,7 @@ export async function saveDraft(formType: FormType, formData: Record<string, any
 /**
  * Recupera rascunho do servidor ou localStorage
  */
-export async function getDraft(formType: FormType): Promise<Record<string, any> | null> {
+export async function getDraft(formType: FormType): Promise<Record<string, unknown> | null> {
   // Tenta recuperar do servidor primeiro
   try {
     const serverDraft = await getDraftFromServer(formType)
@@ -186,9 +186,9 @@ export function clearAllLocalDrafts(): void {
 /**
  * Extrai dados de um formulário HTML
  */
-export function extractFormData(formElement: HTMLFormElement): Record<string, any> {
+export function extractFormData(formElement: HTMLFormElement): Record<string, unknown | unknown[]> {
   const formData = new FormData(formElement)
-  const data: Record<string, any> = {}
+  const data: Record<string, unknown | unknown[]> = {}
 
   formData.forEach((value, key) => {
     if (data[key]) {
@@ -196,7 +196,7 @@ export function extractFormData(formElement: HTMLFormElement): Record<string, an
       if (!Array.isArray(data[key])) {
         data[key] = [data[key]]
       }
-      data[key].push(value)
+      ;(data[key] as unknown[]).push(value)
     } else {
       data[key] = value
     }
@@ -210,7 +210,7 @@ export function extractFormData(formElement: HTMLFormElement): Record<string, an
  */
 export function populateFormWithData(
   formElement: HTMLFormElement,
-  data: Record<string, any>
+  data: Record<string, unknown>
 ): void {
   Object.entries(data).forEach(([key, value]) => {
     const inputs = formElement.querySelectorAll(`[name="${key}"]`) as NodeListOf<

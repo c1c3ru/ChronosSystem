@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Senha alterada com sucesso.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {

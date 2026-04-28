@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       message: 'Sessão atualizada. Faça refresh da página.',
       user: session.user,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao atualizar sessão:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
