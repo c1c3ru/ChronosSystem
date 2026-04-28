@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle } from 'lucide-react'
 import QRCode from 'qrcode'
 import Image from 'next/image'
@@ -76,7 +76,7 @@ export default function KioskPage() {
   }, [])
 
   // Gerar QR code dinâmico
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     setQrError(null)
     try {
       const url = new URL('/api/kiosk/qr', window.location.origin)
@@ -129,7 +129,7 @@ export default function KioskPage() {
       setQrCodeUrl('')
       setQrError('Falha de conexão ao gerar QR code. Verifique a rede.')
     }
-  }
+  }, [machineInfo.id])
 
   // Função para mudar de máquina
   const handleMachineChange = (machineId: string) => {
@@ -151,7 +151,7 @@ export default function KioskPage() {
     const qrTimer = setInterval(generateQRCode, 60 * 1000) // 60 segundos
 
     return () => clearInterval(qrTimer)
-  }, [machineInfo.id])
+  }, [generateQRCode])
 
   // Countdown do tempo restante do QR
   useEffect(() => {
@@ -162,7 +162,7 @@ export default function KioskPage() {
       // QR expirou após 60 segundos, gerar novo
       generateQRCode()
     }
-  }, [timeLeft])
+  }, [timeLeft, qrCodeUrl, generateQRCode])
 
   // Verificar conectividade
   useEffect(() => {
@@ -181,14 +181,19 @@ export default function KioskPage() {
   }, [])
 
   // Buscar atividade recente real
-  const fetchRecentActivity = async () => {
+  const fetchRecentActivity = useCallback(async () => {
     try {
       const response = await fetch('/api/kiosk/recent-activity')
       const data = await response.json()
 
       if (data.success) {
         // Garantir que timestamp venha como string ISO e seja usado para formatar a hora no frontend
-        const normalized = (data.activity || []).map((item: any) => ({
+        const normalized = (data.activity || []).map((item: {
+          id: string
+          user: string
+          type: string
+          timestamp: string | number | Date
+        }) => ({
           ...item,
           timestamp:
             typeof item.timestamp === 'string'
@@ -205,7 +210,7 @@ export default function KioskPage() {
       console.error('Erro ao buscar atividade recente:', error)
       setRecentScans([])
     }
-  }
+  }, [])
 
   // Buscar atividade inicial e configurar polling a cada 30 segundos
   useEffect(() => {
@@ -214,7 +219,7 @@ export default function KioskPage() {
     const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
 
     return () => clearInterval(activityTimer)
-  }, [])
+  }, [fetchRecentActivity])
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('pt-BR', {

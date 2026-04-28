@@ -48,25 +48,7 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
     fetchSuggestion()
   }, [fetchSuggestion])
 
-  // Lógica do Countdown
-  useEffect(() => {
-    if (initializing || isPaused || isDone || !suggestedType) return
-
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          handleRecord()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [initializing, isPaused, isDone, suggestedType])
-
-  const handleRecord = async (forcedType?: 'ENTRY' | 'EXIT') => {
+  const handleRecord = useCallback(async (forcedType?: 'ENTRY' | 'EXIT') => {
     if (loading || isDone) return
 
     setLoading(true)
@@ -99,7 +81,25 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
     } finally {
       setLoading(false)
     }
-  }
+  }, [loading, isDone, suggestedType, onSuccess])
+
+  // Lógica do Countdown
+  useEffect(() => {
+    if (initializing || isPaused || isDone || !suggestedType) return
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          handleRecord()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [initializing, isPaused, isDone, suggestedType, handleRecord])
 
   const toggleType = () => {
     setSuggestedType((prev) => (prev === 'ENTRY' ? 'EXIT' : 'ENTRY'))

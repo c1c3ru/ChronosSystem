@@ -38,8 +38,22 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    interface ActivityRecord {
+      id: string
+      type: string
+      timestamp: Date
+      user: {
+        name: string | null
+        email: string | null
+      }
+      machine: {
+        name: string
+        location: string
+      }
+    }
+
     // Formatar dados para o frontend
-    const activity = recentRecords.map((record: any) => ({
+    const activity = (recentRecords as unknown as ActivityRecord[]).map((record) => ({
       id: record.id,
       user: record.user.name || record.user.email,
       action: record.type === 'ENTRY' ? 'registrou entrada' : 'registrou saída',
@@ -51,7 +65,7 @@ export async function GET(request: NextRequest) {
     }))
 
     return NextResponse.json(activity)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar atividade recente:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

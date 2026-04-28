@@ -77,18 +77,41 @@ export async function GET(request: NextRequest) {
     } else {
       return NextResponse.json({ error: 'Formato não suportado' }, { status: 400 })
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao gerar relatório:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
-function generateCSVReport(records: any[], users: any[], period: number) {
+interface ReportUser {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  createdAt: Date
+}
+
+interface ReportAttendanceRecord {
+  id: string
+  timestamp: Date
+  type: string
+  user: {
+    name: string | null
+    email: string
+    role: string
+  }
+  machine: {
+    name: string
+    location: string
+  }
+}
+
+function generateCSVReport(records: ReportAttendanceRecord[], users: ReportUser[], period: number) {
   // Cabeçalho do CSV
   const headers = ['Data/Hora', 'Usuário', 'Email', 'Role', 'Tipo', 'Máquina', 'Localização']
 
   // Dados do CSV
-  const csvData = records.map((record: any) => [
+  const csvData = records.map((record) => [
     new Date(record.timestamp).toLocaleString('pt-BR'),
     record.user?.name || 'N/A',
     record.user?.email || 'N/A',
@@ -101,7 +124,7 @@ function generateCSVReport(records: any[], users: any[], period: number) {
   // Construir CSV
   const csvContent = [
     headers.join(','),
-    ...csvData.map((row: any) => row.map((cell: any) => `"${cell}"`).join(',')),
+    ...csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')),
   ].join('\n')
 
   // Adicionar BOM para UTF-8
@@ -116,7 +139,7 @@ function generateCSVReport(records: any[], users: any[], period: number) {
   })
 }
 
-function generatePDFReport(records: any[], users: any[], period: number) {
+function generatePDFReport(records: ReportAttendanceRecord[], users: ReportUser[], period: number) {
   // Para PDF, vamos gerar um HTML simples que pode ser convertido
   const htmlContent = `
     <!DOCTYPE html>
@@ -196,8 +219,8 @@ function generatePDFReport(records: any[], users: any[], period: number) {
             <h3>Resumo</h3>
             <p><strong>Total de Usuários:</strong> ${users.length}</p>
             <p><strong>Total de Registros:</strong> ${records.length}</p>
-            <p><strong>Registros de Entrada:</strong> ${records.filter((r: any) => r.type === 'ENTRY').length}</p>
-            <p><strong>Registros de Saída:</strong> ${records.filter((r: any) => r.type === 'EXIT').length}</p>
+            <p><strong>Registros de Entrada:</strong> ${records.filter((r) => r.type === 'ENTRY').length}</p>
+            <p><strong>Registros de Saída:</strong> ${records.filter((r) => r.type === 'EXIT').length}</p>
         </div>
 
         <table>
@@ -215,7 +238,7 @@ function generatePDFReport(records: any[], users: any[], period: number) {
             <tbody>
                 ${records
                   .map(
-                    (record: any) => `
+                    (record) => `
                     <tr>
                         <td>${new Date(record.timestamp).toLocaleString('pt-BR')}</td>
                         <td>${record.user?.name || 'N/A'}</td>

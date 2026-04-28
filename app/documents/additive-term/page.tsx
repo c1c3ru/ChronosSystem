@@ -22,7 +22,7 @@ import {
 export default function AdditiveTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<Record<string, string>>({
     additive_type_prorogation: 'false',
     additive_type_allowance: 'false',
     additive_type_supervisor: 'false',
@@ -37,7 +37,7 @@ export default function AdditiveTermPage() {
         if (formRef.current) {
           populateFormWithData(formRef.current, draft)
         }
-        setFormData(draft)
+        setFormData(draft as Record<string, string>)
         toast.success('Rascunho carregado!')
       }
     }
@@ -74,12 +74,12 @@ export default function AdditiveTermPage() {
 
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev: any) => ({ ...prev, [name]: checked ? 'true' : 'false' }))
+      setFormData((prev) => ({ ...prev, [name]: checked ? 'true' : 'false' }))
     } else if (type === 'radio') {
       // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev: any) => ({ ...prev, [name]: value }))
+      setFormData((prev) => ({ ...prev, [name]: value }))
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
@@ -88,7 +88,7 @@ export default function AdditiveTermPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-    const data: any = { ...formData }
+    const data: Record<string, string> = { ...formData }
 
     // Garantir que checkboxes não marcados sejam salvos como false
     const checkboxes = [
@@ -112,7 +112,7 @@ export default function AdditiveTermPage() {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const raw: any = { ...formData }
+      const raw = { ...formData }
 
       const { buildAdditiveTermDoc } = await import('@/lib/pdf-templates/additive-term.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')

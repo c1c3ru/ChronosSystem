@@ -20,12 +20,13 @@ export async function GET(request: NextRequest) {
       processedAt: new Date().toISOString(),
       notificationsSent: results,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     console.error('Erro no processamento do cron de notificações:', error)
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: errorMessage,
       },
       { status: 500 }
     )

@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
     // Se userId for fornecido, envia apenas para esse usuário
     // Caso contrário, envia para todos os usuários com pendências
 
-    let usersToNotify: any[] = []
+    interface UserToNotify {
+      id: string
+      name: string | null
+      email: string
+    }
+
+    let usersToNotify: UserToNotify[] = []
 
     if (userId) {
       // Notificar apenas um usuário específico
@@ -91,8 +97,14 @@ export async function POST(request: NextRequest) {
 
         const pendingIssues = await response.json()
 
+        interface PendingIssue {
+          date: string
+          type: string
+          description: string
+        }
+
         // Se não há pendências, pular
-        if (!pendingIssues || pendingIssues.length === 0) {
+        if (!pendingIssues || (pendingIssues as PendingIssue[]).length === 0) {
           results.skipped++
           results.details.push({
             userId: user.id,
@@ -107,7 +119,7 @@ export async function POST(request: NextRequest) {
         const emailSent = await emailService.sendJustificationRequiredEmail(
           user.email,
           user.name || 'Usuário',
-          pendingIssues.map((issue: any) => ({
+          (pendingIssues as PendingIssue[]).map((issue) => ({
             date: issue.date,
             type: issue.type,
             description: issue.description,
@@ -120,7 +132,7 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             email: user.email,
             status: 'sent',
-            pendingCount: pendingIssues.length,
+            pendingCount: (pendingIssues as PendingIssue[]).length,
           })
         } else {
           results.failed++
@@ -131,13 +143,14 @@ export async function POST(request: NextRequest) {
             message: 'Erro ao enviar email',
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         results.failed++
         results.details.push({
           userId: user.id,
           email: user.email,
           status: 'error',
-          message: error.message,
+          message: errorMessage,
         })
       }
     }
@@ -147,12 +160,13 @@ export async function POST(request: NextRequest) {
       message: `Notificações processadas: ${results.sent} enviadas, ${results.failed} falharam, ${results.skipped} puladas`,
       results,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     console.error('Erro ao enviar notificações:', error)
     return NextResponse.json(
       {
         error: 'Erro interno do servidor',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     )

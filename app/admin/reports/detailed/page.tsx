@@ -294,7 +294,7 @@ export default function DetailedReportsPage() {
                 <div>
                   <p className="text-sm text-neutral-400">Usuários</p>
                   <p className="text-2xl font-bold text-white">
-                    {new Set(filteredRecords.map((r: any) => r.user.email)).size}
+                    {new Set(filteredRecords.map((r: AttendanceRecord) => r.user.email)).size}
                   </p>
                 </div>
                 <User className="h-8 w-8 text-primary" />

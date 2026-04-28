@@ -141,7 +141,7 @@ export default function InternshipRegistrationRequestPage() {
     const loadDraft = async () => {
       const draft = await getDraft('internship-registration-request')
       if (draft) {
-        setFormData((prev) => ({ ...prev, ...draft }))
+        setFormData((prev) => ({ ...prev, ...(draft as Record<string, string>) }))
         toast.success('Rascunho carregado!')
       }
     }

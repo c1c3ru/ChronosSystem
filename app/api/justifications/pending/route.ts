@@ -50,8 +50,13 @@ export async function GET(request: NextRequest) {
       existingJustifications.map((j) => [j.date.toISOString().split('T')[0], j])
     )
 
+    interface DayRecord {
+      entry: { timestamp: Date } | null
+      exit: { timestamp: Date } | null
+    }
+
     // Agrupar registros por dia
-    const dayRecords = new Map<string, { entry: any; exit: any }>()
+    const dayRecords = new Map<string, DayRecord>()
 
     attendanceRecords.forEach((record) => {
       const dateKey = record.timestamp.toISOString().split('T')[0]
@@ -66,7 +71,20 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const pendingIssues: any[] = []
+    interface PendingIssue {
+      id: string
+      date: string
+      type: 'LATE' | 'ABSENCE' | 'EARLY_DEPARTURE'
+      description: string
+      canJustify: boolean
+      existingJustification: {
+        id: string
+        status: string
+        reason: string | null
+      } | null
+    }
+
+    const pendingIssues: PendingIssue[] = []
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -145,10 +163,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Ordenar por data (mais recentes primeiro)
-    pendingIssues.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    pendingIssues.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     return NextResponse.json(pendingIssues)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar pendências:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

@@ -37,8 +37,22 @@ export async function GET() {
       take: 10,
     })
 
+    interface ActivityRecord {
+      id: string
+      type: string
+      timestamp: Date
+      user: {
+        name: string | null
+        email: string
+      }
+      machine: {
+        name: string
+        location: string
+      }
+    }
+
     // Formatar dados para o frontend
-    const formattedActivity = recentActivity.map((record: any) => ({
+    const formattedActivity = (recentActivity as unknown as ActivityRecord[]).map((record) => ({
       id: record.id,
       user: record.user.name || record.user.email.split('@')[0], // Nome ou primeira parte do email
       type: record.type,
@@ -53,7 +67,7 @@ export async function GET() {
       activity: formattedActivity,
       count: formattedActivity.length,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar atividade recente:', error)
     return NextResponse.json(
       {

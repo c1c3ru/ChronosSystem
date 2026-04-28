@@ -62,8 +62,9 @@ export async function POST(request: NextRequest) {
         },
       },
     })
-  } catch (error: any) {
-    authLogger.error('Error setting up 2FA', { userId: 'unknown', error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    authLogger.error('Error setting up 2FA', { userId: 'unknown', error: errorMessage })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -84,8 +85,9 @@ export async function GET(request: NextRequest) {
       hasSecret: !!user2FA?.twoFactorSecret,
       email: user2FA?.email,
     })
-  } catch (error: any) {
-    authLogger.error('Error checking 2FA status', { error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    authLogger.error('Error checking 2FA status', { error: errorMessage })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
 import { rateLimiters } from '@/lib/rate-limit'
 import { apiLogger } from '@/lib/logger'
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
     })
 
     let isSecureQR = false
-    let qrEvent: any = null
+    let qrEvent: (Prisma.QrEventGetPayload<{ include: { machine: true } }>) | null = null
 
     // ESTRATÉGIA ÚNICA E SEGURA: Validar como QR seguro (HMAC-SHA256)
     const secureValidation = validateSecureQR(qrData)
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
         },
         include: { machine: true },
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Se falhar, é porque o nonce não existe ou já foi usado (P2025 no Prisma)
       apiLogger.warn('Replay attack or invalid nonce detected', {
         userId: session.user.id,
@@ -450,17 +451,19 @@ export async function POST(request: NextRequest) {
       smartMessage: `${typeLabel} detectada: ${attendanceAnalysis.reason}`,
       displayMessage: `${typeLabel} às ${recordTime}\nMáquina: ${machine.name}`,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Error already logged by apiLogger below
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
 
     apiLogger.error('QR scan processing error', {
-      error: error.message,
-      stack: error.stack,
+      error: errorMessage,
+      stack: errorStack,
       userId: (await getServerSession(authOptions))?.user?.id,
     })
 
     // Verificar se é erro de QR_SECRET
-    if (error.message && error.message.includes('QR_SECRET')) {
+    if (errorMessage.includes('QR_SECRET')) {
       return NextResponse.json(
         {
           error: 'Erro de configuração do servidor: QR_SECRET não está configurado',
@@ -474,7 +477,7 @@ export async function POST(request: NextRequest) {
       {
         error: 'Erro interno do servidor',
         code: 'INTERNAL_ERROR',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     )

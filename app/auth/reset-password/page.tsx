@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Clock, Lock, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react'
@@ -15,24 +15,18 @@ function ResetPasswordContent() {
   const [isValidating, setIsValidating] = useState(true)
   const [tokenValid, setTokenValid] = useState(false)
   const [tokenError, setTokenError] = useState('')
-  const [userInfo, setUserInfo] = useState<any>(null)
+  interface UserInfo {
+    name: string | null
+    email: string
+  }
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [resetComplete, setResetComplete] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams?.get('token')
 
-  useEffect(() => {
-    if (!token) {
-      setTokenError('Token não fornecido')
-      setIsValidating(false)
-      return
-    }
-
-    validateToken()
-  }, [token])
-
-  const validateToken = async () => {
+  const validateToken = useCallback(async () => {
     try {
       const response = await fetch(`/api/auth/reset-password?token=${token}`)
       const data = await response.json()
@@ -49,7 +43,17 @@ function ResetPasswordContent() {
     } finally {
       setIsValidating(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    if (!token) {
+      setTokenError('Token não fornecido')
+      setIsValidating(false)
+      return
+    }
+
+    validateToken()
+  }, [token, validateToken])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -228,7 +232,6 @@ function ResetPasswordContent() {
                   placeholder="Digite sua nova senha"
                   required
                   minLength={6}
-                  style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}
                 />
                 <button
                   type="button"
@@ -266,7 +269,6 @@ function ResetPasswordContent() {
                   placeholder="Confirme sua nova senha"
                   required
                   minLength={6}
-                  style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}
                 />
                 <button
                   type="button"

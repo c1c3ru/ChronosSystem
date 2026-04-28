@@ -267,14 +267,17 @@ export async function POST(request: NextRequest) {
     response.headers.set('Warning', '299 - "API deprecated. Use /api/attendance/qr-unified"')
 
     return response
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+
     apiLogger.error('Error processing QR scan', {
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      error: errorMessage,
+      stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
     })
 
     // Verificar se é erro de QR_SECRET
-    if (error.message && error.message.includes('QR_SECRET')) {
+    if (errorMessage.includes('QR_SECRET')) {
       return NextResponse.json(
         {
           error: 'Erro de configuração do servidor: QR_SECRET não está configurado',
@@ -288,7 +291,7 @@ export async function POST(request: NextRequest) {
       {
         error: 'Erro interno do servidor',
         code: 'INTERNAL_ERROR',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     )

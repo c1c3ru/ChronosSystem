@@ -73,7 +73,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
-    const expiringContracts = await prisma.user.findMany({
+    interface ExpiringUser {
+      id: string
+      name: string | null
+      email: string | null
+      contractEndDate: Date | null
+      contractStartDate: Date | null
+      contractType: string | null
+      department: string | null
+      phone: string | null
+      weeklyHours: number | null
+    }
+
+    const expiringContracts: ExpiringUser[] = await prisma.user.findMany({
       where: {
         contractEndDate: {
           lte: limitDate,
@@ -97,8 +109,13 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    interface ContractWithDays extends ExpiringUser {
+      daysUntilExpiration: number
+      urgencyLevel: 'critical' | 'urgent' | 'warning'
+    }
+
     // Calcular dias até expiração para cada contrato
-    const contractsWithDays = expiringContracts.map((user: any) => {
+    const contractsWithDays: ContractWithDays[] = expiringContracts.map((user) => {
       const daysUntilExpiration = Math.ceil(
         (user.contractEndDate!.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
       )
@@ -120,9 +137,9 @@ export async function GET(request: NextRequest) {
     // Estatísticas
     const stats = {
       total: contractsWithDays.length,
-      critical: contractsWithDays.filter((c: any) => c.urgencyLevel === 'critical').length,
-      urgent: contractsWithDays.filter((c: any) => c.urgencyLevel === 'urgent').length,
-      warning: contractsWithDays.filter((c: any) => c.urgencyLevel === 'warning').length,
+      critical: contractsWithDays.filter((c) => c.urgencyLevel === 'critical').length,
+      urgent: contractsWithDays.filter((c) => c.urgencyLevel === 'urgent').length,
+      warning: contractsWithDays.filter((c) => c.urgencyLevel === 'warning').length,
     }
 
     return NextResponse.json({
@@ -133,7 +150,7 @@ export async function GET(request: NextRequest) {
         limitDate,
       },
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao verificar contratos expirando:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -184,7 +201,7 @@ export async function POST(request: NextRequest) {
       message: 'Contrato renovado com sucesso',
       user: updatedUser,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao renovar contrato:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

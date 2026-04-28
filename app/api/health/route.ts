@@ -46,8 +46,9 @@ export async function GET() {
         },
       }
     )
-  } catch (error: any) {
-    logger.error('Health check failed', { error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error('Health check failed', { error: errorMessage })
 
     return NextResponse.json(
       {

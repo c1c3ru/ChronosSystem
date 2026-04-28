@@ -16,7 +16,7 @@ interface ShiftConfigFormProps {
   workingDaysPerWeek: number
   allowFlexibleHours: boolean
   contractType?: string
-  onChange: (field: string, value: any) => void
+  onChange: (field: string, value: string | number | boolean) => void
   errors?: Record<string, string>
 }
 

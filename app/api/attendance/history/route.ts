@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Construir filtro de data
-    const dateFilter: any = {}
+    const dateFilter: { gte?: Date; lte?: Date } = {}
     if (dateFrom) {
       dateFilter.gte = new Date(dateFrom)
     }
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Construir filtro de tipo
-    const typeFilter = type && type !== 'ALL' ? type : undefined
+    const typeFilter = type && type !== 'ALL' ? (type as string) : undefined
 
     // Buscar total de registros
     const total = await prisma.attendanceRecord.count({
@@ -66,13 +66,22 @@ export async function GET(request: NextRequest) {
     })
 
     // Agrupar por dia
-    const recordsByDay: { [key: string]: any[] } = {}
+    interface RecordWithMachine {
+      id: string
+      timestamp: Date
+      type: string
+      machine: {
+        name: string
+        location: string
+      }
+    }
+    const recordsByDay: { [key: string]: RecordWithMachine[] } = {}
     records.forEach((record) => {
       const date = new Date(record.timestamp).toLocaleDateString('pt-BR')
       if (!recordsByDay[date]) {
         recordsByDay[date] = []
       }
-      recordsByDay[date].push(record)
+      recordsByDay[date].push(record as unknown as RecordWithMachine)
     })
 
     // Formatar resposta
@@ -139,7 +148,7 @@ export async function GET(request: NextRequest) {
         hasPrevPage: page > 1,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ [API] Erro ao buscar histórico:', error)
     return NextResponse.json({ error: 'Erro ao buscar histórico de registros' }, { status: 500 })
   }

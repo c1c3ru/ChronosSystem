@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -69,14 +69,7 @@ export default function AttendanceHistoryPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load records
-  useEffect(() => {
-    if (session) {
-      loadRecords(1)
-    }
-  }, [session])
-
-  const loadRecords = async (page: number) => {
+  const loadRecords = useCallback(async (page: number) => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -98,7 +91,14 @@ export default function AttendanceHistoryPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [typeFilter, dateFrom, dateTo])
+
+  // Load records
+  useEffect(() => {
+    if (session) {
+      loadRecords(1)
+    }
+  }, [session, loadRecords])
 
   const handleFilterChange = () => {
     loadRecords(1)

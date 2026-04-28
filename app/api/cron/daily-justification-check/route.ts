@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/email'
 import { apiLogger } from '@/lib/logger'
+import { AttendanceRecord } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,11 +79,8 @@ export async function GET(request: NextRequest) {
           },
         })
 
-        // Análise simplificada: verificar dias sem justificativa aprovada
-        const pendingIssues: any[] = []
-
         // Agrupar registros por dia
-        const dayRecords = new Map<string, any[]>()
+        const dayRecords = new Map<string, AttendanceRecord[]>()
         attendanceRecords.forEach((record) => {
           const dateKey = record.timestamp.toISOString().split('T')[0]
           if (!dayRecords.has(dateKey)) {
@@ -141,17 +139,18 @@ export async function GET(request: NextRequest) {
             message: 'Sem pendências',
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         results.failed++
         results.details.push({
           userId: employee.id,
           email: employee.email,
           status: 'error',
-          message: error.message,
+          message: errorMessage,
         })
         apiLogger.error('Error processing employee', {
           email: employee.email,
-          error: error.message,
+          error: errorMessage,
         })
       }
     }
@@ -169,12 +168,13 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
       results,
     })
-  } catch (error: any) {
-    apiLogger.error('Error in daily justification check', { error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    apiLogger.error('Error in daily justification check', { error: errorMessage })
     return NextResponse.json(
       {
         error: 'Erro interno do servidor',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     )

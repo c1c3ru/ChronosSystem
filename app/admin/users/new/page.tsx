@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import {
   CONTRACT_TYPES,
+  ContractTypeConfig,
   getContractTypeConfig,
   validateWorkingHours,
   formatHours,
@@ -98,14 +99,14 @@ export default function NewUserPage() {
     if (!session) {
       signIn()
     }
-  }, [status])
+  }, [status, session])
 
   // Check if user is admin or supervisor
   useEffect(() => {
     if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       router.push('/employee')
     }
-  }, [session])
+  }, [session, router])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -870,7 +871,7 @@ export default function NewUserPage() {
                           }
                         >
                           <option value="">Selecione o tipo</option>
-                          {CONTRACT_TYPES.map((type: any) => (
+                          {CONTRACT_TYPES.map((type: ContractTypeConfig) => (
                             <option key={type.id} value={type.id}>
                               {type.name}
                             </option>

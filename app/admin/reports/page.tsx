@@ -260,14 +260,14 @@ export default function ReportsPage() {
                         <span className="text-sm text-neutral-400">{month.records} registros</span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
-                        {/* eslint-disable-next-line react/forbid-component-props */}
+                        {/* eslint-disable react/forbid-component-props */}
                         <div
                           className="bg-primary h-2 rounded-full transition-all duration-500"
-                          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                           style={{
                             width: `${Math.min((month.records / Math.max(...(reportData?.monthlyData?.map((m) => m.records) || [1]))) * 100, 100)}%`,
-                          } as React.CSSProperties}
+                          }}
                         />
+                        {/* eslint-enable react/forbid-component-props */}
                       </div>
                       {month.lateRecords > 0 && (
                         <div className="text-xs text-warning mt-1">{month.lateRecords} atrasos</div>

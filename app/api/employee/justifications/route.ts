@@ -32,9 +32,24 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    interface JustificationWithReviewer {
+      id: string
+      type: string
+      date: Date
+      reason: string
+      status: string
+      adminResponse: string | null
+      reviewedAt: Date | null
+      reviewer: {
+        name: string | null
+        email: string
+      } | null
+      createdAt: Date
+    }
+
     return NextResponse.json({
       success: true,
-      justifications: justifications.map((j: any) => ({
+      justifications: (justifications as unknown as JustificationWithReviewer[]).map((j) => ({
         id: j.id,
         type: j.type,
         date: j.date.toISOString(),
@@ -46,7 +61,7 @@ export async function GET(request: NextRequest) {
         createdAt: j.createdAt.toISOString(),
       })),
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar justificativas:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -157,7 +172,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log(`📧 [NOTIFICATION] Emails enviados para ${supervisors.length} supervisor(es)`)
-    } catch (emailError) {
+    } catch (emailError: unknown) {
       // Não falhar a criação da justificativa se o email falhar
       console.error('❌ [NOTIFICATION] Erro ao enviar notificação:', emailError)
     }
@@ -177,7 +192,7 @@ export async function POST(request: NextRequest) {
           ? 'Primeira justificativa criada. Aguardando revisão do administrador.'
           : 'Justificativa criada. Como você já possui outras justificativas, esta também aguardará aprovação do administrador.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao criar justificativa:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

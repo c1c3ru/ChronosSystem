@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { signIn, signOut } from 'next-auth/react'
 import { User, Mail, Phone, MapPin, Calendar, Save, ArrowRight, ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -51,7 +51,7 @@ export default function CompleteProfilePage() {
   const [hasRedirected, setHasRedirected] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
-  const [existingUserData, setExistingUserData] = useState<any>(null)
+  const [existingUserData, setExistingUserData] = useState<Record<string, unknown> | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const effectiveRole = useMemo(() => {
@@ -105,7 +105,7 @@ export default function CompleteProfilePage() {
   }, [])
 
   // Anexar event listener após hidratação e quando formulário estiver disponível
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     console.log('🔍 [VALIDAÇÃO] Iniciando validação do formulário...')
     console.log('📝 [VALIDAÇÃO] Dados atuais:', profileData)
 
@@ -200,9 +200,9 @@ export default function CompleteProfilePage() {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+  }, [profileData, effectiveRole])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent | Event) => {
     console.log('🚀 handleSubmit chamado!')
     e.preventDefault()
 
@@ -284,7 +284,7 @@ export default function CompleteProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [profileData, update, validateForm])
 
   // Anexar event listener após hidratação e quando formulário estiver disponível
   useEffect(() => {
@@ -298,12 +298,7 @@ export default function CompleteProfilePage() {
 
         const handleFormSubmit = async (e: Event) => {
           console.log('🚀 Event listener manual chamado!')
-          e.preventDefault()
-
-          // Chamar a mesma lógica do handleSubmit
-          const fakeReactEvent = e as unknown as React.FormEvent
-
-          await handleSubmit(fakeReactEvent)
+          await handleSubmit(e)
         }
 
         // Anexar listener manual
@@ -876,13 +871,11 @@ export default function CompleteProfilePage() {
                             }}
                           >
                             <option value="">Selecione o tipo de contrato</option>
-                            {CONTRACT_TYPES.filter((type: any) => type.id !== 'CUSTOM').map(
-                              (type: any) => (
-                                <option key={type.id} value={type.id}>
-                                  {type.name} - {formatHours(type.dailyHours)}/dia
-                                </option>
-                              )
-                            )}
+                            {(CONTRACT_TYPES as { id: string; name: string; dailyHours: number; description: string }[]).filter((type) => type.id !== 'CUSTOM').map((type) => (
+                              <option key={type.id} value={type.id}>
+                                {type.name} - {formatHours(type.dailyHours)}/dia
+                              </option>
+                            ))}
                           </select>
                           {errors.contractType && (
                             <p className="text-error text-xs mt-1">{errors.contractType}</p>

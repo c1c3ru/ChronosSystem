@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -61,14 +61,7 @@ export default function FrequencyPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load frequency data
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadFrequencyData()
-    }
-  }, [session, selectedPeriod])
-
-  const loadFrequencyData = async () => {
+  const loadFrequencyData = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/reports/frequency?period=${selectedPeriod}`)
@@ -83,7 +76,14 @@ export default function FrequencyPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedPeriod])
+
+  // Load frequency data
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadFrequencyData()
+    }
+  }, [session, loadFrequencyData])
 
   const sortedData = [...frequencyData].sort((a, b) => {
     let aValue, bValue
@@ -345,6 +345,7 @@ export default function FrequencyPage() {
                         </span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
+                        {/* eslint-disable react/forbid-component-props */}
                         <div
                           className={`h-2 rounded-full ${
                             month.averageFrequency >= 95
@@ -355,6 +356,7 @@ export default function FrequencyPage() {
                           }`}
                           style={{ width: `${Math.min(month.averageFrequency, 100)}%` }}
                         />
+                        {/* eslint-enable react/forbid-component-props */}
                       </div>
                     </div>
                   </div>

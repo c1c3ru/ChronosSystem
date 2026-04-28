@@ -38,8 +38,9 @@ export async function GET(request: NextRequest) {
     }
 
     return generateQRResponse(machine.id, machine.name, machine.location)
-  } catch (error: any) {
-    qrLogger.error('Error generating kiosk QR code', { error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    qrLogger.error('Error generating kiosk QR code', { error: errorMessage })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -53,7 +54,13 @@ async function generateQRResponse(machineId: string, machineName: string, locati
 
     // Extrair nonce do payload de forma segura
     let nonce: string
-    let payload: any
+    interface QrPayload {
+      nonce: string
+      timestamp: number
+      expiresIn: number
+      machineId: string
+    }
+    let payload: QrPayload
     let expiresAt: Date
 
     try {
@@ -81,9 +88,10 @@ async function generateQRResponse(machineId: string, machineName: string, locati
         machineId,
         expiresIn: payload.expiresIn,
       })
-    } catch (decodeError: any) {
-      qrLogger.error('Error decoding QR payload', { error: decodeError.message })
-      throw new Error(`Erro ao gerar QR code: ${decodeError.message}`)
+    } catch (decodeError: unknown) {
+      const decodeErrorMessage = decodeError instanceof Error ? decodeError.message : String(decodeError)
+      qrLogger.error('Error decoding QR payload', { error: decodeErrorMessage })
+      throw new Error(`Erro ao gerar QR code: ${decodeErrorMessage}`)
     }
 
     // Salvar evento QR no banco para auditoria
@@ -112,15 +120,16 @@ async function generateQRResponse(machineId: string, machineName: string, locati
         version: 'v1',
       },
     })
-  } catch (error: any) {
-    qrLogger.error('Error generating QR code', { error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    qrLogger.error('Error generating QR code', { error: errorMessage })
 
     // Verificar se é erro de QR_SECRET
-    if (error.message && error.message.includes('QR_SECRET')) {
+    if (errorMessage.includes('QR_SECRET')) {
       return NextResponse.json(
         {
           error: 'Erro de configuração: QR_SECRET não está configurado no servidor',
-          details: error.message,
+          details: errorMessage,
         },
         { status: 500 }
       )

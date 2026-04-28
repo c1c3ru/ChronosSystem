@@ -5,8 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle, XCircle, AlertTriangle, Camera, Smartphone } from 'lucide-react'
 
+interface DiagnosticResult {
+  status?: boolean
+  message: string
+  error?: string
+  [key: string]: any
+}
+
 export default function QRDiagnosticPage() {
-  const [diagnostics, setDiagnostics] = useState<any>({})
+  const [diagnostics, setDiagnostics] = useState<Record<string, DiagnosticResult>>({})
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -15,7 +22,7 @@ export default function QRDiagnosticPage() {
 
   const runDiagnostics = async () => {
     setIsLoading(true)
-    const results: any = {}
+    const results: Record<string, DiagnosticResult> = {}
 
     // 1. Verificar HTTPS
     results.https = {
@@ -91,7 +98,8 @@ export default function QRDiagnosticPage() {
           count: cameras.length,
           devices: cameras.map((c) => ({ id: c.deviceId, label: c.label })),
         }
-      } catch (err: any) {
+      } catch (error) {
+        const err = error as Error
         results.cameras = {
           status: false,
           message: '❌ Erro ao listar câmeras: ' + err.message,
@@ -126,7 +134,7 @@ export default function QRDiagnosticPage() {
     )
   }
 
-  const allPassed = Object.values(diagnostics).every((d: any) => d.status !== false)
+  const allPassed = Object.values(diagnostics).every((d: DiagnosticResult) => d.status !== false)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-6">
@@ -168,7 +176,7 @@ export default function QRDiagnosticPage() {
 
             {/* Detalhes dos Testes */}
             <div className="space-y-4">
-              {Object.entries(diagnostics).map(([key, value]: [string, any]) => (
+              {Object.entries(diagnostics).map(([key, value]) => (
                 <Card key={key}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
@@ -182,7 +190,7 @@ export default function QRDiagnosticPage() {
                           <div className="mt-2 text-sm text-neutral-400">
                             <p className="font-medium mb-1">Câmeras detectadas:</p>
                             <ul className="list-disc list-inside">
-                              {value.devices.map((device: any, idx: number) => (
+                              {value.devices.map((device: { id: string; label: string }, idx: number) => (
                                 <li key={idx}>{device.label || `Câmera ${idx + 1}`}</li>
                               ))}
                             </ul>

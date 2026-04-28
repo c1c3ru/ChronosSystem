@@ -95,7 +95,7 @@ export default function CommitmentTermPage() {
     const loadDraft = async () => {
       const draft = await getDraft('commitment-term')
       if (draft) {
-        setFormData((prev) => ({ ...prev, ...draft }))
+        setFormData((prev) => ({ ...prev, ...(draft as Partial<typeof formData>) }))
         toast.success('Rascunho carregado!')
       }
     }

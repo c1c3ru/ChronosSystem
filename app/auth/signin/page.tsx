@@ -17,7 +17,16 @@ export default function SignInPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [googleError, setGoogleError] = useState<string | null>(null)
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
-  const [existingUserData, setExistingUserData] = useState<any>(null)
+  interface ExistingUserData {
+    id: string
+    name: string | null
+    email: string
+    profileComplete: boolean
+    role: string
+    createdAt: string | Date
+    updatedAt: string | Date
+  }
+  const [existingUserData, setExistingUserData] = useState<ExistingUserData | null>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,7 +152,12 @@ export default function SignInPage() {
       {/* User Exists Alert */}
       {showUserExistsAlert && existingUserData && (
         <UserExistsAlert
-          userData={existingUserData}
+          userData={{
+            ...existingUserData,
+            name: existingUserData.name || 'Usuário',
+            createdAt: String(existingUserData.createdAt),
+            updatedAt: String(existingUserData.updatedAt),
+          }}
           onContinue={() => {
             setShowUserExistsAlert(false)
             // Continuar com o login
@@ -195,7 +209,6 @@ export default function SignInPage() {
                   className="w-full pl-16 pr-4 py-4 bg-gray-50 border-3 border-gray-600 rounded-lg text-gray-900 placeholder-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 font-bold text-lg shadow-lg"
                   placeholder="Digite seu email aqui"
                   required
-                  style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}
                 />
               </div>
             </div>
@@ -218,7 +231,6 @@ export default function SignInPage() {
                   className="w-full pl-16 pr-16 py-4 bg-gray-50 border-3 border-gray-600 rounded-lg text-gray-900 placeholder-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 font-bold text-lg shadow-lg"
                   placeholder="Digite sua senha aqui"
                   required
-                  style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}
                 />
                 <button
                   type="button"

@@ -48,14 +48,14 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     if (!session) {
       signIn()
     }
-  }, [status])
+  }, [status, session])
 
   // Check if user is admin or supervisor
   useEffect(() => {
     if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       router.push('/employee')
     }
-  }, [session])
+  }, [session, router])
 
   // Load user data
   useEffect(() => {

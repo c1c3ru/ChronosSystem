@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const tipo = searchParams.get('type')
 
     // Construir filtro de data
-    const filtroData: any = {}
+    const filtroData: Prisma.DateTimeFilter = {}
     if (dataInicial) {
       filtroData.gte = new Date(dataInicial)
     }
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
         'Content-Disposition': `attachment; filename="${nomeArquivo}"`,
       },
     })
-  } catch (erro: any) {
+  } catch (erro: unknown) {
     console.error('❌ [API Export] Erro ao exportar dados:', erro)
     return NextResponse.json({ erro: 'Erro ao exportar dados de registros' }, { status: 500 })
   }

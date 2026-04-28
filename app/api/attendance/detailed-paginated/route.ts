@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 // GET /api/attendance/detailed-paginated - Buscar registros detalhados com paginação
 export async function GET(request: NextRequest) {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Construir filtros
-    const whereClause: any = {}
+    const whereClause: Prisma.AttendanceRecordWhereInput = {}
 
     // Filtro de busca
     if (searchTerm) {
@@ -76,7 +77,6 @@ export async function GET(request: NextRequest) {
     // Filtro de role
     if (roleFilter !== 'ALL') {
       whereClause.user = {
-        ...whereClause.user,
         role: roleFilter,
       }
     }
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         hasPrevPage: page > 1,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ [API] Erro ao buscar registros detalhados:', error)
     return NextResponse.json({ error: 'Erro ao buscar registros' }, { status: 500 })
   }

@@ -59,11 +59,21 @@ export async function GET(request: NextRequest) {
       orderBy: { timestamp: 'asc' },
     })
 
+    interface DashboardRecord {
+      id: string
+      timestamp: Date
+      type: string
+      machine: {
+        name: string
+        location: string
+      }
+    }
+
     // Calcular total de horas hoje
     let todayHours = '0h 00min'
     if (todayRecords.length >= 2) {
-      const entries = todayRecords.filter((r: any) => r.type === 'ENTRY')
-      const exits = todayRecords.filter((r: any) => r.type === 'EXIT')
+      const entries = (todayRecords as unknown as DashboardRecord[]).filter((r) => r.type === 'ENTRY')
+      const exits = (todayRecords as unknown as DashboardRecord[]).filter((r) => r.type === 'EXIT')
 
       let totalMinutes = 0
       for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
@@ -113,7 +123,7 @@ export async function GET(request: NextRequest) {
           : null,
         todayHours,
       },
-      recentRecords: recentRecords.map((record: any) => ({
+      recentRecords: (recentRecords as unknown as DashboardRecord[]).map((record) => ({
         id: record.id,
         timestamp: record.timestamp.toISOString(), // ISO cru para formatar no frontend
         type: record.type,

@@ -11,6 +11,13 @@ import {
   type InternshipProgress,
 } from '@/lib/internship-calculator'
 
+interface Milestone {
+  label: string
+  hours: number
+  estimatedDate: Date
+  percentage: number
+}
+
 interface InternshipTimelineProps {
   startDate: string
   weeklyHours: number
@@ -25,7 +32,7 @@ export default function InternshipTimeline({
   contractType,
 }: InternshipTimelineProps) {
   const [progress, setProgress] = useState<InternshipProgress | null>(null)
-  const [milestones, setMilestones] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<Milestone[]>([])
 
   useEffect(() => {
     if (startDate && weeklyHours && contractType?.startsWith('ESTAGIO')) {

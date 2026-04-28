@@ -67,8 +67,13 @@ export async function GET(request: NextRequest) {
       existingJustifications.map((j) => [j.date.toISOString().split('T')[0], j])
     )
 
+    interface DayData {
+      entry: { timestamp: Date } | null
+      exit: { timestamp: Date } | null
+    }
+
     // Agrupar registros por dia
-    const dayRecords = new Map<string, { entry: any; exit: any }>()
+    const dayRecords = new Map<string, DayData>()
 
     records.forEach((record) => {
       const dateKey = record.timestamp.toISOString().split('T')[0]
@@ -83,8 +88,32 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    interface AnalysisResult {
+      requiresJustification: boolean
+      justificationReason: string
+      hasEntry: boolean
+      hasExit: boolean
+      isHoliday: boolean
+      isWeekend: boolean
+      isComplete: boolean
+      lateArrival: { isLate: boolean; minutesLate: number; requiresJustification: boolean }
+      earlyDeparture: {
+        isEarly: boolean
+        minutesShort: number
+        requiresJustification: boolean
+        hoursWorked: number
+      }
+      existingJustification?: {
+        id: string
+        status: string
+        type: string
+        reason: string
+      } | null
+      date?: string
+    }
+
     // Analisar cada dia do período
-    const daysRequiringJustification: any[] = []
+    const daysRequiringJustification: AnalysisResult[] = []
     const currentDate = new Date(startDate)
 
     while (currentDate <= endDate) {
@@ -101,7 +130,7 @@ export async function GET(request: NextRequest) {
         dayData.exit,
         workingHours,
         isWorkDay
-      )
+      ) as AnalysisResult
 
       // Se requer justificativa e não tem justificativa aprovada
       if (analysis.requiresJustification) {
@@ -111,6 +140,7 @@ export async function GET(request: NextRequest) {
         if (!hasApprovedJustification) {
           daysRequiringJustification.push({
             ...analysis,
+            date: dateKey,
             existingJustification: existingJustification
               ? {
                   id: existingJustification.id,
@@ -142,7 +172,7 @@ export async function GET(request: NextRequest) {
       },
       daysRequiringJustification,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao verificar justificativas:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }

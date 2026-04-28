@@ -81,8 +81,9 @@ export async function POST(request: NextRequest) {
       message: '2FA desabilitado com sucesso!',
       enabled: false,
     })
-  } catch (error: any) {
-    authLogger.error('Error disabling 2FA', { userId: 'unknown', error: error.message })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    authLogger.error('Error disabling 2FA', { userId: 'unknown', error: errorMessage })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

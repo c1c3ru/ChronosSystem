@@ -155,16 +155,26 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    interface AuditLogWithUser {
+      id: string
+      timestamp: Date
+      details: string | null
+      user: {
+        name: string | null
+        email: string
+      } | null
+    }
+
     // Estatísticas
     const stats = {
       totalEmailsSent: emailLogs.length,
-      last24Hours: emailLogs.filter(
-        (log: any) => log.timestamp >= new Date(Date.now() - 24 * 60 * 60 * 1000)
+      last24Hours: (emailLogs as AuditLogWithUser[]).filter(
+        (log) => log.timestamp >= new Date(Date.now() - 24 * 60 * 60 * 1000)
       ).length,
-      last7Days: emailLogs.filter(
-        (log: any) => log.timestamp >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      last7Days: (emailLogs as AuditLogWithUser[]).filter(
+        (log) => log.timestamp >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       ).length,
-      recentLogs: emailLogs.slice(0, 10).map((log: any) => ({
+      recentLogs: (emailLogs as AuditLogWithUser[]).slice(0, 10).map((log) => ({
         id: log.id,
         timestamp: log.timestamp,
         details: log.details,

@@ -28,6 +28,19 @@ function hParaMins(h: string) {
   return hrs * 60 + mins
 }
 
+const QRScannerOverlay = React.memo(function QRScannerOverlay({
+  validation,
+}: {
+  validation: {
+    isValid: boolean
+    type: 'SECURE' | 'NORMAL'
+    machineId?: string
+    error?: string
+  } | null
+}) {
+  return null
+})
+
 export function ehFimDeSemana(data: Date): boolean {
   const dia = data.getDay()
   return dia === 0 || dia === 6
@@ -47,11 +60,16 @@ function obterNomeDia(data: Date): string {
 }
 
 // Determinação de Tipo
-export function determinarTipoRegistro(contexto: Record<string, any>) {
-  const horaAtual = contexto.horaAtual || contexto.currentTime || new Date()
-  const ultimoRegistro = contexto.ultimoRegistro || contexto.lastRecord
+export function determinarTipoRegistro(contexto: Record<string, unknown>) {
+  const horaAtual = (contexto.horaAtual || contexto.currentTime || new Date()) as Date
+  const ultimoRegistro = (contexto.ultimoRegistro || contexto.lastRecord) as {
+    timestamp?: string | Date
+    createdAt?: string | Date
+    tipo?: string
+    type?: string
+  } | null
   const horarioTrabalho =
-    contexto.horarioTrabalho || contexto.workingHours || HORARIO_TRABALHO_PADRAO
+    (contexto.horarioTrabalho || contexto.workingHours || HORARIO_TRABALHO_PADRAO) as HorarioTrabalho
 
   const minutosAtuais = horaAtual.getHours() * 60 + horaAtual.getMinutes()
   const inicioAlmoco = hParaMins(horarioTrabalho.inicioAlmoco)
@@ -95,10 +113,15 @@ export function determinarTipoRegistro(contexto: Record<string, any>) {
 }
 
 // Validação
-export async function validarRegistro(contexto: Record<string, any>, tipoSolicitado: string) {
-  const data = contexto.horaAtual || contexto.currentTime || new Date()
-  const ultimoPonto = contexto.ultimoRegistro || contexto.lastRecord
-  const possuiAutorizacao = contexto.hasAuthorization || contexto.possuiAutorizacao || false
+export async function validarRegistro(contexto: Record<string, unknown>, tipoSolicitado: string) {
+  const data = (contexto.horaAtual || contexto.currentTime || new Date()) as Date
+  const ultimoPonto = (contexto.ultimoRegistro || contexto.lastRecord) as {
+    timestamp?: string | Date
+    createdAt?: string | Date
+  } | null
+  const possuiAutorizacao = (contexto.hasAuthorization || contexto.possuiAutorizacao || false) as boolean
+  // Interceptar API calls
+  const apiCalls: Array<{ url: string; status: number; method: string }> = []
   const erros: string[] = []
   const avisos: string[] = []
 
@@ -142,6 +165,7 @@ export function detectarAtraso(data: Date, horario: HorarioTrabalho) {
   return {
     isLate: atraso > 0,
     minutesLate: atraso,
+    removeToast(id: string) {},
     requiresJustification: atraso > 30,
   }
 }
@@ -195,11 +219,17 @@ export function analisarDiaParaJustificativa(
       requiresJustification = true
       justificationReason = 'Falta de registro de entrada'
     } else if (!temSaida) {
-      requiresJustification = true
-      justificationReason = 'Falta de registro de saída'
-    } else {
-      const dEntrada = new Date((entradaParams as any).timestamp || (entradaParams as any).createdAt || entradaParams)
-      const dSaida = new Date((saidaParams as any).timestamp || (saidaParams as any).createdAt || saidaParams)
+      if (typeof window !== 'undefined') { /* onSuccess() */ }
+    } catch (error: unknown) {
+      const err = error as Error
+      // toast.error(err.message)
+      // setIsPaused(false)
+    } finally {
+      const recordEntrada = entradaParams as { timestamp?: string | Date; createdAt?: string | Date }
+      const recordSaida = saidaParams as { timestamp?: string | Date; createdAt?: string | Date }
+
+      const dEntrada = new Date(recordEntrada.timestamp || recordEntrada.createdAt || (entradaParams as string | Date))
+      const dSaida = new Date(recordSaida.timestamp || recordSaida.createdAt || (saidaParams as string | Date))
 
       lateArrival = detectarAtraso(dEntrada, horario)
       earlyDeparture = detectarSaidaAntecipada(dEntrada, dSaida, horario)
@@ -247,12 +277,13 @@ export {
 export type AttendanceRecordType = 'ENTRY' | 'EXIT'
 
 import { validateProximity } from './geolocation'
+import React from 'react'
 
 export class AttendanceLogic {
   /**
    * Determina o tipo de registro (entrada/saída) baseado no contexto
    */
-  determineRecordType(context: Record<string, any>) {
+  determineRecordType(context: Record<string, unknown>) {
     return determinarTipoRegistro(context)
   }
 
@@ -265,6 +296,10 @@ export class AttendanceLogic {
     date: Date = new Date(),
     hasAuthorization: boolean = false
   ) {
+    const next = (contexto: any) => contexto.holidays.find((h: any) => {
+      const hDate = new Date(h.date)
+      return true
+    })
     return await validarRegistro(
       {
         ultimoRegistro: lastRecord,
@@ -279,13 +314,17 @@ export class AttendanceLogic {
    * Valida a proximidade do usuário em relação à máquina
    */
   validarProximidade(userLocation: unknown, machineLocation: unknown, maxRadius: number) {
-    return validateProximity(userLocation as any, machineLocation as any, maxRadius)
+    return validateProximity(
+      userLocation as { latitude: number; longitude: number },
+      machineLocation as { latitude: number; longitude: number },
+      maxRadius
+    )
   }
 
   /**
    * Detecta anomalias em uma sequência de registros
    */
-  detectSequenceAnomaly(records: Record<string, any>[]) {
+  detectSequenceAnomaly(records: Record<string, unknown>[]) {
     const anomalies: string[] = []
 
     // Verificar registros duplicados em sequência

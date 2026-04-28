@@ -104,17 +104,12 @@ export default function EmployeePage() {
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
   const [lastRecordType, setLastRecordType] = useState<'ENTRY' | 'EXIT' | null>(null)
 
-  // Verificar permissões da câmera ao carregar
-  useEffect(() => {
-    checkCameraPermission()
-  }, [])
-
   const handleRegisterClick = () => {
     if (cooldownSeconds > 0) return
     startScanning()
   }
 
-  const checkCameraPermission = async () => {
+  const checkCameraPermission = useCallback(async () => {
     try {
       setIsCheckingCamera(true)
       setCameraError(null)
@@ -184,7 +179,8 @@ export default function EmployeePage() {
         setCameraPermission('granted')
         console.log('✅ [CAMERA] Permissão definida como granted')
         return
-      } catch (directError: any) {
+      } catch (error) {
+        const directError = error as Error
         console.log('⚠️ [CAMERA] Erro no acesso direto:', directError.name, directError.message)
 
         // Tratar erros específicos
@@ -243,7 +239,12 @@ export default function EmployeePage() {
     } finally {
       setIsCheckingCamera(false)
     }
-  }
+  }, [])
+
+  // Verificar permissões da câmera ao carregar
+  useEffect(() => {
+    checkCameraPermission()
+  }, [checkCameraPermission])
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -264,7 +265,16 @@ export default function EmployeePage() {
           setWorkStatus(data.workStatus)
 
           // Usar os dados já analisados da nova API
-          const formattedRecords = data.analyzedDays.map((day: any) => ({
+          const formattedRecords = data.analyzedDays.map((day: {
+            date: string
+            entry?: string
+            exit?: string
+            totalHours: string
+            status: string
+            location: string
+            alerts: any[]
+            hasJustification: boolean
+          }) => ({
             id: `day-${day.date}`,
             date: day.date,
             entry: day.entry,
@@ -489,9 +499,10 @@ export default function EmployeePage() {
         // Limpar último QR code em caso de erro para permitir nova tentativa
         setLastQrCode(null)
       }
-    } catch (error: any) {
-      console.error('❌ [QR] Erro ao processar registro:', error)
-      setCameraError(`Erro ao registrar ponto: ${error.message}`)
+    } catch (error) {
+      const err = error as Error
+      console.error('❌ [QR] Erro ao processar registro:', err)
+      setCameraError(`Erro ao registrar ponto: ${err.message}`)
       setQrResult('')
 
       // Limpar último QR code em caso de erro para permitir nova tentativa
@@ -661,11 +672,10 @@ export default function EmployeePage() {
             <CardContent className="p-6">
               {/* 🎯 Banner de Próximo Registro */}
               <div
-                className={`mb-4 p-3 rounded-lg flex items-center justify-between ${
-                  workStatus?.isWorking
+                className={`mb-4 p-3 rounded-lg flex items-center justify-between ${workStatus?.isWorking
                     ? 'bg-warning/20 border-l-4 border-warning'
                     : 'bg-success-500/20 border-l-4 border-success-500'
-                }`}
+                  }`}
               >
                 <div className="flex items-center space-x-3">
                   {workStatus?.isWorking ? (
@@ -675,9 +685,8 @@ export default function EmployeePage() {
                   )}
                   <div>
                     <p
-                      className={`font-bold text-sm ${
-                        workStatus?.isWorking ? 'text-warning' : 'text-success-400'
-                      }`}
+                      className={`font-bold text-sm ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                        }`}
                     >
                       Próximo registro: {workStatus?.isWorking ? 'SAÍDA' : 'ENTRADA'}
                     </p>
@@ -689,9 +698,8 @@ export default function EmployeePage() {
                   </div>
                 </div>
                 <div
-                  className={`text-2xl ${
-                    workStatus?.isWorking ? 'text-warning' : 'text-success-400'
-                  }`}
+                  className={`text-2xl ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                    }`}
                 >
                   {workStatus?.isWorking ? '🔴' : '🟢'}
                 </div>
@@ -700,9 +708,8 @@ export default function EmployeePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div
-                    className={`w-4 h-4 rounded-full ${
-                      workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
-                    }`}
+                    className={`w-4 h-4 rounded-full ${workStatus?.isWorking ? 'bg-primary animate-pulse' : 'bg-neutral-500'
+                      }`}
                   ></div>
                   <div>
                     <h2 className="text-xl font-semibold text-white">
@@ -844,11 +851,10 @@ export default function EmployeePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 items-start">
             {/* QR Code Scanner */}
             <Card
-              className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${
-                workStatus?.isWorking
+              className={`glass-card group hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full overflow-hidden relative cursor-pointer ${workStatus?.isWorking
                   ? 'border-warning/30 hover:border-warning/50 focus:border-warning/50'
                   : 'border-primary/30 hover:border-primary/50 focus:border-primary/50'
-              }`}
+                }`}
               onClick={handleRegisterClick}
               role="button"
               tabIndex={0}
@@ -868,11 +874,10 @@ export default function EmployeePage() {
               <CardContent className="p-4 sm:p-6 lg:p-8 text-center flex flex-col h-full">
                 {/* 🎯 INDICADOR VISUAL GRANDE E CLARO */}
                 <div
-                  className={`rounded-2xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 transition-all ${
-                    workStatus?.isWorking
+                  className={`rounded-2xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 transition-all ${workStatus?.isWorking
                       ? 'bg-warning/30 ring-4 ring-warning/40'
                       : 'bg-success-500/30 ring-4 ring-success-500/40'
-                  }`}
+                    }`}
                 >
                   {workStatus?.isWorking ? (
                     <LogOut className="h-12 w-12 sm:h-14 sm:w-14 text-warning animate-pulse" />
@@ -883,23 +888,20 @@ export default function EmployeePage() {
 
                 {/* 🎯 TÍTULO GRANDE E COLORIDO */}
                 <div
-                  className={`mb-3 p-3 rounded-lg ${
-                    workStatus?.isWorking
+                  className={`mb-3 p-3 rounded-lg ${workStatus?.isWorking
                       ? 'bg-warning/20 border-2 border-warning/40'
                       : 'bg-success-500/20 border-2 border-success-500/40'
-                  }`}
+                    }`}
                 >
                   <h3
-                    className={`text-xl sm:text-2xl font-bold mb-1 ${
-                      workStatus?.isWorking ? 'text-warning' : 'text-success-400'
-                    }`}
+                    className={`text-xl sm:text-2xl font-bold mb-1 ${workStatus?.isWorking ? 'text-warning' : 'text-success-400'
+                      }`}
                   >
                     {workStatus?.isWorking ? '🔴 REGISTRAR SAÍDA' : '🟢 REGISTRAR ENTRADA'}
                   </h3>
                   <p
-                    className={`text-sm font-medium ${
-                      workStatus?.isWorking ? 'text-warning/80' : 'text-success-300'
-                    }`}
+                    className={`text-sm font-medium ${workStatus?.isWorking ? 'text-warning/80' : 'text-success-300'
+                      }`}
                   >
                     {workStatus?.isWorking
                       ? 'Você está trabalhando agora'
@@ -954,8 +956,9 @@ export default function EmployeePage() {
                                 stream.getTracks().forEach((track) => track.stop())
                                 setCameraPermission('granted')
                                 setCameraError(null)
-                              } catch (error: any) {
-                                console.error('❌ [CAMERA] Permissão negada:', error)
+                              } catch (error) {
+                                const permError = error as Error
+                                console.error('❌ [CAMERA] Permissão negada:', permError)
                                 setCameraPermission('denied')
                                 setCameraError(
                                   'Permissão da câmera é necessária para escanear QR codes'
@@ -1012,10 +1015,9 @@ export default function EmployeePage() {
                   onClick={handleRegisterClick}
                   className={`
                     w-full mt-auto py-8 rounded-2xl relative overflow-hidden transition-all duration-500 group shadow-2xl
-                    ${
-                      workStatus?.isWorking
-                        ? 'bg-gradient-to-br from-warning via-warning/90 to-amber-600 hover:shadow-warning/20'
-                        : 'bg-gradient-to-br from-primary via-primary/90 to-primary/70 hover:shadow-primary/20'
+                    ${workStatus?.isWorking
+                      ? 'bg-gradient-to-br from-warning via-warning/90 to-amber-600 hover:shadow-warning/20'
+                      : 'bg-gradient-to-br from-primary via-primary/90 to-primary/70 hover:shadow-primary/20'
                     }
                     ${cooldownSeconds > 0 ? 'grayscale pointer-events-none' : 'hover:scale-[1.02] active:scale-95'}
                   `}
@@ -1414,15 +1416,14 @@ export default function EmployeePage() {
                                 <p className="text-neutral-400 text-xs">Total: {record.hours}</p>
                               </div>
                               <span
-                                className={`text-xs px-3 py-1 rounded-full font-medium ${
-                                  record.status === 'Completo'
+                                className={`text-xs px-3 py-1 rounded-full font-medium ${record.status === 'Completo'
                                     ? 'bg-success/20 text-success border border-success/30'
                                     : record.status === 'Incompleto'
                                       ? 'bg-warning/20 text-warning border border-warning/30'
                                       : record.status === 'Ausente'
                                         ? 'bg-error/20 text-error border border-error/30'
                                         : 'bg-info/20 text-info border border-info/30'
-                                }`}
+                                  }`}
                               >
                                 {record.status}
                               </span>

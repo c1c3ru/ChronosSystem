@@ -22,6 +22,29 @@ const DEFAULT_WORKING_HOURS: WorkingHours = {
   lunchEnd: '13:00',
 }
 
+interface RecordWithMachine {
+  id: string
+  timestamp: Date
+  type: string
+  machine: {
+    name: string
+    location: string
+  }
+}
+
+interface AnalyzedDay {
+  date: string
+  fullDate: string
+  entry?: string
+  exit?: string
+  totalHours: string
+  status: 'working' | 'completed' | 'incomplete' | 'absent'
+  alerts: { type: string; message: string; severity: string }[]
+  location: string
+  hasJustification: boolean
+  justificationStatus?: string
+}
+
 // GET /api/employee/dashboard-enhanced - Dashboard com análise de atrasos e alertas
 export async function GET(request: NextRequest) {
   try {
@@ -76,12 +99,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Analisar situação de hoje
-    // Analisar registros de hoje
     const todayAnalysis = analyzeTodayRecords(
-      todayRecords,
+      todayRecords as unknown as RecordWithMachine[],
       DEFAULT_WORKING_HOURS,
       isWorking,
-      lastRecord
+      lastRecord as unknown as RecordWithMachine
     )
 
     // Buscar registros recentes (últimos 7 dias) com análise
@@ -108,14 +130,14 @@ export async function GET(request: NextRequest) {
     })
 
     // Agrupar registros por dia e analisar
-    const recordsByDay = groupRecordsByDay(recentRecords)
+    const recordsByDay = groupRecordsByDay(recentRecords as unknown as RecordWithMachine[])
     const analyzedDays = recordsByDay
-      .map((dayRecords: any) => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
-      .filter((day: any) => day !== null) // Remover dias inválidos
+      .map((dayRecords) => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
+      .filter((day): day is AnalyzedDay => day !== null) // Remover dias inválidos
 
     // Verificar justificativas para cada dia analisado
     const daysWithJustifications = await Promise.all(
-      analyzedDays.map(async (day: any) => {
+      analyzedDays.map(async (day) => {
         if (!day || !day.fullDate) return day
 
         try {
@@ -160,7 +182,7 @@ export async function GET(request: NextRequest) {
 
     // Verificar quantas faltas/atrasos sem justificativa
     const unjustifiedIssues = daysWithJustifications.filter(
-      (day: any) => day && day.alerts && day.alerts.length > 0 && !day.hasJustification
+      (day) => day && day.alerts && day.alerts.length > 0 && !day.hasJustification
     ).length
 
     return NextResponse.json({
@@ -186,18 +208,17 @@ export async function GET(request: NextRequest) {
         needsAttention: unjustifiedIssues > 0 || pendingJustifications > 0,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     apiLogger.error('Enhanced dashboard - Erro ao buscar dados', {
-      message: error?.message,
-      name: error?.name,
-      stack: error?.stack,
-      cause: error?.cause,
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : undefined,
+      stack: error instanceof Error ? error.stack : undefined,
     })
 
     return NextResponse.json(
       {
         error: 'Erro interno do servidor',
-        message: process.env.NODE_ENV === 'development' ? error?.message : undefined,
+        message: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
         code: 'INTERNAL_ERROR',
       },
       { status: 500 }
@@ -206,20 +227,20 @@ export async function GET(request: NextRequest) {
 }
 
 function analyzeTodayRecords(
-  registros: any[],
+  registros: RecordWithMachine[],
   horariosTrabalho: WorkingHours,
   estaTrabalhando: boolean = false,
-  ultimoRegistro: any = null
+  ultimoRegistro: RecordWithMachine | null = null
 ) {
   const agora = new Date()
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
 
   let minutosTotais = 0
-  const alertas: any[] = []
+  const alertas: { type: string; message: string; severity: string }[] = []
 
-  const entradas = registros.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
-  const saidas = registros.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
+  const entradas = registros.filter((r) => r && r.type === 'ENTRY' && r.timestamp)
+  const saidas = registros.filter((r) => r && r.type === 'EXIT' && r.timestamp)
 
   // 1. Calcular horas de pares completos hoje
   for (let i = 0; i < Math.min(entradas.length, saidas.length); i++) {
@@ -310,10 +331,10 @@ function analyzeTodayRecords(
   }
 }
 
-function groupRecordsByDay(records: any[]) {
-  const groups = new Map<string, any[]>()
+function groupRecordsByDay(records: RecordWithMachine[]) {
+  const groups = new Map<string, RecordWithMachine[]>()
 
-  records.forEach((record: any) => {
+  records.forEach((record) => {
     if (!record || !record.timestamp) {
       apiLogger.warn('Registro inválido encontrado', { record })
       return
@@ -325,7 +346,7 @@ function groupRecordsByDay(records: any[]) {
         record.timestamp instanceof Date ? record.timestamp : new Date(record.timestamp)
 
       if (isNaN(timestamp.getTime())) {
-        apiLogger.warn('Timestamp inválido', { timestamp: record.timestamp })
+        apiLogger.warn('Timestamp inválido', { timestampRecord: record.timestamp.toISOString() })
         return
       }
 
@@ -346,7 +367,7 @@ function groupRecordsByDay(records: any[]) {
   return Array.from(groups.values())
 }
 
-function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
+function analyzeDayRecords(dayRecords: RecordWithMachine[], workingHours: WorkingHours): AnalyzedDay | null {
   if (!dayRecords || dayRecords.length === 0) return null
 
   try {
@@ -364,13 +385,13 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
         : new Date(firstRecord.timestamp)
 
     if (isNaN(date.getTime())) {
-      apiLogger.warn('Data inválida no primeiro registro', { timestamp: firstRecord.timestamp })
+      apiLogger.warn('Data inválida no primeiro registro', { timestampRecord: firstRecord.timestamp.toISOString() })
       return null
     }
 
-    const entries = dayRecords.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
-    const exits = dayRecords.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
-    const alerts: any[] = []
+    const entries = dayRecords.filter((r) => r && r.type === 'ENTRY' && r.timestamp)
+    const exits = dayRecords.filter((r) => r && r.type === 'EXIT' && r.timestamp)
+    const alerts: { type: string; message: string; severity: string }[] = []
 
     // Análise similar ao dia atual
     if (entries.length > 0) {
