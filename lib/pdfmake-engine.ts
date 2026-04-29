@@ -2,21 +2,53 @@ import * as pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import { TDocumentDefinitions } from 'pdfmake/interfaces'
 
-interface PdfMakeModule {
-  default?: typeof pdfMake
-  vfs: Record<string, string>
-}
-
 interface PdfFontsModule {
   pdfMake?: { vfs: Record<string, string> }
   vfs?: Record<string, string>
+  default?: Record<string, string>
+}
+
+interface PdfMakeInstance {
+  vfs: Record<string, string>
+  addVirtualFileSystem?: (vfs: Record<string, string>) => void
+  fonts?: Record<string, {
+    normal: string
+    bold: string
+    italics: string
+    bolditalics: string
+  }>
+  createPdf: (
+    docDefinition: TDocumentDefinitions,
+    tableLayouts?: unknown,
+    fonts?: unknown,
+    vfs?: unknown
+  ) => {
+    open: () => void
+    download: (filename?: string) => void
+    getBlob: (cb?: (blob: Blob) => void) => Promise<Blob>
+  }
 }
 
 // Inicializa o VFS do pdfmake com as fontes padrão (Roboto) apenas no Client-Side
 if (typeof window !== 'undefined') {
-  const pm = ((pdfMake as unknown as PdfMakeModule).default || pdfMake) as typeof pdfMake & { vfs: Record<string, string> }
-  const fonts = (pdfFonts as unknown as PdfFontsModule).pdfMake?.vfs ?? (pdfFonts as unknown as PdfFontsModule).vfs ?? {}
-  pm.vfs = fonts
+  const pm = ((pdfMake as unknown as { default?: PdfMakeInstance }).default || (pdfMake as unknown as PdfMakeInstance))
+  const vfs = (pdfFonts as unknown as PdfFontsModule).pdfMake?.vfs || (pdfFonts as unknown as PdfFontsModule).vfs || (pdfFonts as unknown as PdfFontsModule).default || (pdfFonts as unknown as Record<string, string>) || {}
+  
+  if (pm.addVirtualFileSystem) {
+    pm.addVirtualFileSystem(vfs)
+  } else {
+    pm.vfs = vfs
+  }
+  
+  // Configuração explícita de fontes para evitar erros de "font not found"
+  pm.fonts = {
+    Roboto: {
+      normal: 'Roboto-Regular.ttf',
+      bold: 'Roboto-Medium.ttf',
+      italics: 'Roboto-Italic.ttf',
+      bolditalics: 'Roboto-MediumItalic.ttf'
+    }
+  }
 }
 
 export interface PDFMakeOptions {
@@ -47,10 +79,11 @@ export async function generatePDFMakeClient(
       }
     }
 
+    const pmInstance = ((pdfMake as unknown as { default?: PdfMakeInstance }).default || (pdfMake as unknown as PdfMakeInstance))
     if (options.openInNewTab) {
-      pdfMake.createPdf(finalDocDef).open()
+      pmInstance.createPdf(finalDocDef, undefined, pmInstance.fonts, pmInstance.vfs).open()
     } else {
-      pdfMake.createPdf(finalDocDef).download(filename)
+      pmInstance.createPdf(finalDocDef, undefined, pmInstance.fonts, pmInstance.vfs).download(filename)
     }
   } catch (error) {
     console.error('Erro ao gerar PDF com PDFMake:', error)
@@ -78,7 +111,8 @@ export function generatePDFMakeBlob(
         }
       }
 
-      const pdfDocGenerator = pdfMake.createPdf(finalDocDef)
+      const pmInstance = ((pdfMake as unknown as { default?: PdfMakeInstance }).default || (pdfMake as unknown as PdfMakeInstance))
+      const pdfDocGenerator = pmInstance.createPdf(finalDocDef, undefined, pmInstance.fonts, pmInstance.vfs)
       pdfDocGenerator.getBlob().then((blob: Blob) => {
         resolve(blob)
       }).catch(reject)

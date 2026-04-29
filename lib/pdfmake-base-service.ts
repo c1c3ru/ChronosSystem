@@ -24,7 +24,7 @@ import type {
 
 // ─── INICIALIZAÇÃO ────────────────────────────────────────────────────────────
 
-let _pdfMake: typeof import('pdfmake/build/pdfmake') | null = null
+let _pdfMake: PdfMakeInstance | null = null
 
 interface PdfMakeDynamicModule {
   default?: unknown
@@ -34,9 +34,31 @@ interface PdfMakeDynamicModule {
 interface PdfFontsDynamicModule {
   pdfMake?: { vfs: Record<string, string> }
   vfs?: Record<string, string>
+  default?: Record<string, string>
 }
 
-async function getPdfMake() {
+interface PdfMakeInstance {
+  vfs: Record<string, string>
+  addVirtualFileSystem?: (vfs: Record<string, string>) => void
+  fonts?: Record<string, {
+    normal: string
+    bold: string
+    italics: string
+    bolditalics: string
+  }>
+  createPdf: (
+    docDefinition: TDocumentDefinitions,
+    tableLayouts?: unknown,
+    fonts?: unknown,
+    vfs?: unknown
+  ) => {
+    open: () => void
+    download: (filename?: string) => void
+    getBlob: (cb?: (blob: Blob) => void) => Promise<Blob>
+  }
+}
+
+async function getPdfMake(): Promise<PdfMakeInstance> {
   if (_pdfMake) return _pdfMake
   const [pdfMakeModule, pdfFontsModule] = await Promise.all([
     import('pdfmake/build/pdfmake'),
@@ -46,8 +68,24 @@ async function getPdfMake() {
   const pmModule = pdfMakeModule as unknown as PdfMakeDynamicModule
   const fontsModule = pdfFontsModule as unknown as PdfFontsDynamicModule
   
-  const pm = (pmModule.default || pdfMakeModule) as NonNullable<typeof _pdfMake>
-  ;(pm as unknown as { vfs: Record<string, string> }).vfs = fontsModule.pdfMake?.vfs ?? fontsModule.vfs ?? {}
+  const pm = (pmModule.default || pdfMakeModule) as unknown as PdfMakeInstance
+  const vfs = fontsModule.pdfMake?.vfs || fontsModule.vfs || fontsModule.default || (fontsModule as unknown as Record<string, string>) || {}
+  
+  if (pm.addVirtualFileSystem) {
+    pm.addVirtualFileSystem(vfs)
+  } else {
+    pm.vfs = vfs
+  }
+  
+  // Configuração explícita de fontes para evitar erros de "font not found"
+  pm.fonts = {
+    Roboto: {
+      normal: 'Roboto-Regular.ttf',
+      bold: 'Roboto-Medium.ttf',
+      italics: 'Roboto-Italic.ttf',
+      bolditalics: 'Roboto-MediumItalic.ttf'
+    }
+  }
   
   _pdfMake = pm
   return pm
@@ -402,7 +440,7 @@ export async function generatePDF(
   },
   options: PDFGenerateOptions = {}
 ): Promise<void> {
-  const pdfMake = await getPdfMake()
+  const pdfMake = (await getPdfMake()) as unknown as PdfMakeInstance
   const { filename = 'documento.pdf', openInNewTab = false, landscape = false } = options
 
   const finalDoc: TDocumentDefinitions = {
@@ -421,9 +459,9 @@ export async function generatePDF(
   }
 
   if (openInNewTab) {
-    pdfMake.createPdf(finalDoc).open()
+    pdfMake.createPdf(finalDoc, undefined, pdfMake.fonts, pdfMake.vfs).open()
   } else {
-    pdfMake.createPdf(finalDoc).download(filename)
+    pdfMake.createPdf(finalDoc, undefined, pdfMake.fonts, pdfMake.vfs).download(filename)
   }
 }
 
@@ -433,7 +471,7 @@ export async function generatePDF(
 export async function generatePDFBlob(
   docDefinition: Omit<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'> & Partial<Pick<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'>>
 ): Promise<Blob> {
-  const pdfMake = await getPdfMake()
+  const pdfMake = (await getPdfMake()) as unknown as PdfMakeInstance
 
   const finalDoc: TDocumentDefinitions = {
     pageSize: 'A4',
@@ -451,7 +489,11 @@ export async function generatePDFBlob(
 
   return new Promise((resolve, reject) => {
     try {
-      pdfMake.createPdf(finalDoc).getBlob().then(resolve).catch(reject)
+      pdfMake
+        .createPdf(finalDoc, undefined, pdfMake.fonts, pdfMake.vfs)
+        .getBlob()
+        .then(resolve)
+        .catch(reject)
     } catch (err) {
       reject(err)
     }
