@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface InternshipRegistrationRequestData {
   nome?: string
@@ -37,6 +37,18 @@ export interface InternshipRegistrationRequestData {
   data_inicial?: string
   carga_horaria_semanal?: string
   data_final_prevista?: string
+  activities?: string
+  // Quadro de Horários
+  schedule?: {
+    mon?: { morning?: string; afternoon?: string; evening?: string }
+    tue?: { morning?: string; afternoon?: string; evening?: string }
+    wed?: { morning?: string; afternoon?: string; evening?: string }
+    thu?: { morning?: string; afternoon?: string; evening?: string }
+    fri?: { morning?: string; afternoon?: string; evening?: string }
+    sat?: { morning?: string; afternoon?: string; evening?: string }
+  }
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 const COR_RACA_LABEL: Record<string, string> = {
@@ -124,18 +136,64 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
   const content: Content[] = [
     ...header,
     docTitle('Solicitação de Cadastro no Estágio'),
-    dataTable(['*'], [[cell('1. DADOS PESSOAIS DO DISCENTE', '')]]),
+    sectionTitle('1. DADOS PESSOAIS DO DISCENTE'),
     studentTable,
     complementTable,
-    dataTable(['*'], [[cell('2. UNIDADE CONCEDENTE / EMPRESA', '')]]),
-    companyTable,
-    dataTable(['*'], [[cell('3. RESPONSÁVEL LEGAL E SUPERVISOR', '')]]),
-    legalTable,
-    dataTable(['*'], [[cell('4. INFORMAÇÕES DO ESTÁGIO', '')]]),
+    sectionTitle('3. INFORMAÇÕES DO ESTÁGIO'),
     internshipTable,
+    sectionTitle('4. UNIDADE CONCEDENTE / EMPRESA'),
+    companyTable,
+    sectionTitle('5. RESPONSÁVEL LEGAL E SUPERVISOR'),
+    legalTable,
+    sectionTitle('6. HORÁRIOS E ATIVIDADES'),
+    { text: 'QUADRO DE HORÁRIOS', style: 'cellLabel', margin: [0, 4, 0, 2], bold: true },
+    dataTable(
+      ['16%', '14%', '14%', '14%', '14%', '14%', '14%'],
+      [
+        [
+          { text: 'TURNO', style: 'tableHeader', alignment: 'center' },
+          { text: 'SEG', style: 'tableHeader', alignment: 'center' },
+          { text: 'TER', style: 'tableHeader', alignment: 'center' },
+          { text: 'QUA', style: 'tableHeader', alignment: 'center' },
+          { text: 'QUI', style: 'tableHeader', alignment: 'center' },
+          { text: 'SEX', style: 'tableHeader', alignment: 'center' },
+          { text: 'SÁB', style: 'tableHeader', alignment: 'center' },
+        ],
+        [
+          { text: 'Manhã', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.schedule?.mon?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.tue?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.wed?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.thu?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.fri?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.sat?.morning), style: 'cellValue', alignment: 'center' },
+        ],
+        [
+          { text: 'Tarde', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.schedule?.mon?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.tue?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.wed?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.thu?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.fri?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.sat?.afternoon), style: 'cellValue', alignment: 'center' },
+        ],
+        [
+          { text: 'Noite', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.schedule?.mon?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.tue?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.wed?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.thu?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.fri?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.sat?.evening), style: 'cellValue', alignment: 'center' },
+        ],
+      ]
+    ),
+    ...sectionBlock('DESCRIÇÃO DAS ATIVIDADES', v(d.activities)),
     ...sigBlock(
       ['Discente', 'Responsável Legal', 'Supervisor do Estágio'],
-      'Declaro que as informações acima são verdadeiras e me comprometo a atualizá-las quando necessário.'
+      'Declaro que as informações acima são verdadeiras e me comprometo a atualizá-las quando necessário.',
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
     ),
   ]
 

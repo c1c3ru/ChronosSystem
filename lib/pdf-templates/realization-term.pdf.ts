@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface RealizationTermData {
   student_name?: string
@@ -18,6 +18,8 @@ export interface RealizationTermData {
   activities?: string
   performance_evaluation?: string
   city?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 export async function buildRealizationTermDoc(d: RealizationTermData): Promise<TDocumentDefinitions> {
@@ -67,16 +69,21 @@ export async function buildRealizationTermDoc(d: RealizationTermData): Promise<T
   const content: Content[] = [
     ...header,
     docTitle('Termo de Realização de Estágio'),
-    ...sectionBlock('DADOS DO ESTAGIÁRIO'),
+    sectionTitle('DADOS DO ESTAGIÁRIO'),
     studentTable,
-    ...sectionBlock('DADOS DA EMPRESA CONCEDENTE'),
+    sectionTitle('DADOS DA EMPRESA CONCEDENTE'),
     companyTable,
-    ...sectionBlock('DADOS DO ESTÁGIO REALIZADO'),
+    sectionTitle('DADOS DO ESTÁGIO REALIZADO'),
     internshipTable,
     ...sectionBlock('ATIVIDADES DESENVOLVIDAS', v(d.activities)),
     ...sectionBlock('AVALIAÇÃO DO DESEMPENHO', v(d.performance_evaluation)),
-    { text: `${v(d.city) || 'Fortaleza'}, ____ de ______________ de _______`, alignment: 'right', margin: [0, 20, 0, 0] },
-    ...sigBlock(['Estagiário(a)', 'Supervisor(a) do Estágio', 'Coordenador(a) de Estágios']),
+    { text: `${v(d.city) || 'Fortaleza'}, ____ de ______________ de _______`, alignment: 'right', margin: [0, 5, 0, 5] },
+    ...sigBlock(
+      ['Estagiário(a)', 'Supervisor(a) do Estágio', 'Coordenador(a) de Estágios'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

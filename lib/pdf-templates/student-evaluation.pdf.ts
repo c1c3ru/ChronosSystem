@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content, TableCell } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface StudentEvaluationData {
   student_name?: string
@@ -27,6 +27,8 @@ export interface StudentEvaluationData {
   eval_quality?: string
   eval_organization?: string
   eval_creativity?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 const EVAL_LABELS: [string, string][] = [
@@ -67,13 +69,18 @@ export async function buildStudentEvaluationDoc(d: StudentEvaluationData): Promi
   const content: Content[] = [
     ...header,
     docTitle('Ficha de Avaliação do Discente Estagiário'),
-    ...sectionBlock('IDENTIFICAÇÃO'),
+    sectionTitle('IDENTIFICAÇÃO'),
     identTable,
-    ...sectionBlock('CRITÉRIOS DE AVALIAÇÃO (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Bom / 5=Excelente)'),
+    sectionTitle('CRITÉRIOS DE AVALIAÇÃO (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Bom / 5=Excelente)'),
     evalTable,
     ...sectionBlock('OBSERVAÇÕES E COMENTÁRIOS', v(d.observations)),
     dataTable(['*'], [[cell('Recomendaria este estagiário?', recText)]]),
-    ...sigBlock(['Supervisor do Estágio', 'Coordenador de Estágios']),
+    ...sigBlock(
+      ['Supervisor do Estágio', 'Coordenador de Estágios'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

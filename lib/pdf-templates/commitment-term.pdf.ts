@@ -19,6 +19,7 @@ import {
   emptyCell,
   dataTable,
   sectionBlock,
+  sectionTitle,
   sigBlock,
   fmtDate,
   v,
@@ -84,6 +85,17 @@ export interface CommitmentTermData {
   // Plano
   activities_description?: string
   expected_results?: string
+  // Quadro de Horários (6 dias x 3 turnos)
+  schedule?: {
+    mon?: { morning?: string; afternoon?: string; evening?: string }
+    tue?: { morning?: string; afternoon?: string; evening?: string }
+    wed?: { morning?: string; afternoon?: string; evening?: string }
+    thu?: { morning?: string; afternoon?: string; evening?: string }
+    fri?: { morning?: string; afternoon?: string; evening?: string }
+    sat?: { morning?: string; afternoon?: string; evening?: string }
+  }
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 // ─── HELPERS LOCAIS ───────────────────────────────────────────────────────────
@@ -102,19 +114,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   // ── 1. Instituição Concedente ─────────────────────────────────────────────
   const companySection: Content = {
     stack: [
-      {
-        table: {
-          widths: ['*'],
-          body: [[{
-            text: '1. INSTITUIÇÃO CONCEDENTE',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, true] as [boolean, boolean, boolean, boolean],
-          }]],
-        },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#000000', vLineColor: () => '#000000' },
-        margin: [0, 4, 0, 0] as [number, number, number, number],
-      },
+      sectionTitle('1. INSTITUIÇÃO CONCEDENTE'),
       dataTable(
         ['50%', '25%', '25%'],
         [
@@ -136,19 +136,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
         ]
       ),
       // Sub-seção representante
-      {
-        table: {
-          widths: ['*'],
-          body: [[{
-            text: 'REPRESENTANTE LEGAL',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, true] as [boolean, boolean, boolean, boolean],
-          }]],
-        },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#000000', vLineColor: () => '#000000' },
-        margin: [0, 0, 0, 0] as [number, number, number, number],
-      },
+      sectionTitle('REPRESENTANTE LEGAL'),
       dataTable(
         ['40%', '25%', '20%', '15%'],
         [[
@@ -164,19 +152,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   // ── 2. Discente ───────────────────────────────────────────────────────────
   const studentSection: Content = {
     stack: [
-      {
-        table: {
-          widths: ['*'],
-          body: [[{
-            text: '2. DISCENTE ESTAGIÁRIO(A)',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, true] as [boolean, boolean, boolean, boolean],
-          }]],
-        },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#000000', vLineColor: () => '#000000' },
-        margin: [0, 4, 0, 0] as [number, number, number, number],
-      },
+      sectionTitle('2. DISCENTE ESTAGIÁRIO(A)'),
       dataTable(
         ['35%', '20%', '20%', '25%'],
         [
@@ -212,19 +188,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   // ── 3. Detalhes do Estágio ────────────────────────────────────────────────
   const internshipSection: Content = {
     stack: [
-      {
-        table: {
-          widths: ['*'],
-          body: [[{
-            text: '3. DETALHES DO ESTÁGIO',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, true] as [boolean, boolean, boolean, boolean],
-          }]],
-        },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#000000', vLineColor: () => '#000000' },
-        margin: [0, 4, 0, 0] as [number, number, number, number],
-      },
+      sectionTitle('3. DETALHES DO ESTÁGIO'),
       dataTable(
         ['40%', '20%', '20%', '20%'],
         [
@@ -248,19 +212,8 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   // ── 4. Orientador ─────────────────────────────────────────────────────────
   const advisorSection: Content = {
     stack: [
-      {
-        table: {
-          widths: ['*'],
-          body: [[{
-            text: '4. DOCENTE ORIENTADOR (IFCE)',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, true] as [boolean, boolean, boolean, boolean],
-          }]],
-        },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#000000', vLineColor: () => '#000000' },
-        margin: [0, 4, 0, 0] as [number, number, number, number],
-      },
+      sectionTitle('4. ORIENTAÇÃO E SUPERVISÃO'),
+      { text: 'DOCENTE ORIENTADOR (IFCE)', style: 'cellLabel', margin: [4, 4, 0, 2], bold: true },
       dataTable(
         ['40%', '20%', '20%', '20%'],
         [[
@@ -276,19 +229,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   // ── 5. Supervisor ─────────────────────────────────────────────────────────
   const supervisorSection: Content = {
     stack: [
-      {
-        table: {
-          widths: ['*'],
-          body: [[{
-            text: '5. SUPERVISOR DO ESTÁGIO (EMPRESA)',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, true] as [boolean, boolean, boolean, boolean],
-          }]],
-        },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#000000', vLineColor: () => '#000000' },
-        margin: [0, 4, 0, 0] as [number, number, number, number],
-      },
+      { text: 'SUPERVISOR DO ESTÁGIO (EMPRESA)', style: 'cellLabel', margin: [4, 4, 0, 2], bold: true },
       dataTable(
         ['30%', '25%', '20%', '25%'],
         [[
@@ -306,15 +247,62 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   }
 
   // ── 6. Plano de Atividades ────────────────────────────────────────────────
+  const schedule = d.schedule || {}
+  const scheduleTable = dataTable(
+    ['16%', '14%', '14%', '14%', '14%', '14%', '14%'],
+    [
+      [
+        { text: 'TURNO', style: 'tableHeader', alignment: 'center' },
+        { text: 'SEG', style: 'tableHeader', alignment: 'center' },
+        { text: 'TER', style: 'tableHeader', alignment: 'center' },
+        { text: 'QUA', style: 'tableHeader', alignment: 'center' },
+        { text: 'QUI', style: 'tableHeader', alignment: 'center' },
+        { text: 'SEX', style: 'tableHeader', alignment: 'center' },
+        { text: 'SÁB', style: 'tableHeader', alignment: 'center' },
+      ],
+      [
+        { text: 'Manhã', style: 'cellLabel', margin: [0, 2] },
+        { text: v(schedule.mon?.morning), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.tue?.morning), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.wed?.morning), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.thu?.morning), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.fri?.morning), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.sat?.morning), style: 'cellValue', alignment: 'center' },
+      ],
+      [
+        { text: 'Tarde', style: 'cellLabel', margin: [0, 2] },
+        { text: v(schedule.mon?.afternoon), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.tue?.afternoon), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.wed?.afternoon), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.thu?.afternoon), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.fri?.afternoon), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.sat?.afternoon), style: 'cellValue', alignment: 'center' },
+      ],
+      [
+        { text: 'Noite', style: 'cellLabel', margin: [0, 2] },
+        { text: v(schedule.mon?.evening), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.tue?.evening), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.wed?.evening), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.thu?.evening), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.fri?.evening), style: 'cellValue', alignment: 'center' },
+        { text: v(schedule.sat?.evening), style: 'cellValue', alignment: 'center' },
+      ],
+    ]
+  )
+
   const activitiesSection: Content[] = [
-    ...sectionBlock('6. PLANO DE ATIVIDADES — ATIVIDADES A DESENVOLVER', v(d.activities_description)),
+    sectionTitle('5. PLANO DE ATIVIDADES'),
+    scheduleTable,
+    ...sectionBlock('ATIVIDADES A DESENVOLVER', v(d.activities_description)),
     ...sectionBlock('RESULTADOS ESPERADOS', v(d.expected_results)),
   ]
 
   // ── Assinaturas ───────────────────────────────────────────────────────────
   const signatures = sigBlock(
     ['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'],
-    'Pelo presente Termo de Compromisso, as partes ajustam o estágio nas condições acima.'
+    'Pelo presente Termo de Compromisso, as partes ajustam o estágio nas condições acima.',
+    fmtDate(d.solicitation_date),
+    fmtDate(d.authorization_date)
   )
 
   // ── Montagem final ────────────────────────────────────────────────────────

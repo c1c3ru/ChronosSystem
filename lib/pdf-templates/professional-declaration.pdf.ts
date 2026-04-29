@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface ProfessionalDeclarationData {
   company_name?: string
@@ -14,6 +14,8 @@ export interface ProfessionalDeclarationData {
   role?: string
   weekly_hours?: string
   activities?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 export async function buildProfessionalDeclarationDoc(d: ProfessionalDeclarationData): Promise<TDocumentDefinitions> {
@@ -82,15 +84,20 @@ export async function buildProfessionalDeclarationDoc(d: ProfessionalDeclaration
   const content: Content[] = [
     ...header,
     docTitle('Declaração de Atividades Profissionais'),
-    ...sectionBlock('DADOS DA EMPRESA'),
+    sectionTitle('DADOS DA EMPRESA'),
     companyTable,
-    ...sectionBlock('DADOS DO FUNCIONÁRIO'),
+    sectionTitle('DADOS DO FUNCIONÁRIO'),
     employeeTableFixed,
-    ...sectionBlock('DADOS DO VÍNCULO'),
+    sectionTitle('DADOS DO VÍNCULO'),
     linkTable,
     ...sectionBlock('DESCRIÇÃO DAS ATIVIDADES', v(d.activities)),
-    { text: `${v(d.city) || 'Fortaleza'}, ____ de ______________ de _______`, alignment: 'right', margin: [0, 20, 0, 0] },
-    ...sigBlock(['Representante da Empresa', 'Funcionário']),
+    { text: `${v(d.city) || 'Fortaleza'}, ____ de ______________ de _______`, alignment: 'right', margin: [0, 10, 0, 5] },
+    ...sigBlock(
+      ['Representante da Empresa', 'Funcionário'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface InternshipRegistrationData {
   student_name?: string
@@ -17,7 +17,7 @@ export interface InternshipRegistrationData {
   student_race?: string
   student_ethnicity?: string
   student_ethnicity_community?: string
-  student_disability?: string
+  student_disability?: string[]
   company_name?: string
   company_fantasy_name?: string
   company_cnpj?: string
@@ -41,10 +41,43 @@ export interface InternshipRegistrationData {
   start_date?: string
   end_date?: string
   weekly_hours?: string
+  // Quadro de Horários
+  schedule?: {
+    mon?: { morning?: string; afternoon?: string; evening?: string }
+    tue?: { morning?: string; afternoon?: string; evening?: string }
+    wed?: { morning?: string; afternoon?: string; evening?: string }
+    thu?: { morning?: string; afternoon?: string; evening?: string }
+    fri?: { morning?: string; afternoon?: string; evening?: string }
+    sat?: { morning?: string; afternoon?: string; evening?: string }
+  }
+  solicitation_date?: string
+  authorization_date?: string
 }
 
-function chkRace(selected: string | undefined, value: string) {
-  return selected === value ? '(X)' : '( )'
+const COR_RACA_LABEL: Record<string, string> = {
+  amarelo: 'Amarelo(a)',
+  branco: 'Branco(a)',
+  indigena: 'Indígena',
+  pardo: 'Pardo(a)',
+  preto: 'Preto(a)',
+  nao_declarar: 'Prefiro não declarar',
+}
+
+const ETNIA_LABEL: Record<string, string> = {
+  indigena: 'Indígena',
+  quilombola: 'Quilombola',
+  outra: 'Outra',
+  nao_declarar: 'Prefiro não declarar',
+}
+
+const DEF_LABELS: Record<string, string> = {
+  alta_habilidade: 'Alta habilidade/superdotação',
+  auditiva: 'Def. auditiva',
+  intelectual: 'Def. intelectual',
+  motora: 'Def. motora',
+  visual_baixa: 'Def. visual/baixa visão',
+  visual: 'Def. visual',
+  surdocegueira: 'Surdocegueira',
 }
 
 export async function buildInternshipRegistrationDoc(d: InternshipRegistrationData): Promise<TDocumentDefinitions> {
@@ -60,14 +93,14 @@ export async function buildInternshipRegistrationDoc(d: InternshipRegistrationDa
     ]
   )
 
-  const raceText = [
-    `${chkRace(d.student_race, 'amarelo')} Amarelo`,
-    `${chkRace(d.student_race, 'branco')} Branco`,
-    `${chkRace(d.student_race, 'indigena')} Indígena`,
-    `${chkRace(d.student_race, 'pardo')} Pardo`,
-    `${chkRace(d.student_race, 'preto')} Preto`,
-    `${chkRace(d.student_race, 'nao_declarar')} Prefiro não declarar`,
-  ].join('   ')
+  const raceText = COR_RACA_LABEL[d.student_race ?? ''] ?? v(d.student_race)
+  const etniaText = ETNIA_LABEL[d.student_ethnicity ?? ''] ?? v(d.student_ethnicity)
+  const defText = (d.student_disability ?? []).map((k) => DEF_LABELS[k] ?? k).join(', ') || 'Nenhuma'
+
+  const complementTable = dataTable(
+    ['33%', '33%', '34%'],
+    [[cell('Cor/Raça', raceText), cell('Etnia', etniaText), cell('Deficiência', defText)]]
+  )
 
   const companyTable = dataTable(
     ['35%', '25%', '20%', '20%'],
@@ -99,15 +132,61 @@ export async function buildInternshipRegistrationDoc(d: InternshipRegistrationDa
   const content: Content[] = [
     ...header,
     docTitle('Solicitação de Cadastro no Estágio'),
-    ...sectionBlock('1. DADOS DO DISCENTE'),
+    sectionTitle('1. DADOS DO DISCENTE'),
     studentTable,
-    dataTable(['*'], [[cell('COR/RAÇA', raceText)]]),
-    ...sectionBlock('2. INSTITUIÇÃO CONCEDENTE'),
+    complementTable,
+    sectionTitle('2. INSTITUIÇÃO CONCEDENTE'),
     companyTable,
-    ...sectionBlock('3. INFORMAÇÕES DO ESTÁGIO'),
+    sectionTitle('3. INFORMAÇÕES DO ESTÁGIO'),
     internshipTable,
-    ...sigBlock(['Discente', 'Responsável Legal', 'Supervisor do Estágio'],
-      'Declaro que as informações acima são verdadeiras.'),
+    { text: 'QUADRO DE HORÁRIOS', style: 'cellLabel', margin: [0, 4, 0, 2], bold: true },
+    dataTable(
+      ['16%', '14%', '14%', '14%', '14%', '14%', '14%'],
+      [
+        [
+          { text: 'TURNO', style: 'tableHeader', alignment: 'center' },
+          { text: 'SEG', style: 'tableHeader', alignment: 'center' },
+          { text: 'TER', style: 'tableHeader', alignment: 'center' },
+          { text: 'QUA', style: 'tableHeader', alignment: 'center' },
+          { text: 'QUI', style: 'tableHeader', alignment: 'center' },
+          { text: 'SEX', style: 'tableHeader', alignment: 'center' },
+          { text: 'SÁB', style: 'tableHeader', alignment: 'center' },
+        ],
+        [
+          { text: 'Manhã', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.schedule?.mon?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.tue?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.wed?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.thu?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.fri?.morning), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.sat?.morning), style: 'cellValue', alignment: 'center' },
+        ],
+        [
+          { text: 'Tarde', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.schedule?.mon?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.tue?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.wed?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.thu?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.fri?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.sat?.afternoon), style: 'cellValue', alignment: 'center' },
+        ],
+        [
+          { text: 'Noite', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.schedule?.mon?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.tue?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.wed?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.thu?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.fri?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.schedule?.sat?.evening), style: 'cellValue', alignment: 'center' },
+        ],
+      ]
+    ),
+    ...sigBlock(
+      ['Discente', 'Responsável Legal', 'Supervisor do Estágio'],
+      'Declaro que as informações acima são verdadeiras.',
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

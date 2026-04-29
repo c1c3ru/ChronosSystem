@@ -133,11 +133,11 @@ export const STYLES: StyleDictionary = {
 
   // Título do documento
   docTitle: {
-    fontSize: 11,
+    fontSize: 10,
     bold: true,
     alignment: 'center',
     color: '#000000',
-    margin: [0, 2, 0, 8],
+    margin: [0, 2, 0, 4],
   },
 
   // Rótulo de célula (label pequeno acima do valor)
@@ -164,7 +164,7 @@ export const STYLES: StyleDictionary = {
   sectionBody: {
     fontSize: 8,
     color: '#000000',
-    lineHeight: 1.35,
+    lineHeight: 1.2,
   },
 
   // Cabeçalho de coluna de tabela
@@ -230,12 +230,12 @@ export async function ifceHeader(): Promise<Content[]> {
 
   const header: ContentColumns = {
     columns: [
-      {
+      logo ? {
         image: logo,
         width: 54,
         height: 54,
         margin: [0, 0, 8, 0],
-      },
+      } : { text: '', width: 54 },
       {
         stack: [
           { text: 'PRÓ-REITORIA DE EXTENSÃO', style: 'headerInstitution' },
@@ -247,12 +247,12 @@ export async function ifceHeader(): Promise<Content[]> {
         alignment: 'center',
         width: '*',
       },
-      {
+      brasao ? {
         image: brasao,
         width: 54,
         height: 54,
         margin: [8, 0, 0, 0],
-      },
+      } : { text: '', width: 54 },
     ],
     columnGap: 0,
     margin: [0, 0, 0, 6],
@@ -285,20 +285,48 @@ export function cell(label: string, value?: string, options?: CellOptions): Tabl
 
 /**
  * Célula vazia de preenchimento (para preencher colSpan).
- * pdfmake exige uma célula por coluna mesmo em colSpan.
+ * Para colSpan, o pdfMake recomenda um objeto vazio.
  */
-export function emptyCell(): TableCell {
-  return { text: '', border: [false, false, false, false] }
+export function emptyCell(): any {
+  return {}
 }
 
 /**
- * Faixa de título de seção (cinza, negrito, uppercase) + corpo.
+ * Apenas a barra de título da seção (cinza, negrito, uppercase).
+ * Usado quando a seção é seguida por uma tabela de dados.
+ */
+export function sectionTitle(title: string): Content {
+  return {
+    table: {
+      widths: ['*'],
+      body: [
+        [{
+          text: title.toUpperCase(),
+          style: 'sectionBar',
+          margin: [4, 2, 4, 2],
+          border: [true, true, true, true],
+        }],
+      ],
+    },
+    layout: {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0.5,
+      hLineColor: () => '#000000',
+      vLineColor: () => '#000000',
+      fillColor: (rowIndex: number) => (rowIndex === 0 ? '#E0E0E0' : null),
+    },
+    margin: [0, 4, 0, 0],
+  }
+}
+
+/**
+ * Bloco de seção com título e corpo.
+ * Se o conteúdo for omitido, gera apenas o título (estilo barra).
  */
 export function sectionBlock(title: string, content?: string): Content[] {
-  // pdfmake does not have minHeight on TableCell — we simulate it with bottom padding
-  const bodyText = content ?? ''
-  // Add blank lines to reach ~42pt min height when content is short
-  const paddedText = bodyText || '\n\n\n'
+  if (!content) {
+    return [sectionTitle(title)]
+  }
 
   return [
     {
@@ -308,14 +336,14 @@ export function sectionBlock(title: string, content?: string): Content[] {
           [{
             text: title.toUpperCase(),
             style: 'sectionBar',
-            margin: [4, 2, 4, 2] as [number, number, number, number],
-            border: [true, true, true, false] as [boolean, boolean, boolean, boolean],
+            margin: [4, 2, 4, 2],
+            border: [true, true, true, false],
           }],
           [{
-            text: paddedText,
+            text: content,
             style: 'sectionBody',
-            margin: [4, 4, 4, 24] as [number, number, number, number],
-            border: [true, false, true, true] as [boolean, boolean, boolean, boolean],
+            margin: [4, 4, 4, 8],
+            border: [true, false, true, true],
           }],
         ],
       },
@@ -325,7 +353,7 @@ export function sectionBlock(title: string, content?: string): Content[] {
         hLineColor: () => '#000000',
         vLineColor: () => '#000000',
       },
-      margin: [0, 4, 0, 4] as [number, number, number, number],
+      margin: [0, 3, 0, 3],
     },
   ]
 }
@@ -360,13 +388,13 @@ export function dataTable(
 /**
  * Bloco de datas (SOLICITAÇÃO / AUTORIZAÇÃO) + linhas de assinatura.
  */
-export function sigBlock(labels: string[], obs?: string): Content[] {
+export function sigBlock(labels: string[], obs?: string, requestDate?: string, approvalDate?: string): Content[] {
   const dateRow: ContentTable = {
     table: {
       widths: ['*', '*'],
       body: [[
-        { text: [{ text: 'SOLICITAÇÃO EM ', bold: true, fontSize: 7 }, { text: '____/____/______', fontSize: 7 }], border: [true, true, false, true], margin: [4, 3, 4, 3] },
-        { text: [{ text: 'AUTORIZAÇÃO EM ', bold: true, fontSize: 7 }, { text: '____/____/______', fontSize: 7 }], border: [false, true, true, true], margin: [4, 3, 4, 3] },
+        { text: [{ text: 'SOLICITAÇÃO EM ', bold: true, fontSize: 7 }, { text: requestDate || '____/____/______', fontSize: 7 }], border: [true, true, false, true], margin: [4, 3, 4, 3] },
+        { text: [{ text: 'AUTORIZAÇÃO EM ', bold: true, fontSize: 7 }, { text: approvalDate || '____/____/______', fontSize: 7 }], border: [false, true, true, true], margin: [4, 3, 4, 3] },
       ]],
     },
     layout: {

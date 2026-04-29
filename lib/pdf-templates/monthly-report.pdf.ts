@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface MonthlyReportData {
   student_name?: string
@@ -14,6 +14,8 @@ export interface MonthlyReportData {
   activities?: string
   difficulties?: string
   solutions?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 export async function buildMonthlyReportDoc(d: MonthlyReportData): Promise<TDocumentDefinitions> {
@@ -44,12 +46,17 @@ export async function buildMonthlyReportDoc(d: MonthlyReportData): Promise<TDocu
   const content: Content[] = [
     ...header,
     docTitle('Relatório Mensal de Atividades'),
-    ...sectionBlock('IDENTIFICAÇÃO E PERÍODO'),
+    sectionTitle('IDENTIFICAÇÃO E PERÍODO'),
     identTable,
     ...sectionBlock('ATIVIDADES DESENVOLVIDAS', v(d.activities)),
     ...sectionBlock('DIFICULDADES ENCONTRADAS', v(d.difficulties)),
     ...sectionBlock('SOLUÇÕES ADOTADAS', v(d.solutions)),
-    ...sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador']),
+    ...sigBlock(
+      ['Supervisor do Estágio', 'Discente Estagiário', 'Docente Orientador'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, cell, emptyCell, dataTable, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, cell, emptyCell, dataTable, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface EquivalenceRequestData {
   student_name?: string
@@ -22,6 +22,8 @@ export interface EquivalenceRequestData {
   doc_activities_declaration?: string
   doc_other?: string
   doc_other_desc?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 function chk(checked: boolean, label: string) {
@@ -85,14 +87,19 @@ export async function buildEquivalenceRequestDoc(d: EquivalenceRequestData): Pro
   const content: Content[] = [
     ...header,
     docTitle('Solicitação de Equivalência de Estágio'),
-    ...sectionBlock('DADOS DO DISCENTE'),
+    sectionTitle('DADOS DO DISCENTE'),
     studentTable,
-    ...sectionBlock('DADOS DA EMPRESA'),
+    sectionTitle('DADOS DA EMPRESA'),
     companyTable,
     ...sectionBlock('ATIVIDADES REALIZADAS', v(d.activities)),
     periodTable,
     cell('DOCUMENTOS ANEXOS', docsChecks) as Content,
-    ...sigBlock(['Discente', 'Coordenador de Estágios']),
+    ...sigBlock(
+      ['Discente', 'Coordenador de Estágios'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content, TableCell } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface FinalReportData {
   student_name?: string
@@ -28,6 +28,8 @@ export interface FinalReportData {
   eval_quality?: string
   eval_organization?: string
   eval_creativity?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 const EVAL_LABELS: Record<string, string> = {
@@ -83,13 +85,18 @@ export async function buildFinalReportDoc(d: FinalReportData): Promise<TDocument
   const content: Content[] = [
     ...header,
     docTitle('Relatório Final de Atividades de Estágio'),
-    ...sectionBlock('IDENTIFICAÇÃO E PERÍODO'),
+    sectionTitle('IDENTIFICAÇÃO E PERÍODO'),
     identTable,
     ...sectionBlock('ATIVIDADES DESENVOLVIDAS', v(d.activities)),
-    ...sectionBlock('AVALIAÇÃO DO DISCENTE (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Satisfatório)'),
+    sectionTitle('AVALIAÇÃO DO DISCENTE (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Satisfatório)'),
     evalTable,
     ...sectionBlock('OBSERVAÇÕES E COMENTÁRIOS', v(d.comments)),
-    ...sigBlock(['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios']),
+    ...sigBlock(
+      ['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }

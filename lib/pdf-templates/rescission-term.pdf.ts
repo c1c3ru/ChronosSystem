@@ -1,5 +1,5 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
 
 export interface RescissionTermData {
   student_name?: string
@@ -22,6 +22,8 @@ export interface RescissionTermData {
   rescission_date?: string
   rescission_reason?: string
   city?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDocumentDefinitions> {
@@ -77,16 +79,18 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
   const content: Content[] = [
     ...header,
     docTitle('Termo de Rescisão de Contrato de Estágio'),
-    ...sectionBlock('1. DADOS DO ESTAGIÁRIO'),
+    sectionTitle('1. DADOS DO ESTAGIÁRIO'),
     studentTable,
-    ...sectionBlock('2. DADOS DA EMPRESA CONCEDENTE'),
+    sectionTitle('2. DADOS DA EMPRESA CONCEDENTE'),
     companyTable,
-    ...sectionBlock('3. DADOS DO ESTÁGIO E RESCISÃO'),
+    sectionTitle('3. DADOS DO ESTÁGIO E RESCISÃO'),
     datesTable,
     ...sectionBlock('MOTIVO DA RESCISÃO', v(d.rescission_reason)),
     ...sigBlock(
       ['Discente Estagiário', 'Representante Legal da Empresa', 'Coordenador de Estágios'],
-      'Declaro que as informações acima são verdadeiras.'
+      'Declaro que as informações acima são verdadeiras.',
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
     ),
   ]
 

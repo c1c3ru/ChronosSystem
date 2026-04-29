@@ -10,6 +10,8 @@ export interface ExtensionDeclarationData {
   current_end_date?: string
   new_end_date?: string
   city?: string
+  solicitation_date?: string
+  authorization_date?: string
 }
 
 export async function buildExtensionDeclarationDoc(d: ExtensionDeclarationData): Promise<TDocumentDefinitions> {
@@ -61,7 +63,12 @@ export async function buildExtensionDeclarationDoc(d: ExtensionDeclarationData):
     infoTable,
     datesTable,
     bodyText,
-    ...sigBlock(['Discente Estagiário', 'Coordenador de Estágios']),
+    ...sigBlock(
+      ['Discente Estagiário', 'Coordenador de Estágios'],
+      undefined,
+      fmtDate(d.solicitation_date),
+      fmtDate(d.authorization_date)
+    ),
   ]
 
   return { content }
