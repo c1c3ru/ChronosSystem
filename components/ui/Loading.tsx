@@ -42,9 +42,17 @@ export function LoadingScreen({ text = 'Carregando...' }: { text?: string }) {
   )
 }
 
-export function LoadingButton({ children, loading, ...props }: any) {
+export function LoadingButton({
+  children,
+  loading,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
   return (
-    <button {...props} disabled={loading || props.disabled} aria-busy={loading}>
+    <button
+      {...props}
+      disabled={loading || props.disabled}
+      {...(loading ? { 'aria-busy': 'true' } : { 'aria-busy': 'false' })}
+    >
       {loading && (
         <div
           className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"

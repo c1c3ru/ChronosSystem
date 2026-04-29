@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type ConsoleMessage } from '@playwright/test'
 
 test.describe('Test Credential Users', () => {
   test('🔍 Verificar se usuários de credenciais não vão para complete-profile', async ({
@@ -7,9 +7,13 @@ test.describe('Test Credential Users', () => {
     console.log('🔍 Testando usuários de credenciais...')
 
     // Interceptar console logs
-    const consoleLogs: any[] = []
-    page.on('console', (msg) => {
-      const log = {
+    interface ConsoleLog {
+      type: string
+      text: string
+    }
+    const consoleLogs: ConsoleLog[] = []
+    page.on('console', (msg: ConsoleMessage) => {
+      const log: ConsoleLog = {
         type: msg.type(),
         text: msg.text(),
       }

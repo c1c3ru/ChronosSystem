@@ -5,9 +5,31 @@ test.describe('Debug JavaScript Errors', () => {
     console.log(' Investigando erros JavaScript...')
 
     // Capturar todos os logs e erros
-    const allLogs: any[] = []
-    const pageErrors: any[] = []
-    const failedRequests: any[] = []
+    interface DebugLog {
+      type: string
+      text: string
+      location?: {
+        url: string
+        lineNumber: number
+        columnNumber: number
+      }
+    }
+
+    interface DebugPageError {
+      message: string
+      stack?: string
+    }
+
+    interface DebugFailedRequest {
+      url: string
+      failure: {
+        errorText: string
+      } | null
+    }
+
+    const allLogs: DebugLog[] = []
+    const pageErrors: DebugPageError[] = []
+    const failedRequests: DebugFailedRequest[] = []
 
     page.on('console', (msg) => {
       const log = {
@@ -79,7 +101,7 @@ test.describe('Debug JavaScript Errors', () => {
     const jsTest = await page.evaluate(() => {
       try {
         // Testar se React está carregado
-        const hasReact = typeof (window as any).React !== 'undefined'
+        const hasReact = typeof (window as unknown as { React: unknown }).React !== 'undefined'
 
         // Testar se conseguimos acessar elementos do DOM
         const form = document.querySelector('form')

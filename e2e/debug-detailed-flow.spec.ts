@@ -85,7 +85,7 @@ test.describe('Debug Detailed Flow', () => {
           console.log('✅ Redirecionado para complete-profile!')
 
           // Interceptar API calls
-          const apiCalls: any[] = []
+          const apiCalls: Array<{ url: string; status: number; method: string }> = []
           page.on('response', (response) => {
             if (response.url().includes('/api/')) {
               apiCalls.push({

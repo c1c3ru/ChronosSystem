@@ -5,7 +5,7 @@ declare global {
     interface Matchers<R> {
       toBeInTheDocument(): R
       toHaveClass(className: string): R
-      toHaveStyle(style: Record<string, any>): R
+      toHaveStyle(style: Record<string, string | number>): R
       toBeVisible(): R
       toBeDisabled(): R
       toBeEnabled(): R

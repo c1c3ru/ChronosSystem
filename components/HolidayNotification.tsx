@@ -30,7 +30,7 @@ export function HolidayNotification() {
           const nextWeek = new Date(today)
           nextWeek.setDate(today.getDate() + 7)
 
-          const next = data.holidays.find((h: any) => {
+          const next = data.holidays.find((h: Holiday) => {
             const hDate = new Date(h.date)
             return hDate >= today && hDate <= nextWeek
           })

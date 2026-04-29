@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Calendar, Clock, Target, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import {
@@ -79,13 +80,15 @@ export default function InternshipTimeline({
           </div>
 
           <div className="w-full bg-neutral-700 rounded-full h-3 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(progress.progressPercentage, 100)}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              className={`h-full rounded-full ${
                 progress.isOnTrack
                   ? 'bg-gradient-to-r from-success-500 to-primary-500'
                   : 'bg-gradient-to-r from-warning-500 to-error-500'
               }`}
-              style={{ width: `${Math.min(progress.progressPercentage, 100)}%` }}
             />
           </div>
         </div>

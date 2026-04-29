@@ -162,7 +162,7 @@ test.describe('QR Scanner - Compatibilidade entre Navegadores', () => {
 
     // Mock específico para Chrome
     await page.addInitScript(() => {
-      ;(window as any).BarcodeDetector = class {
+      ;(window as unknown as { BarcodeDetector: unknown }).BarcodeDetector = class {
         constructor() {}
         async detect() {
           return [{ rawValue: 'CHROME_TEST_QR' }]
@@ -185,7 +185,7 @@ test.describe('QR Scanner - Compatibilidade entre Navegadores', () => {
 
     // Mock específico para Firefox (sem BarcodeDetector)
     await page.addInitScript(() => {
-      delete (window as any).BarcodeDetector
+      delete (window as unknown as { BarcodeDetector?: unknown }).BarcodeDetector
     })
 
     await helper.setupCameraMocks()
@@ -203,7 +203,7 @@ test.describe('QR Scanner - Compatibilidade entre Navegadores', () => {
 
     // Mock específico para Safari (sem BarcodeDetector)
     await page.addInitScript(() => {
-      delete (window as any).BarcodeDetector
+      delete (window as unknown as { BarcodeDetector?: unknown }).BarcodeDetector
     })
 
     await helper.setupCameraMocks()

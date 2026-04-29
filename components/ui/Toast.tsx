@@ -23,21 +23,24 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined)
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
-  const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9)
-    const newToast = { ...toast, id }
-
-    setToasts((prev) => [...prev, newToast])
-
-    // Auto remove after duration
-    setTimeout(() => {
-      removeToast(id)
-    }, toast.duration || 5000)
-  }, [])
-
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
+
+  const addToast = useCallback(
+    (toast: Omit<Toast, 'id'>) => {
+      const id = Math.random().toString(36).substr(2, 9)
+      const newToast = { ...toast, id }
+
+      setToasts((prev) => [...prev, newToast])
+
+      // Auto remove after duration
+      setTimeout(() => {
+        removeToast(id)
+      }, toast.duration || 5000)
+    },
+    [removeToast]
+  )
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
@@ -103,6 +106,8 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
       <button
         onClick={onRemove}
         className="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+        title="Fechar"
+        aria-label="Fechar notificação"
       >
         <X className="h-4 w-4" />
       </button>

@@ -9,7 +9,9 @@ interface DiagnosticResult {
   status?: boolean
   message: string
   error?: string
-  [key: string]: any
+  devices?: Array<{ id: string; label: string }>
+  userAgent?: string
+  [key: string]: string | number | boolean | undefined | string[] | Array<{ id: string; label: string }>
 }
 
 export default function QRDiagnosticPage() {

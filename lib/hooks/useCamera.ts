@@ -101,7 +101,7 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
         ]
 
         let stream: MediaStream | null = null
-        let lastErr: any = null
+        let lastErr: unknown = null
 
         for (let i = 0; i < constraints.length; i++) {
           qrLogger.debug(`[CAMERA-HOOK] Tentando configuração de câmera ${i + 1}`)
@@ -138,12 +138,13 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
         setFacingMode(mode)
         onStreamStartedRef.current?.(stream)
         qrLogger.info('[CAMERA-HOOK] Câmera pronta e ativa')
-      } catch (err: any) {
-        const msg = err.message || 'Erro ao acessar câmera'
+      } catch (err: unknown) {
+        const error = err as Error
+        const msg = error.message || 'Erro ao acessar câmera'
         qrLogger.error('[CAMERA-HOOK] Erro fatal ao iniciar câmera', {
-          name: err.name,
+          name: error.name,
           message: msg,
-          stack: err.stack,
+          stack: error.stack,
         })
         setError(msg)
         setIsLoading(false)

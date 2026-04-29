@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useCamera } from '@/lib/hooks/useCamera'
 import { useQRScanner } from '@/lib/hooks/useQRScanner'
+import { type QRValidationResult } from '@/lib/qr-validation'
 
 interface QRScannerProps {
   onScan: (data: string) => void
@@ -171,7 +172,11 @@ const QRScannerError = React.memo(function QRScannerError({
   )
 })
 
-const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { validation: any }) {
+const QRScannerOverlay = React.memo(function QRScannerOverlay({
+  validation,
+}: {
+  validation: QRValidationResult | null
+}) {
   return (
     <>
       {/* Moldura de scanning */}
@@ -185,14 +190,9 @@ const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { 
         </div>
       </div>
 
-      {/* Dimmed background around selection */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div
-          className="absolute inset-0 bg-black/50"
-          style={{
-            clipPath:
-              'polygon(0% 0%, 0% 100%, calc(50% - 128px) 100%, calc(50% - 128px) calc(50% - 128px), calc(50% + 128px) calc(50% - 128px), calc(50% + 128px) calc(50% + 128px), calc(50% - 128px) calc(50% + 128px), calc(50% - 128px) 100%, 100% 100%, 100% 0%)',
-          }}
+          className="absolute inset-0 bg-black/50 [clip-path:polygon(0%_0%,_0%_100%,_calc(50%_-_128px)_100%,_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_+_128px),_calc(50%_-_128px)_calc(50%_+_128px),_calc(50%_-_128px)_100%,_100%_100%,_100%_0%)]"
         />
       </div>
 

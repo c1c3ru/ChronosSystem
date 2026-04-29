@@ -9,13 +9,17 @@ interface UseQRScannerProps {
   enabled: boolean
 }
 
+interface BarcodeDetector {
+  detect(image: ImageBitmapSource): Promise<Array<{ rawValue: string }>>
+}
+
 export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const [validation, setValidation] = useState<QRValidationResult | null>(null)
   const [lastError, setLastError] = useState<string | null>(null)
-  const barcodeDetectorRef = useRef<any>(null)
-  const jsQRRef = useRef<any>(null)
+  const barcodeDetectorRef = useRef<BarcodeDetector | null>(null)
+  const jsQRRef = useRef<((data: Uint8ClampedArray, width: number, height: number, options?: { inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst' }) => { data: string } | null) | null>(null)
   const isLoadingLibRef = useRef(false)
 
   // Use ref to stabilize the callback identity

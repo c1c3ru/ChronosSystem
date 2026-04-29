@@ -27,7 +27,7 @@ import type {
 let _pdfMake: typeof import('pdfmake/build/pdfmake') | null = null
 
 interface PdfMakeDynamicModule {
-  default?: any
+  default?: unknown
   vfs: Record<string, string>
 }
 

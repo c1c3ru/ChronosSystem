@@ -23,7 +23,7 @@ export interface PDFSectionBase {
 export interface PDFTableSection extends PDFSectionBase {
   type: 'table'
   headers: string[]
-  rows: any[][]
+  rows: (string | number | boolean | null | undefined)[][]
 }
 
 export interface PDFParagraphSection extends PDFSectionBase {
@@ -41,4 +41,4 @@ export interface PDFSigatureLine {
 }
 
 // Helper type for form data mapping
-export type FormDataMap = Record<string, any>
+export type FormDataMap = Record<string, unknown>

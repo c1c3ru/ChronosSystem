@@ -28,19 +28,6 @@ function hParaMins(h: string) {
   return hrs * 60 + mins
 }
 
-const QRScannerOverlay = React.memo(function QRScannerOverlay({
-  validation,
-}: {
-  validation: {
-    isValid: boolean
-    type: 'SECURE' | 'NORMAL'
-    machineId?: string
-    error?: string
-  } | null
-}) {
-  return null
-})
-
 export function ehFimDeSemana(data: Date): boolean {
   const dia = data.getDay()
   return dia === 0 || dia === 6
@@ -81,7 +68,8 @@ export function determinarTipoRegistro(contexto: Record<string, unknown>) {
     return { type: 'ENTRY', reason: 'Primeiro registro do dia.', confidence: 'high' }
   }
 
-  const timestampUltimo = new Date(ultimoRegistro.timestamp || ultimoRegistro.createdAt)
+  const timestampValue = ultimoRegistro.timestamp || ultimoRegistro.createdAt || new Date()
+  const timestampUltimo = new Date(timestampValue)
   const tipoUltimo = ultimoRegistro.tipo || ultimoRegistro.type
   const diffHoras = (horaAtual.getTime() - timestampUltimo.getTime()) / (1000 * 60 * 60)
 
@@ -120,14 +108,13 @@ export async function validarRegistro(contexto: Record<string, unknown>, tipoSol
     createdAt?: string | Date
   } | null
   const possuiAutorizacao = (contexto.hasAuthorization || contexto.possuiAutorizacao || false) as boolean
-  // Interceptar API calls
-  const apiCalls: Array<{ url: string; status: number; method: string }> = []
   const erros: string[] = []
   const avisos: string[] = []
 
   // Proximidade
   if (ultimoPonto) {
-    const dataUltimo = new Date(ultimoPonto.timestamp || ultimoPonto.createdAt)
+    const timestampValue = ultimoPonto.timestamp || ultimoPonto.createdAt || new Date()
+    const dataUltimo = new Date(timestampValue)
     const diffMins = (data.getTime() - dataUltimo.getTime()) / (1000 * 60)
     // Usar <= para garantir bloqueio de 5 min exatos se necessário, mas o teste bloqueia 2 min
     if (diffMins < 5) {
@@ -165,7 +152,6 @@ export function detectarAtraso(data: Date, horario: HorarioTrabalho) {
   return {
     isLate: atraso > 0,
     minutesLate: atraso,
-    removeToast(id: string) {},
     requiresJustification: atraso > 30,
   }
 }
@@ -219,12 +205,9 @@ export function analisarDiaParaJustificativa(
       requiresJustification = true
       justificationReason = 'Falta de registro de entrada'
     } else if (!temSaida) {
-      if (typeof window !== 'undefined') { /* onSuccess() */ }
-    } catch (error: unknown) {
-      const err = error as Error
-      // toast.error(err.message)
-      // setIsPaused(false)
-    } finally {
+      requiresJustification = true
+      justificationReason = 'Falta de registro de saída'
+    } else {
       const recordEntrada = entradaParams as { timestamp?: string | Date; createdAt?: string | Date }
       const recordSaida = saidaParams as { timestamp?: string | Date; createdAt?: string | Date }
 
@@ -277,7 +260,6 @@ export {
 export type AttendanceRecordType = 'ENTRY' | 'EXIT'
 
 import { validateProximity } from './geolocation'
-import React from 'react'
 
 export class AttendanceLogic {
   /**
@@ -296,10 +278,6 @@ export class AttendanceLogic {
     date: Date = new Date(),
     hasAuthorization: boolean = false
   ) {
-    const next = (contexto: any) => contexto.holidays.find((h: any) => {
-      const hDate = new Date(h.date)
-      return true
-    })
     return await validarRegistro(
       {
         ultimoRegistro: lastRecord,
@@ -329,8 +307,8 @@ export class AttendanceLogic {
 
     // Verificar registros duplicados em sequência
     for (let i = 1; i < records.length; i++) {
-      const typeCurrent = records[i].type || records[i].tipo
-      const typePrev = records[i - 1].type || records[i - 1].tipo
+      const typeCurrent = records[i].type || (records[i] as { tipo?: string }).tipo
+      const typePrev = records[i - 1].type || (records[i - 1] as { tipo?: string }).tipo
 
       if (typeCurrent === typePrev) {
         anomalies.push(`Sequência inválida: dois registros de ${typeCurrent} seguidos.`)

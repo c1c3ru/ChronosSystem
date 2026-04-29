@@ -28,7 +28,13 @@ export default function KioskPage() {
   const [qrError, setQrError] = useState<string | null>(null)
   const [isOnline, setIsOnline] = useState(true)
   const [timeLeft, setTimeLeft] = useState(0)
-  const [recentScans, setRecentScans] = useState<any[]>([])
+  interface RecentScan {
+    id: string
+    user: string
+    type: 'ENTRY' | 'EXIT'
+    timestamp: string
+  }
+  const [recentScans, setRecentScans] = useState<RecentScan[]>([])
   const [machines, setMachines] = useState<Machine[]>([])
   const [selectedMachineId, setSelectedMachineId] = useState<string>('')
   const [machineInfo, setMachineInfo] = useState({

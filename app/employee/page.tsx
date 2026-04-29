@@ -272,7 +272,11 @@ export default function EmployeePage() {
             totalHours: string
             status: string
             location: string
-            alerts: any[]
+            alerts: Array<{
+              type: string
+              message: string
+              severity: 'low' | 'medium' | 'high'
+            }>
             hasJustification: boolean
           }) => ({
             id: `day-${day.date}`,

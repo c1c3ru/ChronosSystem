@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import {
   Calendar,
   ArrowLeft,
@@ -345,8 +346,10 @@ export default function FrequencyPage() {
                         </span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
-                        {/* eslint-disable react/forbid-component-props */}
-                        <div
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(month.averageFrequency, 100)}%` }}
+                          transition={{ duration: 1, ease: 'easeOut' }}
                           className={`h-2 rounded-full ${
                             month.averageFrequency >= 95
                               ? 'bg-success'
@@ -354,9 +357,7 @@ export default function FrequencyPage() {
                                 ? 'bg-warning'
                                 : 'bg-error'
                           }`}
-                          style={{ width: `${Math.min(month.averageFrequency, 100)}%` }}
                         />
-                        {/* eslint-enable react/forbid-component-props */}
                       </div>
                     </div>
                   </div>

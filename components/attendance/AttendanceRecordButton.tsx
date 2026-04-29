@@ -75,8 +75,9 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
       )
 
       if (onSuccess) onSuccess()
-    } catch (error: any) {
-      toast.error(error.message)
+    } catch (error) {
+      const err = error as Error
+      toast.error(err.message)
       setIsPaused(false) // Permitir tentar novamente
     } finally {
       setLoading(false)

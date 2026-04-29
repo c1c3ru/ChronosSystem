@@ -7,7 +7,11 @@ import { Page, expect } from '@playwright/test'
 // Declarações TypeScript para objetos globais do teste
 declare global {
   interface Window {
-    BarcodeDetector?: any
+    BarcodeDetector?: {
+      new (options?: { formats?: string[] }): {
+        detect(image: ImageBitmapSource): Promise<Array<{ rawValue: string }>>
+      }
+    }
     onScan?: (data: string) => void
     processQrCode?: (data: string) => void
   }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import {
   FileText,
   Download,
@@ -260,14 +261,12 @@ export default function ReportsPage() {
                         <span className="text-sm text-neutral-400">{month.records} registros</span>
                       </div>
                       <div className="w-full bg-neutral-700 rounded-full h-2">
-                        {/* eslint-disable react/forbid-component-props */}
-                        <div
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((month.records / Math.max(...(reportData?.monthlyData?.map((m) => m.records) || [1]))) * 100, 100)}%` }}
+                          transition={{ duration: 1, ease: 'easeOut' }}
                           className="bg-primary h-2 rounded-full transition-all duration-500"
-                          style={{
-                            width: `${Math.min((month.records / Math.max(...(reportData?.monthlyData?.map((m) => m.records) || [1]))) * 100, 100)}%`,
-                          }}
                         />
-                        {/* eslint-enable react/forbid-component-props */}
                       </div>
                       {month.lateRecords > 0 && (
                         <div className="text-xs text-warning mt-1">{month.lateRecords} atrasos</div>
