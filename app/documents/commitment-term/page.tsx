@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
@@ -77,6 +78,7 @@ export default function CommitmentTermPage() {
     supervisor_cpf: '',
     supervisor_phone: '',
     supervisor_email: '',
+    supervisor_sector: '',
 
     // Plano de Atividades
     activities_description: '',
@@ -84,10 +86,14 @@ export default function CommitmentTermPage() {
     weekly_hours: '',
 
     // Horários (JSON string para simplificar)
-    schedule: JSON.stringify({
-      morning: { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '' },
-      afternoon: { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '' },
-      night: { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '' },
+    horarios: JSON.stringify({
+      segunda_feira: { inicio: '', final: '' },
+      terca_feira: { inicio: '', final: '' },
+      quarta_feira: { inicio: '', final: '' },
+      quinta_feira: { inicio: '', final: '' },
+      sexta_feira: { inicio: '', final: '' },
+      sabado: { inicio: '', final: '' },
+      domingo: { inicio: '', final: '' },
     }),
   })
 
@@ -141,10 +147,10 @@ export default function CommitmentTermPage() {
     }
   }
 
-  const handleScheduleChange = (shift: string, day: string, value: string) => {
-    const currentSchedule = JSON.parse(formData.schedule)
-    currentSchedule[shift][day] = value
-    setFormData((prev) => ({ ...prev, schedule: JSON.stringify(currentSchedule) }))
+  const handleScheduleChange = (day: string, field: 'inicio' | 'final', value: string) => {
+    const currentHorarios = JSON.parse(formData.horarios)
+    currentHorarios[day][field] = value
+    setFormData((prev) => ({ ...prev, horarios: JSON.stringify(currentHorarios) }))
   }
 
   const handleSaveDraft = async () => {
@@ -211,9 +217,13 @@ export default function CommitmentTermPage() {
         supervisor_cpf: formData.supervisor_cpf,
         supervisor_phone: formData.supervisor_phone,
         supervisor_email: formData.supervisor_email,
+        supervisor_sector: formData.supervisor_sector,
         // Plano
         activities_description: formData.activities_description,
         expected_results: formData.expected_results,
+        // Horários
+        // Horários
+        horarios: JSON.parse(formData.horarios),
       })
 
       await generatePDF(doc, { filename: 'termo-compromisso.pdf' })
@@ -705,6 +715,14 @@ export default function CommitmentTermPage() {
                     className="input w-full"
                     title="E-mail do Supervisor"
                   />
+                  <input
+                    name="supervisor_sector"
+                    value={formData.supervisor_sector}
+                    onChange={handleInputChange}
+                    placeholder="Setor de Realização"
+                    className="input w-full"
+                    title="Setor de Realização"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -754,37 +772,56 @@ export default function CommitmentTermPage() {
                 <table className="w-full text-sm text-left text-neutral-300">
                   <thead className="text-xs text-neutral-400 uppercase bg-neutral-800">
                     <tr>
-                      <th className="px-4 py-2">Turno</th>
-                      {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
-                        <th key={d} className="px-4 py-2">
+                      <th className="px-4 py-2 border border-neutral-700">Turno</th>
+                      {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d) => (
+                        <th key={d} colSpan={2} className="px-4 py-2 text-center border border-neutral-700">
                           {d}
                         </th>
                       ))}
                     </tr>
+                    <tr className="bg-neutral-900/50">
+                      <th className="px-4 py-1 border border-neutral-700"></th>
+                      {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d, i) => (
+                        <React.Fragment key={i}>
+                          <th className="px-2 py-1 text-[10px] text-center border border-neutral-700">Início</th>
+                          <th className="px-2 py-1 text-[10px] text-center border border-neutral-700">Fim</th>
+                        </React.Fragment>
+                      ))}
+                    </tr>
                   </thead>
                   <tbody>
-                    {['morning', 'afternoon', 'night'].map((shift) => (
-                      <tr key={shift} className="border-b border-neutral-800">
-                        <td className="px-4 py-2 font-medium capitalize">
-                          {shift === 'morning'
-                            ? 'Manhã'
-                            : shift === 'afternoon'
-                              ? 'Tarde'
-                              : 'Noite'}
-                        </td>
-                        {['mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((day) => (
-                          <td key={day} className="px-2 py-1">
+                    <tr className="border-b border-neutral-800">
+                      <td className="px-4 py-2 font-medium border border-neutral-700">1º Turno</td>
+                      {[
+                        'segunda_feira',
+                        'terca_feira',
+                        'quarta_feira',
+                        'quinta_feira',
+                        'sexta_feira',
+                        'sabado',
+                        'domingo',
+                      ].map((day) => (
+                        <React.Fragment key={day}>
+                          <td className="px-1 py-1 border border-neutral-700">
                             <input
-                              className="bg-transparent border border-neutral-700 rounded px-1 py-0.5 w-20 text-center text-xs"
-                              placeholder="00:00-00:00"
-                              value={JSON.parse(formData.schedule)[shift][day]}
-                              onChange={(e) => handleScheduleChange(shift, day, e.target.value)}
-                              title={`Horário ${shift} - ${day}`}
+                              className="bg-transparent w-14 text-center text-xs focus:outline-none"
+                              placeholder="00:00"
+                              value={JSON.parse(formData.horarios)[day].inicio}
+                              onChange={(e) => handleScheduleChange(day, 'inicio', e.target.value)}
                             />
                           </td>
-                        ))}
-                      </tr>
-                    ))}
+                          <td className="px-1 py-1 border border-neutral-700">
+                            <input
+                              className="bg-transparent w-14 text-center text-xs focus:outline-none"
+                              placeholder="00:00"
+                              value={JSON.parse(formData.horarios)[day].final}
+                              onChange={(e) => handleScheduleChange(day, 'final', e.target.value)}
+                            />
+                          </td>
+                        </React.Fragment>
+                      ))}
+                    </tr>
+                    {/* Linhas vazias para 2º e 3º turnos se precisar, ou manter uma só */}
                   </tbody>
                 </table>
               </div>

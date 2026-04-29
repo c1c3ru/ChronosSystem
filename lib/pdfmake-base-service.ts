@@ -207,6 +207,8 @@ export interface CellOptions {
   colSpan?: number
   /** Largura relativa (ex: '*' ou número de pontos) */
   width?: string | number
+  /** Configuração de bordas [esquerda, topo, direita, baixo] */
+  border?: [boolean, boolean, boolean, boolean]
 }
 
 // ─── HELPERS DE LAYOUT ────────────────────────────────────────────────────────
@@ -278,7 +280,7 @@ export function cell(label: string, value?: string, options?: CellOptions): Tabl
       { text: value ?? '', style: 'cellValue' },
     ],
     colSpan: options?.colSpan,
-    border: [true, true, true, true],
+    border: options?.border ?? [true, true, true, true],
     margin: [2, 2, 2, 2],
   }
 }
