@@ -132,7 +132,7 @@ export default function InternshipRegistrationPage() {
         student_race: raw.student_race,
         student_ethnicity: raw.student_ethnicity,
         student_ethnicity_community: raw.student_ethnicity_community,
-        student_disability: raw.student_disability,
+        student_disability: raw.student_disability ? [raw.student_disability] : [],
         company_name: raw.company_name,
         company_fantasy_name: raw.company_fantasy_name,
         company_cnpj: raw.company_cnpj,
