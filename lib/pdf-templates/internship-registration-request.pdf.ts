@@ -16,6 +16,7 @@ export interface InternshipRegistrationRequestData {
   email_pessoal?: string
   cor_raca?: string
   etnia?: string
+  comunidade_etnia?: string
   deficiencia?: string[]
   nome_fantasia_pf?: string
   cnpj_registro_conselho?: string
@@ -38,14 +39,21 @@ export interface InternshipRegistrationRequestData {
   carga_horaria_semanal?: string
   data_final_prevista?: string
   activities?: string
-  // Quadro de Horários
-  schedule?: {
-    mon?: { morning?: string; afternoon?: string; evening?: string }
-    tue?: { morning?: string; afternoon?: string; evening?: string }
-    wed?: { morning?: string; afternoon?: string; evening?: string }
-    thu?: { morning?: string; afternoon?: string; evening?: string }
-    fri?: { morning?: string; afternoon?: string; evening?: string }
-    sat?: { morning?: string; afternoon?: string; evening?: string }
+  // Quadro de Horários (Início/Fim)
+  horarios?: {
+    segunda_feira?: { inicio?: string; final?: string }
+    terca_feira?: { inicio?: string; final?: string }
+    quarta_feira?: { inicio?: string; final?: string }
+    quinta_feira?: { inicio?: string; final?: string }
+    sexta_feira?: { inicio?: string; final?: string }
+    sabado?: { inicio?: string; final?: string }
+    domingo?: { inicio?: string; final?: string }
+  }
+  // Turnos (Escolaridade)
+  turnos?: {
+    primeira?: { segunda?: string }
+    segunda?: { segunda?: string }
+    terceira?: { segunda?: string }
   }
   solicitation_date?: string
   authorization_date?: string
@@ -86,7 +94,7 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
       [cell('Nome Completo', v(d.nome), { colSpan: 2 }), emptyCell(), cell('CPF', v(d.cpf)), cell('Matrícula', v(d.matricula))],
       [cell('Nome Social', v(d.nome_social)), cell('Curso', v(d.curso)), cell('Telefone', v(d.telefone)), cell('CEP', v(d.cep))],
       [cell('Endereço', v(d.endereco), { colSpan: 2 }), emptyCell(), cell('Bairro', v(d.bairro)), cell('Município/UF', v(d.municipio_uf))],
-      [cell('E-mail Institucional', v(d.email_institucional), { colSpan: 2 }), emptyCell(), cell('E-mail Pessoal', v(d.email_pessoal), { colSpan: 2 }), emptyCell()],
+      [cell('CEP', v(d.cep)), cell('Telefone', v(d.telefone)), cell('E-mail Institucional', v(d.email_institucional)), cell('E-mail Pessoal', v(d.email_pessoal))],
     ]
   )
 
@@ -95,8 +103,8 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
   const defText = (d.deficiencia ?? []).map((k) => DEF_LABELS[k] ?? k).join(', ') || 'Nenhuma'
 
   const complementTable = dataTable(
-    ['33%', '33%', '34%'],
-    [[cell('Cor/Raça', corRacaText), cell('Etnia', etniaText), cell('Deficiência', defText)]]
+    ['25%', '25%', '25%', '25%'],
+    [[cell('Cor/Raça', corRacaText), cell('Etnia', etniaText), cell('Comunidade', v(d.comunidade_etnia)), cell('Deficiência', defText)]]
   )
 
   const companyTable = dataTable(
@@ -104,7 +112,7 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
     [
       [cell('Nome Fantasia / Razão Social', v(d.nome_fantasia_pf), { colSpan: 2 }), emptyCell(), cell('CNPJ / Registro', v(d.cnpj_registro_conselho)), cell('Telefone', v(d.telefone_pf))],
       [cell('Endereço', v(d.endereco_pf), { colSpan: 2 }), emptyCell(), cell('Bairro', v(d.bairro_pf)), cell('Município/UF', v(d.municipio_uf_pf))],
-      [cell('E-mail', v(d.email_pf), { colSpan: 4 }), emptyCell(), emptyCell(), emptyCell()],
+      [cell('CEP', v(d.cep_pf)), cell('E-mail', v(d.email_pf), { colSpan: 3 }), emptyCell(), emptyCell()],
     ]
   )
 
@@ -138,6 +146,7 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
     docTitle('Solicitação de Cadastro no Estágio'),
     sectionTitle('1. DADOS PESSOAIS DO DISCENTE'),
     studentTable,
+    sectionTitle('2. COR/RAÇA E ETNIA'),
     complementTable,
     sectionTitle('3. INFORMAÇÕES DO ESTÁGIO'),
     internshipTable,
@@ -145,46 +154,56 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
     companyTable,
     sectionTitle('5. RESPONSÁVEL LEGAL E SUPERVISOR'),
     legalTable,
-    sectionTitle('6. HORÁRIOS E ATIVIDADES'),
-    { text: 'QUADRO DE HORÁRIOS', style: 'cellLabel', margin: [0, 4, 0, 2], bold: true },
+    sectionTitle('6. HORÁRIOS E ESCOLARIDADE'),
+    { text: 'JORNADA DE ATIVIDADE (HORÁRIOS DE INÍCIO E FIM)', style: 'cellLabel', margin: [0, 4, 0, 2], bold: true },
     dataTable(
-      ['16%', '14%', '14%', '14%', '14%', '14%', '14%'],
+      ['16%', '12%', '12%', '12%', '12%', '12%', '12%', '12%'],
       [
         [
-          { text: 'TURNO', style: 'tableHeader', alignment: 'center' },
+          { text: 'PERÍODO', style: 'tableHeader', alignment: 'center' },
           { text: 'SEG', style: 'tableHeader', alignment: 'center' },
           { text: 'TER', style: 'tableHeader', alignment: 'center' },
           { text: 'QUA', style: 'tableHeader', alignment: 'center' },
           { text: 'QUI', style: 'tableHeader', alignment: 'center' },
           { text: 'SEX', style: 'tableHeader', alignment: 'center' },
           { text: 'SÁB', style: 'tableHeader', alignment: 'center' },
+          { text: 'DOM', style: 'tableHeader', alignment: 'center' },
         ],
         [
-          { text: 'Manhã', style: 'cellLabel', margin: [0, 2] },
-          { text: v(d.schedule?.mon?.morning), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.tue?.morning), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.wed?.morning), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.thu?.morning), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.fri?.morning), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.sat?.morning), style: 'cellValue', alignment: 'center' },
+          { text: 'Início', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.horarios?.segunda_feira?.inicio), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.terca_feira?.inicio), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.quarta_feira?.inicio), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.quinta_feira?.inicio), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.sexta_feira?.inicio), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.sabado?.inicio), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.domingo?.inicio), style: 'cellValue', alignment: 'center' },
         ],
         [
-          { text: 'Tarde', style: 'cellLabel', margin: [0, 2] },
-          { text: v(d.schedule?.mon?.afternoon), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.tue?.afternoon), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.wed?.afternoon), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.thu?.afternoon), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.fri?.afternoon), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.sat?.afternoon), style: 'cellValue', alignment: 'center' },
+          { text: 'Fim', style: 'cellLabel', margin: [0, 2] },
+          { text: v(d.horarios?.segunda_feira?.final), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.terca_feira?.final), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.quarta_feira?.final), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.quinta_feira?.final), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.sexta_feira?.final), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.sabado?.final), style: 'cellValue', alignment: 'center' },
+          { text: v(d.horarios?.domingo?.final), style: 'cellValue', alignment: 'center' },
+        ],
+      ]
+    ),
+    { text: 'ESCOLARIDADE (INFORMAR O ESTÁGIO DO TURNO DAS AULAS)', style: 'cellLabel', margin: [0, 4, 0, 2], bold: true },
+    dataTable(
+      ['33%', '33%', '34%'],
+      [
+        [
+          { text: '1ª Opção', style: 'tableHeader', alignment: 'center' },
+          { text: '2ª Opção', style: 'tableHeader', alignment: 'center' },
+          { text: '3ª Opção', style: 'tableHeader', alignment: 'center' },
         ],
         [
-          { text: 'Noite', style: 'cellLabel', margin: [0, 2] },
-          { text: v(d.schedule?.mon?.evening), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.tue?.evening), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.wed?.evening), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.thu?.evening), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.fri?.evening), style: 'cellValue', alignment: 'center' },
-          { text: v(d.schedule?.sat?.evening), style: 'cellValue', alignment: 'center' },
+          { text: v(d.turnos?.primeira?.segunda), style: 'cellValue', alignment: 'center' },
+          { text: v(d.turnos?.segunda?.segunda), style: 'cellValue', alignment: 'center' },
+          { text: v(d.turnos?.terceira?.segunda), style: 'cellValue', alignment: 'center' },
         ],
       ]
     ),

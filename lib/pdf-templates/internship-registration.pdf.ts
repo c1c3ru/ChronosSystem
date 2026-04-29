@@ -131,13 +131,14 @@ export async function buildInternshipRegistrationDoc(d: InternshipRegistrationDa
 
   const content: Content[] = [
     ...header,
-    docTitle('Solicitação de Cadastro no Estágio'),
+    docTitle('Ficha de Cadastro no Estágio'),
     sectionTitle('1. DADOS DO DISCENTE'),
     studentTable,
+    sectionTitle('2. INFORMAÇÕES COMPLEMENTARES'),
     complementTable,
-    sectionTitle('2. INSTITUIÇÃO CONCEDENTE'),
+    sectionTitle('3. INSTITUIÇÃO CONCEDENTE'),
     companyTable,
-    sectionTitle('3. INFORMAÇÕES DO ESTÁGIO'),
+    sectionTitle('4. INFORMAÇÕES DO ESTÁGIO'),
     internshipTable,
     { text: 'QUADRO DE HORÁRIOS', style: 'cellLabel', margin: [0, 4, 0, 2], bold: true },
     dataTable(
@@ -153,7 +154,7 @@ export async function buildInternshipRegistrationDoc(d: InternshipRegistrationDa
           { text: 'SÁB', style: 'tableHeader', alignment: 'center' },
         ],
         [
-          { text: 'Manhã', style: 'cellLabel', margin: [0, 2] },
+          { text: '1º Turno', style: 'cellLabel', margin: [0, 2] },
           { text: v(d.schedule?.mon?.morning), style: 'cellValue', alignment: 'center' },
           { text: v(d.schedule?.tue?.morning), style: 'cellValue', alignment: 'center' },
           { text: v(d.schedule?.wed?.morning), style: 'cellValue', alignment: 'center' },
@@ -162,7 +163,7 @@ export async function buildInternshipRegistrationDoc(d: InternshipRegistrationDa
           { text: v(d.schedule?.sat?.morning), style: 'cellValue', alignment: 'center' },
         ],
         [
-          { text: 'Tarde', style: 'cellLabel', margin: [0, 2] },
+          { text: '2º Turno', style: 'cellLabel', margin: [0, 2] },
           { text: v(d.schedule?.mon?.afternoon), style: 'cellValue', alignment: 'center' },
           { text: v(d.schedule?.tue?.afternoon), style: 'cellValue', alignment: 'center' },
           { text: v(d.schedule?.wed?.afternoon), style: 'cellValue', alignment: 'center' },
@@ -171,7 +172,7 @@ export async function buildInternshipRegistrationDoc(d: InternshipRegistrationDa
           { text: v(d.schedule?.sat?.afternoon), style: 'cellValue', alignment: 'center' },
         ],
         [
-          { text: 'Noite', style: 'cellLabel', margin: [0, 2] },
+          { text: '3º Turno', style: 'cellLabel', margin: [0, 2] },
           { text: v(d.schedule?.mon?.evening), style: 'cellValue', alignment: 'center' },
           { text: v(d.schedule?.tue?.evening), style: 'cellValue', alignment: 'center' },
           { text: v(d.schedule?.wed?.evening), style: 'cellValue', alignment: 'center' },

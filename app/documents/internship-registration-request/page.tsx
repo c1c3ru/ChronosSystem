@@ -132,6 +132,9 @@ export default function InternshipRegistrationRequestPage() {
       },
     },
 
+    // Atividades
+    activities: '',
+
     // Datas finais
     data_solicitacao: '',
     data_autorizacao: '',
@@ -240,6 +243,7 @@ export default function InternshipRegistrationRequestPage() {
         email_pessoal: formData.email_pessoal,
         cor_raca: formData.cor_raca,
         etnia: formData.etnia,
+        comunidade_etnia: formData.comunidade_etnia,
         deficiencia: formData.deficiencia,
         nome_fantasia_pf: formData.nome_fantasia_pf,
         cnpj_registro_conselho: formData.cnpj_registro_conselho,
@@ -261,6 +265,11 @@ export default function InternshipRegistrationRequestPage() {
         data_inicial: formData.data_inicial,
         carga_horaria_semanal: formData.carga_horaria_semanal,
         data_final_prevista: formData.data_final_prevista,
+        activities: formData.activities,
+        horarios: formData.horarios,
+        turnos: formData.turnos,
+        solicitation_date: formData.data_solicitacao,
+        authorization_date: formData.data_autorizacao,
       })
       await generatePDF(doc, { filename: 'solicitacao-cadastro-estagio.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
@@ -850,6 +859,20 @@ export default function InternshipRegistrationRequestPage() {
                     title="3ª Opção de Turno"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2 pt-4 border-t border-neutral-800">
+                <label className="text-sm font-semibold text-neutral-400">
+                  Atividades das atividades (Descreva de acordo com seu plano)
+                </label>
+                <textarea
+                  name="activities"
+                  value={formData.activities}
+                  onChange={(e) => setFormData(prev => ({ ...prev, activities: e.target.value }))}
+                  placeholder="Descreva as atividades a serem desenvolvidas..."
+                  className="input min-h-[120px] w-full resize-y"
+                  title="Descrição das Atividades"
+                />
               </div>
 
               <div className="space-y-4">

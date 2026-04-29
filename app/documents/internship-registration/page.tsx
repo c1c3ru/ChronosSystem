@@ -156,6 +156,38 @@ export default function InternshipRegistrationPage() {
         start_date: raw.start_date,
         end_date: raw.end_date,
         weekly_hours: raw.weekly_hours,
+        schedule: {
+          mon: {
+            morning: schedule.seg_start_1 && schedule.seg_end_1 ? `${schedule.seg_start_1} - ${schedule.seg_end_1}` : '',
+            afternoon: schedule.seg_start_2 && schedule.seg_end_2 ? `${schedule.seg_start_2} - ${schedule.seg_end_2}` : '',
+            evening: schedule.seg_start_3 && schedule.seg_end_3 ? `${schedule.seg_start_3} - ${schedule.seg_end_3}` : '',
+          },
+          tue: {
+            morning: schedule.ter_start_1 && schedule.ter_end_1 ? `${schedule.ter_start_1} - ${schedule.ter_end_1}` : '',
+            afternoon: schedule.ter_start_2 && schedule.ter_end_2 ? `${schedule.ter_start_2} - ${schedule.ter_end_2}` : '',
+            evening: schedule.ter_start_3 && schedule.ter_end_3 ? `${schedule.ter_start_3} - ${schedule.ter_end_3}` : '',
+          },
+          wed: {
+            morning: schedule.qua_start_1 && schedule.qua_end_1 ? `${schedule.qua_start_1} - ${schedule.qua_end_1}` : '',
+            afternoon: schedule.qua_start_2 && schedule.qua_end_2 ? `${schedule.qua_start_2} - ${schedule.qua_end_2}` : '',
+            evening: schedule.qua_start_3 && schedule.qua_end_3 ? `${schedule.qua_start_3} - ${schedule.qua_end_3}` : '',
+          },
+          thu: {
+            morning: schedule.qui_start_1 && schedule.qui_end_1 ? `${schedule.qui_start_1} - ${schedule.qui_end_1}` : '',
+            afternoon: schedule.qui_start_2 && schedule.qui_end_2 ? `${schedule.qui_start_2} - ${schedule.qui_end_2}` : '',
+            evening: schedule.qui_start_3 && schedule.qui_end_3 ? `${schedule.qui_start_3} - ${schedule.qui_end_3}` : '',
+          },
+          fri: {
+            morning: schedule.sex_start_1 && schedule.sex_end_1 ? `${schedule.sex_start_1} - ${schedule.sex_end_1}` : '',
+            afternoon: schedule.sex_start_2 && schedule.sex_end_2 ? `${schedule.sex_start_2} - ${schedule.sex_end_2}` : '',
+            evening: schedule.sex_start_3 && schedule.sex_end_3 ? `${schedule.sex_start_3} - ${schedule.sex_end_3}` : '',
+          },
+          sat: {
+            morning: schedule.sab_start_1 && schedule.sab_end_1 ? `${schedule.sab_start_1} - ${schedule.sab_end_1}` : '',
+            afternoon: schedule.sab_start_2 && schedule.sab_end_2 ? `${schedule.sab_start_2} - ${schedule.sab_end_2}` : '',
+            evening: schedule.sab_start_3 && schedule.sab_end_3 ? `${schedule.sab_start_3} - ${schedule.sab_end_3}` : '',
+          },
+        },
       })
       await generatePDF(doc, { filename: 'cadastro-estagio.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
