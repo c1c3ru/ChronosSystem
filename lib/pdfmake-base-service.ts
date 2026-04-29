@@ -77,6 +77,15 @@ async function getPdfMake(): Promise<PdfMakeInstance> {
     pm.vfs = vfs
   }
   
+  // Garantir que todas as variantes do Roboto existam no VFS (fallback para Regular)
+  const variants = ['Roboto-Regular.ttf', 'Roboto-Medium.ttf', 'Roboto-Italic.ttf', 'Roboto-MediumItalic.ttf']
+  const fallback = vfs['Roboto-Regular.ttf'] || Object.values(vfs)[0]
+  if (fallback) {
+    variants.forEach(v => {
+      if (!vfs[v]) vfs[v] = fallback
+    })
+  }
+
   // Configuração explícita de fontes para evitar erros de "font not found"
   pm.fonts = {
     Roboto: {
