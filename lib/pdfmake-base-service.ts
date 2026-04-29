@@ -287,7 +287,7 @@ export function cell(label: string, value?: string, options?: CellOptions): Tabl
  * Célula vazia de preenchimento (para preencher colSpan).
  * Para colSpan, o pdfMake recomenda um objeto vazio.
  */
-export function emptyCell(): any {
+export function emptyCell(): TableCell {
   return {}
 }
 
