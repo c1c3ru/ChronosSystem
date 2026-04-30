@@ -64,10 +64,8 @@ export default function HolidaysPage() {
   const getNextHoliday = () => {
     if (!data) return null
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    return data.holidays.find((h) => new Date(h.date) >= today)
+    const todayStr = new Date().toLocaleDateString('en-CA')
+    return data.holidays.find((h) => h.date >= todayStr)
   }
 
   const nextHoliday = getNextHoliday()
@@ -186,8 +184,9 @@ export default function HolidaysPage() {
         {/* Holidays List */}
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {data?.holidays.map((holiday, index) => {
-            const isPast = new Date(holiday.date) < new Date(new Date().setHours(0, 0, 0, 0))
-            const isToday = new Date(holiday.date).toDateString() === new Date().toDateString()
+            const todayStr = new Date().toLocaleDateString('en-CA')
+            const isPast = holiday.date < todayStr
+            const isToday = holiday.date === todayStr
 
             return (
               <Card

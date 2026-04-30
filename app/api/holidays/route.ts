@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       year,
       holidays: holidays.map((h) => ({
         name: h.name,
-        date: h.date.toISOString(),
+        date: h.date.toLocaleDateString('en-CA'), // Formato YYYY-MM-DD seguro
         formattedDate: h.date.toLocaleDateString('pt-BR', {
           weekday: 'long',
           year: 'numeric',

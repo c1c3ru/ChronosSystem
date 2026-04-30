@@ -31,7 +31,9 @@ export function HolidayNotification() {
           nextWeek.setDate(today.getDate() + 7)
 
           const next = data.holidays.find((h: Holiday) => {
-            const hDate = new Date(h.date)
+            // Parse as local date (not UTC) to match today's midnight
+            const [y, m, d] = h.date.split('-').map(Number)
+            const hDate = new Date(y, m - 1, d)
             return hDate >= today && hDate <= nextWeek
           })
 
@@ -51,7 +53,9 @@ export function HolidayNotification() {
 
   if (loading || !upcomingHoliday) return null
 
-  const isToday = new Date(upcomingHoliday.date).toDateString() === new Date().toDateString()
+  // Comparação segura de data (apenas dia/mês/ano) para evitar problemas de fuso horário
+  const todayStr = new Date().toLocaleDateString('en-CA')
+  const isToday = upcomingHoliday.date === todayStr
 
   return (
     <Card className="mb-6 border-primary/30 bg-primary/5">
