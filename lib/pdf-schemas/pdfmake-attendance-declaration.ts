@@ -34,6 +34,7 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
           {
             image: BRASAO_BASE64,
             width: 50,
+            background: 'rgba(255, 255, 255, 1)',
             alignment: 'left'
           },
           {
@@ -56,7 +57,7 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
         ],
         margin: [0, 0, 0, 20]
       },
-      
+
       // TITLE
       {
         text: 'DECLARAÇÃO DE PARTICIPAÇÃO EM EXPERIÊNCIA\nDE EXTENSÃO, INICIAÇÃO CIENTÍFICA OU MONITORIA',
@@ -81,7 +82,7 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
           widths: ['*', '*', '*'],
           body: [
             [
-              { 
+              {
                 text: [
                   { text: 'NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/SUPERVISOR)\n', style: 'label' },
                   { text: data.declarantName || ' ' }
