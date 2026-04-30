@@ -88,7 +88,7 @@ export interface CommitmentTermData {
     sabado?: { inicio?: string; final?: string }
     domingo?: { inicio?: string; final?: string }
   }
-  
+
   solicitation_date?: string
   authorization_date?: string
 }
@@ -102,8 +102,8 @@ const clauseTitle = (text: string): Content => ({
   bold: true,
 })
 
-const clauseBody = (text: string | Content[]): Content => ({
-  text,
+const clauseBody = (content: string | Content[]): Content => ({
+  stack: Array.isArray(content) ? content : [content],
   style: 'clauseBody',
   margin: [0, 2, 0, 6] as [number, number, number, number],
   alignment: 'justify' as Alignment,
@@ -124,7 +124,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   const header = await ifceHeader()
 
   // ── 1. Tabelas de Identificação ───────────────────────────────────────────
-  
+
   const ifceTable = dataTable(
     ['*'],
     [
@@ -240,6 +240,25 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
           ]
         } as TableCell
       ],
+      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))],
+      [
+        {
+          columns: [
+            cell('BAIRRO/DISTRITO', v(d.student_neighborhood), { border: [false, false, true, true] }),
+            cell('MUNICÍPIO-UF', v(d.student_city_state), { border: [false, false, true, true] }),
+            cell('CEP', v(d.student_zip), { border: [false, false, false, true] }),
+          ]
+        } as TableCell
+      ],
+      [
+        {
+          columns: [
+            cell('DDD + TELEFONE', v(d.student_phone), { border: [false, false, true, true] }),
+            cell('E-MAIL INSTITUCIONAL', v(d.student_email_institutional), { border: [false, false, true, true] }),
+            cell('E-MAIL PESSOAL', v(d.student_email_personal), { border: [false, false, false, true] }),
+          ]
+        } as TableCell
+      ],
     ]
   )
 
@@ -258,7 +277,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   const clauses = [
     clauseTitle('CLÁUSULA PRIMEIRA – DO OBJETO, DE SUA QUALIFICAÇÃO E DA VIGÊNCIA DO CONTRATO'),
     clauseBody([
-      subItem('I -', `O estágio supervisionado regrado por este termo será ${v(d.internship_type === 'obrigatorio' ? 'OBRIGATÓRIO' : 'NÃO OBRIGATÓRIO')}, com atividades compatíveis com a formação recebida no curso do DISCENTE ESTAGIÁRIO, e realizadas de forma ${v(d.modality?.toUpperCase())} (presencial, remota ou híbrida), tudo conforme plano de atividades constantes da CLÁUSULA SEXTA.`),
+      subItem('I -', `O estágio supervisionado regrado por este termo será ${v(d.internship_type === 'obrigatorio' ? 'OBRIGATÓRIO' : 'NÃO OBRIGATÓRIO')}, com atividades compatíveis com a formação recebida no curso do DISCENTE ESTAGIÁRIO, e realizadas de forma ${v(d.modality?.toUpperCase())} (presencial, remota ou híbrida), tudo conforme plano de atividades constante da CLÁUSULA SÉTIMA.`),
       subItem('II -', `Este termo de compromisso terá vigência de ${fmtDate(d.start_date)} a ${fmtDate(d.end_date)}, podendo ser rescindido a qualquer tempo, unilateralmente, mediante comunicação formal, independente de pré-aviso.`),
       subItem('III -', 'O aditamento deste termo será realizado em caso das necessidades previstas no Regulamento de Estágio do IFCE.')
     ]),
@@ -297,7 +316,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
     clauseTitle('CLÁUSULA QUINTA – DO SEGURO OBRIGATÓRIO E DA REMUNERAÇÃO'),
     clauseBody([
       subItem('I -', `A concedente neste ato contrata em favor do DISCENTE ESTAGIÁRIO seguro contra acidentes pessoais, com cobertura limitada ao local e período de estágio, mediante apólice ${v(d.insurance_policy)} da empresa ${v(d.insurance_company)}.`),
-      d.has_grant === 'true' 
+      d.has_grant === 'true'
         ? subItem('II -', `A CONCEDENTE DO ESTÁGIO remunerará mensalmente o DISCENTE ESTAGIÁRIO através de bolsa-auxílio no valor de R$ ${v(d.grant_value)} (${v(d.grant_value)}).`)
         : subItem('II -', 'A CONCEDENTE DO ESTÁGIO não remunerará mensalmente o DISCENTE ESTAGIÁRIO.'),
       d.has_transport === 'true'
@@ -352,14 +371,14 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   // ── Quadro de Horários 15 colunas ──────────────────────────────────────────
   const days = ['SEGUNDA-FEIRA', 'TERÇA-FEIRA', 'QUARTA-FEIRA', 'QUINTA-FEIRA', 'SEXTA-FEIRA', 'SÁBADO', 'DOMINGO']
   const hor = d.horarios || {}
-  
+
   const scheduleTable = dataTable(
     ['12%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%'],
     [
       [
-        { text: 'TURN', style: 'tableHeader', alignment: 'center' as Alignment, rowSpan: 2, margin: [0, 8] },
+        { text: 'TURNO', style: 'tableHeader', alignment: 'center' as Alignment, rowSpan: 2, margin: [0, 8] },
         { text: 'DIAS DA SEMANA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 14 },
-        {},{},{},{},{},{},{},{},{},{},{},{},{}
+        {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
       ],
       [
         {},
@@ -392,8 +411,8 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
         { text: v(hor.domingo?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.domingo?.final), fontSize: 7, alignment: 'center' as Alignment },
       ],
       // Adicionar linhas vazias para 2º e 3º turnos se necessário, ou deixar em branco
-      [{ text: '2º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 }, {},{},{},{},{},{},{},{},{},{},{},{},{},{}],
-      [{ text: '3º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 }, {},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+      [{ text: '2º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+      [{ text: '3º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
     ]
   )
 
@@ -408,7 +427,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
       subItem('V -', 'Pedido de rescisão por qualquer das partes definidas na inicial deste termo.')
     ]),
 
-    clauseTitle('CLÁUSULA NOVA – DAS DISPOSIÇÕES ESPECIAIS E DO FORO'),
+    clauseTitle('CLÁUSULA NONA – DAS DISPOSIÇÕES ESPECIAIS E DO FORO'),
     clauseBody([
       subItem('I -', 'A todos os partícipes no estágio compete zelar pelo cumprimento deste termo de compromisso.'),
       subItem('II -', 'As partes elegem o Foro da Justiça Federal de Fortaleza, Seção Judiciária do Estado do Ceará, renunciando, desde logo, a qualquer outro, por mais privilégios que venha a ter, para dirimir qualquer questão que se originar deste termo de compromisso e que não possa ser resolvido amigavelmente.'),
@@ -417,7 +436,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
   ]
 
   // ── Assinaturas ───────────────────────────────────────────────────────────
-  
+
   const dateLine: Content = {
     text: `Maracanaú-CE, ________ de ________________________ de 20________`,
     margin: [0, 20, 0, 30] as [number, number, number, number],
@@ -436,7 +455,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
     stack: [
       sigRow('Representante do IFCE'),
       sigRow('Representante da CONCEDENTE DO ESTÁGIO'),
-      sigRow('DISCENTE ESTAGIÁRIO'),
+      sigRow('Discente Estagiário'),
       sigRow('Docente Orientador'),
       sigRow('Supervisor do estágio'),
     ],
