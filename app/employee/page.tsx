@@ -1256,7 +1256,7 @@ export default function EmployeePage() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/10 transition-colors text-sm text-neutral-300 hover:text-primary"
                   >
-                    <span>Relatório Final</span>
+                    <span>Relatório Final de Estágio Obrigatório</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a

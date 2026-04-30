@@ -68,12 +68,12 @@ export default function RescissionTermPage() {
     const { type } = e.target
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev) => ({ ...prev, [name]: checked ? value : '' }))
+      setFormData((prev: Record<string, string>) => ({ ...prev, [name]: checked ? value : '' }))
     } else if (type === 'radio') {
       // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev) => ({ ...prev, [name]: value }))
+      setFormData((prev: Record<string, string>) => ({ ...prev, [name]: value }))
     } else {
-      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev: Record<string, string>) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
@@ -108,7 +108,7 @@ export default function RescissionTermPage() {
         company_phone: formData.company_phone,
         company_address: formData.company_address,
         company_representative: formData.company_representative,
-        company_representative_cpf: formData.company_representative_cpf,
+        company_rep_cpf: formData.company_representative_cpf,
         internship_start_date: formData.internship_start_date,
         internship_end_date: formData.internship_end_date,
         original_term_date: formData.original_term_date,
