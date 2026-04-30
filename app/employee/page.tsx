@@ -1309,7 +1309,7 @@ export default function EmployeePage() {
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a
-                    href="/documents/professional-declaration"
+                    href="/documents/professional-activities"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"

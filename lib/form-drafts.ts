@@ -11,6 +11,7 @@ export type FormType =
   | 'additive-term'
   | 'equivalence-request'
   | 'extension-declaration'
+  | 'professional-activities'
   | 'professional-declaration'
   | 'semester-report'
   | 'rescission-term'
