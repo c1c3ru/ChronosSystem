@@ -175,13 +175,17 @@ export async function buildFinalInternshipReportDoc(d: FinalInternshipReportData
     { key: 'colaboracao_plano', label: 'COLABORAÇÃO NA ELABORAÇÃO DO PLANO DE ATIVIDADES' },
     { key: 'comunicacao_discente', label: 'COMUNICAÇÃO COM O DISCENTE ESTAGIÁRIO' },
     { key: 'comunicacao_orientador', label: 'COMUNICAÇÃO COM DOCENTE ORIENTADOR' },
-    { text: 'CORREÇÕES, ENSINAMENTOS E INSTRUÇÕES DAS ATIVIDADES' }, // This was a list item in user text
     { key: 'instrucoes', label: 'CORREÇÕES, ENSINAMENTOS E INSTRUÇÕES DAS ATIVIDADES' },
     { key: 'prazos', label: 'PREENCHIMENTO E ENTREGA DOS DOCUMENTOS NOS PRAZOS' },
     { key: 'relacionamento', label: 'RELACIONAMENTO INTERPESSOAL' },
   ]
 
-  const buildEvalRows = (items: any[], data: any) => items.map(item => [
+  interface EvalItem {
+    key: string
+    label: string
+  }
+
+  const buildEvalRows = (items: EvalItem[], data: Record<string, string>) => items.map(item => [
     { text: item.label, fontSize: 8 },
     { text: cb(data[item.key] === 'insuficiente'), alignment: 'center' as Alignment },
     { text: cb(data[item.key] === 'regular'), alignment: 'center' as Alignment },
