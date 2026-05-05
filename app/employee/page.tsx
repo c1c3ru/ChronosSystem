@@ -33,6 +33,8 @@ import {
   Play,
   Square,
   Calendar,
+  ArrowDownLeft,
+  ArrowUpRight,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -264,38 +266,41 @@ export default function EmployeePage() {
           // Definir status de trabalho
           setWorkStatus(data.workStatus)
 
-          // Usar os dados já analisados da nova API
-          const formattedRecords = data.analyzedDays.map((day: {
-            date: string
-            entry?: string
-            exit?: string
-            totalHours: string
-            status: string
-            location: string
-            alerts: Array<{
-              type: string
-              message: string
-              severity: 'low' | 'medium' | 'high'
-            }>
-            hasJustification: boolean
-          }) => ({
-            id: `day-${day.date}`,
-            date: day.date,
-            entry: day.entry,
-            exit: day.exit,
-            hours: day.totalHours,
-            status:
-              day.status === 'completed'
-                ? 'Completo'
-                : day.status === 'incomplete'
-                  ? 'Incompleto'
-                  : day.status === 'absent'
-                    ? 'Ausente'
-                    : 'Em andamento',
-            location: day.location,
-            alerts: day.alerts,
-            hasJustification: day.hasJustification,
-          }))
+          // Usar os dados já analisados da nova API, filtrando apenas o dia de hoje
+          const todayStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+          const formattedRecords = data.analyzedDays
+            .filter((day: { date: string }) => day.date === todayStr)
+            .map((day: {
+              date: string
+              entry?: string
+              exit?: string
+              totalHours: string
+              status: string
+              location: string
+              alerts: Array<{
+                type: string
+                message: string
+                severity: 'low' | 'medium' | 'high'
+              }>
+              hasJustification: boolean
+            }) => ({
+              id: `day-${day.date}`,
+              date: day.date,
+              entry: day.entry,
+              exit: day.exit,
+              hours: day.totalHours,
+              status:
+                day.status === 'completed'
+                  ? 'Completo'
+                  : day.status === 'incomplete'
+                    ? 'Incompleto'
+                    : day.status === 'absent'
+                      ? 'Ausente'
+                      : 'Em andamento',
+              location: day.location,
+              alerts: day.alerts,
+              hasJustification: day.hasJustification,
+            }))
 
           setRecentRecords(formattedRecords)
 
@@ -1363,7 +1368,7 @@ export default function EmployeePage() {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center text-white">
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    Últimos 5 Dias
+                    Registros de Hoje
                   </CardTitle>
                   <Button
                     asChild
@@ -1437,7 +1442,7 @@ export default function EmployeePage() {
                             <div className="space-y-2">
                               {record.entry && (
                                 <div className="flex items-center space-x-2 text-sm">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <ArrowDownLeft className="w-4 h-4 text-green-500" />
                                   <span className="text-green-400 font-medium">Entrada:</span>
                                   <span className="text-neutral-300">
                                     {(() => {
@@ -1457,8 +1462,8 @@ export default function EmployeePage() {
                               )}
                               {record.exit && (
                                 <div className="flex items-center space-x-2 text-sm">
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                  <span className="text-orange-400 font-medium">Saída:</span>
+                                  <ArrowUpRight className="w-4 h-4 text-red-500" />
+                                  <span className="text-red-400 font-medium">Saída:</span>
                                   <span className="text-neutral-300">
                                     {(() => {
                                       try {
