@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle } from 'lucide-react'
+import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 import QRCode from 'qrcode'
 import Image from 'next/image'
 
@@ -207,7 +207,19 @@ export default function KioskPage() {
               : new Date(item.timestamp).toISOString(),
         }))
 
-        setRecentScans(normalized)
+        const today = new Date();
+        const todayRecords = normalized.filter((scan: { timestamp: string }) => {
+          try {
+            const scanDate = new Date(scan.timestamp);
+            return scanDate.getDate() === today.getDate() && 
+                   scanDate.getMonth() === today.getMonth() && 
+                   scanDate.getFullYear() === today.getFullYear();
+          } catch {
+            return false;
+          }
+        });
+
+        setRecentScans(todayRecords)
       } else {
         console.error('Erro ao buscar atividade:', data.error)
         setRecentScans([])
@@ -408,11 +420,11 @@ export default function KioskPage() {
                   className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div
-                      className={`w-3 h-3 rounded-full mr-3 ${
-                        scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
-                      }`}
-                    ></div>
+                    {scan.type === 'ENTRY' ? (
+                      <ArrowDownLeft className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    ) : (
+                      <ArrowUpRight className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
+                    )}
                     <div>
                       <p className="text-white font-medium text-sm">{scan.user}</p>
                       <p className="text-xs text-neutral-400">
