@@ -527,20 +527,22 @@ export default function AdminPage() {
             {/* Recent Activity */}
             <Card variant="glass">
               <CardHeader>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <CardTitle className="flex items-center text-white">
-                    <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    Atividade Recente
+                    <Calendar className="h-5 w-5 mr-2 text-primary shrink-0" />
+                    <span className="truncate">Atividade Recente</span>
                   </CardTitle>
-                  <FilterSelect
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value as 'ALL' | 'ENTRY' | 'EXIT')}
-                    options={[
-                      { value: 'ALL', label: 'Todas as atividades' },
-                      { value: 'ENTRY', label: '→ Apenas Entradas' },
-                      { value: 'EXIT', label: '← Apenas Saídas' },
-                    ]}
-                  />
+                  <div className="w-full sm:w-auto">
+                    <FilterSelect
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value as 'ALL' | 'ENTRY' | 'EXIT')}
+                      options={[
+                        { value: 'ALL', label: 'Todas as atividades' },
+                        { value: 'ENTRY', label: '→ Apenas Entradas' },
+                        { value: 'EXIT', label: '← Apenas Saídas' },
+                      ]}
+                    />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -549,9 +551,9 @@ export default function AdminPage() {
                     filteredActivity.map((activity) => (
                       <div
                         key={activity.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group"
+                        className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group"
                       >
-                        <div className="flex items-center space-x-4 flex-1">
+                        <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                           <div
                             className={`p-2 rounded-lg flex-shrink-0 ${
                               activity.type === 'ENTRY'
@@ -567,13 +569,13 @@ export default function AdminPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-white text-sm truncate">
-                              <span className="font-medium">{activity.user}</span> {activity.action}
+                              <span className="font-medium">{activity.user}</span> <span className="hidden sm:inline">{activity.action}</span>
                             </p>
-                            <p className="text-neutral-400 text-xs">{activity.timestamp}</p>
+                            <p className="text-neutral-400 text-xs truncate">{activity.timestamp}</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3 ml-4 flex-shrink-0">
-                          <Clock className="h-4 w-4 text-neutral-500" />
+                        <div className="flex items-center space-x-2 sm:space-x-3 ml-2 sm:ml-4 flex-shrink-0">
+                          <Clock className="h-4 w-4 text-neutral-500 hidden sm:block" />
                           <button
                             onClick={() => deleteRecord(activity.id, activity.type)}
                             disabled={deletingId === activity.id}

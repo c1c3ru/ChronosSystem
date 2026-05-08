@@ -189,7 +189,11 @@ export default function KioskPage() {
   // Buscar atividade recente real
   const fetchRecentActivity = useCallback(async () => {
     try {
-      const response = await fetch('/api/kiosk/recent-activity')
+      let url = '/api/kiosk/recent-activity'
+      if (machineInfo.id) {
+        url += `?machineId=${machineInfo.id}`
+      }
+      const response = await fetch(url)
       const data = await response.json()
 
       if (data.success) {
@@ -228,7 +232,7 @@ export default function KioskPage() {
       console.error('Erro ao buscar atividade recente:', error)
       setRecentScans([])
     }
-  }, [])
+  }, [machineInfo.id])
 
   // Buscar atividade inicial e configurar polling a cada 30 segundos
   useEffect(() => {

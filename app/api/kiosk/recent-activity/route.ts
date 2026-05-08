@@ -1,22 +1,31 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 // GET /api/kiosk/recent-activity - Buscar atividade recente para o kiosk
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams
+    const machineId = searchParams.get('machineId')
+
     // Buscar os últimos 10 registros de ponto das últimas 24 horas
     const twentyFourHoursAgo = new Date()
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
 
-    const recentActivity = await prisma.attendanceRecord.findMany({
-      where: {
-        timestamp: {
-          gte: twentyFourHoursAgo,
-        },
+    const whereClause: any = {
+      timestamp: {
+        gte: twentyFourHoursAgo,
       },
+    }
+
+    if (machineId) {
+      whereClause.machineId = machineId
+    }
+
+    const recentActivity = await prisma.attendanceRecord.findMany({
+      where: whereClause,
       include: {
         user: {
           select: {
