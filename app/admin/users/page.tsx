@@ -146,20 +146,20 @@ export default function UsersPage() {
       {/* Header */}
       <div className="bg-neutral-800/50 border-b border-neutral-700">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button asChild variant="ghost" size="sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <Button asChild variant="ghost" size="sm" className="self-start sm:self-auto">
                 <Link href="/admin">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Voltar ao Dashboard
+                  Voltar
                 </Link>
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Gerenciar Usuários</h1>
-                <p className="text-neutral-400">Administre usuários do sistema</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">Gerenciar Usuários</h1>
+                <p className="text-sm sm:text-base text-neutral-400">Administre usuários do sistema</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 self-start sm:self-auto">
               <Button variant="ghost" onClick={handleRefresh} title="Atualizar lista">
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -196,14 +196,14 @@ export default function UsersPage() {
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full md:w-auto">
                 <label htmlFor="role-filter" className="sr-only">
                   Filtrar por papel
                 </label>
-                <Filter className="h-4 w-4 text-neutral-400" />
+                <Filter className="h-4 w-4 text-neutral-400 shrink-0" />
                 <select
                   id="role-filter"
-                  className="input"
+                  className="input w-full md:w-auto"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                   title="Filtrar por papel"
@@ -297,7 +297,7 @@ export default function UsersPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 shrink-0 sm:self-center">
+                  <div className="flex items-center space-x-2 shrink-0 self-end sm:self-center mt-4 sm:mt-0 pt-3 sm:pt-0 border-t border-neutral-700/50 sm:border-0 w-full sm:w-auto justify-end">
                     <Button asChild variant="ghost" size="sm" title="Visualizar">
                       <Link href={`/admin/users/${user.id}`}>
                         <Eye className="h-4 w-4" />

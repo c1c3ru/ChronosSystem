@@ -269,9 +269,9 @@ export default function KioskPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex flex-col">
       {/* Header */}
-      <div className="glass border-b border-neutral-700/50 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className="glass border-b border-neutral-700/50 p-4 md:p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
+          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full md:w-auto text-center sm:text-left">
             <div className="bg-primary/20 rounded-xl p-3">
               <Clock className="h-8 w-8 text-primary" />
             </div>
@@ -305,7 +305,7 @@ export default function KioskPage() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center justify-between sm:justify-end space-x-6 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t border-neutral-700/50 md:border-0">
             <div
               className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}
             >
@@ -313,10 +313,10 @@ export default function KioskPage() {
               <span className="text-sm font-medium">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">
+              <div className="text-xl sm:text-2xl font-bold text-white">
                 {currentTime ? formatTime(currentTime) : '--:--:--'}
               </div>
-              <div className="text-sm text-neutral-400">
+              <div className="text-xs sm:text-sm text-neutral-400">
                 {currentTime ? formatDate(currentTime) : '--/--/----'}
               </div>
             </div>
@@ -470,7 +470,7 @@ export default function KioskPage() {
       {/* Footer */}
       <div className="glass border-t border-neutral-700/50 p-6">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-3 text-center">
             <Image
               src="/assets/logoifce.png"
               alt="Logo IFCE"

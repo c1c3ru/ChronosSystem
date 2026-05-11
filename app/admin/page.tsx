@@ -208,10 +208,9 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
-      {/* Header */}
       <div className="glass border-b border-neutral-700/50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-2 sm:space-x-4">
               <Link
                 href="/"
@@ -233,13 +232,15 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-white font-medium">{session.user.name}</p>
-                <p className="text-neutral-400 text-sm">{session.user.role}</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary" />
+            <div className="flex items-center justify-between sm:justify-end space-x-4 w-full sm:w-auto pt-3 sm:pt-0 border-t border-neutral-700/50 sm:border-0">
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-white font-medium text-sm sm:text-base">{session.user.name}</p>
+                  <p className="text-neutral-400 text-xs sm:text-sm">{session.user.role}</p>
+                </div>
               </div>
               <Button variant="ghost" size="sm" onClick={handleCompleteLogout}>
                 <LogOut className="h-4 w-4" />
@@ -486,17 +487,17 @@ export default function AdminPage() {
               </div>
 
               {totalInternPages > 1 && (
-                <div className="flex items-center justify-center space-x-2 mt-6">
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setInternPage(Math.max(1, internPage - 1))}
                     disabled={internPage === 1}
-                    className="bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700/50 hover:border-neutral-600"
+                    className="bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700/50 hover:border-neutral-600 w-full sm:w-auto order-1 sm:order-none"
                   >
                     Anterior
                   </Button>
-                  <div className="flex items-center space-x-1">
+                  <div className="flex flex-wrap items-center justify-center gap-1 order-3 sm:order-none w-full sm:w-auto mt-2 sm:mt-0">
                     {Array.from({ length: totalInternPages }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
@@ -516,7 +517,7 @@ export default function AdminPage() {
                     size="sm"
                     onClick={() => setInternPage(Math.min(totalInternPages, internPage + 1))}
                     disabled={internPage === totalInternPages}
-                    className="bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700/50 hover:border-neutral-600"
+                    className="bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700/50 hover:border-neutral-600 w-full sm:w-auto order-2 sm:order-none"
                   >
                     Próximo
                   </Button>
@@ -551,7 +552,7 @@ export default function AdminPage() {
                     filteredActivity.map((activity) => (
                       <div
                         key={activity.id}
-                        className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors group gap-3 sm:gap-0"
                       >
                         <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                           <div
@@ -568,18 +569,19 @@ export default function AdminPage() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-white text-sm truncate">
-                              <span className="font-medium">{activity.user}</span> <span className="hidden sm:inline">{activity.action}</span>
+                            <p className="text-white text-sm break-words">
+                              <span className="font-medium">{activity.user}</span>{' '}
+                              <span className="inline text-neutral-300">{activity.action}</span>
                             </p>
-                            <p className="text-neutral-400 text-xs truncate">{activity.timestamp}</p>
+                            <p className="text-neutral-400 text-xs truncate mt-0.5">{activity.timestamp}</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2 sm:space-x-3 ml-2 sm:ml-4 flex-shrink-0">
+                        <div className="flex items-center justify-end sm:justify-start space-x-2 sm:space-x-3 sm:ml-4 flex-shrink-0 pt-2 sm:pt-0 border-t border-neutral-700/30 sm:border-0 mt-2 sm:mt-0">
                           <Clock className="h-4 w-4 text-neutral-500 hidden sm:block" />
                           <button
                             onClick={() => deleteRecord(activity.id, activity.type)}
                             disabled={deletingId === activity.id}
-                            className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             title="Deletar registro"
                           >
                             <Trash2 className="h-4 w-4" />
