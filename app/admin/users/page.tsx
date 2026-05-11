@@ -65,10 +65,18 @@ export default function UsersPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setUsers(data.users || [])
+        // O cache da API pode retornar um array diretamente em vez de um objeto com a propriedade users
+        if (Array.isArray(data)) {
+          setUsers(data)
+        } else {
+          setUsers(data.users || [])
+        }
+      } else {
+        toast.error('Falha ao carregar usuários. Verifique a conexão com o servidor.')
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error)
+      toast.error('Erro de conexão ao buscar usuários.')
     } finally {
       setLoading(false)
     }
@@ -118,9 +126,15 @@ export default function UsersPage() {
   }
 
   const filteredUsers = (users || []).filter((user) => {
+    const search = searchTerm.trim().toLowerCase()
+    const name = user.name || ''
+    const email = user.email || ''
+    
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      search === '' ||
+      name.toLowerCase().includes(search) ||
+      email.toLowerCase().includes(search)
+      
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
   })
