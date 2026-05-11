@@ -159,7 +159,7 @@ export default function UsersPage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
       {/* Header */}
       <div className="bg-neutral-800/50 border-b border-neutral-700">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <Button asChild variant="ghost" size="sm" className="self-start sm:self-auto">
@@ -189,10 +189,10 @@ export default function UsersPage() {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-full overflow-hidden">
         {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
+        <Card className="mb-6 w-full">
+          <CardContent className="p-4 sm:p-6 w-full">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -233,18 +233,18 @@ export default function UsersPage() {
         </Card>
 
         {/* Users List */}
-        <div className="grid gap-4">
+        <div className="grid gap-4 w-full">
           {filteredUsers.map((user) => (
-            <Card key={user.id}>
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-start sm:items-center space-x-4 min-w-0 flex-1">
-                    <div className="w-12 h-12 shrink-0 bg-primary/20 rounded-full flex items-center justify-center">
-                      <Users className="h-6 w-6 text-primary" />
+            <Card key={user.id} className="w-full overflow-hidden">
+              <CardContent className="p-4 sm:p-6 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+                  <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 flex-1 w-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Users className="h-5 w-5 sm:h-6 w-6 text-primary" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-white truncate max-w-full">{user.name}</h3>
+                        <h3 className="font-semibold text-white break-words min-w-0">{user.name}</h3>
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                             user.role === 'ADMIN'
@@ -263,25 +263,25 @@ export default function UsersPage() {
                         )}
                       </div>
 
-                      <p className="text-neutral-400 text-sm mb-2 truncate">{user.email}</p>
+                      <p className="text-neutral-400 text-sm mb-2 break-all">{user.email}</p>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-xs mt-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-xs mt-3 w-full">
                         {user.siapeNumber && (
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">SIAPE:</span>
-                            <p className="text-white font-medium truncate" title={user.siapeNumber}>{user.siapeNumber}</p>
+                            <p className="text-white font-medium break-all">{user.siapeNumber}</p>
                           </div>
                         )}
                         {user.department && (
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">Departamento:</span>
-                            <p className="text-white font-medium truncate" title={user.department}>{user.department}</p>
+                            <p className="text-white font-medium break-words">{user.department}</p>
                           </div>
                         )}
                         {user.contractType && (
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">Contrato:</span>
-                            <p className="text-white font-medium truncate" title={user.contractType}>{user.contractType}</p>
+                            <p className="text-white font-medium break-words">{user.contractType}</p>
                           </div>
                         )}
                         {user.weeklyHours && (
