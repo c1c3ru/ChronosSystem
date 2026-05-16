@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationRequestDocument } from '@/components/templates/InternshipRegistrationRequestDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 /**
  * Página de Solicitação de Cadastro no Estágio
@@ -66,6 +66,8 @@ export default function InternshipRegistrationRequestPage() {
         // Supervisor
         supervisor_nome: '',
         supervisor_cargo: '',
+        supervisor_cpf: '',
+        supervisor_telefone: '',
         setor_realizacao: '',
 
         // Tipo de Estágio
@@ -130,6 +132,9 @@ export default function InternshipRegistrationRequestPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name.includes('cargo') || name.includes('qualificacao')) {
+      // Campos de cargo/qualificação não aceitam números
+      maskedValue = maskOnlyText(value)
     }
 
     // Atualizar o valor do input com a máscara
@@ -407,8 +412,12 @@ export default function InternshipRegistrationRequestPage() {
                                 <h3 className="text-sm font-semibold text-neutral-400">Supervisor(a) do Estágio</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <input name="supervisor_nome" value={formData.supervisor_nome} onChange={handleInputChange} placeholder="Nome do Supervisor" className="input" />
-                                    <input name="supervisor_cargo" value={formData.supervisor_cargo} onChange={handleInputChange} placeholder="Cargo" className="input" />
+                                    <input name="supervisor_cargo" value={formData.supervisor_cargo} onChange={handleInputChange} placeholder="Cargo / Qualificação" className="input" />
                                     <input name="setor_realizacao" value={formData.setor_realizacao} onChange={handleInputChange} placeholder="Setor de Realização" className="input" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input name="supervisor_cpf" value={formData.supervisor_cpf} onChange={handleInputChange} placeholder="CPF do Supervisor" className="input" />
+                                    <input name="supervisor_telefone" value={formData.supervisor_telefone} onChange={handleInputChange} placeholder="DDD + Telefone do Supervisor" className="input" />
                                 </div>
                             </div>
                         </CardContent>

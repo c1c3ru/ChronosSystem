@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { AdditiveTermDocument } from '@/components/templates/AdditiveTermDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 export default function AdditiveTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -56,6 +56,9 @@ export default function AdditiveTermPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name.includes('role')) {
+      // Campos de cargo não aceitam números
+      maskedValue = maskOnlyText(value)
     }
 
     // Atualizar o valor do input com a máscara

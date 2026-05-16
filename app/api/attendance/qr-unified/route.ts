@@ -273,8 +273,24 @@ export async function POST(request: NextRequest) {
 
     // Se há erros críticos, bloquear registro
     if (!validation.isValid) {
+      const errorMsg = validation.errors.join(', ')
+      apiLogger.warn('Attendance validation failed', {
+        userId: session.user.id,
+        machineId, machineName: machine.name,
+        errors: errorMsg
+      })
+
+      await prisma.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'REJECTED_ATTENDANCE',
+          resource: 'ATTENDANCE_RECORD',
+          details: `Tentativa de ${recordType} rejeitada na máquina ${machine.name}. Motivo: ${errorMsg}`
+        }
+      })
+
       return NextResponse.json({
-        error: `Registro bloqueado: ${validation.errors.join(', ')}`,
+        error: `Registro bloqueado: ${errorMsg}`,
         warnings: validation.warnings,
         code: 'VALIDATION_FAILED'
       }, { status: 400 })
@@ -294,8 +310,25 @@ export async function POST(request: NextRequest) {
 
     if (recentRecord) {
       const recordTypeLabel = recentRecord.type === 'ENTRY' ? 'entrada' : 'saída'
+      const duplicateMsg = `Você já registrou ${recordTypeLabel} recentemente. Aguarde 1 minuto entre registros.`
+      
+      apiLogger.warn('Duplicate attendance record attempt', {
+        userId: session.user.id,
+        machineId, machineName: machine.name,
+        lastRecordType: recentRecord.type
+      })
+
+      await prisma.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'REJECTED_ATTENDANCE',
+          resource: 'ATTENDANCE_RECORD',
+          details: `Tentativa de ponto duplicado (${recordType}) na máquina ${machine.name}. Motivo: Já registrou ${recordTypeLabel} há menos de 1 minuto.`
+        }
+      })
+
       return NextResponse.json({
-        error: `Você já registrou ${recordTypeLabel} recentemente. Aguarde 1 minuto entre registros.`,
+        error: duplicateMsg,
         code: 'DUPLICATE_RECORD',
         lastRecord: {
           type: recentRecord.type,

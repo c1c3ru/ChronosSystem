@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { CommitmentTermDocument } from '@/components/templates/CommitmentTermDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 export default function CommitmentTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -114,6 +114,9 @@ export default function CommitmentTermPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name.includes('role') || name.includes('education')) {
+      // Campos de cargo/formação não aceitam números
+      maskedValue = maskOnlyText(value)
     }
 
 

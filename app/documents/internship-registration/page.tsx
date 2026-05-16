@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -59,6 +59,9 @@ export default function InternshipRegistrationPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name.includes('role')) {
+      // Campos de cargo não aceitam números
+      maskedValue = maskOnlyText(value)
     }
 
     // Atualizar o valor do input com a máscara

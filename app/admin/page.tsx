@@ -525,9 +525,11 @@ export default function AdminPage() {
                 </div>
 
                 <div className="mt-6 text-center">
-                  <Button variant="ghost" className="text-primary hover:text-primary/80">
-                    Ver todas as atividades
-                  </Button>
+                  <Link href="/admin/reports">
+                    <Button variant="ghost" className="text-primary hover:text-primary/80">
+                      Ver todas as atividades
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

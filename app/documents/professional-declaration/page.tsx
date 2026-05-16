@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { ProfessionalDeclarationDocument } from '@/components/templates/ProfessionalDeclarationDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 export default function ProfessionalDeclarationPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -50,6 +50,9 @@ export default function ProfessionalDeclarationPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name === 'role') {
+      // Campo de função/cargo não aceita números
+      maskedValue = maskOnlyText(value)
     }
 
     // Atualizar o valor do input com a máscara
