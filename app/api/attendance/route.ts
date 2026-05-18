@@ -220,7 +220,23 @@ export async function POST(request: NextRequest) {
     )
 
     if (!validadorRegistro.isValid) {
-      return NextResponse.json({ error: validadorRegistro.errors[0] }, { status: 400 })
+      const errorMsg = validadorRegistro.errors[0]
+      logger.warn('Registro de ponto rejeitado por regras de validação', {
+        userId: sessao.user.id,
+        machineId: maquina.id, machineName: maquina.name,
+        error: errorMsg
+      })
+
+      await prisma.auditLog.create({
+        data: {
+          userId: sessao.user.id,
+          action: 'REJECTED_ATTENDANCE',
+          resource: 'ATTENDANCE_RECORD',
+          details: `Tentativa de ${dadosValidados.type} rejeitada na máquina ${maquina.name}. Motivo: ${errorMsg}`
+        }
+      })
+
+      return NextResponse.json({ error: errorMsg }, { status: 400 })
     }
 
     // Gerar hash para integridade

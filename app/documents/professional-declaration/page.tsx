@@ -6,25 +6,16 @@ import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft, Save, FileText, Download, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { PDFMakeExport } from '@/components/PDFMakeExport'
-import { buildProfessionalDeclarationDoc } from '@/lib/pdf-templates/professional-declaration.pdf'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import {
-  maskCPF,
-  maskRG,
-  maskCTPS,
-  maskCNPJ,
-  maskCEP,
-  maskPhone,
-  maskCurrency,
-} from '@/lib/input-masks'
+import { ProfessionalDeclarationDocument } from '@/components/templates/ProfessionalDeclarationDocument'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 export default function ProfessionalDeclarationPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState<Record<string, string>>({})
+  const [formData, setFormData] = useState<any>({})
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -33,7 +24,7 @@ export default function ProfessionalDeclarationPage() {
         if (formRef.current) {
           populateFormWithData(formRef.current, draft)
         }
-        setFormData(draft as Record<string, string>)
+        setFormData(draft)
         toast.success('Rascunho carregado!')
       }
     }
@@ -59,6 +50,9 @@ export default function ProfessionalDeclarationPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name === 'role') {
+      // Campo de função/cargo não aceita números
+      maskedValue = maskOnlyText(value)
     }
 
     // Atualizar o valor do input com a máscara
@@ -70,12 +64,12 @@ export default function ProfessionalDeclarationPage() {
     const { type } = e.target
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev) => ({ ...prev, [name]: checked ? value : '' }))
+      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
     } else if (type === 'radio') {
       // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev) => ({ ...prev, [name]: value }))
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
     } else {
-      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
@@ -84,11 +78,41 @@ export default function ProfessionalDeclarationPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-    const data: Record<string, string> = { ...formData }
+      const data: any = { ...formData }
 
     await saveDraft('professional-declaration', data)
     toast.success('Rascunho salvo com sucesso!')
     setIsSaving(false)
+  }
+
+  const handleGeneratePDF = async () => {
+    try {
+      if (!formRef.current) return
+
+      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data: any = { ...formData }
+
+      // Adicionar data atual se não estiver presente (se aplicável)
+      const now = new Date()
+      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
+      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
+      if (!data.date_year) data.date_year = String(now.getFullYear())
+
+      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
+
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+      
+      // Criar o documento React-PDF
+      const pdfDocument = <ProfessionalDeclarationDocument data={data as any} />
+      
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'professional-declaration.pdf')
+
+      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
+    }
   }
 
   return (
@@ -109,11 +133,10 @@ export default function ProfessionalDeclarationPage() {
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <PDFMakeExport 
-              fileName="declaracao-profissional.pdf"
-              buttonText="Gerar PDF"
-              documentDefinitionGenerator={() => buildProfessionalDeclarationDoc(formData)}
-            />
+            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Gerar PDF
+            </Button>
           </div>
         </div>
 
@@ -133,10 +156,12 @@ export default function ProfessionalDeclarationPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6" onChange={() => {
+          if (formRef.current) {
+            const data = new FormData(formRef.current)
+            setFormData(Object.fromEntries(data.entries()))
+          }
+        }}>
           {/* Dados da Empresa */}
           <Card variant="elevated">
             <CardHeader>
@@ -145,53 +170,20 @@ export default function ProfessionalDeclarationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Razão Social
-                  </label>
-                  <input
-                    type="text"
-                    name="company_name"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Razão Social"
-                    placeholder="Razão Social da Empresa"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                  <input
-                    type="text"
-                    name="company_cnpj"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CNPJ"
-                    placeholder="00.000.000/0000-00"
-                  />
+                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
-                  <input
-                    type="text"
-                    name="city"
-                    className="input w-full"
-                    defaultValue="Fortaleza"
-                    onChange={handleInputChange}
-                    title="Cidade"
-                    placeholder="Fortaleza"
-                  />
+                  <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Endereço Completo
-                  </label>
-                  <input
-                    type="text"
-                    name="company_address"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Endereço Completo"
-                    placeholder="Rua, Número, Bairro, CEP"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço Completo</label>
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
             </CardContent>
@@ -205,53 +197,21 @@ export default function ProfessionalDeclarationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Nome Completo
-                  </label>
-                  <input
-                    type="text"
-                    name="employee_name"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Nome Completo"
-                    placeholder="Nome do Funcionário"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
+                  <input type="text" name="employee_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                  <input
-                    type="text"
-                    name="employee_cpf"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CPF"
-                    placeholder="000.000.000-00"
-                  />
+                  <input type="text" name="employee_cpf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-1">
-                      CTPS Nº
-                    </label>
-                    <input
-                      type="text"
-                      name="employee_ctps"
-                      className="input w-full"
-                      onChange={handleInputChange}
-                      title="CTPS Nº"
-                      placeholder="0000000"
-                    />
+                    <label className="block text-sm font-medium text-neutral-300 mb-1">CTPS Nº</label>
+                    <input type="text" name="employee_ctps" className="input w-full" onChange={handleInputChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-1">Série</label>
-                    <input
-                      type="text"
-                      name="employee_ctps_series"
-                      className="input w-full"
-                      onChange={handleInputChange}
-                      title="Série"
-                      placeholder="000-0"
-                    />
+                    <input type="text" name="employee_ctps_series" className="input w-full" onChange={handleInputChange} />
                   </div>
                 </div>
               </div>
@@ -266,54 +226,21 @@ export default function ProfessionalDeclarationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Data de Início
-                  </label>
-                  <input
-                    type="date"
-                    name="start_date"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Data de Início"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Início</label>
+                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Função</label>
-                  <input
-                    type="text"
-                    name="role"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Função"
-                    placeholder="Cargo/Função"
-                  />
+                  <input type="text" name="role" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Carga Horária Semanal
-                  </label>
-                  <input
-                    type="number"
-                    name="weekly_hours"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Carga Horária Semanal"
-                    placeholder="00"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal</label>
+                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">
-                  Descrição das Atividades
-                </label>
-                <textarea
-                  name="activities"
-                  rows={8}
-                  className="input w-full"
-                  onChange={handleInputChange}
-                  title="Descrição das Atividades"
-                  placeholder="Descreva as principais atividades desempenhadas"
-                ></textarea>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">Descrição das Atividades</label>
+                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
               </div>
             </CardContent>
           </Card>

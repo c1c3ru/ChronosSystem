@@ -96,3 +96,11 @@ export const maskCurrency = (value: string): string => {
 export const unmaskCurrency = (value: string): string => {
   return value.replace(/\D/g, '')
 }
+
+/**
+ * Máscara para campos de texto que não aceitam números
+ * Remove qualquer dígito numérico do valor digitado
+ */
+export const maskOnlyText = (value: string): string => {
+    return value.replace(/[0-9]/g, '')
+}

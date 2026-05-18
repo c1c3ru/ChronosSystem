@@ -9,20 +9,13 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import {
-  maskCPF,
-  maskRG,
-  maskCTPS,
-  maskCNPJ,
-  maskCEP,
-  maskPhone,
-  maskCurrency,
-} from '@/lib/input-masks'
+import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
+import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
 
 export default function InternshipRegistrationPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState<Record<string, string>>({})
+  const [formData, setFormData] = useState<any>({})
   const [schedule, setSchedule] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -35,21 +28,19 @@ export default function InternshipRegistrationPage() {
         // Carregar schedule se existir
         if (draft.schedule) {
           try {
-            setSchedule(JSON.parse(String(draft.schedule)))
+            setSchedule(JSON.parse(draft.schedule))
           } catch (e) {
             console.error('Erro ao parsear schedule', e)
           }
         }
-        setFormData(draft as Record<string, string>)
+        setFormData(draft)
         toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     let maskedValue = value
 
@@ -68,6 +59,9 @@ export default function InternshipRegistrationPage() {
       maskedValue = maskPhone(value)
     } else if (name.includes('value') || name.includes('valor')) {
       maskedValue = maskCurrency(value)
+    } else if (name.includes('role')) {
+      // Campos de cargo não aceitam números
+      maskedValue = maskOnlyText(value)
     }
 
     // Atualizar o valor do input com a máscara
@@ -78,19 +72,19 @@ export default function InternshipRegistrationPage() {
     // Tratamento especial para checkboxes e radio buttons
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev) => ({ ...prev, [name]: checked ? value : '' }))
+      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
     } else if (type === 'radio') {
       // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev) => ({ ...prev, [name]: value }))
+      setFormData((prev: any) => ({ ...prev, [name]: value }))
     } else {
-      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
   const handleScheduleChange = (key: string, value: string) => {
-    setSchedule((prev) => {
+    setSchedule(prev => {
       const newSchedule = { ...prev, [key]: value }
-      setFormData((prevData) => ({ ...prevData, schedule: JSON.stringify(newSchedule) }))
+      setFormData((prevData: any) => ({ ...prevData, schedule: JSON.stringify(newSchedule) }))
       return newSchedule
     })
   }
@@ -100,7 +94,7 @@ export default function InternshipRegistrationPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-    const data: Record<string, string> = { ...formData }
+    const data: any = { ...formData }
 
     // Adicionar schedule
     data.schedule = JSON.stringify(schedule)
@@ -112,88 +106,31 @@ export default function InternshipRegistrationPage() {
 
   const handleGeneratePDF = async () => {
     try {
+      if (!formRef.current) return
+
+      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
+      const data = {
+        ...formData,
+        schedule: JSON.stringify(schedule)
+      }
+
+      console.log('📋 Dados do formulário:', data)
+
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-      const { buildInternshipRegistrationDoc } = await import('@/lib/pdf-templates/internship-registration.pdf')
-      const { generatePDF } = await import('@/lib/pdfmake-base-service')
-      const raw = { ...formData }
-      const doc = await buildInternshipRegistrationDoc({
-        student_name: raw.student_name,
-        student_social_name: raw.student_social_name,
-        student_course: raw.student_course,
-        student_enrollment: raw.student_enrollment,
-        student_cpf: raw.student_cpf,
-        student_email_institutional: raw.student_email_institutional,
-        student_email_personal: raw.student_email_personal,
-        student_phone: raw.student_phone,
-        student_address: raw.student_address,
-        student_neighborhood: raw.student_neighborhood,
-        student_city_uf: raw.student_city_uf,
-        student_zip: raw.student_zip,
-        student_race: raw.student_race,
-        student_ethnicity: raw.student_ethnicity,
-        student_ethnicity_community: raw.student_ethnicity_community,
-        student_disability: raw.student_disability ? [raw.student_disability] : [],
-        company_name: raw.company_name,
-        company_fantasy_name: raw.company_fantasy_name,
-        company_cnpj: raw.company_cnpj,
-        company_phone: raw.company_phone,
-        company_address: raw.company_address,
-        company_neighborhood: raw.company_neighborhood,
-        company_city_uf: raw.company_city_uf,
-        company_zip: raw.company_zip,
-        company_email: raw.company_email,
-        company_representative: raw.company_representative,
-        company_representative_role: raw.company_representative_role,
-        company_representative_cpf: raw.company_representative_cpf,
-        company_representative_phone: raw.company_representative_phone,
-        company_supervisor: raw.company_supervisor,
-        company_supervisor_role: raw.company_supervisor_role,
-        company_supervisor_cpf: raw.company_supervisor_cpf,
-        company_supervisor_phone: raw.company_supervisor_phone,
-        company_sector: raw.company_sector,
-        internship_type: raw.internship_type,
-        internship_mode: raw.internship_mode,
-        start_date: raw.start_date,
-        end_date: raw.end_date,
-        weekly_hours: raw.weekly_hours,
-        schedule: {
-          mon: {
-            morning: schedule.seg_start_1 && schedule.seg_end_1 ? `${schedule.seg_start_1} - ${schedule.seg_end_1}` : '',
-            afternoon: schedule.seg_start_2 && schedule.seg_end_2 ? `${schedule.seg_start_2} - ${schedule.seg_end_2}` : '',
-            evening: schedule.seg_start_3 && schedule.seg_end_3 ? `${schedule.seg_start_3} - ${schedule.seg_end_3}` : '',
-          },
-          tue: {
-            morning: schedule.ter_start_1 && schedule.ter_end_1 ? `${schedule.ter_start_1} - ${schedule.ter_end_1}` : '',
-            afternoon: schedule.ter_start_2 && schedule.ter_end_2 ? `${schedule.ter_start_2} - ${schedule.ter_end_2}` : '',
-            evening: schedule.ter_start_3 && schedule.ter_end_3 ? `${schedule.ter_start_3} - ${schedule.ter_end_3}` : '',
-          },
-          wed: {
-            morning: schedule.qua_start_1 && schedule.qua_end_1 ? `${schedule.qua_start_1} - ${schedule.qua_end_1}` : '',
-            afternoon: schedule.qua_start_2 && schedule.qua_end_2 ? `${schedule.qua_start_2} - ${schedule.qua_end_2}` : '',
-            evening: schedule.qua_start_3 && schedule.qua_end_3 ? `${schedule.qua_start_3} - ${schedule.qua_end_3}` : '',
-          },
-          thu: {
-            morning: schedule.qui_start_1 && schedule.qui_end_1 ? `${schedule.qui_start_1} - ${schedule.qui_end_1}` : '',
-            afternoon: schedule.qui_start_2 && schedule.qui_end_2 ? `${schedule.qui_start_2} - ${schedule.qui_end_2}` : '',
-            evening: schedule.qui_start_3 && schedule.qui_end_3 ? `${schedule.qui_start_3} - ${schedule.qui_end_3}` : '',
-          },
-          fri: {
-            morning: schedule.sex_start_1 && schedule.sex_end_1 ? `${schedule.sex_start_1} - ${schedule.sex_end_1}` : '',
-            afternoon: schedule.sex_start_2 && schedule.sex_end_2 ? `${schedule.sex_start_2} - ${schedule.sex_end_2}` : '',
-            evening: schedule.sex_start_3 && schedule.sex_end_3 ? `${schedule.sex_start_3} - ${schedule.sex_end_3}` : '',
-          },
-          sat: {
-            morning: schedule.sab_start_1 && schedule.sab_end_1 ? `${schedule.sab_start_1} - ${schedule.sab_end_1}` : '',
-            afternoon: schedule.sab_start_2 && schedule.sab_end_2 ? `${schedule.sab_start_2} - ${schedule.sab_end_2}` : '',
-            evening: schedule.sab_start_3 && schedule.sab_end_3 ? `${schedule.sab_start_3} - ${schedule.sab_end_3}` : '',
-          },
-        },
-      })
-      await generatePDF(doc, { filename: 'cadastro-estagio.pdf' })
+
+      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
+
+      // Criar o documento React-PDF
+      const pdfDocument = <InternshipRegistrationDocument data={data as any} />
+
+      // Gerar e baixar o PDF
+      await generateAndDownloadPDF(pdfDocument, 'internship-registration.pdf')
+
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error)
-      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
+      console.error('❌ Erro detalhado ao gerar PDF:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      toast.error(`Erro: ${errorMessage}`, { id: 'pdf-generation', duration: 10000 })
     }
   }
 
@@ -238,10 +175,12 @@ export default function InternshipRegistrationPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6" onChange={() => {
+          if (formRef.current) {
+            const data = new FormData(formRef.current)
+            setFormData(Object.fromEntries(data.entries()))
+          }
+        }}>
           {/* 1. Dados do Discente */}
           <Card variant="elevated">
             <CardHeader>
@@ -250,152 +189,52 @@ export default function InternshipRegistrationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Nome Completo
-                  </label>
-                  <input
-                    type="text"
-                    name="student_name"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Nome Completo"
-                    placeholder="Nome Completo"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Completo</label>
+                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CPF</label>
-                  <input
-                    type="text"
-                    name="student_cpf"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CPF"
-                    placeholder="000.000.000-00"
-                  />
+                  <input type="text" name="student_cpf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Nome Social
-                  </label>
-                  <input
-                    type="text"
-                    name="student_social_name"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Nome Social"
-                    placeholder="Como gostaria de ser chamado(a)"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Social</label>
+                  <input type="text" name="student_social_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input
-                    type="text"
-                    name="student_course"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Curso"
-                    placeholder="Nome do Curso"
-                  />
+                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Matrícula
-                  </label>
-                  <input
-                    type="text"
-                    name="student_enrollment"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Matrícula"
-                    placeholder="Número da Matrícula"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
+                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Endereço
-                  </label>
-                  <input
-                    type="text"
-                    name="student_address"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Endereço"
-                    placeholder="Rua, Número, Apto"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
+                  <input type="text" name="student_address" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
-                  <input
-                    type="text"
-                    name="student_neighborhood"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Bairro"
-                    placeholder="Nome do Bairro"
-                  />
+                  <input type="text" name="student_neighborhood" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Município/UF
-                  </label>
-                  <input
-                    type="text"
-                    name="student_city_uf"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Município/UF"
-                    placeholder="Cidade/Estado"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Município/UF</label>
+                  <input type="text" name="student_city_uf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
-                  <input
-                    type="text"
-                    name="student_zip"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CEP"
-                    placeholder="00000-000"
-                  />
+                  <input type="text" name="student_zip" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Telefone
-                  </label>
-                  <input
-                    type="text"
-                    name="student_phone"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Telefone"
-                    placeholder="(00) 00000-0000"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
+                  <input type="text" name="student_phone" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Email Institucional
-                  </label>
-                  <input
-                    type="email"
-                    name="student_email_institutional"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Email Institucional"
-                    placeholder="aluno@ifce.edu.br"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email Institucional</label>
+                  <input type="email" name="student_email_institutional" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Email Pessoal
-                  </label>
-                  <input
-                    type="email"
-                    name="student_email_personal"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Email Pessoal"
-                    placeholder="email@exemplo.com"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Email Pessoal</label>
+                  <input type="email" name="student_email_personal" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
             </CardContent>
@@ -410,55 +249,30 @@ export default function InternshipRegistrationPage() {
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2">Cor/Raça</label>
                 <div className="flex flex-wrap gap-4">
-                  {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'nao_declarar'].map(
-                    (opt) => (
-                      <label key={opt} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="student_race"
-                          value={opt}
-                          onChange={handleInputChange}
-                          className="checkbox"
-                          title={`Cor/Raça: ${opt}`}
-                        />
-                        <span className="capitalize">{opt.replace('_', ' ')}</span>
-                      </label>
-                    )
-                  )}
+                  {['amarelo', 'branco', 'indigena', 'pardo', 'preto', 'nao_declarar'].map(opt => (
+                    <label key={opt} className="flex items-center gap-2">
+                      <input type="radio" name="student_race" value={opt} onChange={handleInputChange} className="checkbox" />
+                      <span className="capitalize">{opt.replace('_', ' ')}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2">Etnia</label>
                 <div className="flex flex-wrap gap-4 mb-2">
-                  {['indigena', 'quilombola', 'outra', 'nao_declarar'].map((opt) => (
+                  {['indigena', 'quilombola', 'outra', 'nao_declarar'].map(opt => (
                     <label key={opt} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="student_ethnicity"
-                        value={opt}
-                        onChange={handleInputChange}
-                        className="checkbox"
-                        title={`Etnia: ${opt}`}
-                      />
+                      <input type="radio" name="student_ethnicity" value={opt} onChange={handleInputChange} className="checkbox" />
                       <span className="capitalize">{opt.replace('_', ' ')}</span>
                     </label>
                   ))}
                 </div>
-                <input
-                  type="text"
-                  name="student_ethnicity_community"
-                  placeholder="Comunidade (se aplicável)"
-                  title="Comunidade"
-                  className="input w-full"
-                  onChange={handleInputChange}
-                />
+                <input type="text" name="student_ethnicity_community" placeholder="Comunidade (se aplicável)" className="input w-full" onChange={handleInputChange} />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Pessoa com Deficiência
-                </label>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Pessoa com Deficiência</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[
                     { val: 'alta_habilidade', label: 'Alta habilidade/superdotação' },
@@ -467,17 +281,10 @@ export default function InternshipRegistrationPage() {
                     { val: 'motora', label: 'Deficiência motora' },
                     { val: 'visual_baixa', label: 'Deficiência visual/baixa visão' },
                     { val: 'visual', label: 'Deficiência visual' },
-                    { val: 'surdocegueira', label: 'Surdocegueira' },
-                  ].map((opt) => (
+                    { val: 'surdocegueira', label: 'Surdocegueira' }
+                  ].map(opt => (
                     <label key={opt.val} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="student_disability"
-                        value={opt.val}
-                        onChange={handleInputChange}
-                        className="checkbox"
-                        title={`Deficiência: ${opt.label}`}
-                      />
+                      <input type="radio" name="student_disability" value={opt.val} onChange={handleInputChange} className="checkbox" />
                       <span>{opt.label}</span>
                     </label>
                   ))}
@@ -494,230 +301,76 @@ export default function InternshipRegistrationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Razão Social
-                  </label>
-                  <input
-                    type="text"
-                    name="company_name"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Razão Social"
-                    placeholder="Razão Social da Empresa"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
+                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Nome Fantasia
-                  </label>
-                  <input
-                    type="text"
-                    name="company_fantasy_name"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Nome Fantasia"
-                    placeholder="Nome Fantasia"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Fantasia</label>
+                  <input type="text" name="company_fantasy_name" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                  <input
-                    type="text"
-                    name="company_cnpj"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CNPJ"
-                    placeholder="00.000.000/0000-00"
-                  />
+                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Telefone
-                  </label>
-                  <input
-                    type="text"
-                    name="company_phone"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Telefone"
-                    placeholder="(00) 0000-0000"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone</label>
+                  <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Endereço
-                  </label>
-                  <input
-                    type="text"
-                    name="company_address"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Endereço"
-                    placeholder="Endereço da Empresa"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
+                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
-                  <input
-                    type="text"
-                    name="company_neighborhood"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Bairro"
-                    placeholder="Bairro"
-                  />
+                  <input type="text" name="company_neighborhood" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Município/UF
-                  </label>
-                  <input
-                    type="text"
-                    name="company_city_uf"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Município/UF"
-                    placeholder="Cidade/Estado"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Município/UF</label>
+                  <input type="text" name="company_city_uf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
-                  <input
-                    type="text"
-                    name="company_zip"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CEP"
-                    placeholder="00000-000"
-                  />
+                  <input type="text" name="company_zip" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
-                  <input
-                    type="email"
-                    name="company_email"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Email"
-                    placeholder="empresa@exemplo.com"
-                  />
+                  <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Responsável Legal
-                  </label>
-                  <input
-                    type="text"
-                    name="company_representative"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Responsável Legal"
-                    placeholder="Nome do Responsável Legal"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Responsável Legal</label>
+                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Cargo do Responsável
-                  </label>
-                  <input
-                    type="text"
-                    name="company_representative_role"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Cargo do Responsável"
-                    placeholder="Cargo/Função"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Responsável</label>
+                  <input type="text" name="company_representative_role" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    CPF do Responsável
-                  </label>
-                  <input
-                    type="text"
-                    name="company_representative_cpf"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CPF do Responsável"
-                    placeholder="000.000.000-00"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Responsável</label>
+                  <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Telefone do Responsável
-                  </label>
-                  <input
-                    type="text"
-                    name="company_representative_phone"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Telefone do Responsável"
-                    placeholder="(00) 00000-0000"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone do Responsável</label>
+                  <input type="text" name="company_representative_phone" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Supervisor do Estágio
-                  </label>
-                  <input
-                    type="text"
-                    name="company_supervisor"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Supervisor do Estágio"
-                    placeholder="Nome do Supervisor"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
+                  <input type="text" name="company_supervisor" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Cargo do Supervisor
-                  </label>
-                  <input
-                    type="text"
-                    name="company_supervisor_role"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Cargo do Supervisor"
-                    placeholder="Cargo/Função"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo do Supervisor</label>
+                  <input type="text" name="company_supervisor_role" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    CPF do Supervisor
-                  </label>
-                  <input
-                    type="text"
-                    name="company_supervisor_cpf"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="CPF do Supervisor"
-                    placeholder="000.000.000-00"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Supervisor</label>
+                  <input type="text" name="company_supervisor_cpf" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Telefone do Supervisor
-                  </label>
-                  <input
-                    type="text"
-                    name="company_supervisor_phone"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Telefone do Supervisor"
-                    placeholder="(00) 00000-0000"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Telefone do Supervisor</label>
+                  <input type="text" name="company_supervisor_phone" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Setor de Realização
-                  </label>
-                  <input
-                    type="text"
-                    name="company_sector"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Setor de Realização"
-                    placeholder="Nome do Setor/Departamento"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Setor de Realização</label>
+                  <input type="text" name="company_sector" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
             </CardContent>
@@ -731,116 +384,55 @@ export default function InternshipRegistrationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Tipo de Estágio
-                  </label>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Tipo de Estágio</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="internship_type"
-                        value="obrigatorio"
-                        onChange={handleInputChange}
-                        className="checkbox"
-                        title="Estágio Obrigatório"
-                      />
+                      <input type="radio" name="internship_type" value="obrigatorio" onChange={handleInputChange} className="checkbox" />
                       <span>Obrigatório</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="internship_type"
-                        value="nao_obrigatorio"
-                        onChange={handleInputChange}
-                        className="checkbox"
-                        title="Estágio Não Obrigatório"
-                      />
+                      <input type="radio" name="internship_type" value="nao_obrigatorio" onChange={handleInputChange} className="checkbox" />
                       <span>Não Obrigatório</span>
                     </label>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Forma de Estágio
-                  </label>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">Forma de Estágio</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="internship_mode"
-                        value="presencial"
-                        onChange={handleInputChange}
-                        className="checkbox"
-                        title="Modalidade Presencial"
-                      />
+                      <input type="radio" name="internship_mode" value="presencial" onChange={handleInputChange} className="checkbox" />
                       <span>Presencial</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="internship_mode"
-                        value="remoto"
-                        onChange={handleInputChange}
-                        className="checkbox"
-                        title="Modalidade Remota"
-                      />
+                      <input type="radio" name="internship_mode" value="remoto" onChange={handleInputChange} className="checkbox" />
                       <span>Remoto</span>
                     </label>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Data Inicial
-                  </label>
-                  <input
-                    type="date"
-                    name="start_date"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Data Inicial"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial</label>
+                  <input type="date" name="start_date" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Data Final Prevista
-                  </label>
-                  <input
-                    type="date"
-                    name="end_date"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Data Final Prevista"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Prevista</label>
+                  <input type="date" name="end_date" className="input w-full" onChange={handleInputChange} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
-                    Carga Horária Semanal
-                  </label>
-                  <input
-                    type="number"
-                    name="weekly_hours"
-                    className="input w-full"
-                    onChange={handleInputChange}
-                    title="Carga Horária Semanal"
-                    placeholder="00"
-                  />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Semanal</label>
+                  <input type="number" name="weekly_hours" className="input w-full" onChange={handleInputChange} />
                 </div>
               </div>
 
               {/* Tabela de Horários */}
               <div className="mt-6">
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Horário do Estágio
-                </label>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Horário do Estágio</label>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left text-neutral-300">
                     <thead className="text-xs text-neutral-400 uppercase bg-neutral-800">
                       <tr>
                         <th className="px-2 py-2">Turno</th>
-                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map((d) => (
-                          <th key={d} className="px-2 py-2 text-center" colSpan={2}>
-                            {d}
-                          </th>
+                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map(d => (
+                          <th key={d} className="px-2 py-2 text-center" colSpan={2}>{d}</th>
                         ))}
                       </tr>
                     </thead>
@@ -848,17 +440,14 @@ export default function InternshipRegistrationPage() {
                       {['1º', '2º', '3º'].map((turno, idx) => (
                         <tr key={idx} className="border-b border-neutral-700">
                           <td className="px-2 py-2 font-medium">{turno}</td>
-                          {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map((day) => (
+                          {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map(day => (
                             <React.Fragment key={day}>
                               <td className="px-1 py-1">
                                 <input
                                   type="time"
                                   className="bg-neutral-800 border-none rounded px-1 py-0.5 w-16 text-xs"
                                   value={schedule[`${day}_start_${idx + 1}`] || ''}
-                                  onChange={(e) =>
-                                    handleScheduleChange(`${day}_start_${idx + 1}`, e.target.value)
-                                  }
-                                  title={`Entrada ${day} - Turno ${idx + 1}`}
+                                  onChange={(e) => handleScheduleChange(`${day}_start_${idx + 1}`, e.target.value)}
                                 />
                               </td>
                               <td className="px-1 py-1">
@@ -866,10 +455,7 @@ export default function InternshipRegistrationPage() {
                                   type="time"
                                   className="bg-neutral-800 border-none rounded px-1 py-0.5 w-16 text-xs"
                                   value={schedule[`${day}_end_${idx + 1}`] || ''}
-                                  onChange={(e) =>
-                                    handleScheduleChange(`${day}_end_${idx + 1}`, e.target.value)
-                                  }
-                                  title={`Saída ${day} - Turno ${idx + 1}`}
+                                  onChange={(e) => handleScheduleChange(`${day}_end_${idx + 1}`, e.target.value)}
                                 />
                               </td>
                             </React.Fragment>
