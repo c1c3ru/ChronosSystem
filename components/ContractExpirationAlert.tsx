@@ -9,10 +9,10 @@ interface ContractExpirationAlertProps {
   onDismiss?: () => void
 }
 
-export function ContractExpirationAlert({ 
-  contractEndDate, 
+export function ContractExpirationAlert({
+  contractEndDate,
   userName = 'Usuário',
-  onDismiss 
+  onDismiss,
 }: ContractExpirationAlertProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [daysUntilExpiration, setDaysUntilExpiration] = useState(0)
@@ -31,7 +31,7 @@ export function ContractExpirationAlert({
     // Mostrar alerta apenas se estiver próximo do fim
     if (diffDays <= 60 && diffDays > 0) {
       setIsVisible(true)
-      
+
       // Definir tipo de alerta baseado nos dias restantes
       if (diffDays <= 15) {
         setAlertType('critical')
@@ -59,21 +59,21 @@ export function ContractExpirationAlert({
           container: 'bg-red-900/30 border-red-500/50 text-red-100',
           icon: 'text-red-400',
           title: 'text-red-300',
-          button: 'bg-red-600 hover:bg-red-700'
+          button: 'bg-red-600 hover:bg-red-700',
         }
       case 'urgent':
         return {
           container: 'bg-orange-900/30 border-orange-500/50 text-orange-100',
           icon: 'text-orange-400',
           title: 'text-orange-300',
-          button: 'bg-orange-600 hover:bg-orange-700'
+          button: 'bg-orange-600 hover:bg-orange-700',
         }
       case 'warning':
         return {
           container: 'bg-yellow-900/30 border-yellow-500/50 text-yellow-100',
           icon: 'text-yellow-400',
           title: 'text-yellow-300',
-          button: 'bg-yellow-600 hover:bg-yellow-700'
+          button: 'bg-yellow-600 hover:bg-yellow-700',
         }
     }
   }
@@ -98,7 +98,7 @@ export function ContractExpirationAlert({
       'Declaração de cumprimento de carga horária',
       'Termo de compromisso (se renovação)',
       'Documentos pessoais atualizados',
-      'Comprovante de matrícula (se estudante)'
+      'Comprovante de matrícula (se estudante)',
     ]
   }
 
@@ -108,10 +108,8 @@ export function ContractExpirationAlert({
         <div className="flex items-start space-x-3 flex-1">
           <AlertTriangle className={`h-6 w-6 mt-0.5 ${styles.icon}`} />
           <div className="flex-1">
-            <h3 className={`font-semibold text-lg ${styles.title}`}>
-              {getAlertTitle()}
-            </h3>
-            
+            <h3 className={`font-semibold text-lg ${styles.title}`}>{getAlertTitle()}</h3>
+
             <div className="mt-2 space-y-2">
               <div className="flex items-center space-x-2">
                 <Calendar className={`h-4 w-4 ${styles.icon}`} />
@@ -119,10 +117,11 @@ export function ContractExpirationAlert({
                   Seu contrato expira em <strong>{daysUntilExpiration} dia(s)</strong>
                 </span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <span className="text-sm">
-                  Data de término: <strong>{new Date(contractEndDate!).toLocaleDateString('pt-BR')}</strong>
+                  Data de término:{' '}
+                  <strong>{new Date(contractEndDate!).toLocaleDateString('pt-BR')}</strong>
                 </span>
               </div>
             </div>
@@ -130,11 +129,9 @@ export function ContractExpirationAlert({
             <div className="mt-4">
               <div className="flex items-center space-x-2 mb-2">
                 <FileText className={`h-4 w-4 ${styles.icon}`} />
-                <span className="text-sm font-medium">
-                  Documentação necessária para renovação:
-                </span>
+                <span className="text-sm font-medium">Documentação necessária para renovação:</span>
               </div>
-              
+
               <ul className="text-xs space-y-1 ml-6">
                 {getDocumentationList().map((doc, index) => (
                   <li key={index} className="flex items-center space-x-2">
@@ -147,7 +144,7 @@ export function ContractExpirationAlert({
 
             <div className="mt-4 p-3 bg-black/20 rounded border border-current/20">
               <p className="text-xs">
-                <strong>💡 Dica:</strong> Entre em contato com seu supervisor ou RH com antecedência 
+                <strong>💡 Dica:</strong> Entre em contato com seu supervisor ou RH com antecedência
                 para iniciar o processo de renovação e evitar interrupções.
               </p>
             </div>
@@ -155,11 +152,16 @@ export function ContractExpirationAlert({
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 className={`px-3 py-1 rounded text-xs font-medium text-white ${styles.button} transition-colors`}
-                onClick={() => window.open('mailto:rh@instituicao.edu.br?subject=Renovação de Contrato', '_blank')}
+                onClick={() =>
+                  window.open(
+                    'mailto:rh@instituicao.edu.br?subject=Renovação de Contrato',
+                    '_blank'
+                  )
+                }
               >
                 📧 Contatar RH
               </button>
-              
+
               <button
                 className={`px-3 py-1 rounded text-xs font-medium text-white ${styles.button} transition-colors`}
                 onClick={() => window.print()}
@@ -201,6 +203,6 @@ export function useContractExpiration(contractEndDate?: Date | string) {
 
   return {
     shouldShowAlert,
-    daysUntilExpiration
+    daysUntilExpiration,
   }
 }

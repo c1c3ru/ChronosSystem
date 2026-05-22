@@ -19,6 +19,7 @@
 ## 🎨 Padrão de Design Implementado
 
 ### Interface de Preenchimento (Web)
+
 - ✨ **Background**: Gradiente escuro moderno (neutral-900 → neutral-800)
 - 🎴 **Cards**: Efeito glass/elevated com bordas arredondadas
 - 🎯 **Ícones**: Lucide React para elementos visuais
@@ -29,6 +30,7 @@
 - 📱 **Responsivo**: Design adaptável para mobile e desktop
 
 ### PDF Gerado
+
 - 📄 **Layout**: Formato oficial usando OfficialFormTemplate
 - 🖨️ **Estilo**: Formal, preto e branco
 - 🏛️ **Elementos**: Brasão, cabeçalho institucional, tabelas estruturadas
@@ -36,6 +38,7 @@
 ## 🚀 Melhorias Implementadas
 
 ### 1. UX/UI Moderna
+
 - Cards com efeito glass e elevação
 - Ícones visuais para cada tipo de formulário
 - Hover effects e transições suaves
@@ -43,6 +46,7 @@
 - Labels descritivas e claras
 
 ### 2. Funcionalidades
+
 - Salvamento automático de rascunho
 - Carregamento de rascunhos salvos
 - Geração de PDF oficial (estrutura pronta)
@@ -50,12 +54,14 @@
 - Validação de campos (estrutura pronta)
 
 ### 3. Organização Visual
+
 - Seções bem separadas em cards distintos
 - Grid responsivo
 - Espaçamento adequado
 - Hierarquia visual clara
 
 ### 4. Acessibilidade
+
 - Labels associadas aos inputs
 - Contraste adequado de cores
 - Navegação por teclado
@@ -64,16 +70,19 @@
 ## 📋 Características por Formulário
 
 ### Formulários de Relatórios (3)
+
 - **Monthly Report**: Ícones de calendário e relógio
 - **Semester Report**: Sistema de avaliação com radio buttons coloridos
 - **Final Report**: Autoavaliação e avaliação da supervisão
 
 ### Formulários de Termos (3)
+
 - **Commitment Term**: Dados completos do termo de compromisso
 - **Additive Term**: Alterações e prorrogações
 - **Extension Declaration**: Solicitação de extensão de prazo
 
 ### Formulários de Solicitações (3)
+
 - **Internship Registration**: Cadastro completo com dados pessoais e empresa
 - **Equivalence Request**: Aproveitamento de atividade profissional
 - **Professional Declaration**: Comprovação de experiência

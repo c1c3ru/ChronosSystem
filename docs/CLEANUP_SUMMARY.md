@@ -29,11 +29,13 @@
 ## ⚠️ Avisos Encontrados (Não Críticos)
 
 ### React Hooks
+
 - Avisos sobre dependências faltantes em arrays de `useEffect` em 13 arquivos
 - **Impacto**: Nenhum - são apenas sugestões de boas práticas
 - **Recomendação**: Revisar e corrigir quando possível
 
 ### Variáveis
+
 - Sugestão de usar `const` ao invés de `let` em `/app/api/users/contract/route.ts`
 - **Impacto**: Nenhum - apenas sugestão de estilo de código
 
@@ -48,10 +50,12 @@
 ## 🔍 Análise Adicional
 
 ### Console.logs em Produção
+
 - Identificados `console.log` em 11 arquivos de API
 - **Recomendação**: Usar sistema de logging adequado (`lib/logger.ts`)
 
 ### Documentação
+
 - 51 arquivos `.md` na pasta `/docs/`
 - Possível duplicação em arquivos de deploy/setup
 - **Recomendação**: Consolidar documentação similar
@@ -59,16 +63,19 @@
 ## 🎯 Próximos Passos Recomendados
 
 ### Curto Prazo (Opcional)
+
 1. Implementar TODOs identificados
 2. Corrigir avisos de React Hooks
 3. Substituir `console.log` por sistema de logging
 
 ### Médio Prazo (Opcional)
+
 1. Consolidar documentação duplicada
 2. Implementar análise de código estático
 3. Configurar CI/CD para detectar código não utilizado
 
 ### Longo Prazo (Opcional)
+
 1. Otimizar bundle size do Next.js
 2. Implementar monitoramento de performance
 3. Revisar e atualizar dependências

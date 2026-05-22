@@ -69,3 +69,12 @@ out/
 # AI Agents
 .agent/
 .agents/
+
+#temp files
+logs_app.txt
+vercel_dump_backup.sql
+prisma/migrations/migration_lock.toml
+# Agent files
+.agent/
+.agents/
+.*

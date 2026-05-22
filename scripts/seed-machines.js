@@ -17,44 +17,44 @@ async function main() {
       id: 'machine-001',
       name: 'Máquina Entrada - Bloco A',
       location: 'Portaria Principal',
-      isActive: true
+      isActive: true,
     },
     {
       id: 'machine-002',
       name: 'Máquina Saída - Bloco A',
       location: 'Portaria Principal',
-      isActive: true
+      isActive: true,
     },
     {
       id: 'machine-003',
       name: 'Máquina Entrada - Bloco B',
       location: 'Bloco B - Térreo',
-      isActive: true
+      isActive: true,
     },
     {
       id: 'machine-004',
       name: 'Máquina Saída - Bloco B',
       location: 'Bloco B - Térreo',
-      isActive: true
+      isActive: true,
     },
     {
       id: 'machine-005',
       name: 'Máquina Entrada - Bloco C',
       location: 'Bloco C - Entrada',
-      isActive: true
+      isActive: true,
     },
     {
       id: 'machine-006',
       name: 'Máquina Saída - Bloco C',
       location: 'Bloco C - Saída',
-      isActive: true
-    }
+      isActive: true,
+    },
   ]
 
   for (const machine of machines) {
     try {
       const existing = await prisma.machine.findUnique({
-        where: { id: machine.id }
+        where: { id: machine.id },
       })
 
       if (existing) {
@@ -63,7 +63,7 @@ async function main() {
       }
 
       const created = await prisma.machine.create({
-        data: machine
+        data: machine,
       })
 
       console.log(`✅ Máquina criada: ${created.name} (${created.id})`)

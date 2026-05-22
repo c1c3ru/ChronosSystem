@@ -5,15 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import {
-  AlertTriangle,
-  Clock,
-  Calendar,
-  ArrowLeft,
-  Plus,
-  FileText,
-  Send
-} from 'lucide-react'
+import { AlertTriangle, Clock, Calendar, ArrowLeft, Plus, FileText, Send } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -98,13 +90,13 @@ export default function JustificationsPage() {
       const response = await fetch('/api/employee/justifications', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           type: selectedIssue.type,
           date: selectedIssue.date,
-          reason: justificationText
-        })
+          reason: justificationText,
+        }),
       })
 
       const data = await response.json()
@@ -131,31 +123,42 @@ export default function JustificationsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'text-warning bg-warning/20'
-      case 'APPROVED': return 'text-success bg-success/20'
-      case 'REJECTED': return 'text-error bg-error/20'
-      default: return 'text-neutral-400 bg-neutral-700'
+      case 'PENDING':
+        return 'text-warning bg-warning/20'
+      case 'APPROVED':
+        return 'text-success bg-success/20'
+      case 'REJECTED':
+        return 'text-error bg-error/20'
+      default:
+        return 'text-neutral-400 bg-neutral-700'
     }
   }
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'Pendente'
-      case 'APPROVED': return 'Aprovada'
-      case 'REJECTED': return 'Rejeitada'
-      default: return status
+      case 'PENDING':
+        return 'Pendente'
+      case 'APPROVED':
+        return 'Aprovada'
+      case 'REJECTED':
+        return 'Rejeitada'
+      default:
+        return status
     }
   }
 
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'LATE': return 'Atraso'
-      case 'ABSENCE': return 'Falta'
-      case 'EARLY_DEPARTURE': return 'Saída Antecipada'
-      default: return type
+      case 'LATE':
+        return 'Atraso'
+      case 'ABSENCE':
+        return 'Falta'
+      case 'EARLY_DEPARTURE':
+        return 'Saída Antecipada'
+      default:
+        return type
     }
   }
-
 
   const formatDate = (dateString: string) => {
     try {
@@ -179,7 +182,6 @@ export default function JustificationsPage() {
       return 'Data inválida'
     }
   }
-
 
   if (status === 'loading' || loading) {
     return <Loading />
@@ -234,10 +236,16 @@ export default function JustificationsPage() {
             <CardContent>
               <div className="space-y-4">
                 {pendingIssues.map((issue) => (
-                  <div key={issue.id} className="flex items-center justify-between p-4 bg-warning/10 rounded-lg border border-warning/20">
+                  <div
+                    key={issue.id}
+                    className="flex items-center justify-between p-4 bg-warning/10 rounded-lg border border-warning/20"
+                  >
                     <div className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-full ${issue.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
-                        }`}>
+                      <div
+                        className={`p-2 rounded-full ${
+                          issue.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
+                        }`}
+                      >
                         {issue.type === 'LATE' ? (
                           <Clock className="h-4 w-4 text-warning" />
                         ) : (
@@ -247,9 +255,7 @@ export default function JustificationsPage() {
                       <div>
                         <h3 className="font-medium text-white">{getTypeText(issue.type)}</h3>
                         <p className="text-sm text-neutral-400">{issue.description}</p>
-                        <p className="text-xs text-neutral-500">
-                          {formatDate(issue.date)}
-                        </p>
+                        <p className="text-xs text-neutral-500">{formatDate(issue.date)}</p>
                       </div>
                     </div>
                     {issue.canJustify && (
@@ -268,7 +274,7 @@ export default function JustificationsPage() {
                           setTimeout(() => {
                             formRef.current?.scrollIntoView({
                               behavior: 'smooth',
-                              block: 'start'
+                              block: 'start',
                             })
                           }, 100)
                         }}
@@ -290,7 +296,7 @@ export default function JustificationsPage() {
             className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500 border-2 border-primary/50 shadow-lg shadow-primary/20"
             ref={formRef}
             style={{
-              animation: 'pulse-border 2s ease-in-out 3'
+              animation: 'pulse-border 2s ease-in-out 3',
             }}
           >
             <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
@@ -302,7 +308,10 @@ export default function JustificationsPage() {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="issue-date" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="issue-date"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Data da Ocorrência
                   </label>
                   <input
@@ -315,7 +324,10 @@ export default function JustificationsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="issue-description" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="issue-description"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Descrição
                   </label>
                   <input
@@ -328,7 +340,10 @@ export default function JustificationsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="issue-justification" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="issue-justification"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Justificativa *
                   </label>
                   <textarea
@@ -377,8 +392,11 @@ export default function JustificationsPage() {
                   <div key={justification.id} className="p-4 border border-neutral-700 rounded-lg">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-full ${justification.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
-                          }`}>
+                        <div
+                          className={`p-2 rounded-full ${
+                            justification.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
+                          }`}
+                        >
                           {justification.type === 'LATE' ? (
                             <Clock className="h-4 w-4 text-warning" />
                           ) : (
@@ -386,13 +404,17 @@ export default function JustificationsPage() {
                           )}
                         </div>
                         <div>
-                          <h3 className="font-medium text-white">{getTypeText(justification.type)}</h3>
+                          <h3 className="font-medium text-white">
+                            {getTypeText(justification.type)}
+                          </h3>
                           <p className="text-sm text-neutral-400">
                             {formatDate(justification.date)}
                           </p>
                         </div>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(justification.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(justification.status)}`}
+                      >
                         {getStatusText(justification.status)}
                       </span>
                     </div>
@@ -404,7 +426,9 @@ export default function JustificationsPage() {
 
                     {justification.adminResponse && (
                       <div className="border-t border-neutral-700 pt-3">
-                        <p className="text-sm font-medium text-neutral-300 mb-1">Resposta do Admin:</p>
+                        <p className="text-sm font-medium text-neutral-300 mb-1">
+                          Resposta do Admin:
+                        </p>
                         <p className="text-sm text-neutral-400">{justification.adminResponse}</p>
                       </div>
                     )}
@@ -418,7 +442,9 @@ export default function JustificationsPage() {
             ) : (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-neutral-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-white mb-2">Nenhuma justificativa encontrada</h3>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  Nenhuma justificativa encontrada
+                </h3>
                 <p className="text-neutral-400">
                   Suas justificativas aparecerão aqui quando enviadas
                 </p>

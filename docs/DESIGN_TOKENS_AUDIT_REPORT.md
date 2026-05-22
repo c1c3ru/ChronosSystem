@@ -10,12 +10,12 @@
 
 A auditoria identificou **639 problemas** de conformidade com Design Tokens:
 
-| Categoria | Ocorrências | Prioridade |
-|-----------|------------|-----------|
-| Cores hardcoded | 107 | 🔴 CRÍTICO |
-| Espaçamento direto | 509 | 🟡 ALTO |
-| Botões inline | 23 | 🟡 ALTO |
-| **TOTAL** | **639** | - |
+| Categoria          | Ocorrências | Prioridade |
+| ------------------ | ----------- | ---------- |
+| Cores hardcoded    | 107         | 🔴 CRÍTICO |
+| Espaçamento direto | 509         | 🟡 ALTO    |
+| Botões inline      | 23          | 🟡 ALTO    |
+| **TOTAL**          | **639**     | -          |
 
 ---
 
@@ -123,6 +123,7 @@ Outros:            89 ocorrências
 ### Prioridade 1: CRÍTICO (Cores - 107 ocorrências)
 
 #### 1.1 Componentes UI (3 arquivos)
+
 - [ ] `components/ui/Alert.tsx` - 3 ocorrências
 - [ ] `components/ui/Badge.tsx` - Verificar
 - [ ] `components/ui/Button.tsx` - Verificar
@@ -130,6 +131,7 @@ Outros:            89 ocorrências
 **Tempo estimado:** 30 minutos
 
 #### 1.2 Componentes Principais (5 arquivos)
+
 - [ ] `components/QRScanner.tsx` - 12 ocorrências
 - [ ] `components/InternshipTimeline.tsx` - 8 ocorrências
 - [ ] `components/pwa-installer.tsx` - 3 ocorrências
@@ -139,6 +141,7 @@ Outros:            89 ocorrências
 **Tempo estimado:** 1 hora
 
 #### 1.3 Páginas de Documentos (5 arquivos)
+
 - [ ] `app/documents/extension-declaration/page.tsx`
 - [ ] `app/documents/internship-registration/page.tsx`
 - [ ] `app/documents/monthly-report/page.tsx`
@@ -159,10 +162,12 @@ Outros:            89 ocorrências
 ### Prioridade 3: ALTO (Botões - 23 ocorrências)
 
 #### 3.1 Componentes UI (15 ocorrências)
+
 - [ ] Revisar componentes internos
 - [ ] Manter como estão (são componentes base)
 
 #### 3.2 Páginas de Documentos (8 ocorrências)
+
 - [ ] Converter para usar componente `Button`
 - [ ] Aplicar variantes corretas
 
@@ -173,6 +178,7 @@ Outros:            89 ocorrências
 ## 📋 Checklist de Conformidade
 
 ### Cores Semânticas
+
 - [ ] Usar `bg-primary-*` em vez de `bg-green-*`
 - [ ] Usar `bg-secondary-*` em vez de `bg-blue-*`
 - [ ] Usar `bg-error-*` em vez de `bg-red-*`
@@ -180,12 +186,14 @@ Outros:            89 ocorrências
 - [ ] Usar `bg-info-*` em vez de `bg-blue-*` (info)
 
 ### Componentes
+
 - [ ] Todos os botões usam `<Button />`
 - [ ] Todos os cards usam `<Card />`
 - [ ] Todos os badges usam `<Badge />`
 - [ ] Todos os inputs usam `<Input />`
 
 ### Espaçamento
+
 - [ ] Usar valores do `tailwind.config.js`
 - [ ] Não usar valores arbitrários
 - [ ] Manter consistência
@@ -195,16 +203,19 @@ Outros:            89 ocorrências
 ## 🚀 Próximos Passos
 
 ### Imediato (Hoje)
+
 1. Executar auditoria: `bash scripts/audit-design-tokens.sh`
 2. Revisar este relatório
 3. Priorizar correções
 
 ### Curto Prazo (Esta semana)
+
 1. Corrigir cores hardcoded (Fase 1)
 2. Corrigir botões inline (Fase 2)
 3. Validar espaçamento (Fase 3)
 
 ### Médio Prazo (Próximas 2 semanas)
+
 1. Auditar todos os componentes
 2. Criar guia de uso de Design Tokens
 3. Implementar Storybook
@@ -214,11 +225,13 @@ Outros:            89 ocorrências
 ## 📊 Métricas
 
 ### Antes das Correções
+
 - Conformidade: 0%
 - Problemas: 639
 - Arquivos afetados: 20+
 
 ### Depois das Correções (Meta)
+
 - Conformidade: 100%
 - Problemas: 0
 - Arquivos afetados: 0

@@ -6,11 +6,11 @@ import { z } from 'zod'
 // Schema para validação
 const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token é obrigatório'),
-  newPassword: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres')
+  newPassword: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
 })
 
 const validateTokenSchema = z.object({
-  token: z.string().min(1, 'Token é obrigatório')
+  token: z.string().min(1, 'Token é obrigatório'),
 })
 
 // POST /api/auth/reset-password - Processar reset de senha
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Buscar token válido
     const resetToken = await prisma.passwordResetToken.findUnique({
       where: { token: validatedData.token },
-      include: { user: true }
+      include: { user: true },
     })
 
     if (!resetToken) {
@@ -43,23 +43,23 @@ export async function POST(request: NextRequest) {
     // Atualizar senha do usuário
     await prisma.user.update({
       where: { id: resetToken.userId },
-      data: { password: hashedPassword }
+      data: { password: hashedPassword },
     })
 
     // Marcar token como usado
     await prisma.passwordResetToken.update({
       where: { id: resetToken.id },
-      data: { used: true, usedAt: new Date() }
+      data: { used: true, usedAt: new Date() },
     })
 
     // Invalidar todos os outros tokens do usuário
     await prisma.passwordResetToken.updateMany({
-      where: { 
+      where: {
         userId: resetToken.userId,
         id: { not: resetToken.id },
-        used: false
+        used: false,
       },
-      data: { used: true, usedAt: new Date() }
+      data: { used: true, usedAt: new Date() },
     })
 
     // Log de auditoria
@@ -68,21 +68,23 @@ export async function POST(request: NextRequest) {
         userId: resetToken.userId,
         action: 'PASSWORD_RESET_COMPLETED',
         resource: 'USER_PASSWORD',
-        details: `Senha alterada via token de reset`
-      }
+        details: `Senha alterada via token de reset`,
+      },
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Senha alterada com sucesso'
+      message: 'Senha alterada com sucesso',
     })
-
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao resetar senha:', error)
@@ -105,51 +107,62 @@ export async function GET(request: NextRequest) {
     // Buscar token
     const resetToken = await prisma.passwordResetToken.findUnique({
       where: { token: validatedData.token },
-      include: { 
+      include: {
         user: {
           select: {
             id: true,
             email: true,
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     })
 
     if (!resetToken) {
-      return NextResponse.json({ 
-        valid: false, 
-        error: 'Token não encontrado' 
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          valid: false,
+          error: 'Token não encontrado',
+        },
+        { status: 404 }
+      )
     }
 
     if (resetToken.used) {
-      return NextResponse.json({ 
-        valid: false, 
-        error: 'Token já foi utilizado' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          valid: false,
+          error: 'Token já foi utilizado',
+        },
+        { status: 400 }
+      )
     }
 
     if (resetToken.expires < new Date()) {
-      return NextResponse.json({ 
-        valid: false, 
-        error: 'Token expirado' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          valid: false,
+          error: 'Token expirado',
+        },
+        { status: 400 }
+      )
     }
 
     return NextResponse.json({
       valid: true,
       user: resetToken.user,
       expires: resetToken.expires,
-      createdAt: resetToken.createdAt
+      createdAt: resetToken.createdAt,
     })
-
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao validar token:', error)

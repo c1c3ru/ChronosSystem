@@ -29,6 +29,7 @@ Sistema completo de registro de ponto eletrônico com QR code rotativo, autentic
 ```
 
 ### Stack Tecnológica
+
 - **Framework**: Next.js 14 (App Router)
 - **Banco**: SQLite + Prisma ORM
 - **Auth**: NextAuth.js
@@ -39,10 +40,12 @@ Sistema completo de registro de ponto eletrônico com QR code rotativo, autentic
 ## 🚀 Início Rápido (2 minutos)
 
 ### Pré-requisitos
+
 - Node.js 18+
 - Git
 
 ### 1. Clone e instale
+
 ```bash
 git clone <repository-url>
 cd ChronosSystem
@@ -50,6 +53,7 @@ npm install
 ```
 
 ### 2. Configure o banco
+
 ```bash
 # Cria o banco SQLite e aplica o schema
 npm run db:push
@@ -59,17 +63,20 @@ npm run db:seed
 ```
 
 ### 3. Inicie o desenvolvimento
+
 ```bash
 npm run dev
 ```
 
 ### 4. Acesse o sistema
+
 - **Sistema Completo**: http://localhost:3000
 - **Admin**: http://localhost:3000/admin
-- **Estagiário**: http://localhost:3000/employee  
+- **Estagiário**: http://localhost:3000/employee
 - **Kiosk**: http://localhost:3000/kiosk
 
 ### 5. Faça login
+
 - **Admin**: admin@chronos.com / admin123
 - **Supervisor**: supervisor@chronos.com / supervisor123
 - **Estagiário**: maria@chronos.com / employee123
@@ -77,11 +84,13 @@ npm run dev
 ## 📱 Funcionalidades
 
 ### 🏠 Página Inicial
+
 - ✅ Landing page com links para todas as seções
 - ✅ Design responsivo e moderno
 - ✅ Navegação intuitiva
 
 ### 👨‍💼 Portal Administrativo (/admin)
+
 - ✅ Dashboard com estatísticas em tempo real
 - ✅ Gerenciamento de usuários (CRUD)
 - ✅ Gerenciamento de máquinas
@@ -90,6 +99,7 @@ npm run dev
 - ✅ Logs de auditoria
 
 ### 👤 Portal do Estagiário (/employee)
+
 - ✅ Login com email/senha ou Google
 - ✅ Scanner de QR code integrado
 - ✅ Registro de entrada/saída
@@ -97,6 +107,7 @@ npm run dev
 - ✅ Interface mobile-first
 
 ### 🖥️ Kiosk (/kiosk)
+
 - ✅ QR code rotativo (atualização automática)
 - ✅ Relógio em tempo real
 - ✅ Interface fullscreen
@@ -105,6 +116,7 @@ npm run dev
 ## 🔐 Segurança
 
 ### Autenticação
+
 - **NextAuth.js**: Sistema robusto de autenticação
 - **Múltiplos Providers**: Credenciais + Google OAuth
 - **JWT Seguro**: Tokens com expiração automática
@@ -112,6 +124,7 @@ npm run dev
 - **2FA (TOTP)**: Autenticação de dois fatores ✨ **NOVO**
 
 ### QR Code Seguro ✨ **NOVO**
+
 - **HMAC-SHA256**: Assinatura criptográfica dos QR codes
 - **Anti-Replay**: Proteção contra reutilização de códigos
 - **Expiração**: Códigos válidos por apenas 60 segundos
@@ -119,6 +132,7 @@ npm run dev
 - **Hash Chain**: Integridade imutável dos registros
 
 ### PWA (Progressive Web App) ✨ **NOVO**
+
 - **Service Worker**: Funcionamento offline completo
 - **Instalável**: Banner inteligente de instalação
 - **Cache Offline**: Recursos críticos em cache
@@ -163,3 +177,4 @@ Para problemas de deploy e configuração de variáveis de ambiente, consulte: [
 ## 📞 Suporte
 
 Para questões e suporte, abra uma issue no GitHub.
+```

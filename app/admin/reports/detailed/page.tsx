@@ -2,11 +2,11 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  FileText, 
+import {
+  FileText,
   ArrowLeft,
   Search,
   Filter,
@@ -14,7 +14,7 @@ import {
   Clock,
   User,
   MapPin,
-  Download
+  Download,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -48,14 +48,7 @@ export default function DetailedReportsPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load detailed records
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadDetailedRecords()
-    }
-  }, [session])
-
-  const loadDetailedRecords = async (page: number = 1) => {
+  const loadDetailedRecords = useCallback(async (page: number = 1) => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -67,7 +60,7 @@ export default function DetailedReportsPage() {
       if (userFilter !== 'ALL') params.append('role', userFilter)
 
       const response = await fetch(`/api/attendance/detailed-paginated?${params}`)
-      
+
       if (response.ok) {
         const data = await response.json()
         setRecords(data.data)
@@ -79,7 +72,14 @@ export default function DetailedReportsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, dateFilter, typeFilter, userFilter])
+
+  // Load detailed records
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadDetailedRecords()
+    }
+  }, [session, loadDetailedRecords])
 
   // Registros já vêm filtrados da API
   const filteredRecords = records
@@ -94,10 +94,14 @@ export default function DetailedReportsPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'text-red-400 bg-red-400/20'
-      case 'SUPERVISOR': return 'text-yellow-400 bg-yellow-400/20'
-      case 'EMPLOYEE': return 'text-blue-400 bg-blue-400/20'
-      default: return 'text-neutral-400 bg-neutral-400/20'
+      case 'ADMIN':
+        return 'text-red-400 bg-red-400/20'
+      case 'SUPERVISOR':
+        return 'text-yellow-400 bg-yellow-400/20'
+      case 'EMPLOYEE':
+        return 'text-blue-400 bg-blue-400/20'
+      default:
+        return 'text-neutral-400 bg-neutral-400/20'
     }
   }
 
@@ -114,7 +118,7 @@ export default function DetailedReportsPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -159,7 +163,10 @@ export default function DetailedReportsPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div>
-                <label htmlFor="detailed-search" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="detailed-search"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Buscar
                 </label>
                 <div className="relative">
@@ -177,7 +184,10 @@ export default function DetailedReportsPage() {
 
               {/* Date Filter */}
               <div>
-                <label htmlFor="detailed-date" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="detailed-date"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Data
                 </label>
                 <div className="relative">
@@ -194,7 +204,10 @@ export default function DetailedReportsPage() {
 
               {/* Type Filter */}
               <div>
-                <label htmlFor="detailed-type" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="detailed-type"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Tipo
                 </label>
                 <select
@@ -211,7 +224,10 @@ export default function DetailedReportsPage() {
 
               {/* User Filter */}
               <div>
-                <label htmlFor="detailed-role" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="detailed-role"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Role
                 </label>
                 <select
@@ -250,7 +266,7 @@ export default function DetailedReportsPage() {
                 <div>
                   <p className="text-sm text-neutral-400">Entradas</p>
                   <p className="text-2xl font-bold text-success">
-                    {filteredRecords.filter(r => r.type === 'ENTRY').length}
+                    {filteredRecords.filter((r) => r.type === 'ENTRY').length}
                   </p>
                 </div>
                 <Clock className="h-8 w-8 text-success" />
@@ -264,7 +280,7 @@ export default function DetailedReportsPage() {
                 <div>
                   <p className="text-sm text-neutral-400">Saídas</p>
                   <p className="text-2xl font-bold text-error">
-                    {filteredRecords.filter(r => r.type === 'EXIT').length}
+                    {filteredRecords.filter((r) => r.type === 'EXIT').length}
                   </p>
                 </div>
                 <Clock className="h-8 w-8 text-error" />
@@ -278,7 +294,7 @@ export default function DetailedReportsPage() {
                 <div>
                   <p className="text-sm text-neutral-400">Usuários</p>
                   <p className="text-2xl font-bold text-white">
-                    {new Set(filteredRecords.map((r: any) => r.user.email)).size}
+                    {new Set(filteredRecords.map((r: AttendanceRecord) => r.user.email)).size}
                   </p>
                 </div>
                 <User className="h-8 w-8 text-primary" />
@@ -298,17 +314,24 @@ export default function DetailedReportsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-neutral-700">
-                      <th className="text-left py-3 px-4 text-neutral-300 font-medium">Data/Hora</th>
+                      <th className="text-left py-3 px-4 text-neutral-300 font-medium">
+                        Data/Hora
+                      </th>
                       <th className="text-left py-3 px-4 text-neutral-300 font-medium">Usuário</th>
                       <th className="text-left py-3 px-4 text-neutral-300 font-medium">Role</th>
                       <th className="text-left py-3 px-4 text-neutral-300 font-medium">Tipo</th>
                       <th className="text-left py-3 px-4 text-neutral-300 font-medium">Máquina</th>
-                      <th className="text-left py-3 px-4 text-neutral-300 font-medium">Localização</th>
+                      <th className="text-left py-3 px-4 text-neutral-300 font-medium">
+                        Localização
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRecords.map((record) => (
-                      <tr key={record.id} className="border-b border-neutral-800 hover:bg-neutral-800/30">
+                      <tr
+                        key={record.id}
+                        className="border-b border-neutral-800 hover:bg-neutral-800/30"
+                      >
                         <td className="py-3 px-4 text-white">
                           {new Date(record.timestamp).toLocaleString('pt-BR')}
                         </td>
@@ -319,12 +342,16 @@ export default function DetailedReportsPage() {
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleColor(record.user.role)}`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${getRoleColor(record.user.role)}`}
+                          >
                             {record.user.role}
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(record.type)}`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(record.type)}`}
+                          >
                             {getTypeText(record.type)}
                           </span>
                         </td>

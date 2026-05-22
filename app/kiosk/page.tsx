@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 import QRCode from 'qrcode'
 import Image from 'next/image'
 
@@ -25,15 +25,22 @@ export default function KioskPage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [qrData, setQrData] = useState<QRData | null>(null)
+  const [qrError, setQrError] = useState<string | null>(null)
   const [isOnline, setIsOnline] = useState(true)
   const [timeLeft, setTimeLeft] = useState(0)
-  const [recentScans, setRecentScans] = useState<any[]>([])
+  interface RecentScan {
+    id: string
+    user: string
+    type: 'ENTRY' | 'EXIT'
+    timestamp: string
+  }
+  const [recentScans, setRecentScans] = useState<RecentScan[]>([])
   const [machines, setMachines] = useState<Machine[]>([])
   const [selectedMachineId, setSelectedMachineId] = useState<string>('')
   const [machineInfo, setMachineInfo] = useState({
-    name: 'Terminal Principal',
-    location: 'Recepção - Térreo',
-    id: 'cm123456789' // ID real da máquina
+    name: 'Carregando...',
+    location: 'Aguarde...',
+    id: '',
   })
 
   // Carregar máquinas disponíveis
@@ -50,7 +57,7 @@ export default function KioskPage() {
             setMachineInfo({
               id: machinesList[0].id,
               name: machinesList[0].name,
-              location: machinesList[0].location
+              location: machinesList[0].location,
             })
           }
         }
@@ -75,7 +82,8 @@ export default function KioskPage() {
   }, [])
 
   // Gerar QR code dinâmico
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
+    setQrError(null)
     try {
       const url = new URL('/api/kiosk/qr', window.location.origin)
       if (machineInfo.id) {
@@ -91,7 +99,6 @@ export default function KioskPage() {
 
       if (response.ok) {
         const text = await response.text()
-        console.log('Response text:', text)
 
         try {
           const data: QRData = JSON.parse(text)
@@ -103,64 +110,42 @@ export default function KioskPage() {
             margin: 2,
             color: {
               dark: '#22c55e',
-              light: '#ffffff'
+              light: '#ffffff',
             },
-            errorCorrectionLevel: 'M'
+            errorCorrectionLevel: 'M',
           })
 
           setQrCodeUrl(qrUrl)
+          setQrError(null)
           setTimeLeft(data.validFor)
         } catch (parseError) {
           console.error('Erro ao fazer parse do JSON:', parseError)
-          generateFallbackQR()
+          setQrCodeUrl('')
+          setQrError('Erro ao processar resposta do servidor. Contate o administrador.')
         }
       } else {
-        console.error('Erro ao gerar QR code:', response.statusText)
-        // Fallback para QR estático em caso de erro
-        generateFallbackQR()
+        const errData = await response.json().catch(() => ({}))
+        const msg = errData?.error || `Erro do servidor (${response.status})`
+        console.error('Erro ao gerar QR code:', msg)
+        setQrCodeUrl('')
+        setQrError(msg)
       }
     } catch (error) {
       console.error('Erro ao gerar QR code:', error)
-      generateFallbackQR()
+      setQrCodeUrl('')
+      setQrError('Falha de conexão ao gerar QR code. Verifique a rede.')
     }
-  }
-
-  // QR code de fallback em caso de erro na API
-  const generateFallbackQR = async () => {
-    try {
-      const fallbackData = {
-        machineId: machineInfo.id,
-        timestamp: Date.now(),
-        nonce: Math.random().toString(36).substring(7),
-        fallback: true
-      }
-
-      const qrString = JSON.stringify(fallbackData)
-      const qrUrl = await QRCode.toDataURL(qrString, {
-        width: 320,
-        margin: 2,
-        color: {
-          dark: '#f59e0b', // Cor diferente para indicar fallback
-          light: '#ffffff'
-        }
-      })
-
-      setQrCodeUrl(qrUrl)
-      setTimeLeft(60) // 60 segundos
-    } catch (error) {
-      console.error('Erro ao gerar QR de fallback:', error)
-    }
-  }
+  }, [machineInfo.id])
 
   // Função para mudar de máquina
   const handleMachineChange = (machineId: string) => {
-    const selected = machines.find(m => m.id === machineId)
+    const selected = machines.find((m) => m.id === machineId)
     if (selected) {
       setSelectedMachineId(machineId)
       setMachineInfo({
         id: selected.id,
         name: selected.name,
-        location: selected.location
+        location: selected.location,
       })
     }
   }
@@ -172,7 +157,7 @@ export default function KioskPage() {
     const qrTimer = setInterval(generateQRCode, 60 * 1000) // 60 segundos
 
     return () => clearInterval(qrTimer)
-  }, [machineInfo.id])
+  }, [generateQRCode])
 
   // Countdown do tempo restante do QR
   useEffect(() => {
@@ -183,7 +168,7 @@ export default function KioskPage() {
       // QR expirou após 60 segundos, gerar novo
       generateQRCode()
     }
-  }, [timeLeft])
+  }, [timeLeft, qrCodeUrl, generateQRCode])
 
   // Verificar conectividade
   useEffect(() => {
@@ -202,21 +187,43 @@ export default function KioskPage() {
   }, [])
 
   // Buscar atividade recente real
-  const fetchRecentActivity = async () => {
+  const fetchRecentActivity = useCallback(async () => {
     try {
-      const response = await fetch('/api/kiosk/recent-activity')
+      let url = '/api/kiosk/recent-activity'
+      if (machineInfo.id) {
+        url += `?machineId=${machineInfo.id}`
+      }
+      const response = await fetch(url)
       const data = await response.json()
 
       if (data.success) {
         // Garantir que timestamp venha como string ISO e seja usado para formatar a hora no frontend
-        const normalized = (data.activity || []).map((item: any) => ({
+        const normalized = (data.activity || []).map((item: {
+          id: string
+          user: string
+          type: string
+          timestamp: string | number | Date
+        }) => ({
           ...item,
-          timestamp: typeof item.timestamp === 'string'
-            ? item.timestamp
-            : new Date(item.timestamp).toISOString(),
+          timestamp:
+            typeof item.timestamp === 'string'
+              ? item.timestamp
+              : new Date(item.timestamp).toISOString(),
         }))
 
-        setRecentScans(normalized)
+        const today = new Date();
+        const todayRecords = normalized.filter((scan: { timestamp: string }) => {
+          try {
+            const scanDate = new Date(scan.timestamp);
+            return scanDate.getDate() === today.getDate() && 
+                   scanDate.getMonth() === today.getMonth() && 
+                   scanDate.getFullYear() === today.getFullYear();
+          } catch {
+            return false;
+          }
+        });
+
+        setRecentScans(todayRecords)
       } else {
         console.error('Erro ao buscar atividade:', data.error)
         setRecentScans([])
@@ -225,7 +232,7 @@ export default function KioskPage() {
       console.error('Erro ao buscar atividade recente:', error)
       setRecentScans([])
     }
-  }
+  }, [machineInfo.id])
 
   // Buscar atividade inicial e configurar polling a cada 30 segundos
   useEffect(() => {
@@ -234,13 +241,13 @@ export default function KioskPage() {
     const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
 
     return () => clearInterval(activityTimer)
-  }, [])
+  }, [fetchRecentActivity])
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
     })
   }
 
@@ -249,7 +256,7 @@ export default function KioskPage() {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -262,9 +269,9 @@ export default function KioskPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex flex-col">
       {/* Header */}
-      <div className="glass border-b border-neutral-700/50 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className="glass border-b border-neutral-700/50 p-4 md:p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
+          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full md:w-auto text-center sm:text-left">
             <div className="bg-primary/20 rounded-xl p-3">
               <Clock className="h-8 w-8 text-primary" />
             </div>
@@ -272,7 +279,9 @@ export default function KioskPage() {
               <h1 className="text-2xl font-bold text-white">Chronos Kiosk</h1>
               {machines.length > 0 ? (
                 <div className="flex flex-col mt-2">
-                  <label htmlFor="machine-select" className="sr-only">Selecionar Máquina</label>
+                  <label htmlFor="machine-select" className="sr-only">
+                    Selecionar Máquina
+                  </label>
                   <select
                     id="machine-select"
                     title="Selecionar Máquina"
@@ -296,16 +305,18 @@ export default function KioskPage() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <div className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}>
+          <div className="flex items-center justify-between sm:justify-end space-x-6 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t border-neutral-700/50 md:border-0">
+            <div
+              className={`flex items-center space-x-2 ${isOnline ? 'text-success' : 'text-error'}`}
+            >
               {isOnline ? <Wifi className="h-5 w-5" /> : <WifiOff className="h-5 w-5" />}
               <span className="text-sm font-medium">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">
+              <div className="text-xl sm:text-2xl font-bold text-white">
                 {currentTime ? formatTime(currentTime) : '--:--:--'}
               </div>
-              <div className="text-sm text-neutral-400">
+              <div className="text-xs sm:text-sm text-neutral-400">
                 {currentTime ? formatDate(currentTime) : '--/--/----'}
               </div>
             </div>
@@ -319,13 +330,27 @@ export default function KioskPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-lg">
             <div className="glass rounded-2xl p-8 mb-6">
-              <h2 className="text-3xl font-semibold text-white mb-6">
-                Registrar Ponto
-              </h2>
+              <h2 className="text-3xl font-semibold text-white mb-6">Registrar Ponto</h2>
 
-              {qrCodeUrl ? (
+              {qrError ? (
+                <div className="flex flex-col items-center justify-center h-80 gap-4">
+                  <div className="bg-red-900/40 border border-red-500/50 rounded-xl p-6 max-w-sm text-center">
+                    <div className="text-red-400 text-4xl mb-3">⚠️</div>
+                    <p className="text-red-300 font-semibold mb-1">Erro ao gerar QR Code</p>
+                    <p className="text-red-400 text-sm">{qrError}</p>
+                  </div>
+                  <button
+                    onClick={generateQRCode}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary rounded-lg text-sm transition-colors"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                    Tentar novamente
+                  </button>
+                </div>
+              ) : qrCodeUrl ? (
                 <div className="flex flex-col items-center">
                   <div className="bg-white p-6 rounded-2xl mb-4 shadow-2xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={qrCodeUrl}
                       alt="QR Code para registro de ponto"
@@ -356,19 +381,27 @@ export default function KioskPage() {
               <h3 className="text-lg font-semibold text-white mb-4">Como usar:</h3>
               <div className="space-y-3 text-left">
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">1</div>
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">
+                    1
+                  </div>
                   <span>Abra o app Chronos no seu celular</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">2</div>
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">
+                    2
+                  </div>
                   <span>Toque em &quot;Registrar Ponto&quot;</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">3</div>
+                  <div className="bg-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-primary font-bold mr-3">
+                    3
+                  </div>
                   <span>Escaneie o QR code acima</span>
                 </div>
                 <div className="flex items-center text-neutral-300">
-                  <div className="bg-success/20 rounded-full w-8 h-8 flex items-center justify-center text-success font-bold mr-3">✓</div>
+                  <div className="bg-success/20 rounded-full w-8 h-8 flex items-center justify-center text-success font-bold mr-3">
+                    ✓
+                  </div>
                   <span>Ponto registrado automaticamente!</span>
                 </div>
               </div>
@@ -386,10 +419,16 @@ export default function KioskPage() {
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {recentScans.map((scan) => (
-                <div key={scan.id} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors">
+                <div
+                  key={scan.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 hover:bg-neutral-800/50 transition-colors"
+                >
                   <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-3 ${scan.type === 'ENTRY' ? 'bg-green-500' : 'bg-orange-500'
-                      }`}></div>
+                    {scan.type === 'ENTRY' ? (
+                      <ArrowDownLeft className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    ) : (
+                      <ArrowUpRight className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
+                    )}
                     <div>
                       <p className="text-white font-medium text-sm">{scan.user}</p>
                       <p className="text-xs text-neutral-400">
@@ -431,7 +470,7 @@ export default function KioskPage() {
       {/* Footer */}
       <div className="glass border-t border-neutral-700/50 p-6">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col md:flex-row items-center space-y-3 md:space-y-0 md:space-x-3 text-center">
             <Image
               src="/assets/logoifce.png"
               alt="Logo IFCE"
@@ -441,7 +480,8 @@ export default function KioskPage() {
               style={{ mixBlendMode: 'screen' }}
             />
             <p className="text-neutral-500 text-sm">
-              © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto eletrônico moderno e seguro.
+              © 2024 Chronos System • Coordenação de Tecnologia da Informação. Sistema de ponto
+              eletrônico moderno e seguro.
             </p>
           </div>
           <p className="text-neutral-600 text-[10px] mt-1 uppercase tracking-wider opacity-50 text-center">

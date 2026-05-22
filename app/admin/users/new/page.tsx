@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { 
-  User, 
+import {
+  User,
   ArrowLeft,
   Save,
   Mail,
@@ -15,12 +15,18 @@ import {
   Phone,
   MapPin,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
-import { CONTRACT_TYPES, getContractTypeConfig, validateWorkingHours, formatHours } from '@/lib/contract-types'
+import {
+  CONTRACT_TYPES,
+  ContractTypeConfig,
+  getContractTypeConfig,
+  validateWorkingHours,
+  formatHours,
+} from '@/lib/contract-types'
 import { determineRoleFromSiape } from '@/lib/admin-siape'
 
 interface UserData {
@@ -54,7 +60,7 @@ export default function NewUserPage() {
     phone: '',
     address: '',
     department: '',
-    hasSiape: false
+    hasSiape: false,
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -62,37 +68,45 @@ export default function NewUserPage() {
   // Funções auxiliares
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'text-red-400'
-      case 'SUPERVISOR': return 'text-yellow-400'
-      case 'EMPLOYEE': return 'text-blue-400'
-      default: return 'text-neutral-400'
+      case 'ADMIN':
+        return 'text-red-400'
+      case 'SUPERVISOR':
+        return 'text-yellow-400'
+      case 'EMPLOYEE':
+        return 'text-blue-400'
+      default:
+        return 'text-neutral-400'
     }
   }
 
   const getRoleDescription = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'Acesso total ao sistema, pode gerenciar usuários e configurações'
-      case 'SUPERVISOR': return 'Pode gerenciar estagiários e visualizar relatórios'
-      case 'EMPLOYEE': return 'Acesso básico para registro de ponto e justificativas'
-      default: return ''
+      case 'ADMIN':
+        return 'Acesso total ao sistema, pode gerenciar usuários e configurações'
+      case 'SUPERVISOR':
+        return 'Pode gerenciar estagiários e visualizar relatórios'
+      case 'EMPLOYEE':
+        return 'Acesso básico para registro de ponto e justificativas'
+      default:
+        return ''
     }
   }
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       signIn()
     }
-  }, [status])
+  }, [status, session])
 
   // Check if user is admin or supervisor
   useEffect(() => {
     if (session && !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       router.push('/employee')
     }
-  }, [session])
+  }, [session, router])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -186,18 +200,18 @@ export default function NewUserPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     try {
       setLoading(true)
-      
+
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       })
 
       if (response.ok) {
@@ -212,7 +226,6 @@ export default function NewUserPage() {
       setLoading(false)
     }
   }
-
 
   if (status === 'loading') {
     return <Loading />
@@ -261,7 +274,7 @@ export default function NewUserPage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {errors.general && (
@@ -273,10 +286,13 @@ export default function NewUserPage() {
                 {/* Informações Básicas */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Informações Básicas</h3>
-                  
+
                   {/* Nome */}
                   <div>
-                    <label htmlFor="new-user-name" className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label
+                      htmlFor="new-user-name"
+                      className="block text-sm font-medium text-neutral-300 mb-2"
+                    >
                       Nome Completo *
                     </label>
                     <div className="relative">
@@ -287,7 +303,7 @@ export default function NewUserPage() {
                         placeholder="Nome completo do usuário"
                         className={`input pl-10 ${errors.name ? 'border-error' : ''}`}
                         value={userData.name}
-                        onChange={(e) => setUserData(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) => setUserData((prev) => ({ ...prev, name: e.target.value }))}
                       />
                     </div>
                     {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
@@ -295,7 +311,10 @@ export default function NewUserPage() {
 
                   {/* Email */}
                   <div>
-                    <label htmlFor="new-user-email" className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label
+                      htmlFor="new-user-email"
+                      className="block text-sm font-medium text-neutral-300 mb-2"
+                    >
                       Email *
                     </label>
                     <div className="relative">
@@ -306,7 +325,9 @@ export default function NewUserPage() {
                         placeholder="email@exemplo.com"
                         className={`input pl-10 ${errors.email ? 'border-error' : ''}`}
                         value={userData.email}
-                        onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) =>
+                          setUserData((prev) => ({ ...prev, email: e.target.value }))
+                        }
                       />
                     </div>
                     {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
@@ -314,7 +335,10 @@ export default function NewUserPage() {
 
                   {/* Senha */}
                   <div>
-                    <label htmlFor="new-user-password" className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label
+                      htmlFor="new-user-password"
+                      className="block text-sm font-medium text-neutral-300 mb-2"
+                    >
                       Senha *
                     </label>
                     <div className="relative">
@@ -325,10 +349,14 @@ export default function NewUserPage() {
                         placeholder="Mínimo 6 caracteres"
                         className={`input pl-10 ${errors.password ? 'border-error' : ''}`}
                         value={userData.password}
-                        onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) =>
+                          setUserData((prev) => ({ ...prev, password: e.target.value }))
+                        }
                       />
                     </div>
-                    {errors.password && <p className="text-error text-xs mt-1">{errors.password}</p>}
+                    {errors.password && (
+                      <p className="text-error text-xs mt-1">{errors.password}</p>
+                    )}
                   </div>
                 </div>
 
@@ -349,15 +377,20 @@ export default function NewUserPage() {
                           name="role"
                           value={role}
                           checked={userData.role === role}
-                          onChange={(e) => setUserData(prev => ({ ...prev, role: e.target.value as any }))}
+                          onChange={(e) =>
+                            setUserData((prev) => ({ ...prev, role: e.target.value as UserData['role'] }))
+                          }
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary mt-0.5"
                         />
                         <label htmlFor={`new-user-role-${role}`} className="flex-1 cursor-pointer">
                           <div className="flex items-center space-x-2">
                             <Shield className="h-4 w-4 text-neutral-400" />
                             <span className={`font-medium ${getRoleColor(role)}`}>
-                              {role === 'EMPLOYEE' ? 'Estagiário' :
-                               role === 'SUPERVISOR' ? 'Supervisor' : 'Administrador'}
+                              {role === 'EMPLOYEE'
+                                ? 'Estagiário'
+                                : role === 'SUPERVISOR'
+                                  ? 'Supervisor'
+                                  : 'Administrador'}
                             </span>
                           </div>
                           <p className="text-xs text-neutral-500 mt-1">
@@ -372,11 +405,14 @@ export default function NewUserPage() {
                 {/* Informações Pessoais */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Informações Pessoais</h3>
-                  
+
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Telefone */}
                     <div>
-                      <label htmlFor="new-user-phone" className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label
+                        htmlFor="new-user-phone"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
                         Telefone *
                       </label>
                       <div className="relative">
@@ -390,7 +426,7 @@ export default function NewUserPage() {
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '')
                             const formatted = value.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
-                            setUserData(prev => ({ ...prev, phone: formatted }))
+                            setUserData((prev) => ({ ...prev, phone: formatted }))
                           }}
                           maxLength={15}
                         />
@@ -400,7 +436,10 @@ export default function NewUserPage() {
 
                     {/* Data de Nascimento */}
                     <div>
-                      <label htmlFor="new-user-birthdate" className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label
+                        htmlFor="new-user-birthdate"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
                         Data de Nascimento *
                       </label>
                       <div className="relative">
@@ -410,16 +449,23 @@ export default function NewUserPage() {
                           type="date"
                           className={`input pl-10 ${errors.birthDate ? 'border-error' : ''}`}
                           value={userData.birthDate || ''}
-                          onChange={(e) => setUserData(prev => ({ ...prev, birthDate: e.target.value }))}
+                          onChange={(e) =>
+                            setUserData((prev) => ({ ...prev, birthDate: e.target.value }))
+                          }
                         />
                       </div>
-                      {errors.birthDate && <p className="text-error text-xs mt-1">{errors.birthDate}</p>}
+                      {errors.birthDate && (
+                        <p className="text-error text-xs mt-1">{errors.birthDate}</p>
+                      )}
                     </div>
                   </div>
 
                   {/* Endereço */}
                   <div>
-                    <label htmlFor="new-user-address" className="block text-sm font-medium text-neutral-300 mb-2">
+                    <label
+                      htmlFor="new-user-address"
+                      className="block text-sm font-medium text-neutral-300 mb-2"
+                    >
                       Endereço *
                     </label>
                     <div className="relative">
@@ -429,7 +475,9 @@ export default function NewUserPage() {
                         placeholder="Endereço completo"
                         className={`input pl-10 min-h-[80px] resize-none ${errors.address ? 'border-error' : ''}`}
                         value={userData.address || ''}
-                        onChange={(e) => setUserData(prev => ({ ...prev, address: e.target.value }))}
+                        onChange={(e) =>
+                          setUserData((prev) => ({ ...prev, address: e.target.value }))
+                        }
                       />
                     </div>
                     {errors.address && <p className="text-error text-xs mt-1">{errors.address}</p>}
@@ -439,11 +487,14 @@ export default function NewUserPage() {
                 {/* Contato de Emergência */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Contato de Emergência</h3>
-                  
+
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Nome do Contato */}
                     <div>
-                      <label htmlFor="new-user-emergency-contact" className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label
+                        htmlFor="new-user-emergency-contact"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
                         Nome do Contato *
                       </label>
                       <input
@@ -452,14 +503,21 @@ export default function NewUserPage() {
                         placeholder="Nome completo"
                         className={`input ${errors.emergencyContact ? 'border-error' : ''}`}
                         value={userData.emergencyContact || ''}
-                        onChange={(e) => setUserData(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                        onChange={(e) =>
+                          setUserData((prev) => ({ ...prev, emergencyContact: e.target.value }))
+                        }
                       />
-                      {errors.emergencyContact && <p className="text-error text-xs mt-1">{errors.emergencyContact}</p>}
+                      {errors.emergencyContact && (
+                        <p className="text-error text-xs mt-1">{errors.emergencyContact}</p>
+                      )}
                     </div>
 
                     {/* Telefone de Emergência */}
                     <div>
-                      <label htmlFor="new-user-emergency-phone" className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label
+                        htmlFor="new-user-emergency-phone"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
                         Telefone de Emergência *
                       </label>
                       <div className="relative">
@@ -473,12 +531,14 @@ export default function NewUserPage() {
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '')
                             const formatted = value.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
-                            setUserData(prev => ({ ...prev, emergencyPhone: formatted }))
+                            setUserData((prev) => ({ ...prev, emergencyPhone: formatted }))
                           }}
                           maxLength={15}
                         />
                       </div>
-                      {errors.emergencyPhone && <p className="text-error text-xs mt-1">{errors.emergencyPhone}</p>}
+                      {errors.emergencyPhone && (
+                        <p className="text-error text-xs mt-1">{errors.emergencyPhone}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -486,7 +546,7 @@ export default function NewUserPage() {
                 {/* Informações Institucionais */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">Informações Institucionais</h3>
-                  
+
                   {/* Toggle para SIAPE */}
                   <div className="mb-4">
                     <label className="flex items-center space-x-3 cursor-pointer">
@@ -494,10 +554,10 @@ export default function NewUserPage() {
                         type="checkbox"
                         checked={userData.hasSiape || false}
                         onChange={(e) => {
-                          setUserData(prev => ({ 
-                            ...prev, 
+                          setUserData((prev) => ({
+                            ...prev,
                             hasSiape: e.target.checked,
-                            siapeNumber: e.target.checked ? prev.siapeNumber : ''
+                            siapeNumber: e.target.checked ? prev.siapeNumber : '',
                           }))
                         }}
                         className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 rounded focus:ring-primary"
@@ -515,7 +575,10 @@ export default function NewUserPage() {
                   {userData.hasSiape && (
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="new-user-siape" className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label
+                          htmlFor="new-user-siape"
+                          className="block text-sm font-medium text-neutral-300 mb-2"
+                        >
                           Matrícula SIAPE *
                         </label>
                         <input
@@ -526,11 +589,13 @@ export default function NewUserPage() {
                           value={userData.siapeNumber || ''}
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '').slice(0, 7)
-                            setUserData(prev => ({ ...prev, siapeNumber: value }))
+                            setUserData((prev) => ({ ...prev, siapeNumber: value }))
                           }}
                           maxLength={7}
                         />
-                        {errors.siapeNumber && <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>}
+                        {errors.siapeNumber && (
+                          <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>
+                        )}
                         <p className="text-neutral-400 text-xs mt-1">
                           A matrícula SIAPE determinará automaticamente o nível de acesso no sistema
                         </p>
@@ -538,9 +603,13 @@ export default function NewUserPage() {
                           <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
                             <p className="text-xs text-neutral-300">
                               <span className="font-medium">Nível de acesso detectado:</span>{' '}
-                              <span className={`font-semibold ${
-                                determineRoleFromSiape(userData.siapeNumber) === 'ADMIN' ? 'text-red-400' : 'text-blue-400'
-                              }`}>
+                              <span
+                                className={`font-semibold ${
+                                  determineRoleFromSiape(userData.siapeNumber) === 'ADMIN'
+                                    ? 'text-red-400'
+                                    : 'text-blue-400'
+                                }`}
+                              >
                                 {determineRoleFromSiape(userData.siapeNumber)}
                               </span>
                             </p>
@@ -553,79 +622,150 @@ export default function NewUserPage() {
                   {/* Departamento - obrigatório para funcionários */}
                   {userData.role === 'EMPLOYEE' && (
                     <div>
-                      <label htmlFor="new-user-department" className="block text-sm font-medium text-neutral-300 mb-2">
+                      <label
+                        htmlFor="new-user-department"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
                         Departamento *
                       </label>
                       <select
                         id="new-user-department"
                         className={`input ${errors.department ? 'border-error' : ''}`}
                         value={userData.department || ''}
-                        onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
+                        onChange={(e) =>
+                          setUserData((prev) => ({ ...prev, department: e.target.value }))
+                        }
                       >
                         <option value="">Selecione o departamento</option>
                         <option value="">Selecione o departamento</option>
-                        <option value="ASSDAP-MAR">Assist. Depto. Admin. e Planejamento (ASSDAP-MAR)</option>
+                        <option value="ASSDAP-MAR">
+                          Assist. Depto. Admin. e Planejamento (ASSDAP-MAR)
+                        </option>
                         <option value="ASSDE-MAR">Assist. Diretoria de Ensino (ASSDE-MAR)</option>
                         <option value="Alunos">Alunos/Campus Maracanaú (Alunos)</option>
                         <option value="CAC-MAR">Coord. Aquisição e Contratações (CAC-MAR)</option>
                         <option value="CAE-MAR">Coord. Assuntos Estudantis (CAE-MAR)</option>
                         <option value="CAP-MAR">Coord. Almoxarifado e Patrimônio (CAP-MAR)</option>
-                        <option value="CBAR-COMP-MAR">Bach. Ciência da Computação (CBAR-COMP-MAR)</option>
-                        <option value="CBAR-CONTROLEAUT-MAR">Bach. Eng. Controle e Automação (CBAR-CONTROLEAUT-MAR)</option>
-                        <option value="CBAR-ENGAMB-MAR">Bach. Eng. Ambiental e Sanitária (CBAR-ENGAMB-MAR)</option>
-                        <option value="CBAR-ENGMECAN-MAR">Bach. Eng. Mecânica (CBAR-ENGMECAN-MAR)</option>
-                        <option value="CBCC-MAR">Coord. Bach. Ciências da Computação (CBCC-MAR)</option>
+                        <option value="CBAR-COMP-MAR">
+                          Bach. Ciência da Computação (CBAR-COMP-MAR)
+                        </option>
+                        <option value="CBAR-CONTROLEAUT-MAR">
+                          Bach. Eng. Controle e Automação (CBAR-CONTROLEAUT-MAR)
+                        </option>
+                        <option value="CBAR-ENGAMB-MAR">
+                          Bach. Eng. Ambiental e Sanitária (CBAR-ENGAMB-MAR)
+                        </option>
+                        <option value="CBAR-ENGMECAN-MAR">
+                          Bach. Eng. Mecânica (CBAR-ENGMECAN-MAR)
+                        </option>
+                        <option value="CBCC-MAR">
+                          Coord. Bach. Ciências da Computação (CBCC-MAR)
+                        </option>
                         <option value="CBBILIO-MAR">Biblioteca (CBBILIO-MAR)</option>
                         <option value="CCA-MAR">Coord. Tec. Química (CCA-MAR)</option>
-                        <option value="CCAUTO-MAR">Coord. Tec. Automação Industrial (CCAUTO-MAR)</option>
-                        <option value="CCEAS-MAR">Coord. Tec. Eng. Ambiental Sanitária (CCEAS-MAR)</option>
-                        <option value="CCECA-MAR">Coord. Tec. Eng. Controle Automação (CCECA-MAR)</option>
+                        <option value="CCAUTO-MAR">
+                          Coord. Tec. Automação Industrial (CCAUTO-MAR)
+                        </option>
+                        <option value="CCEAS-MAR">
+                          Coord. Tec. Eng. Ambiental Sanitária (CCEAS-MAR)
+                        </option>
+                        <option value="CCECA-MAR">
+                          Coord. Tec. Eng. Controle Automação (CCECA-MAR)
+                        </option>
                         <option value="CCENM-MAR">Coord. Tec. Eng. Mecânica (CCENM-MAR)</option>
                         <option value="CCINFO-MAR">Coord. Tec. Informática (CCINFO-MAR)</option>
                         <option value="CCLM-MAR">Coord. Lic. Matemática (CCLM-MAR)</option>
-                        <option value="CCMEREN-MAR">Coord. Mestrado Energias Renováveis (CCMEREN-MAR)</option>
-                        <option value="CCLM-MAR-MESTRADO">Coord. Mestrado Matemática (CCLM-MAR-MESTRADO)</option>
-                        <option value="CCTEC-REDES-MAR">Coord. Tec. Redes de Computadores (CCTEC-REDES-MAR)</option>
+                        <option value="CCMEREN-MAR">
+                          Coord. Mestrado Energias Renováveis (CCMEREN-MAR)
+                        </option>
+                        <option value="CCLM-MAR-MESTRADO">
+                          Coord. Mestrado Matemática (CCLM-MAR-MESTRADO)
+                        </option>
+                        <option value="CCTEC-REDES-MAR">
+                          Coord. Tec. Redes de Computadores (CCTEC-REDES-MAR)
+                        </option>
                         <option value="CCTQ-MAR">Coord. Tec. Química (CCTQ-MAR)</option>
                         <option value="CCTMEC-MAR">Coord. Tec. Mecatrônica (CCTMEC-MAR)</option>
                         <option value="CCTM-MAR">Coord. Tec. Eletrotécnica (CCTM-MAR)</option>
-                        <option value="CCTEC-AUTOMACAO-MAR">Coord. Tec. Automação Industrial (CCTEC-AUTOMACAO-MAR)</option>
+                        <option value="CCTEC-AUTOMACAO-MAR">
+                          Coord. Tec. Automação Industrial (CCTEC-AUTOMACAO-MAR)
+                        </option>
                         <option value="CCTQ2-MAR">Coord. Tec. Química II (CCTQ2-MAR)</option>
-                        <option value="CCTM-MAR-MECANICA">Coord. Tec. Mecânica (CCTM-MAR-MECANICA)</option>
-                        <option value="CCTMEC2-MAR">Coord. Tec. Mecatrônica II (CCTMEC2-MAR)</option>
-                        <option value="CCTM-MAR-ELETRO">Coord. Tec. Eletrotécnica II (CCTM-MAR-ELETRO)</option>
+                        <option value="CCTM-MAR-MECANICA">
+                          Coord. Tec. Mecânica (CCTM-MAR-MECANICA)
+                        </option>
+                        <option value="CCTMEC2-MAR">
+                          Coord. Tec. Mecatrônica II (CCTMEC2-MAR)
+                        </option>
+                        <option value="CCTM-MAR-ELETRO">
+                          Coord. Tec. Eletrotécnica II (CCTM-MAR-ELETRO)
+                        </option>
                         <option value="CCTI-MAR">Coord. Tec. Informática (CCTI-MAR)</option>
-                        <option value="CDI-MARACANAU">Coord. Eixo Industrial (CDI-MARACANAU)</option>
-                        <option value="CDI-MARACANAU-DI">Coord. Desenv. Institucional (CDI-MARACANAU-DI)</option>
+                        <option value="CDI-MARACANAU">
+                          Coord. Eixo Industrial (CDI-MARACANAU)
+                        </option>
+                        <option value="CDI-MARACANAU-DI">
+                          Coord. Desenv. Institucional (CDI-MARACANAU-DI)
+                        </option>
                         <option value="CEI-MARACANAU">Coord. Eixo Indústria (CEI-MARACANAU)</option>
-                        <option value="CEOF-MAR">Coord. Exec. Orçamentária Financeira (CEOF-MAR)</option>
-                        <option value="CEQMA-MARACANAU">Coord. Eixo Química e Meio Ambiente (CEQMA-MARACANAU)</option>
-                        <option value="CETEL-MARACANAU">Coord. Eixo Telemática (CETEL-MARACANAU)</option>
+                        <option value="CEOF-MAR">
+                          Coord. Exec. Orçamentária Financeira (CEOF-MAR)
+                        </option>
+                        <option value="CEQMA-MARACANAU">
+                          Coord. Eixo Química e Meio Ambiente (CEQMA-MARACANAU)
+                        </option>
+                        <option value="CETEL-MARACANAU">
+                          Coord. Eixo Telemática (CETEL-MARACANAU)
+                        </option>
                         <option value="CGP-MAR">Coord. Gestão de Pessoas (CGP-MAR)</option>
                         <option value="CINFRA-MAR">Coord. Infraestrutura (CINFRA-MAR)</option>
-                        <option value="CLIC-QUIMICA-MAR">Coord. Lic. Química (CLIC-QUIMICA-MAR)</option>
-                        <option value="CMES-ENERGIAS-MAR">Coord. Mestrado Energias Renováveis (CMES-ENERGIAS-MAR)</option>
+                        <option value="CLIC-QUIMICA-MAR">
+                          Coord. Lic. Química (CLIC-QUIMICA-MAR)
+                        </option>
+                        <option value="CMES-ENERGIAS-MAR">
+                          Coord. Mestrado Energias Renováveis (CMES-ENERGIAS-MAR)
+                        </option>
                         <option value="CPPI-MAR">Coord. Pesquisa, Inovação PG (CPPI-MAR)</option>
-                        <option value="CTEC-AUTOMACAO-MAR">Coord. Tec. Automação Industrial (CTEC-AUTOMACAO-MAR)</option>
-                        <option value="CTEC-INFORMAT-MAR">Coord. Tec. Informática (CTEC-INFORMAT-MAR)</option>
-                        <option value="CTEC-MANUTINDUST-MAR">Coord. Tec. Manutenção Industrial (CTEC-MANUTINDUST-MAR)</option>
-                        <option value="CTEC-MEIOAMB-MAR">Coord. Tec. Meio Ambiente (CTEC-MEIOAMB-MAR)</option>
-                        <option value="CTEC-REDES-MAR">Coord. Tec. Redes de Computadores (CTEC-REDES-MAR)</option>
+                        <option value="CTEC-AUTOMACAO-MAR">
+                          Coord. Tec. Automação Industrial (CTEC-AUTOMACAO-MAR)
+                        </option>
+                        <option value="CTEC-INFORMAT-MAR">
+                          Coord. Tec. Informática (CTEC-INFORMAT-MAR)
+                        </option>
+                        <option value="CTEC-MANUTINDUST-MAR">
+                          Coord. Tec. Manutenção Industrial (CTEC-MANUTINDUST-MAR)
+                        </option>
+                        <option value="CTEC-MEIOAMB-MAR">
+                          Coord. Tec. Meio Ambiente (CTEC-MEIOAMB-MAR)
+                        </option>
+                        <option value="CTEC-REDES-MAR">
+                          Coord. Tec. Redes de Computadores (CTEC-REDES-MAR)
+                        </option>
                         <option value="CTI-MAR">Coord. Tecnologia da Informação (CTI-MAR)</option>
                         <option value="CTP-MAR">Coord. Pedagógica (CTP-MAR)</option>
                         <option value="DAP-MAR">Depto. Admin. e Planejamento (DAP-MAR)</option>
                         <option value="DE-MAR">Diretoria de Ensino (DE-MAR)</option>
                         <option value="DG-MAR">Diretoria Geral (DG-MAR)</option>
-                        <option value="DPPI-MAR">Depto. Extensão, Pesquisa, PG, Inovação (DPPI-MAR)</option>
+                        <option value="DPPI-MAR">
+                          Depto. Extensão, Pesquisa, PG, Inovação (DPPI-MAR)
+                        </option>
                         <option value="GAB-MAR">Gabinete (GAB-MAR)</option>
-                        <option value="NAPNE-MAR">Coord. Núcleo Atendimento Necessidades Específicas (NAPNE-MAR)</option>
-                        <option value="SAE-MARACANAU">Setor Acompanhamento Estágios (SAE-MARACANAU)</option>
-                        <option value="SEFE-MAR">Setor Educação Física e Esportes (SEFE-MAR)</option>
+                        <option value="NAPNE-MAR">
+                          Coord. Núcleo Atendimento Necessidades Específicas (NAPNE-MAR)
+                        </option>
+                        <option value="SAE-MARACANAU">
+                          Setor Acompanhamento Estágios (SAE-MARACANAU)
+                        </option>
+                        <option value="SEFE-MAR">
+                          Setor Educação Física e Esportes (SEFE-MAR)
+                        </option>
                         <option value="SNUTRI-MAR">Setor Nutrição (SNUTRI-MAR)</option>
                         <option value="SPSICO-MAR">Setor Psicologia (SPSICO-MAR)</option>
                         <option value="SSA-MAR">Setor Saúde (SSA-MAR)</option>
                       </select>
-                      {errors.department && <p className="text-error text-xs mt-1">{errors.department}</p>}
+                      {errors.department && (
+                        <p className="text-error text-xs mt-1">{errors.department}</p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -634,11 +774,14 @@ export default function NewUserPage() {
                 {userData.role === 'EMPLOYEE' && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white">Informações de Contrato</h3>
-                    
+
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Data de Início */}
                       <div>
-                        <label htmlFor="new-user-start-date" className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label
+                          htmlFor="new-user-start-date"
+                          className="block text-sm font-medium text-neutral-300 mb-2"
+                        >
                           Data de Início *
                         </label>
                         <div className="relative">
@@ -648,15 +791,22 @@ export default function NewUserPage() {
                             type="date"
                             className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
                             value={userData.startDate || ''}
-                            onChange={(e) => setUserData(prev => ({ ...prev, startDate: e.target.value }))}
+                            onChange={(e) =>
+                              setUserData((prev) => ({ ...prev, startDate: e.target.value }))
+                            }
                           />
                         </div>
-                        {errors.startDate && <p className="text-error text-xs mt-1">{errors.startDate}</p>}
+                        {errors.startDate && (
+                          <p className="text-error text-xs mt-1">{errors.startDate}</p>
+                        )}
                       </div>
 
                       {/* Data de Início do Contrato */}
                       <div>
-                        <label htmlFor="new-user-contract-start" className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label
+                          htmlFor="new-user-contract-start"
+                          className="block text-sm font-medium text-neutral-300 mb-2"
+                        >
                           Início do Contrato *
                         </label>
                         <div className="relative">
@@ -666,15 +816,25 @@ export default function NewUserPage() {
                             type="date"
                             className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
                             value={userData.contractStartDate || ''}
-                            onChange={(e) => setUserData(prev => ({ ...prev, contractStartDate: e.target.value }))}
+                            onChange={(e) =>
+                              setUserData((prev) => ({
+                                ...prev,
+                                contractStartDate: e.target.value,
+                              }))
+                            }
                           />
                         </div>
-                        {errors.contractStartDate && <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>}
+                        {errors.contractStartDate && (
+                          <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>
+                        )}
                       </div>
 
                       {/* Data de Fim do Contrato */}
                       <div>
-                        <label htmlFor="new-user-contract-end" className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label
+                          htmlFor="new-user-contract-end"
+                          className="block text-sm font-medium text-neutral-300 mb-2"
+                        >
                           Fim do Contrato *
                         </label>
                         <div className="relative">
@@ -684,38 +844,52 @@ export default function NewUserPage() {
                             type="date"
                             className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
                             value={userData.contractEndDate || ''}
-                            onChange={(e) => setUserData(prev => ({ ...prev, contractEndDate: e.target.value }))}
+                            onChange={(e) =>
+                              setUserData((prev) => ({ ...prev, contractEndDate: e.target.value }))
+                            }
                           />
                         </div>
-                        {errors.contractEndDate && <p className="text-error text-xs mt-1">{errors.contractEndDate}</p>}
+                        {errors.contractEndDate && (
+                          <p className="text-error text-xs mt-1">{errors.contractEndDate}</p>
+                        )}
                       </div>
 
                       {/* Tipo de Contrato */}
                       <div>
-                        <label htmlFor="new-user-contract-type" className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label
+                          htmlFor="new-user-contract-type"
+                          className="block text-sm font-medium text-neutral-300 mb-2"
+                        >
                           Tipo de Contrato *
                         </label>
                         <select
                           id="new-user-contract-type"
                           className={`input ${errors.contractType ? 'border-error' : ''}`}
                           value={userData.contractType || ''}
-                          onChange={(e) => setUserData(prev => ({ ...prev, contractType: e.target.value }))}
+                          onChange={(e) =>
+                            setUserData((prev) => ({ ...prev, contractType: e.target.value }))
+                          }
                         >
                           <option value="">Selecione o tipo</option>
-                          {CONTRACT_TYPES.map((type: any) => (
+                          {CONTRACT_TYPES.map((type: ContractTypeConfig) => (
                             <option key={type.id} value={type.id}>
                               {type.name}
                             </option>
                           ))}
                         </select>
-                        {errors.contractType && <p className="text-error text-xs mt-1">{errors.contractType}</p>}
+                        {errors.contractType && (
+                          <p className="text-error text-xs mt-1">{errors.contractType}</p>
+                        )}
                       </div>
                     </div>
 
                     {/* Carga Horária */}
                     {userData.contractType && (
                       <div>
-                        <label htmlFor="new-user-weekly-hours" className="block text-sm font-medium text-neutral-300 mb-2">
+                        <label
+                          htmlFor="new-user-weekly-hours"
+                          className="block text-sm font-medium text-neutral-300 mb-2"
+                        >
                           Carga Horária Semanal
                         </label>
                         <div className="flex items-center space-x-4">
@@ -726,12 +900,19 @@ export default function NewUserPage() {
                             max="44"
                             className={`input w-32 ${errors.weeklyHours ? 'border-error' : ''}`}
                             value={userData.weeklyHours || ''}
-                            onChange={(e) => setUserData(prev => ({ ...prev, weeklyHours: parseInt(e.target.value) || 0 }))}
+                            onChange={(e) =>
+                              setUserData((prev) => ({
+                                ...prev,
+                                weeklyHours: parseInt(e.target.value) || 0,
+                              }))
+                            }
                           />
                           <span className="text-neutral-400 text-sm">horas por semana</span>
                         </div>
-                        {errors.weeklyHours && <p className="text-error text-xs mt-1">{errors.weeklyHours}</p>}
-                        
+                        {errors.weeklyHours && (
+                          <p className="text-error text-xs mt-1">{errors.weeklyHours}</p>
+                        )}
+
                         {userData.contractType && userData.weeklyHours && (
                           <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
                             <p className="text-xs text-neutral-300">
@@ -748,9 +929,7 @@ export default function NewUserPage() {
                 {/* Submit Button */}
                 <div className="flex justify-end space-x-4 pt-6 border-t border-neutral-700">
                   <Button asChild variant="ghost">
-                    <Link href="/admin/users">
-                      Cancelar
-                    </Link>
+                    <Link href="/admin/users">Cancelar</Link>
                   </Button>
                   <Button type="submit" disabled={loading} className="min-w-[150px]">
                     {loading ? (

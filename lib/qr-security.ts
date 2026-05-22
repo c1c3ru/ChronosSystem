@@ -24,8 +24,6 @@ export interface SecureQRData {
   fullQR: string // payload.signature
 }
 
-
-
 /**
  * Gera um QR code seguro com assinatura HMAC-SHA256
  * @param machineId - ID da máquina
@@ -44,7 +42,7 @@ export function generateSecureQR(machineId: string, expiresIn: number = 60): Sec
     timestamp: Date.now(),
     nonce,
     expiresIn, // Usar expiresIn do parâmetro
-    version: 'v1'
+    version: 'v1',
   }
 
   // Converter payload para base64url
@@ -63,7 +61,7 @@ export function generateSecureQR(machineId: string, expiresIn: number = 60): Sec
   return {
     payload: payloadBase64,
     signature,
-    fullQR
+    fullQR,
   }
 }
 
@@ -97,7 +95,10 @@ export function validateSecureQR(qrData: string): {
     const expectedBuffer = Buffer.from(expectedSignature, 'base64url')
     const receivedBuffer = Buffer.from(receivedSignature, 'base64url')
 
-    if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
+    if (
+      expectedBuffer.length !== receivedBuffer.length ||
+      !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+    ) {
       return { isValid: false, error: 'Assinatura inválida' }
     }
 
@@ -107,7 +108,7 @@ export function validateSecureQR(qrData: string): {
 
     // Validar timestamp (expiração)
     const now = Date.now()
-    const expirationTime = payload.timestamp + (payload.expiresIn * 1000)
+    const expirationTime = payload.timestamp + payload.expiresIn * 1000
 
     if (now > expirationTime) {
       return { isValid: false, error: 'QR code expirado' }
@@ -119,7 +120,6 @@ export function validateSecureQR(qrData: string): {
     }
 
     return { isValid: true, payload }
-
   } catch (error) {
     return { isValid: false, error: 'Erro ao validar QR code' }
   }
@@ -134,10 +134,10 @@ export function generateNonce(): string {
 
 /**
  * OTIMIZAÇÃO: Cache de nonce removido
- * 
+ *
  * O sistema JÁ usa o banco de dados (QrEvent.used) como fonte principal de verdade.
  * O cache em memória era redundante e causava problemas em deploys/restarts.
- * 
+ *
  * A verificação de nonce usado agora é feita APENAS no banco de dados,
  * que é mais confiável e persistente.
  */

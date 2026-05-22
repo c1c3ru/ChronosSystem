@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     logger.info('Employee dashboard - usuário autenticado', {
       userId: session.user.id,
       email: session.user.email,
-      role: session.user.role
+      role: session.user.role,
     })
 
     const userId = session.user.id
@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     // Verificar se está trabalhando (último registro foi entrada)
@@ -53,17 +53,27 @@ export async function GET(request: NextRequest) {
         userId,
         timestamp: {
           gte: today,
-          lt: tomorrow
-        }
+          lt: tomorrow,
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
+
+    interface DashboardRecord {
+      id: string
+      timestamp: Date
+      type: string
+      machine: {
+        name: string
+        location: string
+      }
+    }
 
     // Calcular total de horas hoje
     let todayHours = '0h 00min'
     if (todayRecords.length >= 2) {
-      const entries = todayRecords.filter((r: any) => r.type === 'ENTRY')
-      const exits = todayRecords.filter((r: any) => r.type === 'EXIT')
+      const entries = (todayRecords as unknown as DashboardRecord[]).filter((r) => r.type === 'ENTRY')
+      const exits = (todayRecords as unknown as DashboardRecord[]).filter((r) => r.type === 'EXIT')
 
       let totalMinutes = 0
       for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
@@ -85,47 +95,48 @@ export async function GET(request: NextRequest) {
       where: {
         userId,
         timestamp: {
-          gte: sevenDaysAgo
-        }
+          gte: sevenDaysAgo,
+        },
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
-      take: 10
+      take: 10,
     })
 
     return NextResponse.json({
       success: true,
       workStatus: {
         isWorking,
-        lastRecord: lastRecord ? {
-          type: lastRecord.type,
-          timestamp: lastRecord.timestamp.toISOString(), // Envia ISO cru para formatar no frontend
-          location: lastRecord.machine.location
-        } : null,
-        todayHours
+        lastRecord: lastRecord
+          ? {
+              type: lastRecord.type,
+              timestamp: lastRecord.timestamp.toISOString(), // Envia ISO cru para formatar no frontend
+              location: lastRecord.machine.location,
+            }
+          : null,
+        todayHours,
       },
-      recentRecords: recentRecords.map((record: any) => ({
+      recentRecords: (recentRecords as unknown as DashboardRecord[]).map((record) => ({
         id: record.id,
         timestamp: record.timestamp.toISOString(), // ISO cru para formatar no frontend
         type: record.type,
         machine: record.machine,
         date: record.timestamp.toLocaleDateString('pt-BR', {
           day: '2-digit',
-          month: '2-digit'
-        })
-      }))
+          month: '2-digit',
+        }),
+      })),
     })
-
   } catch (error: unknown) {
     logger.error('Erro ao buscar dados do dashboard', {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     })
     return NextResponse.json(
       {
@@ -134,9 +145,9 @@ export async function GET(request: NextRequest) {
         workStatus: {
           isWorking: false,
           lastRecord: null,
-          todayHours: '0h 00min'
+          todayHours: '0h 00min',
         },
-        recentRecords: []
+        recentRecords: [],
       },
       { status: 500 }
     )

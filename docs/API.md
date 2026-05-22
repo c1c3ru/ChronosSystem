@@ -23,6 +23,7 @@ Authorization: Bearer <access_token>
 Login com email e senha.
 
 **Request:**
+
 ```json
 {
   "email": "estagiario@ponto.com",
@@ -32,6 +33,7 @@ Login com email e senha.
 ```
 
 **Response:**
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -58,6 +60,7 @@ Callback do Google OAuth (não chamar diretamente).
 Renovar access token.
 
 **Request:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
@@ -65,6 +68,7 @@ Renovar access token.
 ```
 
 **Response:**
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -77,6 +81,7 @@ Renovar access token.
 Fazer logout (revoga refresh token).
 
 **Request:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIs..." // Opcional
@@ -88,6 +93,7 @@ Fazer logout (revoga refresh token).
 Habilitar 2FA (requer autenticação).
 
 **Response:**
+
 ```json
 {
   "secret": "JBSWY3DPEHPK3PXP",
@@ -100,6 +106,7 @@ Habilitar 2FA (requer autenticação).
 Verificar código 2FA e ativar.
 
 **Request:**
+
 ```json
 {
   "code": "123456"
@@ -111,6 +118,7 @@ Verificar código 2FA e ativar.
 Desabilitar 2FA.
 
 **Request:**
+
 ```json
 {
   "code": "123456"
@@ -122,6 +130,7 @@ Desabilitar 2FA.
 Obter informações do usuário autenticado.
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -140,6 +149,7 @@ Obter informações do usuário autenticado.
 Listar todos os usuários (Admin/Supervisor).
 
 **Response:**
+
 ```json
 [
   {
@@ -162,6 +172,7 @@ Obter usuário por ID.
 Criar novo usuário (Admin/Supervisor).
 
 **Request:**
+
 ```json
 {
   "email": "novo@ponto.com",
@@ -176,6 +187,7 @@ Criar novo usuário (Admin/Supervisor).
 Atualizar usuário.
 
 **Request:**
+
 ```json
 {
   "name": "Nome Atualizado",
@@ -196,6 +208,7 @@ Desativar usuário (Admin).
 Listar todas as máquinas (Admin/Supervisor).
 
 **Response:**
+
 ```json
 [
   {
@@ -219,6 +232,7 @@ Obter máquina por ID.
 Obter QR code atual da máquina.
 
 **Response:**
+
 ```json
 {
   "qrData": "eyJtYWNoaW5lX2lkIjoiTUFDSElORV8wMDEiLCJ0cyI6IjIwMjUtMTAtMTVUMTI6MDA6MDBaIiwiZXhwIjo2MCwibm9uY2UiOiJhMWIyYzNkNCIsInZlcnNpb24iOiJ2MSJ9.ZjNhYjJjM2Q0ZTVmNmE3YjhjOWQwZTFmMmEzYjRjNWQ2ZTdmOGE5YjBjMWQyZTNmNGE1YjZjN2Q4ZTlmMGEx"
@@ -230,6 +244,7 @@ Obter QR code atual da máquina.
 Criar nova máquina (Admin/Supervisor).
 
 **Request:**
+
 ```json
 {
   "name": "Recepção Principal",
@@ -255,6 +270,7 @@ Desativar máquina (Admin).
 Registrar ponto via QR code.
 
 **Request:**
+
 ```json
 {
   "qrData": "eyJtYWNoaW5lX2lkIjoiTUFDSElORV8wMDEi...",
@@ -267,6 +283,7 @@ Registrar ponto via QR code.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -298,10 +315,12 @@ Registrar ponto via QR code.
 Obter histórico de registros de um usuário.
 
 **Query Params:**
+
 - `from` - Data inicial (ISO 8601)
 - `to` - Data final (ISO 8601)
 
 **Response:**
+
 ```json
 [
   {
@@ -325,6 +344,7 @@ Listar todos os registros (Admin/Supervisor).
 Solicitar correção de ponto.
 
 **Request:**
+
 ```json
 {
   "attendanceRecordId": "uuid",
@@ -339,6 +359,7 @@ Solicitar correção de ponto.
 Aprovar ou rejeitar correção (Admin/Supervisor).
 
 **Request:**
+
 ```json
 {
   "status": "APROVADO",
@@ -351,6 +372,7 @@ Aprovar ou rejeitar correção (Admin/Supervisor).
 Verificar integridade da cadeia de hashes (Admin/Audit).
 
 **Response:**
+
 ```json
 {
   "valid": true,
@@ -367,11 +389,13 @@ Verificar integridade da cadeia de hashes (Admin/Audit).
 Listar logs de auditoria (Admin/Audit).
 
 **Query Params:**
+
 - `actorId` - Filtrar por usuário
 - `resource` - Filtrar por recurso
 - `action` - Filtrar por ação
 
 **Response:**
+
 ```json
 [
   {
@@ -402,6 +426,7 @@ Listar logs de auditoria (Admin/Audit).
 Verificar status do sistema.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -418,6 +443,7 @@ Verificar status do sistema.
 ## ❌ Códigos de Erro
 
 ### 400 Bad Request
+
 ```json
 {
   "statusCode": 400,
@@ -427,6 +453,7 @@ Verificar status do sistema.
 ```
 
 ### 401 Unauthorized
+
 ```json
 {
   "statusCode": 401,
@@ -436,6 +463,7 @@ Verificar status do sistema.
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "statusCode": 403,
@@ -445,6 +473,7 @@ Verificar status do sistema.
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "statusCode": 404,
@@ -454,6 +483,7 @@ Verificar status do sistema.
 ```
 
 ### 429 Too Many Requests
+
 ```json
 {
   "statusCode": 429,
@@ -463,6 +493,7 @@ Verificar status do sistema.
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "statusCode": 500,

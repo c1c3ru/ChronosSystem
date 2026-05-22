@@ -12,11 +12,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, helperText, options, ...props }, ref) => {
     return (
       <div className="w-full">
-        {label && (
-          <label className="block text-sm font-medium text-white mb-2">
-            {label}
-          </label>
-        )}
+        {label && <label className="block text-sm font-medium text-white mb-2">{label}</label>}
         <select
           className={cn(
             'input',
@@ -33,10 +29,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {helperText && (
-          <p className={cn(
-            'mt-1 text-xs',
-            error ? 'text-destructive' : 'text-muted-foreground'
-          )}>
+          <p className={cn('mt-1 text-xs', error ? 'text-destructive' : 'text-muted-foreground')}>
             {helperText}
           </p>
         )}

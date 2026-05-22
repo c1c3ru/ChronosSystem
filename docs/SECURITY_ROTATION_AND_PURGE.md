@@ -51,4 +51,4 @@ git filter-repo --force \
 
 - Faça **nova rotação** (sim, de novo) se você suspeitar que tokens foram capturados durante o intervalo.
 - Procure por chaves antigas em logs/variáveis e revogue tudo que ainda estiver válido.
-- Considere habilitar *secret scanning* no GitHub, se aplicável.
+- Considere habilitar _secret scanning_ no GitHub, se aplicável.

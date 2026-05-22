@@ -22,63 +22,58 @@ export async function GET(request: NextRequest) {
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     // Buscar estatísticas em paralelo
-    const [
-      totalUsers,
-      todayRecords,
-      activeMachines,
-      totalMachines,
-      pendingAlerts
-    ] = await Promise.all([
-      // Total de usuários
-      prisma.user.count(),
+    const [totalUsers, todayRecords, activeMachines, totalMachines, pendingAlerts] =
+      await Promise.all([
+        // Total de usuários
+        prisma.user.count(),
 
-      // Registros de hoje
-      prisma.attendanceRecord.count({
-        where: {
-          timestamp: {
-            gte: today,
-            lt: tomorrow
-          }
-        }
-      }),
-
-      // Máquinas ativas
-      prisma.machine.count({
-        where: { isActive: true }
-      }),
-
-      // Total de máquinas
-      prisma.machine.count(),
-
-      // Alertas pendentes - lógica real implementada
-      (async () => {
-        const [pendingJustifications, recentAbsences] = await Promise.all([
-          // Justificativas pendentes
-          prisma.justification.count({
-            where: { status: 'PENDING' }
-          }),
-          // Usuários com ausências recentes sem justificativa (últimos 7 dias)
-          prisma.attendanceRecord.groupBy({
-            by: ['userId'],
-            where: {
-              timestamp: {
-                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-              }
+        // Registros de hoje
+        prisma.attendanceRecord.count({
+          where: {
+            timestamp: {
+              gte: today,
+              lt: tomorrow,
             },
-            _count: true,
-            having: {
-              userId: {
-                _count: {
-                  lt: 5 // Menos de 5 registros em 7 dias pode indicar problema
-                }
-              }
-            }
-          })
-        ])
+          },
+        }),
 
-        return pendingJustifications + recentAbsences.length
-      })()
-    ])
+        // Máquinas ativas
+        prisma.machine.count({
+          where: { isActive: true },
+        }),
+
+        // Total de máquinas
+        prisma.machine.count(),
+
+        // Alertas pendentes - lógica real implementada
+        (async () => {
+          const [pendingJustifications, recentAbsences] = await Promise.all([
+            // Justificativas pendentes
+            prisma.justification.count({
+              where: { status: 'PENDING' },
+            }),
+            // Usuários com ausências recentes sem justificativa (últimos 7 dias)
+            prisma.attendanceRecord.groupBy({
+              by: ['userId'],
+              where: {
+                timestamp: {
+                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                },
+              },
+              _count: true,
+              having: {
+                userId: {
+                  _count: {
+                    lt: 5, // Menos de 5 registros em 7 dias pode indicar problema
+                  },
+                },
+              },
+            }),
+          ])
+
+          return pendingJustifications + recentAbsences.length
+        })(),
+      ])
 
     // Calcular estatísticas adicionais
     const yesterdayStart = new Date(today)
@@ -88,15 +83,16 @@ export async function GET(request: NextRequest) {
       where: {
         timestamp: {
           gte: yesterdayStart,
-          lt: today
-        }
-      }
+          lt: today,
+        },
+      },
     })
 
     // Calcular percentuais de mudança
-    const recordsChange = yesterdayRecords > 0
-      ? ((todayRecords - yesterdayRecords) / yesterdayRecords * 100).toFixed(1)
-      : '0'
+    const recordsChange =
+      yesterdayRecords > 0
+        ? (((todayRecords - yesterdayRecords) / yesterdayRecords) * 100).toFixed(1)
+        : '0'
 
     const stats = {
       totalUsers,
@@ -106,14 +102,17 @@ export async function GET(request: NextRequest) {
       alerts: pendingAlerts,
       trends: {
         recordsChange: parseFloat(recordsChange),
-        machinesOperational: activeMachines === totalMachines ? 100 : ((activeMachines / totalMachines) * 100).toFixed(1)
+        machinesOperational:
+          activeMachines === totalMachines
+            ? 100
+            : ((activeMachines / totalMachines) * 100).toFixed(1),
       },
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     }
 
     return NextResponse.json(stats)
-  } catch (error) {
-    apiLogger.error('Erro ao buscar estatísticas do dashboard', { error: String(error) })
+  } catch (error: unknown) {
+    apiLogger.error('Erro ao buscar estatísticas do dashboard', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

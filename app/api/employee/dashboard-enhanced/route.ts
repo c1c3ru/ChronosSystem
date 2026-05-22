@@ -9,17 +9,40 @@ export const dynamic = 'force-dynamic'
 
 interface WorkingHours {
   start: string // "08:00"
-  end: string   // "17:00"
+  end: string // "17:00"
   lunchStart: string // "12:00"
-  lunchEnd: string   // "13:00"
+  lunchEnd: string // "13:00"
 }
 
 // Horários padrão IFCE (pode ser configurável por usuário no futuro)
 const DEFAULT_WORKING_HOURS: WorkingHours = {
-  start: "08:00",
-  end: "17:00",
-  lunchStart: "12:00",
-  lunchEnd: "13:00"
+  start: '08:00',
+  end: '17:00',
+  lunchStart: '12:00',
+  lunchEnd: '13:00',
+}
+
+interface RecordWithMachine {
+  id: string
+  timestamp: Date
+  type: string
+  machine: {
+    name: string
+    location: string
+  }
+}
+
+interface AnalyzedDay {
+  date: string
+  fullDate: string
+  entry?: string
+  exit?: string
+  totalHours: string
+  status: 'working' | 'completed' | 'incomplete' | 'absent'
+  alerts: { type: string; message: string; severity: string }[]
+  location: string
+  hasJustification: boolean
+  justificationStatus?: string
 }
 
 // GET /api/employee/dashboard-enhanced - Dashboard com análise de atrasos e alertas
@@ -46,10 +69,10 @@ export async function GET(request: NextRequest) {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     // Verificar se está trabalhando
@@ -61,23 +84,27 @@ export async function GET(request: NextRequest) {
         userId,
         timestamp: {
           gte: today,
-          lt: tomorrow
-        }
+          lt: tomorrow,
+        },
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Analisar situação de hoje
-    // Analisar registros de hoje
-    const todayAnalysis = analyzeTodayRecords(todayRecords, DEFAULT_WORKING_HOURS, isWorking, lastRecord)
+    const todayAnalysis = analyzeTodayRecords(
+      todayRecords as unknown as RecordWithMachine[],
+      DEFAULT_WORKING_HOURS,
+      isWorking,
+      lastRecord as unknown as RecordWithMachine
+    )
 
     // Buscar registros recentes (últimos 7 dias) com análise
     const sevenDaysAgo = new Date(today)
@@ -87,30 +114,30 @@ export async function GET(request: NextRequest) {
       where: {
         userId,
         timestamp: {
-          gte: sevenDaysAgo
-        }
+          gte: sevenDaysAgo,
+        },
       },
       include: {
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
+            location: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
-      take: 20
+      take: 20,
     })
 
     // Agrupar registros por dia e analisar
-    const recordsByDay = groupRecordsByDay(recentRecords)
+    const recordsByDay = groupRecordsByDay(recentRecords as unknown as RecordWithMachine[])
     const analyzedDays = recordsByDay
-      .map((dayRecords: any) => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
-      .filter((day: any) => day !== null) // Remover dias inválidos
+      .map((dayRecords) => analyzeDayRecords(dayRecords, DEFAULT_WORKING_HOURS))
+      .filter((day): day is AnalyzedDay => day !== null) // Remover dias inválidos
 
     // Verificar justificativas para cada dia analisado
     const daysWithJustifications = await Promise.all(
-      analyzedDays.map(async (day: any) => {
+      analyzedDays.map(async (day) => {
         if (!day || !day.fullDate) return day
 
         try {
@@ -125,18 +152,18 @@ export async function GET(request: NextRequest) {
               userId,
               date: {
                 gte: dayStart,
-                lt: dayEnd
+                lt: dayEnd,
               },
               status: {
-                in: ['APPROVED', 'PENDING']
-              }
-            }
+                in: ['APPROVED', 'PENDING'],
+              },
+            },
           })
 
           return {
             ...day,
             hasJustification: !!justification,
-            justificationStatus: justification?.status
+            justificationStatus: justification?.status,
           }
         } catch (error) {
           apiLogger.warn('Erro ao verificar justificativa', { error })
@@ -149,63 +176,71 @@ export async function GET(request: NextRequest) {
     const pendingJustifications = await prisma.justification.count({
       where: {
         userId,
-        status: 'PENDING'
-      }
+        status: 'PENDING',
+      },
     })
 
     // Verificar quantas faltas/atrasos sem justificativa
-    const unjustifiedIssues = daysWithJustifications.filter((day: any) =>
-      day && day.alerts && day.alerts.length > 0 && !day.hasJustification
+    const unjustifiedIssues = daysWithJustifications.filter(
+      (day) => day && day.alerts && day.alerts.length > 0 && !day.hasJustification
     ).length
 
     return NextResponse.json({
       success: true,
       workStatus: {
         isWorking,
-        lastRecord: lastRecord ? {
-          type: lastRecord.type,
-          timestamp: lastRecord.timestamp.toISOString(), // ISO cru para formatar no frontend
-          location: lastRecord.machine?.location || 'Não informado',
-          label: lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída'
-        } : null,
+        lastRecord: lastRecord
+          ? {
+              type: lastRecord.type,
+              timestamp: lastRecord.timestamp.toISOString(), // ISO cru para formatar no frontend
+              location: lastRecord.machine?.location || 'Não informado',
+              label: lastRecord.type === 'ENTRY' ? 'Entrada' : 'Saída',
+            }
+          : null,
         todayHours: todayAnalysis.totalHours,
         todayStatus: todayAnalysis.status,
-        todayAlerts: todayAnalysis.alerts
+        todayAlerts: todayAnalysis.alerts,
       },
       analyzedDays: daysWithJustifications.slice(0, 5), // Últimos 5 dias
       alerts: {
         pendingJustifications,
         unjustifiedIssues,
-        needsAttention: unjustifiedIssues > 0 || pendingJustifications > 0
-      }
+        needsAttention: unjustifiedIssues > 0 || pendingJustifications > 0,
+      },
     })
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     apiLogger.error('Enhanced dashboard - Erro ao buscar dados', {
-      message: error?.message,
-      name: error?.name,
-      stack: error?.stack,
-      cause: error?.cause
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : undefined,
+      stack: error instanceof Error ? error.stack : undefined,
     })
 
-    return NextResponse.json({
-      error: 'Erro interno do servidor',
-      message: process.env.NODE_ENV === 'development' ? error?.message : undefined,
-      code: 'INTERNAL_ERROR'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Erro interno do servidor',
+        message: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
+        code: 'INTERNAL_ERROR',
+      },
+      { status: 500 }
+    )
   }
 }
 
-function analyzeTodayRecords(registros: any[], horariosTrabalho: WorkingHours, estaTrabalhando: boolean = false, ultimoRegistro: any = null) {
+function analyzeTodayRecords(
+  registros: RecordWithMachine[],
+  horariosTrabalho: WorkingHours,
+  estaTrabalhando: boolean = false,
+  ultimoRegistro: RecordWithMachine | null = null
+) {
   const agora = new Date()
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
 
   let minutosTotais = 0
-  const alertas: any[] = []
-  
-  const entradas = registros.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
-  const saidas = registros.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
+  const alertas: { type: string; message: string; severity: string }[] = []
+
+  const entradas = registros.filter((r) => r && r.type === 'ENTRY' && r.timestamp)
+  const saidas = registros.filter((r) => r && r.type === 'EXIT' && r.timestamp)
 
   // 1. Calcular horas de pares completos hoje
   for (let i = 0; i < Math.min(entradas.length, saidas.length); i++) {
@@ -227,12 +262,14 @@ function analyzeTodayRecords(registros: any[], horariosTrabalho: WorkingHours, e
   } else if (estaTrabalhando && ultimoRegistro && ultimoRegistro.type === 'ENTRY') {
     // Caso especial: turno atravessado ou fuso horário
     try {
-      const tempoUltimoRegistro = ultimoRegistro.timestamp instanceof Date
-        ? ultimoRegistro.timestamp
-        : new Date(ultimoRegistro.timestamp)
-      
+      const tempoUltimoRegistro =
+        ultimoRegistro.timestamp instanceof Date
+          ? ultimoRegistro.timestamp
+          : new Date(ultimoRegistro.timestamp)
+
       if (!isNaN(tempoUltimoRegistro.getTime())) {
-        const tempoInicio = tempoUltimoRegistro.getTime() < hoje.getTime() ? hoje : tempoUltimoRegistro
+        const tempoInicio =
+          tempoUltimoRegistro.getTime() < hoje.getTime() ? hoje : tempoUltimoRegistro
         minutosTotais += Math.max(0, (agora.getTime() - tempoInicio.getTime()) / (1000 * 60))
       }
     } catch (erro) {
@@ -247,13 +284,13 @@ function analyzeTodayRecords(registros: any[], horariosTrabalho: WorkingHours, e
       const [horasEsp, minsEsp] = horariosTrabalho.start.split(':').map(Number)
       const inicioEsperado = new Date(tempoPrimeiraEntrada)
       inicioEsperado.setHours(horasEsp, minsEsp, 0, 0)
-      
+
       const atraso = (tempoPrimeiraEntrada.getTime() - inicioEsperado.getTime()) / (1000 * 60)
       if (atraso > 15) {
         alertas.push({
           type: 'late',
           message: `Entrada com ${Math.round(atraso)} min de atraso`,
-          severity: atraso > 60 ? 'high' : 'medium'
+          severity: atraso > 60 ? 'high' : 'medium',
         })
       }
     }
@@ -262,11 +299,13 @@ function analyzeTodayRecords(registros: any[], horariosTrabalho: WorkingHours, e
     return {
       totalHours: '0h 00min',
       status: 'absent' as const,
-      alerts: [{
-        type: 'absence',
-        message: 'Nenhum registro hoje',
-        severity: 'high'
-      }]
+      alerts: [
+        {
+          type: 'absence',
+          message: 'Nenhum registro hoje',
+          severity: 'high',
+        },
+      ],
     }
   }
 
@@ -288,14 +327,14 @@ function analyzeTodayRecords(registros: any[], horariosTrabalho: WorkingHours, e
   return {
     totalHours: totalHorasString,
     status: situacao,
-    alerts: alertas
+    alerts: alertas,
   }
 }
 
-function groupRecordsByDay(records: any[]) {
-  const groups = new Map<string, any[]>()
+function groupRecordsByDay(records: RecordWithMachine[]) {
+  const groups = new Map<string, RecordWithMachine[]>()
 
-  records.forEach((record: any) => {
+  records.forEach((record) => {
     if (!record || !record.timestamp) {
       apiLogger.warn('Registro inválido encontrado', { record })
       return
@@ -303,12 +342,11 @@ function groupRecordsByDay(records: any[]) {
 
     try {
       // Garantir que timestamp é um Date object
-      const timestamp = record.timestamp instanceof Date
-        ? record.timestamp
-        : new Date(record.timestamp)
+      const timestamp =
+        record.timestamp instanceof Date ? record.timestamp : new Date(record.timestamp)
 
       if (isNaN(timestamp.getTime())) {
-        apiLogger.warn('Timestamp inválido', { timestamp: record.timestamp })
+        apiLogger.warn('Timestamp inválido', { timestampRecord: record.timestamp.toISOString() })
         return
       }
 
@@ -319,7 +357,7 @@ function groupRecordsByDay(records: any[]) {
       // Garantir que o record tenha timestamp como Date
       groups.get(date)!.push({
         ...record,
-        timestamp
+        timestamp,
       })
     } catch (error) {
       apiLogger.error('Erro ao processar registro', { error, record })
@@ -329,7 +367,7 @@ function groupRecordsByDay(records: any[]) {
   return Array.from(groups.values())
 }
 
-function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
+function analyzeDayRecords(dayRecords: RecordWithMachine[], workingHours: WorkingHours): AnalyzedDay | null {
   if (!dayRecords || dayRecords.length === 0) return null
 
   try {
@@ -341,35 +379,35 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
     }
 
     // Garantir que timestamp é um Date object
-    const date = firstRecord.timestamp instanceof Date
-      ? firstRecord.timestamp
-      : new Date(firstRecord.timestamp)
+    const date =
+      firstRecord.timestamp instanceof Date
+        ? firstRecord.timestamp
+        : new Date(firstRecord.timestamp)
 
     if (isNaN(date.getTime())) {
-      apiLogger.warn('Data inválida no primeiro registro', { timestamp: firstRecord.timestamp })
+      apiLogger.warn('Data inválida no primeiro registro', { timestampRecord: firstRecord.timestamp.toISOString() })
       return null
     }
 
-    const entries = dayRecords.filter((r: any) => r && r.type === 'ENTRY' && r.timestamp)
-    const exits = dayRecords.filter((r: any) => r && r.type === 'EXIT' && r.timestamp)
-    const alerts: any[] = []
+    const entries = dayRecords.filter((r) => r && r.type === 'ENTRY' && r.timestamp)
+    const exits = dayRecords.filter((r) => r && r.type === 'EXIT' && r.timestamp)
+    const alerts: { type: string; message: string; severity: string }[] = []
 
     // Análise similar ao dia atual
     if (entries.length > 0) {
       const firstEntry = entries[0]
-      const entryTime = firstEntry.timestamp instanceof Date
-        ? firstEntry.timestamp
-        : new Date(firstEntry.timestamp)
+      const entryTime =
+        firstEntry.timestamp instanceof Date ? firstEntry.timestamp : new Date(firstEntry.timestamp)
 
       if (!isNaN(entryTime.getTime())) {
         const expectedStart = parseTime(workingHours.start)
 
         if (entryTime.getHours() * 60 + entryTime.getMinutes() > expectedStart + 30) {
-          const delayMinutes = (entryTime.getHours() * 60 + entryTime.getMinutes()) - expectedStart
+          const delayMinutes = entryTime.getHours() * 60 + entryTime.getMinutes() - expectedStart
           alerts.push({
             type: 'late_arrival',
             message: `Atraso de ${delayMinutes} minutos`,
-            severity: delayMinutes > 60 ? 'high' : 'medium'
+            severity: delayMinutes > 60 ? 'high' : 'medium',
           })
         }
       }
@@ -379,12 +417,12 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
     let totalMinutes = 0
     for (let i = 0; i < Math.min(entries.length, exits.length); i++) {
       try {
-        const entryTime = entries[i].timestamp instanceof Date
-          ? entries[i].timestamp
-          : new Date(entries[i].timestamp)
-        const exitTime = exits[i].timestamp instanceof Date
-          ? exits[i].timestamp
-          : new Date(exits[i].timestamp)
+        const entryTime =
+          entries[i].timestamp instanceof Date
+            ? entries[i].timestamp
+            : new Date(entries[i].timestamp)
+        const exitTime =
+          exits[i].timestamp instanceof Date ? exits[i].timestamp : new Date(exits[i].timestamp)
 
         if (!isNaN(entryTime.getTime()) && !isNaN(exitTime.getTime())) {
           totalMinutes += (exitTime.getTime() - entryTime.getTime()) / (1000 * 60)
@@ -403,28 +441,36 @@ function analyzeDayRecords(dayRecords: any[], workingHours: WorkingHours) {
     return {
       date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
       fullDate: date.toISOString(),
-      entry: entries[0] ? (() => {
-        const entryTimestamp = entries[0].timestamp instanceof Date
-          ? entries[0].timestamp
-          : new Date(entries[0].timestamp)
-        return !isNaN(entryTimestamp.getTime())
-          ? entryTimestamp.toISOString() // ISO cru para formatar no frontend
-          : undefined
-      })() : undefined,
-      exit: exits[0] ? (() => {
-        const exitTimestamp = exits[0].timestamp instanceof Date
-          ? exits[0].timestamp
-          : new Date(exits[0].timestamp)
-        return !isNaN(exitTimestamp.getTime())
-          ? exitTimestamp.toISOString() // ISO cru para formatar no frontend
-          : undefined
-      })() : undefined,
+      entry: entries[0]
+        ? (() => {
+            const entryTimestamp =
+              entries[0].timestamp instanceof Date
+                ? entries[0].timestamp
+                : new Date(entries[0].timestamp)
+            return !isNaN(entryTimestamp.getTime())
+              ? entryTimestamp.toISOString() // ISO cru para formatar no frontend
+              : undefined
+          })()
+        : undefined,
+      exit: exits[0]
+        ? (() => {
+            const exitTimestamp =
+              exits[0].timestamp instanceof Date ? exits[0].timestamp : new Date(exits[0].timestamp)
+            return !isNaN(exitTimestamp.getTime())
+              ? exitTimestamp.toISOString() // ISO cru para formatar no frontend
+              : undefined
+          })()
+        : undefined,
       totalHours: `${hours}h ${minutes.toString().padStart(2, '0')}min`,
-      status: entries.length === 0 ? 'absent' :
-        entries.length === exits.length ? 'completed' : 'incomplete',
+      status:
+        entries.length === 0
+          ? 'absent'
+          : entries.length === exits.length
+            ? 'completed'
+            : 'incomplete',
       alerts,
       location,
-      hasJustification: false // Será verificado após retornar do banco
+      hasJustification: false, // Será verificado após retornar do banco
     }
   } catch (error) {
     apiLogger.error('Erro ao analisar registros do dia', { error, dayRecords })

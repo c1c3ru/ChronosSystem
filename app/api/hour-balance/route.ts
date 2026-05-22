@@ -11,14 +11,14 @@ const CONTRACT_CONFIGS = {
   FUNDAMENTAL_20H: { dailyHours: 4, weeklyHours: 20 },
   SUPERIOR_30H: { dailyHours: 6, weeklyHours: 30 },
   ALTERNANCIA_40H: { dailyHours: 8, weeklyHours: 40 },
-  CUSTOM: { dailyHours: 6, weeklyHours: 30 } // Padrão, será sobrescrito pelos campos do usuário
+  CUSTOM: { dailyHours: 6, weeklyHours: 30 }, // Padrão, será sobrescrito pelos campos do usuário
 }
 
 // GET /api/hour-balance - Buscar saldo de horas do usuário
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar dados do usuário
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
         contractType: true,
         weeklyHours: true,
         dailyHours: true,
-        hourBalance: true
-      }
+        hourBalance: true,
+      },
     })
 
     if (!user) {
@@ -78,20 +78,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar registros de saldo no período
-    const hourBalances = await (prisma as any).hourBalance.findMany({
+    const hourBalances = await prisma.hourBalance.findMany({
       where: {
         userId,
         date: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
-      orderBy: { date: 'desc' }
+      orderBy: { date: 'desc' },
     })
 
     // Calcular estatísticas
-    const totalWorkedHours = hourBalances.reduce((sum: number, record: any) => sum + record.workedHours, 0)
-    const totalExpectedHours = hourBalances.reduce((sum: number, record: any) => sum + record.expectedHours, 0)
+    const totalWorkedHours = hourBalances.reduce(
+      (sum: number, record: { workedHours: number }) => sum + record.workedHours,
+      0
+    )
+    const totalExpectedHours = hourBalances.reduce(
+      (sum: number, record: { expectedHours: number }) => sum + record.expectedHours,
+      0
+    )
     const currentBalance = user.hourBalance
 
     // Buscar registros de ponto para cálculo mais preciso
@@ -100,10 +106,10 @@ export async function GET(request: NextRequest) {
         userId,
         timestamp: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     return NextResponse.json({
@@ -112,23 +118,23 @@ export async function GET(request: NextRequest) {
         name: user.name,
         contractType: user.contractType,
         weeklyHours: user.weeklyHours,
-        dailyHours: user.dailyHours
+        dailyHours: user.dailyHours,
       },
       period: {
         type: period,
         startDate,
-        endDate
+        endDate,
       },
       balance: {
         current: currentBalance,
         totalWorkedHours,
         totalExpectedHours,
-        difference: totalWorkedHours - totalExpectedHours
+        difference: totalWorkedHours - totalExpectedHours,
       },
       records: hourBalances,
-      attendanceRecords: attendanceRecords.length
+      attendanceRecords: attendanceRecords.length,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [HOUR-BALANCE] Erro ao buscar saldo:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -138,7 +144,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -152,8 +158,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Buscar usuário
-    const user = await (prisma.user as any).findUnique({
-      where: { id: targetUserId }
+    const user = await prisma.user.findUnique({
+      where: { id: targetUserId },
     })
 
     if (!user) {
@@ -173,10 +179,10 @@ export async function POST(request: NextRequest) {
         userId: targetUserId,
         timestamp: {
           gte: startOfDay,
-          lte: endOfDay
-        }
+          lte: endOfDay,
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Calcular horas trabalhadas
@@ -184,7 +190,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < attendanceRecords.length - 1; i += 2) {
       const entry = attendanceRecords[i]
       const exit = attendanceRecords[i + 1]
-      
+
       if (entry.type === 'ENTRY' && exit && exit.type === 'EXIT') {
         const diffMs = exit.timestamp.getTime() - entry.timestamp.getTime()
         workedHours += diffMs / (1000 * 60 * 60) // Converter para horas
@@ -192,37 +198,40 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter configuração do contrato
-    const contractConfig = CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS] || CONTRACT_CONFIGS.CUSTOM
-    const expectedHours = (user as any).contractType === 'CUSTOM' ? (user as any).dailyHours : contractConfig.dailyHours
+    const contractConfig =
+      CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS] ||
+      CONTRACT_CONFIGS.CUSTOM
+    const expectedHours =
+      user.contractType === 'CUSTOM' ? user.dailyHours : contractConfig.dailyHours
 
     // Calcular saldo do dia
     const dailyBalance = workedHours - expectedHours
 
     // Verificar se já existe registro para o dia
-    const existingRecord = await (prisma as any).hourBalance.findFirst({
+    const existingRecord = await prisma.hourBalance.findFirst({
       where: {
         userId: targetUserId,
         date: {
           gte: startOfDay,
-          lte: endOfDay
-        }
-      }
+          lte: endOfDay,
+        },
+      },
     })
 
     if (existingRecord) {
       // Atualizar registro existente
-      await (prisma as any).hourBalance.update({
+      await prisma.hourBalance.update({
         where: { id: existingRecord.id },
         data: {
           workedHours,
           expectedHours,
           balance: dailyBalance,
-          description: `Recalculado em ${new Date().toLocaleString('pt-BR')}`
-        }
+          description: `Recalculado em ${new Date().toLocaleString('pt-BR')}`,
+        },
       })
     } else {
       // Criar novo registro
-      await (prisma as any).hourBalance.create({
+      await prisma.hourBalance.create({
         data: {
           userId: targetUserId,
           date: calculationDate,
@@ -231,20 +240,20 @@ export async function POST(request: NextRequest) {
           balance: dailyBalance,
           weeklyBalance: 0, // Será calculado em processo separado
           monthlyBalance: 0, // Será calculado em processo separado
-          description: 'Calculado automaticamente'
-        }
+          description: 'Calculado automaticamente',
+        },
       })
     }
 
     // Atualizar saldo total do usuário
-    const totalBalance = await (prisma as any).hourBalance.aggregate({
+    const totalBalance = await prisma.hourBalance.aggregate({
       where: { userId: targetUserId },
-      _sum: { balance: true }
+      _sum: { balance: true },
     })
 
-    await (prisma.user as any).update({
+    await prisma.user.update({
       where: { id: targetUserId },
-      data: { hourBalance: totalBalance._sum.balance || 0 }
+      data: { hourBalance: totalBalance._sum.balance || 0 },
     })
 
     // Log de auditoria
@@ -253,8 +262,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'CALCULATE_HOUR_BALANCE',
         resource: 'HOUR_BALANCE',
-        details: `Saldo calculado para ${user.name} em ${calculationDate.toLocaleDateString('pt-BR')}: ${dailyBalance.toFixed(2)}h`
-      }
+        details: `Saldo calculado para ${user.name} em ${calculationDate.toLocaleDateString('pt-BR')}: ${dailyBalance.toFixed(2)}h`,
+      },
     })
 
     return NextResponse.json({
@@ -264,10 +273,10 @@ export async function POST(request: NextRequest) {
         workedHours,
         expectedHours,
         dailyBalance,
-        totalBalance: totalBalance._sum.balance || 0
-      }
+        totalBalance: totalBalance._sum.balance || 0,
+      },
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [HOUR-BALANCE] Erro ao calcular saldo:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

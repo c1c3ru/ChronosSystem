@@ -17,14 +17,14 @@ export function EarlyExitJustification({
   expectedEndTime,
   onSubmit,
   onCancel,
-  isLoading = false
+  isLoading = false,
 }: EarlyExitJustificationProps) {
   const [justification, setJustification] = useState('')
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!justification.trim()) {
       setError('Justificativa é obrigatória')
       return
@@ -52,11 +52,10 @@ export function EarlyExitJustification({
               <AlertCircle className="h-6 w-6 text-warning-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                Saída Antecipada
-              </h3>
+              <h3 className="text-lg font-semibold text-foreground">Saída Antecipada</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Você está saindo {minutesEarly} minutos antes do horário esperado ({expectedEndTime})
+                Você está saindo {minutesEarly} minutos antes do horário esperado ({expectedEndTime}
+                )
               </p>
             </div>
           </div>
@@ -65,7 +64,10 @@ export function EarlyExitJustification({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label htmlFor="justification" className="block text-sm font-medium text-foreground mb-2">
+            <label
+              htmlFor="justification"
+              className="block text-sm font-medium text-foreground mb-2"
+            >
               Justificativa Obrigatória *
             </label>
             <textarea
@@ -79,9 +81,7 @@ export function EarlyExitJustification({
               className="w-full px-4 py-3 bg-muted border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px] resize-none"
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Mínimo 10 caracteres
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Mínimo 10 caracteres</p>
           </div>
 
           {error && (

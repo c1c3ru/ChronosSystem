@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom'
 
+// Fix para "act(...) is not supported in production builds of React"
+// https://github.com/testing-library/react-testing-library/issues/1195
+global.IS_REACT_ACT_ENVIRONMENT = true
+
 // Configurar variáveis de ambiente para testes
 process.env.QR_SECRET = 'test-secret-key-for-jest-tests'
 process.env.NEXTAUTH_SECRET = 'test-nextauth-secret-for-jest-tests'
@@ -119,7 +123,7 @@ global.ResizeObserver = jest.fn(() => ({
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -135,3 +139,39 @@ Object.defineProperty(window, 'matchMedia', {
 const { TextEncoder, TextDecoder } = require('util')
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
+
+// Polyfill for Web API Request/Response (needed for Next.js API route tests)
+if (typeof global.Request === 'undefined') {
+  try {
+    const fetchProps = require('next/dist/compiled/@edge-runtime/primitives/fetch')
+    global.Request = fetchProps.Request
+    global.Response = fetchProps.Response
+    global.Headers = fetchProps.Headers
+  } catch (e) {
+    global.Request = class Request {}
+    global.Response = class Response {}
+    global.Headers = class Headers {}
+  }
+
+  try {
+    const { ReadableStream } = require('stream/web')
+    global.ReadableStream = ReadableStream
+  } catch (e) {
+    global.ReadableStream = class ReadableStream {}
+  }
+
+  global.FormData = class FormData {}
+}
+
+// Polyfill Response.json static method if missing
+if (typeof global.Response !== 'undefined' && !global.Response.json) {
+  global.Response.json = function (data, init = {}) {
+    return new global.Response(JSON.stringify(data), {
+      status: init.status || 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init.headers || {}),
+      },
+    })
+  }
+}

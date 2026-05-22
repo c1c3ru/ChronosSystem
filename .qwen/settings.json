@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(rm *)",
+      "Bash(npx *)",
+      "Bash(git show *)",
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "Bash(ls *)",
+      "Bash(echo *)",
+      "Bash(git rm *)",
+      "Read(//home/deppi/Downloads/**)",
+      "Bash(bash *)",
+      "Bash(./node_modules/.bin/playwright *)",
+      "Bash(./node_modules/.bin/next *)",
+      "Bash(sleep *)",
+      "Bash(./node_modules/.bin/jest *)",
+      "Bash(node *)",
+      "Bash(redis-server *)",
+      "Bash(systemctl *)",
+      "Bash(sudo *)",
+      "Bash(dpkg *)",
+      "Bash(redis-cli *)",
+      "Bash(find *)",
+      "Bash(mv *)",
+      "Bash(pm2 *)",
+      "Bash(ss *)",
+      "Bash(npm *)"
+    ]
+  },
+  "$version": 3
+}

@@ -1,277 +1,238 @@
 'use client'
 
 import React, { ReactNode } from 'react'
+import Image from 'next/image'
+import './official-forms.css'
 
 interface OfficialFormTemplateProps {
-    /** Título principal do formulário */
-    title: string
-    /** Subtítulo opcional */
-    subtitle?: string
-    /** Conteúdo do formulário */
-    children: ReactNode
-    /** ID para geração de PDF */
-    formId: string
-    /** Mostrar logos no cabeçalho */
-    showLogos?: boolean
-    /** Campus do IFCE */
-    campus?: string
-    /** Setor responsável */
-    sector?: string
+  title: string
+  subtitle?: string
+  children: ReactNode
+  formId: string
+  showLogos?: boolean
+  campus?: string
+  sector?: string
 }
 
-/**
- * Cabeçalho Oficial do IFCE
- * Reutilizável em todos os documentos
- */
 export function OfficialHeader({
-    showLogos = true,
-    campus = 'Maracanaú',
-    sector = 'Setor de Acompanhamento de Estágio',
-    title,
-    subtitle
+  showLogos = true,
+  campus = 'Maracanaú',
+  sector = 'Setor de Acompanhamento de Estágio',
+  title,
+  subtitle,
 }: {
-    showLogos?: boolean,
-    campus?: string,
-    sector?: string,
-    title?: string,
-    subtitle?: string
+  showLogos?: boolean
+  campus?: string
+  sector?: string
+  title?: string
+  subtitle?: string
 }) {
-    return (
-        <div className="mb-6 border-b-2 border-black pb-3">
-            <div className="flex items-start justify-between gap-4">
-                {/* Logo IFCE */}
-                {showLogos && (
-                    <div className="w-20 flex-shrink-0">
-                        <img
-                            src="/assets/logoifce.png"
-                            alt="Logo IFCE"
-                            width="64"
-                            height="64"
-                            className="object-contain"
-                        />
-                    </div>
-                )}
-
-                {/* Título Central */}
-                <div className="flex-1 text-center">
-                    <div className="text-[11px] font-bold uppercase">
-                        PRÓ-REITORIA DE EXTENSÃO
-                    </div>
-                    <div className="text-[10px] uppercase">
-                        COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
-                    </div>
-                    <div className="text-[12px] font-bold mt-1">
-                        IFCE campus {campus}
-                    </div>
-                    <div className="text-[10px]">
-                        {sector}
-                    </div>
-                </div>
-
-                {/* Brasão */}
-                {showLogos && (
-                    <div className="w-20 flex-shrink-0">
-                        <img
-                            src="/assets/brasao.png"
-                            alt="Brasão da República"
-                            width="64"
-                            height="64"
-                            className="object-contain"
-                        />
-                    </div>
-                )}
-            </div>
-
-            {/* Título do Formulário */}
-            {(title || subtitle) && (
-                <div className="mt-4 text-center">
-                    {title && (
-                        <div className="text-[16px] font-bold uppercase border-y-2 border-black py-2">
-                            {title}
-                        </div>
-                    )}
-                    {subtitle && (
-                        <div className="text-[12px] font-bold uppercase mt-1">
-                            {subtitle}
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    )
-}
-
-/**
- * Template reutilizável para formulários oficiais do IFCE
- * Padrão visual baseado no modelo oficial (estilo formulário impresso)
- */
-export function OfficialFormTemplate({
-    title,
-    subtitle,
-    children,
-    formId,
-    showLogos = true,
-    campus = 'Maracanaú',
-    sector = 'Setor de Acompanhamento de Estágio'
-}: OfficialFormTemplateProps) {
-    return (
-        <div
-            id={formId}
-            className="bg-white shadow-lg mx-auto"
-            style={{
-                width: '100%',
-                maxWidth: '210mm',
-                minHeight: '297mm',
-                padding: '30mm 20mm 20mm 30mm', // Superior, Direita, Inferior, Esquerda (padrão IFCE)
-                fontSize: '12pt', // Tamanho padrão corpo de texto
-                lineHeight: '1.5',
-                fontFamily: 'Arial, "Times New Roman", sans-serif',
-                boxSizing: 'border-box',
-                color: '#000'
-            }}
-        >
-            <OfficialHeader
-                title={title}
-                subtitle={subtitle}
-                showLogos={showLogos}
-                campus={campus}
-                sector={sector}
+  return (
+    <div className="official-header mb-3">
+      <div className="official-header-row">
+        {showLogos && (
+          <div className="official-header-logo left">
+            <Image
+              src="/assets/logoifce.png"
+              alt="Logo IFCE"
+              width={58}
+              height={58}
+              className="object-contain"
             />
+          </div>
+        )}
 
-            {/* Conteúdo do Formulário */}
-            <div className="w-full">
-                {children}
-            </div>
-
-            {/* Rodapé com Observação Padrão */}
-            <div className="mt-6 pt-3 border-t border-gray-400 text-[9pt] italic">
-                <p>
-                    <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser <strong>iniciadas após o cadastro</strong> do Termo de Compromisso de Estágio no sistema competente.
-                </p>
-            </div>
+        <div className="official-header-center">
+          <div className="official-header-line strong">PRÓ-REITORIA DE EXTENSÃO</div>
+          <div className="official-header-line">
+            COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS
+          </div>
+          <div className="official-header-line campus">IFCE Campus {campus}</div>
+          <div className="official-header-line">{sector}</div>
+          {title && <div className="official-header-title">{title}</div>}
+          {subtitle && <div className="official-header-subtitle">{subtitle}</div>}
         </div>
-    )
+
+        {showLogos && (
+          <div className="official-header-logo right">
+            <Image
+              src="/assets/brasao.png"
+              alt="Brasão da República"
+              width={58}
+              height={58}
+              className="object-contain"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
-/**
- * Tabela principal do formulário
- * Estilo: Bordas visíveis, sem colapso
- */
-export function FormTable({ children, className = '' }: { children: ReactNode, className?: string }) {
-    return (
-        <table className={`w-full border border-gray-400 text-[10pt] mb-4 ${className}`} style={{ borderCollapse: 'collapse' }}>
-            {children}
-        </table>
-    )
+export function OfficialFormTemplate({
+  title,
+  subtitle,
+  children,
+  formId,
+  showLogos = true,
+  campus = 'Maracanaú',
+  sector = 'Setor de Acompanhamento de Estágio',
+}: OfficialFormTemplateProps) {
+  return (
+    <div id={formId} className="bg-white mx-auto official-form-container">
+      <OfficialHeader
+        title={title}
+        subtitle={subtitle}
+        showLogos={showLogos}
+        campus={campus}
+        sector={sector}
+      />
+
+      <div className="w-full">{children}</div>
+
+      <div className="mt-2 pt-1 text-[7pt] leading-tight">
+        <p>
+          <strong>Observação:</strong> As atividades de estágio supervisionado só podem ser
+          iniciadas após o cadastro do Termo de Compromisso de Estágio no sistema competente.
+        </p>
+      </div>
+    </div>
+  )
 }
 
-/**
- * Célula de cabeçalho (Label apenas)
- * Usada para títulos de seção dentro da tabela
- */
-export function FormHeaderCell({ children, colSpan, rowSpan, className = '', style }: { children?: ReactNode, colSpan?: number, rowSpan?: number, className?: string, style?: React.CSSProperties }) {
-    return (
-        <td
-            className={`border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 text-[9pt] uppercase ${className}`}
-            colSpan={colSpan}
-            rowSpan={rowSpan}
-            style={style}
-        >
-            {children}
-        </td>
-    )
+export function FormTable({
+  children,
+  className = '',
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <table className={`w-full official-form-table text-[8pt] mb-1 ${className}`}>{children}</table>
+  )
 }
 
-/**
- * Célula de dados simples
- */
-export function FormDataCell({ children, colSpan, rowSpan, className = '' }: { children: ReactNode, colSpan?: number, rowSpan?: number, className?: string }) {
-    return (
-        <td className={`border border-gray-400 px-2 py-1.5 align-top ${className}`} colSpan={colSpan} rowSpan={rowSpan}>
-            {children}
-        </td>
-    )
+export function FormHeaderCell({
+  children,
+  colSpan,
+  rowSpan,
+  className = '',
+}: {
+  children?: ReactNode
+  colSpan?: number
+  rowSpan?: number
+  className?: string
+}) {
+  return (
+    <td
+      className={`official-form-header-cell px-1 py-0.5 font-bold text-[7pt] uppercase ${className}`}
+      colSpan={colSpan}
+      rowSpan={rowSpan}
+    >
+      {children}
+    </td>
+  )
 }
 
-/**
- * Célula de Campo (Label + Input) - Estilo Documento Oficial
- */
+export function FormDataCell({
+  children,
+  colSpan,
+  rowSpan,
+  className = '',
+}: {
+  children: ReactNode
+  colSpan?: number
+  rowSpan?: number
+  className?: string
+}) {
+  return (
+    <td
+      className={`official-form-cell px-1 py-0.5 align-top ${className}`}
+      colSpan={colSpan}
+      rowSpan={rowSpan}
+    >
+      {children}
+    </td>
+  )
+}
+
 interface FormFieldProps {
-    label: string
-    children?: ReactNode
-    colSpan?: number
-    className?: string
+  label: string
+  children?: ReactNode
+  colSpan?: number
+  className?: string
 }
 
 export function FormField({ label, children, colSpan, className = '' }: FormFieldProps) {
-    return (
-        <td className={`border border-gray-400 px-2 py-1.5 align-top ${className}`} colSpan={colSpan}>
-            <label className="block text-[8pt] font-semibold text-gray-700 mb-1">
-                {label}
-            </label>
-            <div className="min-h-[24px]">
-                {children}
-            </div>
-        </td>
-    )
+  return (
+    <td className={`official-form-field px-1 py-0.5 align-top ${className}`} colSpan={colSpan}>
+      <label className="block text-[6.5pt] leading-none text-black mb-0.5 uppercase">{label}</label>
+      <div className="min-h-[18px] flex items-center">{children}</div>
+    </td>
+  )
 }
 
-/**
- * Input padronizado COM BORDAS (estilo formulário oficial)
- */
-export function FormInput({ fullWidth = true, className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement> & { fullWidth?: boolean }) {
-    return (
-        <input
-            {...props}
-            className={`${fullWidth ? 'w-full' : ''} border border-gray-300 rounded px-2 py-1 text-[10pt] focus:outline-none focus:border-gray-500 bg-white ${className}`}
-        />
-    )
+export function FormInput({
+  fullWidth = true,
+  className = '',
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { fullWidth?: boolean }) {
+  return (
+    <input
+      {...props}
+      className={`${fullWidth ? 'w-full' : ''} official-form-input px-0 py-0 text-[8pt] focus:outline-none bg-white h-4 ${className}`}
+    />
+  )
 }
 
-/**
- * Textarea padronizado COM BORDAS
- */
-export function FormTextarea({ fullWidth = true, className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { fullWidth?: boolean }) {
-    return (
-        <textarea
-            {...props}
-            className={`${fullWidth ? 'w-full' : ''} border border-gray-300 rounded px-2 py-1 text-[10pt] resize-none focus:outline-none focus:border-gray-500 bg-white ${className}`}
-        />
-    )
+export function FormTextarea({
+  fullWidth = true,
+  className = '',
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { fullWidth?: boolean }) {
+  return (
+    <textarea
+      {...props}
+      className={`${fullWidth ? 'w-full' : ''} official-form-textarea px-0 py-0 text-[8pt] resize-none focus:outline-none bg-white ${className}`}
+    />
+  )
 }
 
-/**
- * Select padronizado COM BORDAS
- */
-export function FormSelect({ fullWidth = true, className = '', children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { fullWidth?: boolean }) {
-    return (
-        <select
-            {...props}
-            className={`${fullWidth ? 'w-full' : ''} border border-gray-300 rounded px-2 py-1 text-[10pt] focus:outline-none focus:border-gray-500 bg-white ${className}`}
-        >
-            {children}
-        </select>
-    )
+export function FormSelect({
+  fullWidth = true,
+  className = '',
+  children,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { fullWidth?: boolean }) {
+  return (
+    <select
+      {...props}
+      className={`${fullWidth ? 'w-full' : ''} official-form-select px-0 py-0 text-[8pt] focus:outline-none bg-white h-4 ${className}`}
+    >
+      {children}
+    </select>
+  )
 }
 
-/**
- * Seção de Assinatura
- */
-export function SignatureSection({ label, date = false, className = '' }: { label: string, date?: boolean, className?: string }) {
-    return (
-        <div className={`mt-6 ${className}`}>
-            {date && (
-                <div className="flex justify-end mb-4 text-[10pt]">
-                    <div>
-                        DATA: _____ / _____ / ________
-                    </div>
-                </div>
-            )}
-            <div className="border-t-2 border-black pt-2 mt-12">
-                <div className="text-center font-bold text-[9pt] uppercase">
-                    {label}
-                </div>
-            </div>
+export function SignatureSection({
+  label,
+  date = false,
+  className = '',
+}: {
+  label: string
+  date?: boolean
+  className?: string
+}) {
+  return (
+    <div className={`mt-4 ${className}`}>
+      {date && (
+        <div className="flex justify-end mb-3 text-[8pt]">
+          <div>DATA: _____ / _____ / ________</div>
         </div>
-    )
+      )}
+      <div className="border-t border-black pt-1 mt-10">
+        <div className="text-center font-bold text-[7pt] uppercase">{label}</div>
+      </div>
+    </div>
+  )
 }

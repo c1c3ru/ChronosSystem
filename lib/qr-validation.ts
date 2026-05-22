@@ -1,6 +1,6 @@
 /**
  * Validação de QR Codes no Frontend
- * 
+ *
  * Fornece validação prévia antes de enviar ao servidor,
  * permitindo feedback imediato ao usuário.
  */
@@ -29,7 +29,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
       isValid: false,
       type: 'INVALID',
       error: 'QR code vazio ou inválido',
-      confidence: 'high'
+      confidence: 'high',
     }
   }
 
@@ -40,7 +40,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
       isValid: false,
       type: 'INVALID',
       error: 'QR code vazio',
-      confidence: 'high'
+      confidence: 'high',
     }
   }
 
@@ -53,7 +53,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         // Função auxiliar para decodificar base64url com segurança no navegador
         const decodificarBase64Url = (dados: string) => {
           const base64 = dados.replace(/-/g, '+').replace(/_/g, '/')
-          const preenchido = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
+          const preenchido = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
           return atob(preenchido)
         }
 
@@ -67,7 +67,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
           // Verificar expiração no payload
           let estaExpirado = false
           if (cargaUtil.expiresIn) {
-            const tempoExpiracao = cargaUtil.timestamp + (cargaUtil.expiresIn * 1000)
+            const tempoExpiracao = cargaUtil.timestamp + cargaUtil.expiresIn * 1000
             estaExpirado = Date.now() > tempoExpiracao
 
             if (estaExpirado) {
@@ -85,8 +85,8 @@ export function validateQRFormat(qrData: string): QRValidationResult {
               hasNonce: true,
               hasExpiration: !!cargaUtil.expiresIn,
               isExpired: estaExpirado,
-              format: 'HMAC-SHA256'
-            }
+              format: 'HMAC-SHA256',
+            },
           }
         }
       } catch (erro) {
@@ -95,7 +95,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
           isValid: false,
           type: 'INVALID',
           error: 'QR seguro com payload inválido',
-          confidence: 'high'
+          confidence: 'high',
         }
       }
     }
@@ -105,7 +105,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
       isValid: false,
       type: 'INVALID',
       error: 'Formato de QR seguro inválido (deve ter payload.signature)',
-      confidence: 'high'
+      confidence: 'high',
     }
   }
 
@@ -120,7 +120,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
           isValid: false,
           type: 'INVALID',
           error: 'QR JSON sem machineId ou id',
-          confidence: 'high'
+          confidence: 'high',
         }
       }
 
@@ -149,15 +149,15 @@ export function validateQRFormat(qrData: string): QRValidationResult {
           hasNonce: temNonce,
           hasExpiration: !!qrJson.expires,
           isExpired: estaExpirado,
-          format: 'JSON'
-        }
+          format: 'JSON',
+        },
       }
     } catch (erro) {
       return {
         isValid: false,
         type: 'INVALID',
         error: 'QR JSON malformado',
-        confidence: 'high'
+        confidence: 'high',
       }
     }
   }
@@ -173,7 +173,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         isValid: false,
         type: 'INVALID',
         error: 'ID da máquina muito curto (mínimo 3 caracteres)',
-        confidence: 'high'
+        confidence: 'high',
       }
     }
 
@@ -182,7 +182,7 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         isValid: false,
         type: 'INVALID',
         error: 'ID da máquina muito longo (máximo 50 caracteres)',
-        confidence: 'medium'
+        confidence: 'medium',
       }
     }
 
@@ -197,8 +197,8 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         hasNonce: false,
         hasExpiration: false,
         isExpired: false,
-        format: 'TEXT'
-      }
+        format: 'TEXT',
+      },
     }
   }
 
@@ -209,8 +209,8 @@ export function validateQRFormat(qrData: string): QRValidationResult {
     error: 'Formato de QR code não reconhecido',
     confidence: 'high',
     details: {
-      format: 'UNKNOWN'
-    }
+      format: 'UNKNOWN',
+    },
   }
 }
 
@@ -239,7 +239,7 @@ export function validateQRSecurity(qrData: string): {
     /<script/i,
     /eval\(/i,
     /document\./i,
-    /window\./i
+    /window\./i,
   ]
 
   for (const padrao of padroesSuspeitos) {
@@ -259,7 +259,7 @@ export function validateQRSecurity(qrData: string): {
   return {
     isSafe: riscos.length === 0,
     risks: riscos,
-    recommendations: recomendacoes
+    recommendations: recomendacoes,
   }
 }
 
@@ -306,7 +306,7 @@ export function getQRFeedback(validacao: QRValidationResult): {
       icon: '❌',
       color: 'red',
       message: formatQRError(validacao),
-      showWarnings: false
+      showWarnings: false,
     }
   }
 
@@ -316,7 +316,7 @@ export function getQRFeedback(validacao: QRValidationResult): {
         icon: '🔒',
         color: 'green',
         message: `QR seguro detectado (${validacao.confidence === 'high' ? 'Alta segurança' : 'Segurança média'})`,
-        showWarnings: !!validacao.warnings?.length
+        showWarnings: !!validacao.warnings?.length,
       }
 
     case 'JSON':
@@ -324,7 +324,7 @@ export function getQRFeedback(validacao: QRValidationResult): {
         icon: '📄',
         color: validacao.confidence === 'medium' ? 'yellow' : 'orange',
         message: `QR JSON detectado (${validacao.confidence === 'medium' ? 'Segurança média' : 'Segurança baixa'})`,
-        showWarnings: !!validacao.warnings?.length
+        showWarnings: !!validacao.warnings?.length,
       }
 
     case 'TEXT':
@@ -332,7 +332,7 @@ export function getQRFeedback(validacao: QRValidationResult): {
         icon: '📝',
         color: 'orange',
         message: 'QR simples detectado (Segurança baixa)',
-        showWarnings: true
+        showWarnings: true,
       }
 
     default:
@@ -340,7 +340,7 @@ export function getQRFeedback(validacao: QRValidationResult): {
         icon: '❓',
         color: 'gray',
         message: 'QR code detectado',
-        showWarnings: !!validacao.warnings?.length
+        showWarnings: !!validacao.warnings?.length,
       }
   }
 }

@@ -4,19 +4,20 @@
 
 ### Cores Semânticas
 
-| Uso | Cor | Hex | Uso |
-|-----|-----|-----|-----|
-| Primary | Verde | #22c55e | Ações principais, sucesso |
-| Secondary | Azul | #3b82f6 | Informações, links |
-| Warning | Âmbar | #f59e0b | Avisos, atenção |
-| Error | Vermelho | #ef4444 | Erros, deletar |
-| Success | Verde | #22c55e | Confirmação |
-| Info | Azul | #3b82f6 | Informações |
-| Neutral | Cinza | #64748b | Texto secundário |
+| Uso       | Cor      | Hex     | Uso                       |
+| --------- | -------- | ------- | ------------------------- |
+| Primary   | Verde    | #22c55e | Ações principais, sucesso |
+| Secondary | Azul     | #3b82f6 | Informações, links        |
+| Warning   | Âmbar    | #f59e0b | Avisos, atenção           |
+| Error     | Vermelho | #ef4444 | Erros, deletar            |
+| Success   | Verde    | #22c55e | Confirmação               |
+| Info      | Azul     | #3b82f6 | Informações               |
+| Neutral   | Cinza    | #64748b | Texto secundário          |
 
 ### Componentes Padrão
 
 #### Button
+
 ```tsx
 // Variantes
 <Button variant="primary">Ação Principal</Button>
@@ -31,6 +32,7 @@
 ```
 
 #### Card
+
 ```tsx
 // Variantes
 <Card variant="default">Padrão</Card>
@@ -39,6 +41,7 @@
 ```
 
 #### Badge
+
 ```tsx
 // Variantes
 <Badge variant="primary">Primary</Badge>
@@ -48,6 +51,7 @@
 ```
 
 #### FilterSelect
+
 ```tsx
 <FilterSelect
   value={filterType}
@@ -55,7 +59,7 @@
   options={[
     { value: 'ALL', label: 'Todas' },
     { value: 'ENTRY', label: '→ Entradas' },
-    { value: 'EXIT', label: '← Saídas' }
+    { value: 'EXIT', label: '← Saídas' },
   ]}
 />
 ```
@@ -65,6 +69,7 @@
 ## 🎯 Padrões de Layout
 
 ### Spacing
+
 ```
 Container padding: p-6
 Card padding: p-6
@@ -73,6 +78,7 @@ Horizontal spacing: space-x-4
 ```
 
 ### Typography
+
 ```
 Page Title: text-4xl font-semibold text-white
 Section Title: text-2xl font-semibold text-white
@@ -83,6 +89,7 @@ Helper: text-xs text-neutral-400
 ```
 
 ### Borders & Shadows
+
 ```
 Cards: border border-border rounded-xl shadow-lg
 Buttons: rounded-lg shadow-md
@@ -95,18 +102,20 @@ Hover: hover:shadow-lg transition-shadow
 ## 🎭 Ícones
 
 ### Padrão
+
 - **Biblioteca**: lucide-react
 - **Tamanho padrão**: h-4 w-4 ou h-5 w-5
 - **Cores**: text-primary, text-warning, text-neutral-400
 
 ### Ícones Semânticos
-| Ação | Ícone | Cor |
-|------|-------|-----|
-| Entrada | LogIn | primary |
-| Saída | LogOut | warning |
-| Deletar | Trash2 | error |
-| Filtro | Filter | primary |
-| Relógio | Clock | neutral-400 |
+
+| Ação          | Ícone    | Cor         |
+| ------------- | -------- | ----------- |
+| Entrada       | LogIn    | primary     |
+| Saída         | LogOut   | warning     |
+| Deletar       | Trash2   | error       |
+| Filtro        | Filter   | primary     |
+| Relógio       | Clock    | neutral-400 |
 | Configurações | Settings | neutral-400 |
 
 ---
@@ -114,6 +123,7 @@ Hover: hover:shadow-lg transition-shadow
 ## 📱 Responsividade
 
 ### Breakpoints
+
 ```
 sm: 640px   - Mobile
 md: 768px   - Tablet
@@ -123,14 +133,10 @@ xl: 1280px  - Large Desktop
 ```
 
 ### Mobile First
+
 ```tsx
 // Padrão: mobile
-<div className="text-sm">
-  // Tablet+
-  md:text-base
-  // Desktop+
-  lg:text-lg
-</div>
+<div className="text-sm">// Tablet+ md:text-base // Desktop+ lg:text-lg</div>
 ```
 
 ---
@@ -138,21 +144,25 @@ xl: 1280px  - Large Desktop
 ## 🔄 Estados
 
 ### Loading
+
 ```tsx
 <Loading size="lg" text="Carregando..." />
 ```
 
 ### Disabled
+
 ```tsx
 <Button disabled>Desabilitado</Button>
 ```
 
 ### Error
+
 ```tsx
 <Input error helperText="Campo obrigatório" />
 ```
 
 ### Success
+
 ```tsx
 <Badge variant="success">Sucesso</Badge>
 ```
@@ -162,6 +172,7 @@ xl: 1280px  - Large Desktop
 ## 🎬 Animações
 
 ### Transições Padrão
+
 ```
 Duração: 300ms
 Easing: ease-out
@@ -169,15 +180,16 @@ Propriedades: colors, opacity, transform
 ```
 
 ### Exemplos
+
 ```tsx
 // Hover
-className="hover:bg-neutral-800/50 transition-colors"
+className = 'hover:bg-neutral-800/50 transition-colors'
 
 // Focus
-className="focus:ring-2 focus:ring-primary"
+className = 'focus:ring-2 focus:ring-primary'
 
 // Loading
-className="animate-spin"
+className = 'animate-spin'
 ```
 
 ---
@@ -185,16 +197,19 @@ className="animate-spin"
 ## ♿ Acessibilidade
 
 ### Contraste
+
 - Texto branco sobre fundo escuro (WCAG AA)
 - Ícones com tamanho mínimo de 24x24px
 - Labels associados a inputs
 
 ### Keyboard Navigation
+
 - Tab order lógico
 - Focus visível em todos os elementos interativos
 - Enter/Space para ativar botões
 
 ### ARIA
+
 ```tsx
 <button aria-label="Deletar registro">
   <Trash2 className="h-4 w-4" />
@@ -219,12 +234,14 @@ className="animate-spin"
 ## 🚀 Implementação
 
 ### Novo Componente
+
 1. Criar em `components/ui/[Name].tsx`
 2. Exportar em `components/ui/index.ts`
 3. Documentar em `UI_UX_GUIDELINES.md`
 4. Testar em múltiplos breakpoints
 
 ### Refatoração
+
 1. Remover estilos inline
 2. Usar componentes reutilizáveis
 3. Aplicar design tokens

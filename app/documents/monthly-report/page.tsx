@@ -6,16 +6,25 @@ import { useRef, useEffect, useState } from 'react'
 import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { PDFMakeExport } from '@/components/PDFMakeExport'
+import { buildMonthlyReportDoc } from '@/lib/pdf-templates/monthly-report.pdf'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { MonthlyReportDocument } from '@/components/templates/MonthlyReportDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import {
+  maskCPF,
+  maskRG,
+  maskCTPS,
+  maskCNPJ,
+  maskCEP,
+  maskPhone,
+  maskCurrency,
+} from '@/lib/input-masks'
 
 export default function MonthlyReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState<any>({})
+  const [formData, setFormData] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -24,7 +33,7 @@ export default function MonthlyReportPage() {
         if (formRef.current) {
           populateFormWithData(formRef.current, draft)
         }
-        setFormData(draft)
+        setFormData(draft as Record<string, string>)
         toast.success('Rascunho carregado!')
       }
     }
@@ -61,12 +70,12 @@ export default function MonthlyReportPage() {
     const { type } = e.target
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
+      setFormData((prev) => ({ ...prev, [name]: checked ? value : '' }))
     } else if (type === 'radio') {
       // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev: any) => ({ ...prev, [name]: value }))
+      setFormData((prev) => ({ ...prev, [name]: value }))
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
@@ -75,41 +84,11 @@ export default function MonthlyReportPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: Record<string, string> = { ...formData }
 
     await saveDraft('monthly-report', data)
     toast.success('Rascunho salvo com sucesso!')
     setIsSaving(false)
-  }
-
-  const handleGeneratePDF = async () => {
-    try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Adicionar data atual se não estiver presente (se aplicável)
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
-      toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
-
-      // Criar o documento React-PDF
-      const pdfDocument = <MonthlyReportDocument data={data as any} />
-
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'monthly-report.pdf')
-
-      toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error)
-      toast.error('Erro ao gerar PDF. Tente novamente.', { id: 'pdf-generation' })
-    }
   }
 
   return (
@@ -130,10 +109,11 @@ export default function MonthlyReportPage() {
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <Button onClick={handleGeneratePDF} variant="primary" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Gerar PDF
-            </Button>
+            <PDFMakeExport 
+              fileName="relatorio-mensal.pdf"
+              buttonText="Gerar PDF"
+              documentDefinitionGenerator={() => buildMonthlyReportDoc(formData)}
+            />
           </div>
         </div>
 
@@ -153,12 +133,10 @@ export default function MonthlyReportPage() {
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6" onChange={() => {
-          if (formRef.current) {
-            const data = new FormData(formRef.current)
-            setFormData(Object.fromEntries(data.entries()))
-          }
-        }}>
+        <form
+          ref={formRef}
+          className="space-y-6"
+        >
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Identificação e Período</CardTitle>
@@ -166,40 +144,148 @@ export default function MonthlyReportPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Discente</label>
-                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-student-name"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Nome do Discente
+                  </label>
+                  <input
+                    id="mr-student-name"
+                    type="text"
+                    name="student_name"
+                    placeholder="Nome completo do discente"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-student-course"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Curso
+                  </label>
+                  <input
+                    id="mr-student-course"
+                    type="text"
+                    name="student_course"
+                    placeholder="Ex: Técnico em Informática"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-student-enrollment"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Matrícula
+                  </label>
+                  <input
+                    id="mr-student-enrollment"
+                    type="text"
+                    name="student_enrollment"
+                    placeholder="Número de matrícula"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                  <input type="text" name="supervisor_name" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-supervisor-name"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Supervisor do Estágio
+                  </label>
+                  <input
+                    id="mr-supervisor-name"
+                    type="text"
+                    name="supervisor_name"
+                    placeholder="Nome do supervisor"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Docente Orientador</label>
-                  <input type="text" name="advisor_name" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-advisor-name"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Docente Orientador
+                  </label>
+                  <input
+                    id="mr-advisor-name"
+                    type="text"
+                    name="advisor_name"
+                    placeholder="Nome do orientador"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial Parcial</label>
-                  <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-period-start"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Data Inicial Parcial
+                  </label>
+                  <input
+                    id="mr-period-start"
+                    type="date"
+                    name="period_start"
+                    title="Data inicial do período"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Parcial</label>
-                  <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-period-end"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Data Final Parcial
+                  </label>
+                  <input
+                    id="mr-period-end"
+                    type="date"
+                    name="period_end"
+                    title="Data final do período"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária no Período</label>
-                  <input type="number" name="hours_month" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-hours-month"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Carga Horária no Período
+                  </label>
+                  <input
+                    id="mr-hours-month"
+                    type="number"
+                    name="hours_month"
+                    placeholder="Ex: 80"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Carga Horária Acumulada</label>
-                  <input type="number" name="hours_total" className="input w-full" onChange={handleInputChange} />
+                  <label
+                    htmlFor="mr-hours-total"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Carga Horária Acumulada
+                  </label>
+                  <input
+                    id="mr-hours-total"
+                    type="number"
+                    name="hours_total"
+                    placeholder="Ex: 240"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -211,17 +297,53 @@ export default function MonthlyReportPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Principais Atividades</label>
-                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
+                <label
+                  htmlFor="mr-activities"
+                  className="block text-sm font-medium text-neutral-300 mb-1"
+                >
+                  Principais Atividades
+                </label>
+                <textarea
+                  id="mr-activities"
+                  name="activities"
+                  rows={8}
+                  className="input w-full"
+                  placeholder="Descreva as principais atividades desenvolvidas no período..."
+                  onChange={handleInputChange}
+                ></textarea>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Dificuldades Encontradas</label>
-                  <textarea name="difficulties" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
+                  <label
+                    htmlFor="mr-difficulties"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Dificuldades Encontradas
+                  </label>
+                  <textarea
+                    id="mr-difficulties"
+                    name="difficulties"
+                    rows={5}
+                    className="input w-full"
+                    placeholder="Descreva as dificuldades encontradas..."
+                    onChange={handleInputChange}
+                  ></textarea>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Soluções Adotadas</label>
-                  <textarea name="solutions" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
+                  <label
+                    htmlFor="mr-solutions"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Soluções Adotadas
+                  </label>
+                  <textarea
+                    id="mr-solutions"
+                    name="solutions"
+                    rows={5}
+                    className="input w-full"
+                    placeholder="Descreva as soluções adotadas..."
+                    onChange={handleInputChange}
+                  ></textarea>
                 </div>
               </div>
             </CardContent>

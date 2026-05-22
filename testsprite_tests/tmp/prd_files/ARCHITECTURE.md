@@ -36,6 +36,7 @@ O sistema de registro de ponto é composto por 4 módulos principais:
 ### 1. Backend API (NestJS)
 
 **Responsabilidades:**
+
 - Autenticação e autorização (JWT + OAuth)
 - Geração e validação de QR codes com HMAC
 - Gerenciamento de usuários e máquinas
@@ -44,6 +45,7 @@ O sistema de registro de ponto é composto por 4 módulos principais:
 - API RESTful
 
 **Stack:**
+
 - NestJS (Framework)
 - TypeScript
 - Prisma ORM
@@ -53,6 +55,7 @@ O sistema de registro de ponto é composto por 4 módulos principais:
 - node:crypto (HMAC)
 
 **Estrutura:**
+
 ```
 backend/
 ├── src/
@@ -73,6 +76,7 @@ backend/
 ### 2. Frontend Admin (React)
 
 **Responsabilidades:**
+
 - Dashboard administrativo
 - Gerenciamento de usuários e máquinas
 - Visualização de relatórios
@@ -80,6 +84,7 @@ backend/
 - Configurações do sistema
 
 **Stack:**
+
 - React 18
 - TypeScript
 - Vite
@@ -90,6 +95,7 @@ backend/
 - React Router
 
 **Páginas:**
+
 - `/dashboard` - Visão geral
 - `/users` - Gerenciar usuários
 - `/machines` - Gerenciar máquinas
@@ -100,12 +106,14 @@ backend/
 ### 3. PWA Estagiário (React PWA)
 
 **Responsabilidades:**
+
 - Escaneamento de QR code
 - Registro de entrada/saída
 - Histórico pessoal
 - Funciona offline (cache)
 
 **Stack:**
+
 - React 18
 - TypeScript
 - Vite PWA Plugin
@@ -114,6 +122,7 @@ backend/
 - Geolocation API
 
 **Fluxo:**
+
 1. Login
 2. Ver próxima ação (ENTRADA/SAÍDA)
 3. Escanear QR code
@@ -124,18 +133,21 @@ backend/
 ### 4. Kiosk (React)
 
 **Responsabilidades:**
+
 - Exibir QR code rotativo
 - Mostrar relógio em tempo real
 - Interface fullscreen
 - Atualização automática
 
 **Stack:**
+
 - React 18
 - TypeScript
 - qrcode.react
 - Framer Motion
 
 **Características:**
+
 - QR code atualiza a cada 60s
 - Relógio em tempo real
 - Status de conectividade

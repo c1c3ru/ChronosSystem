@@ -5,10 +5,6 @@ export const metadata = {
   description: 'Formulários e documentos para estágio supervisionado',
 }
 
-export default function DocumentsLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function DocumentsLayout({ children }: { children: React.ReactNode }) {
   return <DocumentsAuthGuard>{children}</DocumentsAuthGuard>
 }

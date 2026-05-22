@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -26,20 +26,34 @@ export async function GET(request: NextRequest) {
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
+    interface ActivityRecord {
+      id: string
+      type: string
+      timestamp: Date
+      user: {
+        name: string | null
+        email: string | null
+      }
+      machine: {
+        name: string
+        location: string
+      }
+    }
+
     // Formatar dados para o frontend
-    const activity = recentRecords.map((record: any) => ({
+    const activity = (recentRecords as unknown as ActivityRecord[]).map((record) => ({
       id: record.id,
       user: record.user.name || record.user.email,
       action: record.type === 'ENTRY' ? 'registrou entrada' : 'registrou saída',
@@ -47,11 +61,11 @@ export async function GET(request: NextRequest) {
       type: record.type,
       location: record.machine.name,
       fullLocation: record.machine.location,
-      rawTimestamp: record.timestamp
+      rawTimestamp: record.timestamp,
     }))
 
     return NextResponse.json(activity)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar atividade recente:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

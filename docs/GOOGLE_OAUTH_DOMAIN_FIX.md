@@ -1,6 +1,7 @@
 # 🔧 Correção: Domínio Inválido Google OAuth
 
 ## ❌ **Problema Identificado**
+
 O Google OAuth não aceita domínios `.local` em produção. É necessário usar domínios públicos válidos (`.com`, `.org`, `.com.br`, etc.).
 
 ## ✅ **Soluções Disponíveis**
@@ -10,12 +11,14 @@ O Google OAuth não aceita domínios `.local` em produção. É necessário usar
 Se você tem um domínio próprio (ex: `meusite.com`):
 
 #### **1. Configure no Google Cloud Console:**
+
 ```
 https://api.meusite.com/auth/google/callback
 https://pwa.meusite.com/auth/callback
 ```
 
 #### **2. Atualize as variáveis de ambiente:**
+
 ```env
 # No arquivo .env do backend
 GOOGLE_CALLBACK_URL="https://api.meusite.com/auth/google/callback"
@@ -28,6 +31,7 @@ FRONTEND_URL="https://admin.meusite.com"
 Para testes rápidos sem domínio próprio:
 
 #### **1. Instalar ngrok:**
+
 ```bash
 # Ubuntu/Debian
 sudo snap install ngrok
@@ -36,6 +40,7 @@ sudo snap install ngrok
 ```
 
 #### **2. Expor o backend:**
+
 ```bash
 # Iniciar o backend na porta 4000
 cd backend && npm run start:dev
@@ -45,17 +50,20 @@ ngrok http 4000
 ```
 
 #### **3. Usar a URL do ngrok:**
+
 ```
 # Exemplo de URL gerada pelo ngrok
 https://abc123.ngrok.io/auth/google/callback
 ```
 
 #### **4. Configurar no Google Cloud Console:**
+
 ```
 https://abc123.ngrok.io/auth/google/callback
 ```
 
 #### **5. Atualizar variáveis de ambiente:**
+
 ```env
 GOOGLE_CALLBACK_URL="https://abc123.ngrok.io/auth/google/callback"
 PWA_URL="http://localhost:3001"
@@ -64,11 +72,13 @@ PWA_URL="http://localhost:3001"
 ### **Opção 3: Usar Serviços Gratuitos de Domínio**
 
 #### **Netlify/Vercel (Frontend):**
+
 - Deploy gratuito com domínio automático
 - Ex: `https://chronos-pwa.netlify.app`
 
 #### **Railway/Render (Backend):**
-- Deploy gratuito com domínio automático  
+
+- Deploy gratuito com domínio automático
 - Ex: `https://chronos-api.railway.app`
 
 ## 🛠️ **Configuração Passo a Passo**
@@ -76,12 +86,14 @@ PWA_URL="http://localhost:3001"
 ### **Para Desenvolvimento com ngrok:**
 
 1. **Iniciar backend:**
+
 ```bash
 cd backend
 npm run start:dev
 ```
 
 2. **Expor com ngrok:**
+
 ```bash
 ngrok http 4000
 # Anote a URL HTTPS gerada (ex: https://abc123.ngrok.io)
@@ -94,12 +106,14 @@ ngrok http 4000
    - Adicione: `https://abc123.ngrok.io/auth/google/callback`
 
 4. **Atualizar .env do backend:**
+
 ```env
 GOOGLE_CALLBACK_URL="https://abc123.ngrok.io/auth/google/callback"
 PWA_URL="http://localhost:3001"
 ```
 
 5. **Iniciar PWA:**
+
 ```bash
 cd pwa-estagiario
 npm run dev
@@ -112,19 +126,22 @@ npm run dev
 ### **Para Produção com Domínio Real:**
 
 1. **Configurar DNS do seu domínio:**
+
 ```
 api.seudominio.com    → IP do servidor
-pwa.seudominio.com    → IP do servidor  
+pwa.seudominio.com    → IP do servidor
 admin.seudominio.com  → IP do servidor
 kiosk.seudominio.com  → IP do servidor
 ```
 
 2. **Configurar Google Cloud Console:**
+
 ```
 https://api.seudominio.com/auth/google/callback
 ```
 
 3. **Deploy com SSL:**
+
 ```bash
 # Usar script de deploy com certificado SSL
 sudo ./deploy/scripts/deploy-nginx.sh
@@ -136,6 +153,7 @@ sudo certbot --nginx -d api.seudominio.com -d pwa.seudominio.com
 ## 🔍 **URLs Corretas para Google OAuth**
 
 ### ✅ **URLs Válidas:**
+
 ```
 https://api.meusite.com/auth/google/callback
 https://abc123.ngrok.io/auth/google/callback
@@ -144,6 +162,7 @@ http://localhost:4000/auth/google/callback (apenas desenvolvimento)
 ```
 
 ### ❌ **URLs Inválidas:**
+
 ```
 http://api.chronos.local/auth/google/callback
 https://chronos.local/auth/google/callback

@@ -6,12 +6,9 @@ class ApiClient {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || ''
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}/api${endpoint}`
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -22,7 +19,7 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config)
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
@@ -36,18 +33,13 @@ class ApiClient {
   }
 
   // === USERS API ===
-  async getUsers(params?: {
-    page?: number
-    limit?: number
-    search?: string
-    role?: string
-  }) {
+  async getUsers(params?: { page?: number; limit?: number; search?: string; role?: string }) {
     const searchParams = new URLSearchParams()
     if (params?.page) searchParams.set('page', params.page.toString())
     if (params?.limit) searchParams.set('limit', params.limit.toString())
     if (params?.search) searchParams.set('search', params.search)
     if (params?.role) searchParams.set('role', params.role)
-    
+
     const query = searchParams.toString()
     return this.request(`/users${query ? `?${query}` : ''}`)
   }
@@ -56,14 +48,14 @@ class ApiClient {
     return this.request(`/users/${id}`)
   }
 
-  async createUser(userData: any) {
+  async createUser(userData: unknown) {
     return this.request('/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     })
   }
 
-  async updateUser(id: string, userData: any) {
+  async updateUser(id: string, userData: unknown) {
     return this.request(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
@@ -86,14 +78,14 @@ class ApiClient {
     return this.request(`/machines/${id}`)
   }
 
-  async createMachine(machineData: any) {
+  async createMachine(machineData: unknown) {
     return this.request('/machines', {
       method: 'POST',
       body: JSON.stringify(machineData),
     })
   }
 
-  async updateMachine(id: string, machineData: any) {
+  async updateMachine(id: string, machineData: unknown) {
     return this.request(`/machines/${id}`, {
       method: 'PUT',
       body: JSON.stringify(machineData),
@@ -122,12 +114,12 @@ class ApiClient {
     if (params?.endDate) searchParams.set('endDate', params.endDate)
     if (params?.page) searchParams.set('page', params.page.toString())
     if (params?.limit) searchParams.set('limit', params.limit.toString())
-    
+
     const query = searchParams.toString()
     return this.request(`/attendance${query ? `?${query}` : ''}`)
   }
 
-  async createAttendanceRecord(recordData: any) {
+  async createAttendanceRecord(recordData: unknown) {
     return this.request('/attendance', {
       method: 'POST',
       body: JSON.stringify(recordData),
@@ -152,7 +144,7 @@ class ApiClient {
     })
   }
 
-  async validateQRCode(qrData: string, location?: { latitude: number, longitude: number }) {
+  async validateQRCode(qrData: string, location?: { latitude: number; longitude: number }) {
     return this.request('/qr/validate', {
       method: 'POST',
       body: JSON.stringify({ qrData, location }),
@@ -166,7 +158,7 @@ export const apiClient = new ApiClient()
 import { useState, useEffect } from 'react'
 
 export function useUsers(params?: Parameters<typeof apiClient.getUsers>[0]) {
-  const [users, setUsers] = useState<any>(null)
+  const [users, setUsers] = useState<unknown>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -185,6 +177,7 @@ export function useUsers(params?: Parameters<typeof apiClient.getUsers>[0]) {
     }
 
     fetchUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(params)])
 
   const refetch = async () => {
@@ -204,7 +197,7 @@ export function useUsers(params?: Parameters<typeof apiClient.getUsers>[0]) {
 }
 
 export function useMachines(activeOnly?: boolean) {
-  const [machines, setMachines] = useState<any[]>([])
+  const [machines, setMachines] = useState<unknown[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -223,13 +216,14 @@ export function useMachines(activeOnly?: boolean) {
 
   useEffect(() => {
     fetchMachines()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeOnly])
 
   return { machines, loading, error, refetch: fetchMachines }
 }
 
 export function useDashboardStats() {
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<unknown>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -254,7 +248,7 @@ export function useDashboardStats() {
 }
 
 export function useRecentActivity(limit?: number) {
-  const [activity, setActivity] = useState<any[]>([])
+  const [activity, setActivity] = useState<unknown[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -273,6 +267,7 @@ export function useRecentActivity(limit?: number) {
 
   useEffect(() => {
     fetchActivity()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit])
 
   return { activity, loading, error, refetch: fetchActivity }

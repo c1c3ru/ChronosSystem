@@ -8,33 +8,33 @@ import { prisma } from '@/lib/prisma'
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 const CONTRACT_CONFIGS = {
-  FUNDAMENTAL_20H: { 
-    dailyHours: 4, 
+  FUNDAMENTAL_20H: {
+    dailyHours: 4,
     weeklyHours: 20,
-    description: 'Ensino Fundamental - 4h diárias, 20h semanais'
+    description: 'Ensino Fundamental - 4h diárias, 20h semanais',
   },
-  SUPERIOR_30H: { 
-    dailyHours: 6, 
+  SUPERIOR_30H: {
+    dailyHours: 6,
     weeklyHours: 30,
-    description: 'Superior/Médio/Técnico - 6h diárias, 30h semanais'
+    description: 'Superior/Médio/Técnico - 6h diárias, 30h semanais',
   },
-  ALTERNANCIA_40H: { 
-    dailyHours: 8, 
+  ALTERNANCIA_40H: {
+    dailyHours: 8,
     weeklyHours: 40,
-    description: 'Cursos Alternância - 8h diárias, 40h semanais (períodos sem aulas)'
+    description: 'Cursos Alternância - 8h diárias, 40h semanais (períodos sem aulas)',
   },
-  CUSTOM: { 
-    dailyHours: 6, 
+  CUSTOM: {
+    dailyHours: 6,
     weeklyHours: 30,
-    description: 'Personalizado - Definido manualmente'
-  }
+    description: 'Personalizado - Definido manualmente',
+  },
 }
 
 // GET /api/users/contract - Buscar configurações de contrato
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar dados do usuário
-    const user = await (prisma.user as any).findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
         dailyHours: true,
         hourBalance: true,
         startDate: true,
-        department: true
-      } as any
+        department: true,
+      }
     })
 
     if (!user) {
@@ -70,7 +70,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       user,
       availableContracts: CONTRACT_CONFIGS,
-      currentConfig: CONTRACT_CONFIGS[(user as any).contractType as keyof typeof CONTRACT_CONFIGS] || CONTRACT_CONFIGS.CUSTOM
+      currentConfig:
+        CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS] ||
+        CONTRACT_CONFIGS.CUSTOM,
     })
   } catch (error) {
     console.error('❌ [CONTRACT] Erro ao buscar contrato:', error)
@@ -82,7 +84,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -104,8 +106,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // Buscar usuário
-    const user = await (prisma.user as any).findUnique({
-      where: { id: userId }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     })
 
     if (!user) {
@@ -118,18 +120,25 @@ export async function PUT(request: NextRequest) {
 
     if (contractType === 'CUSTOM') {
       if (!customDailyHours || !customWeeklyHours) {
-        return NextResponse.json({ 
-          error: 'Para contrato personalizado, customDailyHours e customWeeklyHours são obrigatórios' 
-        }, { status: 400 })
+        return NextResponse.json(
+          {
+            error:
+              'Para contrato personalizado, customDailyHours e customWeeklyHours são obrigatórios',
+          },
+          { status: 400 }
+        )
       }
-      
+
       // Validar limites legais
       if (customDailyHours > 6 || customWeeklyHours > 30) {
-        return NextResponse.json({ 
-          error: 'Limites legais: máximo 6h diárias e 30h semanais (Lei 11.788/2008)' 
-        }, { status: 400 })
+        return NextResponse.json(
+          {
+            error: 'Limites legais: máximo 6h diárias e 30h semanais (Lei 11.788/2008)',
+          },
+          { status: 400 }
+        )
       }
-      
+
       dailyHours = customDailyHours
       weeklyHours = customWeeklyHours
     } else {
@@ -139,13 +148,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Atualizar contrato do usuário
-    const updatedUser = await (prisma.user as any).update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         contractType,
         dailyHours,
-        weeklyHours
-      } as any
+        weeklyHours,
+      }
     })
 
     // Log de auditoria
@@ -154,8 +163,8 @@ export async function PUT(request: NextRequest) {
         userId: session.user.id,
         action: 'UPDATE_CONTRACT',
         resource: 'USER',
-        details: `Contrato alterado para ${user.name}: ${contractType} (${dailyHours}h/dia, ${weeklyHours}h/semana)`
-      }
+        details: `Contrato alterado para ${user.name}: ${contractType} (${dailyHours}h/dia, ${weeklyHours}h/semana)`,
+      },
     })
 
     return NextResponse.json({
@@ -163,11 +172,11 @@ export async function PUT(request: NextRequest) {
       user: {
         id: updatedUser.id,
         name: updatedUser.name,
-        contractType: (updatedUser as any).contractType,
-        dailyHours: (updatedUser as any).dailyHours,
-        weeklyHours: (updatedUser as any).weeklyHours
+        contractType: updatedUser.contractType,
+        dailyHours: updatedUser.dailyHours,
+        weeklyHours: updatedUser.weeklyHours,
       },
-      config: CONTRACT_CONFIGS[contractType as keyof typeof CONTRACT_CONFIGS]
+      config: CONTRACT_CONFIGS[contractType as keyof typeof CONTRACT_CONFIGS],
     })
   } catch (error) {
     console.error('❌ [CONTRACT] Erro ao atualizar contrato:', error)
@@ -179,7 +188,7 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -190,11 +199,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tipo de contrato é obrigatório' }, { status: 400 })
     }
 
-    let validation = {
+    const validation = {
       isValid: true,
       errors: [] as string[],
       warnings: [] as string[],
-      recommendations: [] as string[]
+      recommendations: [] as string[],
     }
 
     // Validações baseadas na Lei 11.788/2008
@@ -249,17 +258,23 @@ export async function POST(request: NextRequest) {
     if (dailyHours && weeklyHours) {
       const maxWeeklyFromDaily = dailyHours * 5 // Assumindo 5 dias úteis
       if (weeklyHours > maxWeeklyFromDaily) {
-        validation.warnings.push(`Com ${dailyHours}h diárias, máximo recomendado: ${maxWeeklyFromDaily}h semanais`)
+        validation.warnings.push(
+          `Com ${dailyHours}h diárias, máximo recomendado: ${maxWeeklyFromDaily}h semanais`
+        )
       }
     }
 
     // Recomendações
     if (weeklyHours && weeklyHours < 12) {
-      validation.recommendations.push('Considere aumentar a carga horária para melhor aproveitamento do estágio')
+      validation.recommendations.push(
+        'Considere aumentar a carga horária para melhor aproveitamento do estágio'
+      )
     }
 
     if (dailyHours && dailyHours < 4) {
-      validation.recommendations.push('Carga horária diária baixa pode limitar as atividades de aprendizado')
+      validation.recommendations.push(
+        'Carga horária diária baixa pode limitar as atividades de aprendizado'
+      )
     }
 
     return NextResponse.json({
@@ -270,9 +285,9 @@ export async function POST(request: NextRequest) {
         limits: {
           fundamental: '4h diárias, 20h semanais',
           superior: '6h diárias, 30h semanais',
-          alternancia: '8h diárias, 40h semanais (sem aulas)'
-        }
-      }
+          alternancia: '8h diárias, 40h semanais (sem aulas)',
+        },
+      },
     })
   } catch (error) {
     console.error('❌ [CONTRACT] Erro ao validar contrato:', error)

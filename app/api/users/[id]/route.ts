@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
-
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -16,15 +15,13 @@ const updateUserSchema = z.object({
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']).optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  department: z.string().optional()
+  department: z.string().optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -32,12 +29,12 @@ export async function GET(
     }
 
     // Usuários podem ver seus próprios dados, admins/supervisores podem ver todos
-    if (session.user.id !== params.id && !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
+    if (session.user.id !== id && !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -59,10 +56,10 @@ export async function GET(
         updatedAt: true,
         _count: {
           select: {
-            attendanceRecords: true
-          }
-        }
-      }
+            attendanceRecords: true,
+          },
+        },
+      },
     })
 
     if (!user) {
@@ -70,18 +67,16 @@ export async function GET(
     }
 
     return NextResponse.json(user)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
 // PUT /api/users/[id] - Atualizar usuário
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -89,7 +84,7 @@ export async function PUT(
     }
 
     // Verificar permissões
-    const canEdit = session.user.id === params.id || ['ADMIN', 'SUPERVISOR'].includes(session.user.role)
+    const canEdit = session.user.id === id || ['ADMIN', 'SUPERVISOR'].includes(session.user.role)
     if (!canEdit) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
@@ -99,7 +94,7 @@ export async function PUT(
 
     // Verificar se usuário existe
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id },
     })
 
     if (!existingUser) {
@@ -109,7 +104,7 @@ export async function PUT(
     // Verificar conflitos de email
     if (validatedData.email && validatedData.email !== existingUser.email) {
       const emailExists = await prisma.user.findUnique({
-        where: { email: validatedData.email }
+        where: { email: validatedData.email },
       })
 
       if (emailExists) {
@@ -118,23 +113,23 @@ export async function PUT(
     }
 
     // Preparar dados para atualização
-    const updateData: any = { ...validatedData }
+    const updateData: Record<string, unknown> = { ...validatedData } as Record<string, unknown>
 
     // Hash da senha se fornecida
     if (validatedData.password) {
       updateData.password = await bcrypt.hash(validatedData.password, 10)
     }
 
-    const user = await (prisma.user as any).update({
-      where: { id: params.id },
+    const user = await prisma.user.update({
+      where: { id },
       data: updateData,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     })
 
     // Log de auditoria
@@ -143,21 +138,24 @@ export async function PUT(
         userId: session.user.id,
         action: 'UPDATE_USER',
         resource: 'USER',
-        details: `Usuário atualizado: ${user.email}`
-      }
+        details: `Usuário atualizado: ${user.email}`,
+      },
     })
 
     // Invalidate user cache
-    await UserCache.invalidate(params.id)
+    await UserCache.invalidate(id)
     await UserCache.invalidateAll()
 
     return NextResponse.json(user)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        error: 'Dados inválidos',
-        details: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao atualizar usuário:', error)
@@ -168,9 +166,10 @@ export async function PUT(
 // DELETE /api/users/[id] - Deletar usuário
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -178,13 +177,16 @@ export async function DELETE(
     }
 
     // Não permitir deletar a si mesmo
-    if (session.user.id === params.id) {
-      return NextResponse.json({ error: 'Não é possível deletar sua própria conta' }, { status: 400 })
+    if (session.user.id === id) {
+      return NextResponse.json(
+        { error: 'Não é possível deletar sua própria conta' },
+        { status: 400 }
+      )
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
-      select: { email: true, role: true }
+      where: { id },
+      select: { email: true, role: true },
     })
 
     if (!user) {
@@ -192,7 +194,7 @@ export async function DELETE(
     }
 
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id },
     })
 
     // Log de auditoria
@@ -201,16 +203,16 @@ export async function DELETE(
         userId: session.user.id,
         action: 'DELETE_USER',
         resource: 'USER',
-        details: `Usuário deletado: ${user.email} (${user.role})`
-      }
+        details: `Usuário deletado: ${user.email} (${user.role})`,
+      },
     })
 
     // Invalidate user cache
-    await UserCache.invalidate(params.id)
+    await UserCache.invalidate(id)
     await UserCache.invalidateAll()
 
     return NextResponse.json({ message: 'Usuário deletado com sucesso' })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao deletar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

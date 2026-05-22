@@ -1,0 +1,114 @@
+name: 🚀 Chronos Unified Pipeline (Self-Hosted Runner)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  DATABASE_URL: "file:./ci.db"
+  NEXTAUTH_SECRET: "ci-test-secret-key-123456789"
+  NEXTAUTH_URL: "http://localhost:5000"
+
+jobs:
+  quality-gate:
+    name: 🛡️ Quality Gate
+    runs-on: self-hosted
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm" # Re-enable cache for npm dependencies
+
+      - name: 📦 Install Dependencies
+        run: npm install # Use default install, resolve peer-deps if necessary
+
+      - name: 🏗️ Prisma Generate
+        run: npx prisma generate
+
+      - name: 🧹 Lint
+        run: npm run lint
+
+      - name: 🎨 Format Check
+        run: npm run format:check
+
+      - name: 📐 Type Check
+        run: npm run type-check
+
+      - name: 🧪 Unit Tests
+        run: npm run test:coverage
+
+      - name: 📤 Upload Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: ${{ github.repository }}
+          fail_ci_if_error: false
+
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: self-hosted
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 📋 Audit Dependencies
+        run: npm audit --audit-level=high
+
+  deploy-production:
+    name: 🌍 Local Deploy (Production )
+    runs-on: self-hosted
+    needs: [quality-gate, security-audit] # Ensure security audit also passes before deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+    steps:
+      - name: 🚀 Sync and Restart
+        run: |
+          # Ir para o diretório de produção definitivo
+          cd /home/nac/ChronosSystem
+
+          echo "📥 Fetching latest changes..."
+          git fetch origin main
+          git reset --hard origin/main
+
+          echo "📦 Installing production dependencies..."
+          npm install --production
+
+          # schema.prisma is already configured for sqlite in the repository
+          npx prisma generate
+
+          echo "🚀 Restarting system..."
+          chmod +x ./start-system.sh
+          ./start-system.sh
+
+          echo "🧹 Clearing rate limit cache from Redis..."
+          if command -v redis-cli &> /dev/null; then
+            redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL || true
+            echo "✅ Rate limit cache cleared"
+          else
+            echo "⚠️ Redis CLI not available, rate limits will expire naturally"
+          fi
+
+          echo "✅ Deployment completed successfully!"

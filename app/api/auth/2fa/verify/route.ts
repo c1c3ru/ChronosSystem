@@ -21,21 +21,24 @@ export async function POST(request: NextRequest) {
 
     authLogger.warn('2FA verification rate limit exceeded', {
       ip: request.headers.get('x-forwarded-for') || 'unknown',
-      retryAfter
+      retryAfter,
     })
 
-    return NextResponse.json({
-      error: 'Too many attempts. Please try again later.',
-      retryAfter
-    }, {
-      status: 429,
-      headers: {
-        'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-        'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-        'Retry-After': retryAfter.toString()
+    return NextResponse.json(
+      {
+        error: 'Too many attempts. Please try again later.',
+        retryAfter,
+      },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          'Retry-After': retryAfter.toString(),
+        },
       }
-    })
+    )
   }
 
   try {
@@ -57,9 +60,12 @@ export async function POST(request: NextRequest) {
     const user2FA = await prisma2FA.find2FAFields(session.user.id)
 
     if (!user2FA?.twoFactorSecret) {
-      return NextResponse.json({
-        error: '2FA não foi configurado. Configure primeiro.'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: '2FA não foi configurado. Configure primeiro.',
+        },
+        { status: 400 }
+      )
     }
 
     // Verificar token
@@ -68,7 +74,7 @@ export async function POST(request: NextRequest) {
     if (!verification.isValid) {
       authLogger.security('2FA verification failed', {
         userId: session.user.id,
-        error: verification.error
+        error: verification.error,
       })
 
       // Log de tentativa de acesso inválida
@@ -77,13 +83,16 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           action: '2FA_VERIFICATION_FAILED',
           resource: 'USER_SECURITY',
-          details: `Token inválido: ${verification.error}`
-        }
+          details: `Token inválido: ${verification.error}`,
+        },
       })
 
-      return NextResponse.json({
-        error: verification.error
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: verification.error,
+        },
+        { status: 400 }
+      )
     }
 
     // Se chegou até aqui, o token é válido
@@ -99,14 +108,14 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           action: '2FA_ENABLED',
           resource: 'USER_SECURITY',
-          details: '2FA foi habilitado com sucesso'
-        }
+          details: '2FA foi habilitado com sucesso',
+        },
       })
 
       const response = NextResponse.json({
         success: true,
         message: '2FA habilitado com sucesso!',
-        enabled: true
+        enabled: true,
       })
 
       // Add rate limit headers
@@ -124,14 +133,14 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           action: '2FA_VERIFICATION_SUCCESS',
           resource: 'USER_SECURITY',
-          details: 'Token 2FA verificado com sucesso'
-        }
+          details: 'Token 2FA verificado com sucesso',
+        },
       })
 
       const response = NextResponse.json({
         success: true,
         message: 'Token verificado com sucesso!',
-        enabled: true
+        enabled: true,
       })
 
       // Add rate limit headers
@@ -141,9 +150,8 @@ export async function POST(request: NextRequest) {
 
       return response
     }
-
-  } catch (error: any) {
-    authLogger.error('Error verifying 2FA', { error: error.message })
+  } catch (error: unknown) {
+    authLogger.error('Error verifying 2FA', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

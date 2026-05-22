@@ -5,7 +5,7 @@ import crypto from 'crypto'
 import { z } from 'zod'
 
 const requestPasswordResetSchema = z.object({
-  email: z.string().email('Email inválido')
+  email: z.string().email('Email inválido'),
 })
 
 export async function POST(request: NextRequest) {
@@ -15,37 +15,38 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, email: true, name: true, password: true }
+      select: { id: true, email: true, name: true, password: true },
     })
 
     if (!user || !user.password) {
       return NextResponse.json({
         success: true,
-        message: 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.'
+        message:
+          'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.',
       })
     }
 
-    await (prisma as any).passwordResetToken.updateMany({
+    await prisma.passwordResetToken.updateMany({
       where: {
         userId: user.id,
-        used: false
+        used: false,
       },
       data: {
         used: true,
-        usedAt: new Date()
-      }
+        usedAt: new Date(),
+      },
     })
 
     const token = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date()
     expiresAt.setHours(expiresAt.getHours() + 1)
 
-    const resetToken = await (prisma as any).passwordResetToken.create({
+    const resetToken = await prisma.passwordResetToken.create({
       data: {
         token,
         userId: user.id,
-        expires: expiresAt
-      }
+        expires: expiresAt,
+      },
     })
 
     const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken.token}`
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
       userEmail: user.email,
       resetUrl,
       expiresAt,
-      reason: 'Solicitado pelo próprio usuário via tela de login.'
+      reason: 'Solicitado pelo próprio usuário via tela de login.',
     })
 
     await prisma.auditLog.create({
@@ -63,20 +64,24 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         action: 'SELF_SERVICE_PASSWORD_RESET_REQUESTED',
         resource: 'USER_PASSWORD',
-        details: `Reset de senha solicitado pelo próprio usuário (email: ${user.email}).`
-      }
+        details: `Reset de senha solicitado pelo próprio usuário (email: ${user.email}).`,
+      },
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.'
+      message:
+        'Se o email estiver cadastrado, você receberá um link para redefinir sua senha em poucos minutos.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        error: 'Dados inválidos',
-        details: error.errors
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao solicitar reset de senha:', error)

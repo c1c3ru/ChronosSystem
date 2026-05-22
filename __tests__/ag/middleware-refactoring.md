@@ -9,9 +9,11 @@ Este documento detalha as melhorias implementadas no `middleware.ts` para alinha
 ## ✅ Problemas Resolvidos
 
 ### 1. **Duplicação de lógica de perfil incompleto**
+
 **Antes:** Verificações de `profileComplete` apareciam em duas partes diferentes do código (linhas 28-53 e 110-113).
 
 **Depois:** Consolidado em uma única seção (linhas 61-88) com lógica clara:
+
 - Se perfil incompleto → redireciona para `/auth/complete-profile?reason=incomplete`
 - Se perfil completo e está em `/auth/complete-profile` → redireciona para dashboard apropriado
 - Verificação de role ocorre ANTES do redirecionamento para evitar loops
@@ -31,9 +33,11 @@ if (profileComplete === false) {
 ---
 
 ### 2. **Lista de rotas públicas duplicada**
+
 **Antes:** Rotas públicas definidas em dois lugares (linhas 14-15 e linha 145).
 
 **Depois:** Centralizado em constantes no topo do arquivo:
+
 ```typescript
 const PUBLIC_ROUTES = [
   '/',
@@ -42,22 +46,20 @@ const PUBLIC_ROUTES = [
   '/auth/complete-profile',
   '/kiosk',
   '/test-form',
-  '/demo-form'
+  '/demo-form',
 ]
 
-const PUBLIC_API_PREFIXES = [
-  '/api/auth/',
-  '/api/health',
-  '/api/kiosk/'
-]
+const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/health', '/api/kiosk/']
 ```
 
 ---
 
 ### 3. **Uso confuso de `isPublicRoute` na verificação**
+
 **Antes:** Condição `!isPublicRoute` na linha 21 criava lógica complexa e redundante.
 
 **Depois:** Simplificado - o callback `authorized` já trata rotas públicas, então o middleware principal só precisa processar usuários autenticados:
+
 ```typescript
 // Se não há token, o callback authorized já tratou
 if (!token) {
@@ -68,9 +70,11 @@ if (!token) {
 ---
 
 ### 4. **Possível loop ao redirecionar de `/auth/complete-profile`**
+
 **Antes:** Redirecionamento sem verificar se a role era válida primeiro.
 
 **Depois:** Verificação de role ocorre ANTES do redirecionamento:
+
 ```typescript
 if (profileComplete === true && pathname === '/auth/complete-profile') {
   // Verificar role ANTES de redirecionar para evitar loops
@@ -85,9 +89,11 @@ if (profileComplete === true && pathname === '/auth/complete-profile') {
 ---
 
 ### 5. **Ausência de tratamento de token expirado**
+
 **Antes:** Nenhuma verificação de expiração.
 
 **Depois:** Verificação automática de `token.exp`:
+
 ```typescript
 const tokenExp = token.exp as number | undefined
 if (tokenExp) {
@@ -105,11 +111,13 @@ if (tokenExp) {
 ---
 
 ### 6. **Mensagens de erro genéricas**
+
 **Antes:** Redirecionamento para `/unauthorized` sem contexto.
 
 **Depois:** Query params informativos em todos os redirecionamentos:
 
 #### Middleware:
+
 ```typescript
 // Acesso negado por role
 const unauthorizedUrl = new URL('/unauthorized', req.url)
@@ -124,14 +132,16 @@ return NextResponse.redirect(completeProfileUrl)
 ```
 
 #### Página `/unauthorized`:
+
 Agora é um Client Component que lê os query params e exibe mensagens personalizadas:
+
 ```typescript
 const getMessage = () => {
   if (reason === 'role') {
     return {
       title: 'Permissão Insuficiente',
       description: `Esta página requer permissão de ${required}...`,
-      icon: Lock
+      icon: Lock,
     }
   }
   // ... outras condições
@@ -142,14 +152,14 @@ const getMessage = () => {
 
 ## 🎯 Benefícios das Mudanças
 
-| Benefício | Descrição |
-|-----------|-----------|
-| **Código mais limpo** | Eliminação de duplicações e lógica redundante |
-| **Melhor UX** | Mensagens de erro contextualizadas explicam exatamente o problema |
-| **Mais seguro** | Verificação de token expirado previne acesso com sessões antigas |
-| **Manutenibilidade** | Rotas públicas centralizadas facilitam atualizações futuras |
-| **Prevenção de bugs** | Verificações consolidadas evitam loops e condições conflitantes |
-| **Conformidade** | Alinhado 100% com as melhores práticas do NextAuth |
+| Benefício             | Descrição                                                         |
+| --------------------- | ----------------------------------------------------------------- |
+| **Código mais limpo** | Eliminação de duplicações e lógica redundante                     |
+| **Melhor UX**         | Mensagens de erro contextualizadas explicam exatamente o problema |
+| **Mais seguro**       | Verificação de token expirado previne acesso com sessões antigas  |
+| **Manutenibilidade**  | Rotas públicas centralizadas facilitam atualizações futuras       |
+| **Prevenção de bugs** | Verificações consolidadas evitam loops e condições conflitantes   |
+| **Conformidade**      | Alinhado 100% com as melhores práticas do NextAuth                |
 
 ---
 
@@ -180,23 +190,28 @@ middleware.ts
 ## 🧪 Casos de Teste
 
 ### Cenário 1: Token Expirado
+
 - **Entrada:** Usuário com token expirado tenta acessar `/admin`
 - **Resultado:** Redireciona para `/auth/signin?error=SessionExpired&callbackUrl=/admin`
 
 ### Cenário 2: Perfil Incompleto
+
 - **Entrada:** Usuário autenticado com `profileComplete=false` tenta acessar `/employee`
 - **Resultado:** Redireciona para `/auth/complete-profile?reason=incomplete`
 
 ### Cenário 3: Role Insuficiente
+
 - **Entrada:** Usuário EMPLOYEE tenta acessar `/admin`
 - **Resultado:** Redireciona para `/unauthorized?reason=role&required=ADMIN`
 - **Página exibe:** "Permissão Insuficiente - Esta página requer permissão de ADMIN..."
 
 ### Cenário 4: Perfil Completo em `/auth/complete-profile`
+
 - **Entrada:** Usuário ADMIN com `profileComplete=true` acessa `/auth/complete-profile`
 - **Resultado:** Redireciona automaticamente para `/admin`
 
 ### Cenário 5: Rota Pública
+
 - **Entrada:** Usuário não autenticado acessa `/test-form`
 - **Resultado:** Acesso permitido (rota está em `PUBLIC_ROUTES`)
 
@@ -210,22 +225,22 @@ graph TD
     B -->|Não| C[Callback authorized verifica rotas públicas]
     C -->|Pública| D[Acesso permitido]
     C -->|Protegida| E[Redireciona para /auth/signin]
-    
+
     B -->|Sim| F{Token expirado?}
     F -->|Sim| G[Redireciona para /auth/signin?error=SessionExpired]
     F -->|Não| H{Role válido?}
-    
+
     H -->|Não| I[Redireciona para /auth/signin?error=InvalidRole]
     H -->|Sim| J{Perfil completo?}
-    
+
     J -->|Não| K{Está em /auth/complete-profile?}
     K -->|Não| L[Redireciona para /auth/complete-profile?reason=incomplete]
     K -->|Sim| M[Permite acesso]
-    
+
     J -->|Sim| N{Está em /auth/complete-profile?}
     N -->|Sim| O[Redireciona para dashboard apropriado]
     N -->|Não| P{Tem permissão para a rota?}
-    
+
     P -->|Não| Q[Redireciona para /unauthorized?reason=role&required=X]
     P -->|Sim| R[Aplica headers de segurança]
     R --> S[Acesso permitido]

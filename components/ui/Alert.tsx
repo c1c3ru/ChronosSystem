@@ -13,14 +13,14 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       default: 'bg-neutral-100 text-neutral-900 border-neutral-200',
       destructive: 'bg-error-50 text-error-900 border-error-200',
       warning: 'bg-warning-50 text-warning-900 border-warning-200',
-      success: 'bg-success-50 text-success-900 border-success-200'
+      success: 'bg-success-50 text-success-900 border-success-200',
     }
 
     const icons = {
       default: Info,
       destructive: AlertCircle,
       warning: AlertTriangle,
-      success: CheckCircle
+      success: CheckCircle,
     }
 
     const Icon = icons[variant]
@@ -40,15 +40,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         )}
         {...props}
       >
-        {showIcon && (
-          <Icon
-            className="h-5 w-5 flex-shrink-0 mt-0.5"
-            aria-hidden="true"
-          />
-        )}
-        <div className="flex-1">
-          {children}
-        </div>
+        {showIcon && <Icon className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden="true" />}
+        <div className="flex-1">{children}</div>
       </div>
     )
   }
@@ -59,11 +52,7 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
-    {...props}
-  />
+  <div ref={ref} className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
 ))
 AlertDescription.displayName = 'AlertDescription'
 

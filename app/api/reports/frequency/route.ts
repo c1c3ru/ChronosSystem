@@ -45,7 +45,7 @@ function isLate(entryTime: Date, expectedStartTime: string): boolean {
 
   // Tolerância de 15 minutos
   const toleranceMs = 15 * 60 * 1000
-  return entryTime.getTime() > (expectedTime.getTime() + toleranceMs)
+  return entryTime.getTime() > expectedTime.getTime() + toleranceMs
 }
 
 export async function GET(request: NextRequest) {
@@ -77,24 +77,24 @@ export async function GET(request: NextRequest) {
           where: {
             timestamp: {
               gte: startDate,
-              lte: endDate
-            }
+              lte: endDate,
+            },
           },
           orderBy: {
-            timestamp: 'asc'
-          }
-        }
-      }
+            timestamp: 'asc',
+          },
+        },
+      },
     })
 
     // Calcular estatísticas para cada usuário
-    const frequencyData = users.map(user => {
+    const frequencyData = users.map((user) => {
       const records = user.attendanceRecords
 
       // Agrupar registros por dia
-      const recordsByDay = new Map<string, { entries: Date[], exits: Date[] }>()
+      const recordsByDay = new Map<string, { entries: Date[]; exits: Date[] }>()
 
-      records.forEach(record => {
+      records.forEach((record) => {
         const dateKey = record.timestamp.toISOString().split('T')[0]
         if (!recordsByDay.has(dateKey)) {
           recordsByDay.set(dateKey, { entries: [], exits: [] })
@@ -109,9 +109,10 @@ export async function GET(request: NextRequest) {
       })
 
       // Calcular dias úteis no período (considerando data de início do contrato)
-      const userStartDate = user.contractStartDate && user.contractStartDate > startDate
-        ? user.contractStartDate
-        : startDate
+      const userStartDate =
+        user.contractStartDate && user.contractStartDate > startDate
+          ? user.contractStartDate
+          : startDate
       const totalDays = getBusinessDays(userStartDate, endDate)
 
       // Calcular dias presentes, faltas e atrasos
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
           id: user.id,
           name: user.name || 'Sem nome',
           email: user.email,
-          role: user.role
+          role: user.role,
         },
         totalDays,
         presentDays,
@@ -158,10 +159,12 @@ export async function GET(request: NextRequest) {
         lateCount,
         frequencyPercentage,
         averageHours,
-        lastRecord: lastRecord ? {
-          date: lastRecord.timestamp.toISOString(),
-          type: lastRecord.type
-        } : undefined
+        lastRecord: lastRecord
+          ? {
+              date: lastRecord.timestamp.toISOString(),
+              type: lastRecord.type,
+            }
+          : undefined,
       }
     })
 
@@ -177,21 +180,21 @@ export async function GET(request: NextRequest) {
         where: {
           timestamp: {
             gte: monthStart,
-            lte: monthEnd
-          }
+            lte: monthEnd,
+          },
         },
         include: {
           user: {
             select: {
-              shiftStartTime: true
-            }
-          }
-        }
+              shiftStartTime: true,
+            },
+          },
+        },
       })
 
       // Agrupar por usuário
       const userRecords = new Map<string, typeof monthRecords>()
-      monthRecords.forEach(record => {
+      monthRecords.forEach((record) => {
         if (!userRecords.has(record.userId)) {
           userRecords.set(record.userId, [])
         }
@@ -204,9 +207,9 @@ export async function GET(request: NextRequest) {
       let lateRecords = 0
 
       userRecords.forEach((records, userId) => {
-        const recordsByDay = new Map<string, { entries: Date[], exits: Date[] }>()
+        const recordsByDay = new Map<string, { entries: Date[]; exits: Date[] }>()
 
-        records.forEach(record => {
+        records.forEach((record) => {
           const dateKey = record.timestamp.toISOString().split('T')[0]
           if (!recordsByDay.has(dateKey)) {
             recordsByDay.set(dateKey, { entries: [], exits: [] })
@@ -244,13 +247,13 @@ export async function GET(request: NextRequest) {
         totalUsers,
         averageFrequency,
         totalRecords: monthRecords.length,
-        lateRecords
+        lateRecords,
       })
     }
 
     return NextResponse.json({
       frequencyData,
-      monthlyStats
+      monthlyStats,
     })
   } catch (error) {
     console.error('Erro ao buscar dados de frequência:', error)

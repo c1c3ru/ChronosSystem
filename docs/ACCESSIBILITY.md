@@ -7,6 +7,7 @@ Este documento descreve as práticas de acessibilidade implementadas no ChronosS
 ## ✅ Padrões Implementados
 
 ### WCAG 2.1 Level AA
+
 Seguimos as diretrizes WCAG 2.1 nível AA, incluindo:
 
 - **Perceptível**: Informação e componentes da interface apresentados de forma perceptível
@@ -17,6 +18,7 @@ Seguimos as diretrizes WCAG 2.1 nível AA, incluindo:
 ## 🎨 Componentes Acessíveis
 
 ### Button (`components/ui/accessible-button.tsx`)
+
 - ✅ ARIA labels (`aria-busy`, `aria-disabled`)
 - ✅ Estados visuais claros (hover, focus, disabled)
 - ✅ Indicador de loading com spinner
@@ -24,6 +26,7 @@ Seguimos as diretrizes WCAG 2.1 nível AA, incluindo:
 - ✅ Focus ring visível (2px offset)
 
 ### Input (`components/ui/accessible-input.tsx`)
+
 - ✅ Labels associados com `htmlFor`
 - ✅ Mensagens de erro com `role="alert"` e `aria-live="polite"`
 - ✅ Helper text descritivo
@@ -33,6 +36,7 @@ Seguimos as diretrizes WCAG 2.1 nível AA, incluindo:
 ## ⌨️ Navegação por Teclado
 
 ### Atalhos Globais
+
 - `Tab` / `Shift+Tab`: Navegar entre elementos focáveis
 - `Enter` / `Space`: Ativar botões e links
 - `Escape`: Fechar modais e diálogos
@@ -41,6 +45,7 @@ Seguimos as diretrizes WCAG 2.1 nível AA, incluindo:
 ### Hooks Disponíveis
 
 #### `useKeyboardNavigation`
+
 ```tsx
 import { useKeyboardNavigation } from '@/hooks/use-accessibility'
 
@@ -49,12 +54,13 @@ useKeyboardNavigation([
     key: 's',
     ctrlKey: true,
     callback: () => handleSave(),
-    description: 'Salvar'
-  }
+    description: 'Salvar',
+  },
 ])
 ```
 
 #### `useFocusTrap`
+
 ```tsx
 import { useFocusTrap } from '@/hooks/use-accessibility'
 
@@ -63,6 +69,7 @@ useFocusTrap(modalRef, isOpen)
 ```
 
 #### `useScreenReaderAnnouncement`
+
 ```tsx
 import { useScreenReaderAnnouncement } from '@/hooks/use-accessibility'
 
@@ -85,6 +92,7 @@ Todos os layouts principais usam landmarks semânticos:
 ## 🔍 Leitores de Tela
 
 ### Anúncios Dinâmicos
+
 Use `aria-live` para anunciar mudanças:
 
 - `aria-live="polite"`: Aguarda pausa do usuário
@@ -92,11 +100,13 @@ Use `aria-live` para anunciar mudanças:
 - `aria-atomic="true"`: Lê todo o conteúdo
 
 ### Texto Oculto Visualmente
+
 ```tsx
 <span className="sr-only">Texto apenas para leitores de tela</span>
 ```
 
 CSS:
+
 ```css
 .sr-only {
   position: absolute;
@@ -114,17 +124,19 @@ CSS:
 ## 🎨 Contraste de Cores
 
 ### Requisitos WCAG AA
+
 - **Texto normal**: Contraste mínimo de 4.5:1
 - **Texto grande** (18pt+): Contraste mínimo de 3:1
 - **Componentes de UI**: Contraste mínimo de 3:1
 
 ### Paleta de Cores Acessível
+
 ```css
 /* Cores principais com contraste adequado */
---primary: #2563eb;      /* Azul - contraste 4.5:1 em branco */
---success: #16a34a;      /* Verde - contraste 4.5:1 em branco */
---warning: #ea580c;      /* Laranja - contraste 4.5:1 em branco */
---danger: #dc2626;       /* Vermelho - contraste 4.5:1 em branco */
+--primary: #2563eb; /* Azul - contraste 4.5:1 em branco */
+--success: #16a34a; /* Verde - contraste 4.5:1 em branco */
+--warning: #ea580c; /* Laranja - contraste 4.5:1 em branco */
+--danger: #dc2626; /* Vermelho - contraste 4.5:1 em branco */
 --text-primary: #111827; /* Preto - contraste 15:1 em branco */
 --text-secondary: #6b7280; /* Cinza - contraste 4.5:1 em branco */
 ```
@@ -132,10 +144,12 @@ CSS:
 ## 🧪 Testes de Acessibilidade
 
 ### Ferramentas Instaladas
+
 - **@axe-core/react**: Testes automatizados de a11y
 - **eslint-plugin-jsx-a11y**: Linting de acessibilidade
 
 ### Executar Testes
+
 ```bash
 # Lint de acessibilidade
 npm run lint
@@ -145,6 +159,7 @@ npm run lint
 ```
 
 ### Checklist Manual
+
 - [ ] Navegação completa apenas com teclado
 - [ ] Todos os elementos interativos têm foco visível
 - [ ] Imagens têm alt text descritivo
@@ -157,33 +172,39 @@ npm run lint
 ## 📱 Responsividade e Touch
 
 ### Tamanhos Mínimos de Toque
+
 - **Botões**: Mínimo 44x44px (WCAG 2.5.5)
 - **Links**: Mínimo 44x44px
 - **Inputs**: Altura mínima de 44px
 
 ### Gestos Alternativos
+
 - Todos os gestos de toque têm alternativas de teclado
 - Swipe gestures têm botões equivalentes
 
 ## 🌍 Internacionalização
 
 ### Suporte a Idiomas
+
 - Português Brasileiro (pt-BR) - padrão
 - Inglês Americano (en-US)
 
 ### Atributo lang
+
 ```html
-<html lang="pt-BR">
+<html lang="pt-BR"></html>
 ```
 
 ## 📚 Recursos e Referências
 
 ### Documentação
+
 - [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/)
 - [ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
 - [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
 
 ### Ferramentas de Teste
+
 - [axe DevTools](https://www.deque.com/axe/devtools/)
 - [WAVE](https://wave.webaim.org/)
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse)
@@ -193,6 +214,7 @@ npm run lint
 ## 🔄 Manutenção
 
 ### Ao Adicionar Novos Componentes
+
 1. Adicionar ARIA labels apropriados
 2. Garantir navegação por teclado
 3. Testar com leitor de tela
@@ -200,6 +222,7 @@ npm run lint
 5. Executar testes automatizados
 
 ### Revisão Periódica
+
 - Auditar acessibilidade a cada release
 - Testar com usuários reais
 - Atualizar documentação conforme necessário

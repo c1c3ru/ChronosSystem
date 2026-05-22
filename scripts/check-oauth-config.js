@@ -3,10 +3,12 @@ console.log('🔍 Verificando configuração do Google OAuth...\n')
 
 // Verificar variáveis de ambiente
 const requiredVars = {
-  'NEXTAUTH_URL': process.env.NEXTAUTH_URL,
-  'NEXTAUTH_SECRET': process.env.NEXTAUTH_SECRET ? '✓ Configurado' : '❌ Não configurado',
-  'GOOGLE_CLIENT_ID': process.env.GOOGLE_CLIENT_ID ? `✓ ${process.env.GOOGLE_CLIENT_ID.substring(0, 20)}...` : '❌ Não configurado',
-  'GOOGLE_CLIENT_SECRET': process.env.GOOGLE_CLIENT_SECRET ? '✓ Configurado' : '❌ Não configurado'
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? '✓ Configurado' : '❌ Não configurado',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
+    ? `✓ ${process.env.GOOGLE_CLIENT_ID.substring(0, 20)}...`
+    : '❌ Não configurado',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? '✓ Configurado' : '❌ Não configurado',
 }
 
 console.log('📋 Variáveis de Ambiente:')

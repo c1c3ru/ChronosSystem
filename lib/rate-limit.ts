@@ -25,34 +25,66 @@ interface RateLimitEntry {
 const inMemoryCache = new Map<string, RateLimitEntry>()
 
 /**
- * Rate limiter com Redis (sliding window) e fallback em memória
+ * Núcleo do rate limit: identificador já montado (IP, IP+usuário, etc.)
  */
-export function rateLimit(config: RateLimitConfig) {
-  return async (request: NextRequest): Promise<RateLimitResult> => {
-    const ip = getClientIP(request)
-    const identifier = `${ip}:${request.nextUrl.pathname}`
+async function runRateLimit(
+  identifier: string,
+  config: RateLimitConfig,
+  request: NextRequest
+): Promise<RateLimitResult> {
+  const ip = getClientIP(request)
+  const isProd = process.env.NODE_ENV === 'production'
+  const requireRedisInProduction = config.requireRedisInProduction ?? true
 
-    const isProd = process.env.NODE_ENV === 'production'
-    const requireRedisInProduction = config.requireRedisInProduction ?? true
+  if (isRedisConnected()) {
+    return await redisRateLimit(identifier, config)
+  }
 
-    // Tentar usar Redis primeiro
-    if (isRedisConnected()) {
-      return await redisRateLimit(identifier, config)
-    }
-
-    // Em produção, não permitir fallback silencioso em ambiente serverless
-    if (isProd && requireRedisInProduction) {
-      const reset = Date.now() + Math.min(config.windowMs, 60_000) // limita o "bloqueio" inicial a 60s
+  // Se Redis não está disponível e estamos em produção
+  if (isProd && requireRedisInProduction) {
+    // Verificar se Redis foi explicitamente desabilitado (requireRedisInProduction: false)
+    // Se sim, usar fallback em memória ao invés de fail-closed
+    if (config.requireRedisInProduction === false) {
+      logger.debug('Redis não disponível em produção, usando fallback em memória', {
+        path: request.nextUrl.pathname,
+        ip,
+      })
+    } else {
+      // Fail-closed: Redis obrigatório e não disponível
+      const reset = Date.now() + Math.min(config.windowMs, 60_000)
       logger.error('Rate limiting sem Redis em produção (fail-closed)', {
         path: request.nextUrl.pathname,
         ip,
       })
       return { success: false, limit: config.maxRequests, remaining: 0, reset }
     }
+  }
 
-    // Fallback para rate limiting em memória
-    logger.debug('Using in-memory rate limiting (Redis not available)')
-    return inMemoryRateLimit(identifier, config)
+  logger.debug('Using in-memory rate limiting (Redis not available)')
+  return inMemoryRateLimit(identifier, config)
+}
+
+/**
+ * Rate limiter com Redis (sliding window) e fallback em memória
+ * Identificador: apenas IP + path (compartilhado por todos atrás do mesmo NAT)
+ */
+export function rateLimit(config: RateLimitConfig) {
+  return async (request: NextRequest): Promise<RateLimitResult> => {
+    const ip = getClientIP(request)
+    const identifier = `${ip}:${request.nextUrl.pathname}`
+    return runRateLimit(identifier, config, request)
+  }
+}
+
+/**
+ * Rate limiter com chave extra (ex.: userId) para não penalizar toda a rede institucional.
+ * Identificador: IP + sufixo + path
+ */
+export function rateLimitWithKey(config: RateLimitConfig) {
+  return async (request: NextRequest, key: string): Promise<RateLimitResult> => {
+    const ip = getClientIP(request)
+    const identifier = `${ip}:${key}:${request.nextUrl.pathname}`
+    return runRateLimit(identifier, config, request)
   }
 }
 
@@ -107,7 +139,7 @@ async function redisRateLimit(
         success: false,
         limit: config.maxRequests,
         remaining: 0,
-        reset: resetTime
+        reset: resetTime,
       }
     }
 
@@ -115,12 +147,12 @@ async function redisRateLimit(
       success: true,
       limit: config.maxRequests,
       remaining,
-      reset: resetTime
+      reset: resetTime,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Redis rate limit error, falling back to in-memory', {
-      error: error.message,
-      identifier
+      error: error instanceof Error ? error.message : String(error),
+      identifier,
     })
     return inMemoryRateLimit(identifier, config)
   }
@@ -129,10 +161,7 @@ async function redisRateLimit(
 /**
  * Rate limiting em memória (fallback)
  */
-function inMemoryRateLimit(
-  identifier: string,
-  config: RateLimitConfig
-): RateLimitResult {
+function inMemoryRateLimit(identifier: string, config: RateLimitConfig): RateLimitResult {
   const key = `rate_limit:${identifier}`
   const now = Date.now()
 
@@ -145,7 +174,7 @@ function inMemoryRateLimit(
     // Nova janela de tempo
     const newEntry: RateLimitEntry = {
       count: 1,
-      resetTime: now + config.windowMs
+      resetTime: now + config.windowMs,
     }
     inMemoryCache.set(key, newEntry)
 
@@ -153,7 +182,7 @@ function inMemoryRateLimit(
       success: true,
       limit: config.maxRequests,
       remaining: config.maxRequests - 1,
-      reset: newEntry.resetTime
+      reset: newEntry.resetTime,
     }
   }
 
@@ -163,7 +192,7 @@ function inMemoryRateLimit(
       success: false,
       limit: config.maxRequests,
       remaining: 0,
-      reset: entry.resetTime
+      reset: entry.resetTime,
     }
   }
 
@@ -175,7 +204,7 @@ function inMemoryRateLimit(
     success: true,
     limit: config.maxRequests,
     remaining: config.maxRequests - entry.count,
-    reset: entry.resetTime
+    reset: entry.resetTime,
   }
 }
 
@@ -200,7 +229,7 @@ function getClientIP(request: NextRequest): string {
   }
 
   // Fallback para IP direto (desenvolvimento)
-  return request.ip || 'unknown'
+  return (request as unknown as { ip?: string }).ip || 'unknown'
 }
 
 /**
@@ -225,40 +254,47 @@ export const rateLimiters = {
   // Login: 5 tentativas por minuto
   login: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 5
+    maxRequests: 5,
   }),
 
   // 2FA: 3 tentativas por minuto
   twoFactor: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 3
+    maxRequests: 3,
   }),
 
-  // QR Scan: 20 scans por minuto
+  // QR Scan (somente IP): legado / rotas sem usuário na mesma requisição
   qrScan: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 20
+    maxRequests: 20,
+    requireRedisInProduction: false,
+  }),
+
+  // QR Scan com usuário autenticado: IP + userId (evita bloquear laboratório/NAT inteiro)
+  qrScanUser: rateLimitWithKey({
+    windowMs: 60 * 1000,
+    maxRequests: 20,
+    requireRedisInProduction: false,
   }),
 
   // API Geral: 100 requests por minuto
   general: rateLimit({
     windowMs: 60 * 1000, // 1 minuto
-    maxRequests: 100
+    maxRequests: 100,
+    requireRedisInProduction: false,
   }),
 
   // Password Reset: 3 tentativas por hora
   passwordReset: rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 3
-  })
+    maxRequests: 3,
+  }),
 }
 
 /**
  * Middleware helper para aplicar rate limiting (async)
  */
-export function withRateLimit(
-  rateLimiter: (request: NextRequest) => Promise<RateLimitResult>
-) {
+export function withRateLimit(rateLimiter: (request: NextRequest) => Promise<RateLimitResult>) {
   return async (request: NextRequest): Promise<Response | null> => {
     const result = await rateLimiter(request)
 
@@ -269,14 +305,14 @@ export function withRateLimit(
         ip: getClientIP(request),
         path: request.nextUrl.pathname,
         limit: result.limit,
-        retryAfter
+        retryAfter,
       })
 
       return new Response(
         JSON.stringify({
           error: 'Rate limit exceeded',
           message: 'Too many requests. Please try again later.',
-          retryAfter
+          retryAfter,
         }),
         {
           status: 429,
@@ -285,8 +321,8 @@ export function withRateLimit(
             'X-RateLimit-Limit': result.limit.toString(),
             'X-RateLimit-Remaining': result.remaining.toString(),
             'X-RateLimit-Reset': result.reset.toString(),
-            'Retry-After': retryAfter.toString()
-          }
+            'Retry-After': retryAfter.toString(),
+          },
         }
       )
     }
@@ -298,10 +334,7 @@ export function withRateLimit(
 /**
  * Helper para adicionar headers de rate limit em respostas bem-sucedidas
  */
-export function addRateLimitHeaders(
-  response: Response,
-  result: RateLimitResult
-): Response {
+export function addRateLimitHeaders(response: Response, result: RateLimitResult): Response {
   response.headers.set('X-RateLimit-Limit', result.limit.toString())
   response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
   response.headers.set('X-RateLimit-Reset', result.reset.toString())

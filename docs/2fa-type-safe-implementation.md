@@ -5,11 +5,13 @@
 ### **1. Arquivos Criados**
 
 #### **`types/prisma-extensions.d.ts`**
+
 - Definições de tipos específicos para 2FA
 - Interfaces que estendem os tipos Prisma
 - Type safety completo para operações de 2FA
 
 #### **`lib/prisma-helpers.ts`**
+
 - Helpers especializados para operações de 2FA
 - Métodos type-safe com casting controlado
 - API limpa e reutilizável
@@ -17,17 +19,20 @@
 ### **2. Arquivos Refatorados**
 
 #### **`app/api/auth/2fa/setup/route.ts`**
-- ✅ Removido `as any` 
+
+- ✅ Removido `as any`
 - ✅ Usando `prisma2FA.find2FAFields()`
 - ✅ Usando `prisma2FA.setupSecret()`
 - ✅ Usando `prisma2FA.find2FAWithUserInfo()`
 
 #### **`app/api/auth/2fa/verify/route.ts`**
+
 - ✅ Removido `as any`
 - ✅ Usando `prisma2FA.find2FAFields()`
 - ✅ Usando `prisma2FA.enable2FA()`
 
 #### **`app/api/auth/2fa/disable/route.ts`**
+
 - ✅ Removido `as any`
 - ✅ Usando `prisma2FA.find2FAFields()`
 - ✅ Usando `prisma2FA.disable2FA()`
@@ -35,6 +40,7 @@
 ### **3. Vantagens da Solução**
 
 #### **🔒 Type Safety**
+
 ```typescript
 // ANTES (inseguro)
 const user = await prisma.user.findUnique({...}) as any
@@ -44,11 +50,12 @@ const user2FA = await prisma2FA.find2FAFields(userId)
 ```
 
 #### **🧹 Código Mais Limpo**
+
 ```typescript
 // ANTES (verboso)
 await (prisma.user.update as any)({
   where: { id: userId },
-  data: { twoFactorEnabled: false, twoFactorSecret: null }
+  data: { twoFactorEnabled: false, twoFactorSecret: null },
 })
 
 // DEPOIS (semântico)
@@ -56,11 +63,13 @@ await prisma2FA.disable2FA(userId)
 ```
 
 #### **🔄 Reutilização**
+
 - Métodos específicos para cada operação
 - Lógica centralizada
 - Fácil manutenção
 
 #### **🧪 Testabilidade**
+
 - Helpers podem ser testados independentemente
 - Mocking mais fácil
 - Melhor cobertura de testes
@@ -73,13 +82,13 @@ export const prisma2FA = {
   find2FAFields(userId: string): Promise<User2FASelect | null>
   find2FAWithUserInfo(userId: string): Promise<UserWith2FAFields | null>
   findUserWith2FA(userId: string): Promise<UserWith2FA | null>
-  
+
   // Operações
   setupSecret(userId: string, secret: string): Promise<UserWith2FA>
   enable2FA(userId: string, secret: string): Promise<UserWith2FA>
   disable2FA(userId: string): Promise<UserWith2FA>
   update2FA(userId: string, data: User2FAUpdate): Promise<UserWith2FA>
-  
+
   // Verificações
   is2FAEnabled(userId: string): Promise<boolean>
   hasSecret(userId: string): Promise<boolean>
@@ -96,14 +105,14 @@ export const prisma2FA = {
 
 ### **6. Comparação Final**
 
-| Aspecto | `as any` | Helpers Type-Safe |
-|---------|----------|-------------------|
-| Type Safety | ❌ Nenhuma | ✅ Completa |
-| Manutenibilidade | ❌ Difícil | ✅ Fácil |
-| Reutilização | ❌ Baixa | ✅ Alta |
-| Testabilidade | ❌ Limitada | ✅ Excelente |
-| Legibilidade | ❌ Confusa | ✅ Clara |
-| Profissionalismo | ❌ Baixo | ✅ Alto |
+| Aspecto          | `as any`    | Helpers Type-Safe |
+| ---------------- | ----------- | ----------------- |
+| Type Safety      | ❌ Nenhuma  | ✅ Completa       |
+| Manutenibilidade | ❌ Difícil  | ✅ Fácil          |
+| Reutilização     | ❌ Baixa    | ✅ Alta           |
+| Testabilidade    | ❌ Limitada | ✅ Excelente      |
+| Legibilidade     | ❌ Confusa  | ✅ Clara          |
+| Profissionalismo | ❌ Baixo    | ✅ Alto           |
 
 ## **Conclusão**
 

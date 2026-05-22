@@ -5,9 +5,8 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 const isProd = process.env.NODE_ENV === 'production';
 
 function buildCsp() {
-  // Mantém 'unsafe-inline' por compatibilidade; remove 'unsafe-eval' em produção.
-  const scriptSrc = ["'self'", "'unsafe-inline'"];
-  if (!isProd) scriptSrc.push("'unsafe-eval'");
+  // 'unsafe-eval' é necessário para o WebAssembly do @react-pdf/renderer
+  const scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'wasm-unsafe-eval'"];
 
   return [
     `default-src 'self'`,
@@ -15,7 +14,8 @@ function buildCsp() {
     `object-src 'none'`,
     `frame-ancestors 'none'`,
     `form-action 'self'`,
-    `script-src ${scriptSrc.join(' ')}`,
+    `script-src ${scriptSrc.join(' ')} blob: 'wasm-unsafe-eval'`,
+    `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com data:`,
     `img-src 'self' data: blob: https:`,
@@ -28,12 +28,11 @@ function buildCsp() {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['@prisma/client', 'bcryptjs', '@react-pdf/renderer'],
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
   // Otimizações de build
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

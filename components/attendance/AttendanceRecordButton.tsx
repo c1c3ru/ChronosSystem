@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, CheckCircle2, AlertCircle, ArrowRightLeft, Loader2, Fingerprint } from 'lucide-react'
+import {
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRightLeft,
+  Loader2,
+  Fingerprint,
+} from 'lucide-react'
 import { Button, Card } from '@/components/ui'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -26,7 +33,7 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
       const res = await fetch('/api/attendance/record')
       if (!res.ok) throw new Error('Erro ao buscar sugestão')
       const data = await res.json()
-      
+
       setSuggestedType(data.suggestion.type)
       setReason(data.suggestion.reason)
     } catch (error) {
@@ -40,6 +47,42 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
   useEffect(() => {
     fetchSuggestion()
   }, [fetchSuggestion])
+
+  const handleRecord = useCallback(async (forcedType?: 'ENTRY' | 'EXIT') => {
+    if (loading || isDone) return
+
+    setLoading(true)
+    setIsPaused(true)
+
+    const typeToUse = forcedType || suggestedType
+
+    try {
+      const res = await fetch('/api/attendance/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: typeToUse }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Erro ao registrar ponto')
+      }
+
+      setIsDone(true)
+      toast.success(
+        `Registro de ${typeToUse === 'ENTRY' ? 'Entrada' : 'Saída'} realizado com sucesso!`
+      )
+
+      if (onSuccess) onSuccess()
+    } catch (error) {
+      const err = error as Error
+      toast.error(err.message)
+      setIsPaused(false) // Permitir tentar novamente
+    } finally {
+      setLoading(false)
+    }
+  }, [loading, isDone, suggestedType, onSuccess])
 
   // Lógica do Countdown
   useEffect(() => {
@@ -57,43 +100,10 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [initializing, isPaused, isDone, suggestedType])
-
-  const handleRecord = async (forcedType?: 'ENTRY' | 'EXIT') => {
-    if (loading || isDone) return
-    
-    setLoading(true)
-    setIsPaused(true)
-
-    const typeToUse = forcedType || suggestedType
-
-    try {
-      const res = await fetch('/api/attendance/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: typeToUse })
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Erro ao registrar ponto')
-      }
-
-      setIsDone(true)
-      toast.success(`Registro de ${typeToUse === 'ENTRY' ? 'Entrada' : 'Saída'} realizado com sucesso!`)
-      
-      if (onSuccess) onSuccess()
-    } catch (error: any) {
-      toast.error(error.message)
-      setIsPaused(false) // Permitir tentar novamente
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [initializing, isPaused, isDone, suggestedType, handleRecord])
 
   const toggleType = () => {
-    setSuggestedType(prev => prev === 'ENTRY' ? 'EXIT' : 'ENTRY')
+    setSuggestedType((prev) => (prev === 'ENTRY' ? 'EXIT' : 'ENTRY'))
     setReason('Alterado manualmente pelo usuário')
     setIsPaused(true)
   }
@@ -136,8 +146,8 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
                     cy="50%"
                     r="45%"
                     className={cn(
-                      "fill-none transition-colors duration-500",
-                      isEntry ? "stroke-emerald-500" : "stroke-rose-500"
+                      'fill-none transition-colors duration-500',
+                      isEntry ? 'stroke-emerald-500' : 'stroke-rose-500'
                     )}
                     strokeWidth="8"
                     strokeDasharray="100 100"
@@ -155,14 +165,14 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
                     onClick={() => handleRecord()}
                     disabled={loading}
                     className={cn(
-                      "w-36 h-36 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-500 text-white relative overflow-hidden group",
-                      isEntry 
-                        ? "bg-gradient-to-br from-emerald-500 to-teal-600 hover:shadow-emerald-500/30" 
-                        : "bg-gradient-to-br from-rose-500 to-orange-600 hover:shadow-rose-500/30"
+                      'w-36 h-36 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-500 text-white relative overflow-hidden group',
+                      isEntry
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-600 hover:shadow-emerald-500/30'
+                        : 'bg-gradient-to-br from-rose-500 to-orange-600 hover:shadow-rose-500/30'
                     )}
                   >
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    
+
                     {loading ? (
                       <Loader2 className="h-10 w-10 animate-spin" />
                     ) : (
@@ -172,9 +182,7 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
                           {isEntry ? 'ENTRADA' : 'SAÍDA'}
                         </span>
                         {!isPaused && (
-                          <span className="text-xs font-medium opacity-80">
-                            em {countdown}s
-                          </span>
+                          <span className="text-xs font-medium opacity-80">em {countdown}s</span>
                         )}
                       </>
                     )}
@@ -193,15 +201,15 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
               </div>
 
               <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={toggleType}
                   className="gap-2 border-muted-foreground/20"
                 >
                   <ArrowRightLeft className="w-4 h-4" />
                   Alternar
                 </Button>
-                <Button 
+                <Button
                   variant="secondary"
                   onClick={() => setIsPaused(!isPaused)}
                   className="gap-2"
@@ -237,7 +245,8 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
         <div className="bg-muted/30 px-6 py-4 flex items-center gap-3 border-t">
           <AlertCircle className="w-4 h-4 text-primary" />
           <p className="text-xs text-muted-foreground italic">
-            O sistema detectou seu contexto atual. O registro será feito automaticamente para economizar seu tempo.
+            O sistema detectou seu contexto atual. O registro será feito automaticamente para
+            economizar seu tempo.
           </p>
         </div>
       )}

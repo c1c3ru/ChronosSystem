@@ -2,9 +2,19 @@
 
 import React, { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Camera, X, AlertTriangle, Shield, FileText, Edit3, CheckCircle, AlertCircle } from 'lucide-react'
+import {
+  Camera,
+  X,
+  AlertTriangle,
+  Shield,
+  FileText,
+  Edit3,
+  CheckCircle,
+  AlertCircle,
+} from 'lucide-react'
 import { useCamera } from '@/lib/hooks/useCamera'
 import { useQRScanner } from '@/lib/hooks/useQRScanner'
+import { type QRValidationResult } from '@/lib/qr-validation'
 
 interface QRScannerProps {
   onScan: (data: string) => void
@@ -26,7 +36,7 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     startCamera,
     stopCamera,
     switchCamera,
-    setError
+    setError,
   } = useCamera({
     onStreamStarted: (stream) => {
       // Iniciar scanner quando a câmera estiver pronta
@@ -36,21 +46,15 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
     },
     onError: (msg) => {
       // Sincronizar erros do hook de câmera com o scanner se necessário
-    }
+    },
   })
 
-  const {
-    canvasRef,
-    validation,
-    lastError,
-    startScanning,
-    stopScanning
-  } = useQRScanner({
+  const { canvasRef, validation, lastError, startScanning, stopScanning } = useQRScanner({
     onScan: (data) => {
       onScan(data)
       stopCamera()
     },
-    enabled: isActive
+    enabled: isActive,
   })
 
   // Efeito para ligar/desligar câmera baseado na prop isActive
@@ -72,15 +76,13 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
       {isLoading && <QRScannerLoading />}
 
       {(error || lastError) && (
-        <QRScannerError
-          error={error || lastError}
-          onRetry={startCamera}
-          onCancel={stopCamera}
-        />
+        <QRScannerError error={error || lastError} onRetry={startCamera} onCancel={stopCamera} />
       )}
 
       {/* Camada de Vídeo */}
-      <div className={`relative w-full h-full ${hasPermission && !error && !isLoading ? '' : 'hidden'}`}>
+      <div
+        className={`relative w-full h-full ${hasPermission && !error && !isLoading ? '' : 'hidden'}`}
+      >
         <video
           ref={videoRef}
           className="w-full h-full bg-neutral-900 object-cover min-h-[400px] block"
@@ -91,15 +93,9 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
 
         <QRScannerOverlay validation={validation} />
 
-        <QRScannerControls
-          onSwitch={switchCamera}
-          onClose={stopCamera}
-          facingMode={facingMode}
-        />
+        <QRScannerControls onSwitch={switchCamera} onClose={stopCamera} facingMode={facingMode} />
 
-        {hasPermission && !error && !isLoading && (
-          <QRScannerStatus facingMode={facingMode} />
-        )}
+        {hasPermission && !error && !isLoading && <QRScannerStatus facingMode={facingMode} />}
       </div>
 
       <canvas ref={canvasRef} className="hidden" />
@@ -109,7 +105,11 @@ export default function QRScanner({ onScan, isActive, onActivate }: QRScannerPro
 
 // --- SUBCOMPONENTES ---
 
-const QRScannerIdle = React.memo(function QRScannerIdle({ onActivate }: { onActivate: () => void }) {
+const QRScannerIdle = React.memo(function QRScannerIdle({
+  onActivate,
+}: {
+  onActivate: () => void
+}) {
   return (
     <div className="text-center py-8">
       <div className="w-20 h-20 bg-gradient-to-br from-secondary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -127,7 +127,11 @@ const QRScannerIdle = React.memo(function QRScannerIdle({ onActivate }: { onActi
 
 const QRScannerLoading = React.memo(function QRScannerLoading() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black" role="status" aria-live="polite">
+    <div
+      className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black"
+      role="status"
+      aria-live="polite"
+    >
       <div>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
         <p className="text-white text-base font-medium">Iniciando câmera...</p>
@@ -136,9 +140,21 @@ const QRScannerLoading = React.memo(function QRScannerLoading() {
   )
 })
 
-const QRScannerError = React.memo(function QRScannerError({ error, onRetry, onCancel }: { error: string | null, onRetry: () => void, onCancel: () => void }) {
+const QRScannerError = React.memo(function QRScannerError({
+  error,
+  onRetry,
+  onCancel,
+}: {
+  error: string | null
+  onRetry: () => void
+  onCancel: () => void
+}) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95" role="alert" aria-live="assertive">
+    <div
+      className="absolute inset-0 flex items-center justify-center text-center p-8 z-10 bg-black/95"
+      role="alert"
+      aria-live="assertive"
+    >
       <div className="max-w-md">
         <AlertTriangle className="h-12 w-12 text-error-400 mx-auto mb-4" />
         <p className="text-error-400 text-base font-medium mb-2">Falha no Scanner</p>
@@ -156,7 +172,11 @@ const QRScannerError = React.memo(function QRScannerError({ error, onRetry, onCa
   )
 })
 
-const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { validation: any }) {
+const QRScannerOverlay = React.memo(function QRScannerOverlay({
+  validation,
+}: {
+  validation: QRValidationResult | null
+}) {
   return (
     <>
       {/* Moldura de scanning */}
@@ -170,27 +190,38 @@ const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { 
         </div>
       </div>
 
-      {/* Dimmed background around selection */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-black/50" style={{
-          clipPath: 'polygon(0% 0%, 0% 100%, calc(50% - 128px) 100%, calc(50% - 128px) calc(50% - 128px), calc(50% + 128px) calc(50% - 128px), calc(50% + 128px) calc(50% + 128px), calc(50% - 128px) calc(50% + 128px), calc(50% - 128px) 100%, 100% 100%, 100% 0%)'
-        }} />
+        <div
+          className="absolute inset-0 bg-black/50 [clip-path:polygon(0%_0%,_0%_100%,_calc(50%_-_128px)_100%,_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_+_128px),_calc(50%_-_128px)_calc(50%_+_128px),_calc(50%_-_128px)_100%,_100%_100%,_100%_0%)]"
+        />
       </div>
 
       {/* Validation Feedback */}
       {validation && (
-        <div className="absolute top-4 left-4 right-4 z-20 animate-fade-in" role="status" aria-live="polite">
-          <div className={`
+        <div
+          className="absolute top-4 left-4 right-4 z-20 animate-fade-in"
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className={`
             bg-black/80 backdrop-blur-md rounded-xl p-4 border-l-4 shadow-2xl
             ${validation.isValid ? 'border-success-500' : 'border-error-500'}
-          `}>
+          `}
+          >
             <div className="flex items-center gap-3">
-              {validation.type === 'SECURE' ? <Shield className="h-5 w-5 text-success-400" /> : <AlertCircle className="h-5 w-5 text-warning-400" />}
+              {validation.type === 'SECURE' ? (
+                <Shield className="h-5 w-5 text-success-400" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-warning-400" />
+              )}
               <div className="flex-1">
                 <div className="text-sm font-bold text-white">
                   {validation.isValid ? 'QR Code Seguro Detectado' : 'Formato Não Seguro'}
                 </div>
-                {validation.machineId && <div className="text-xs text-neutral-400">Máquina: {validation.machineId}</div>}
+                {validation.machineId && (
+                  <div className="text-xs text-neutral-400">Máquina: {validation.machineId}</div>
+                )}
                 {!validation.isValid && validation.error && (
                   <div className="text-xs text-error-400 mt-1 font-medium">{validation.error}</div>
                 )}
@@ -203,7 +234,15 @@ const QRScannerOverlay = React.memo(function QRScannerOverlay({ validation }: { 
   )
 })
 
-const QRScannerControls = React.memo(function QRScannerControls({ onSwitch, onClose, facingMode }: { onSwitch: () => void, onClose: () => void, facingMode: string }) {
+const QRScannerControls = React.memo(function QRScannerControls({
+  onSwitch,
+  onClose,
+  facingMode,
+}: {
+  onSwitch: () => void
+  onClose: () => void
+  facingMode: string
+}) {
   return (
     <div className="absolute top-4 right-4 z-20 flex gap-2">
       <Button
@@ -228,7 +267,11 @@ const QRScannerControls = React.memo(function QRScannerControls({ onSwitch, onCl
   )
 })
 
-const QRScannerStatus = React.memo(function QRScannerStatus({ facingMode }: { facingMode: string }) {
+const QRScannerStatus = React.memo(function QRScannerStatus({
+  facingMode,
+}: {
+  facingMode: string
+}) {
   return (
     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20">
       <div className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-sm border border-primary-500/30 flex items-center gap-3 shadow-xl">

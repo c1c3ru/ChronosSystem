@@ -1,5 +1,5 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -22,13 +22,18 @@ export function formatTime(date: Date | string) {
   }).format(new Date(date))
 }
 
-export function calculateWorkHours(entries: any[]) {
+interface WorkEntry {
+  type: 'ENTRY' | 'EXIT'
+  timestamp: string | Date
+}
+
+export function calculateWorkHours(entries: WorkEntry[]) {
   let totalMinutes = 0
-  
+
   for (let i = 0; i < entries.length; i += 2) {
     const entry = entries[i]
     const exit = entries[i + 1]
-    
+
     if (entry && exit && entry.type === 'ENTRY' && exit.type === 'EXIT') {
       const entryTime = new Date(entry.timestamp)
       const exitTime = new Date(exit.timestamp)
@@ -36,9 +41,9 @@ export function calculateWorkHours(entries: any[]) {
       totalMinutes += diffMinutes
     }
   }
-  
+
   const hours = Math.floor(totalMinutes / 60)
   const minutes = Math.floor(totalMinutes % 60)
-  
+
   return { hours, minutes, totalMinutes }
 }

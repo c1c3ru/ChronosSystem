@@ -17,10 +17,10 @@ describe('Input Component', () => {
   it('handles value changes', () => {
     const handleChange = jest.fn()
     render(<Input onChange={handleChange} />)
-    
+
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'test value' } })
-    
+
     expect(handleChange).toHaveBeenCalled()
   })
 
@@ -87,14 +87,14 @@ describe('Input Component', () => {
   it('handles focus and blur events', () => {
     const handleFocus = jest.fn()
     const handleBlur = jest.fn()
-    
+
     render(<Input onFocus={handleFocus} onBlur={handleBlur} />)
-    
+
     const input = screen.getByRole('textbox')
-    
+
     fireEvent.focus(input)
     expect(handleFocus).toHaveBeenCalled()
-    
+
     fireEvent.blur(input)
     expect(handleBlur).toHaveBeenCalled()
   })

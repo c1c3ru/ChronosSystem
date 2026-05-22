@@ -17,8 +17,8 @@ export const metadata: Metadata = {
   },
   other: {
     'permissions-policy': 'camera=*, microphone=*, geolocation=*',
-    'feature-policy': 'camera *; microphone *; geolocation *'
-  }
+    'feature-policy': 'camera *; microphone *; geolocation *',
+  },
 }
 
 export const viewport: Viewport = {
@@ -27,17 +27,11 @@ export const viewport: Viewport = {
   themeColor: '#10B981',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className="dark">
       <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

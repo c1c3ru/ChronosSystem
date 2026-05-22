@@ -7,7 +7,7 @@ export enum LogLevel {
   ERROR = 0,
   WARN = 1,
   INFO = 2,
-  DEBUG = 3
+  DEBUG = 3,
 }
 
 interface LogContext {
@@ -18,7 +18,7 @@ interface LogContext {
   action?: string
   resource?: string
   timestamp?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface LogEntry {
@@ -43,7 +43,7 @@ class Logger {
    */
   private sanitizeContext(context: LogContext): LogContext {
     const sanitized = { ...context }
-    
+
     // Lista de campos sensíveis para remover
     const sensitiveFields = [
       'password',
@@ -54,16 +54,16 @@ class Logger {
       'cookie',
       'session',
       'twoFactorSecret',
-      'qrData'
+      'qrData',
     ]
-    
+
     // Remover campos sensíveis
     for (const field of sensitiveFields) {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]'
       }
     }
-    
+
     // Mascarar email parcialmente
     if (sanitized.email && typeof sanitized.email === 'string') {
       const email = sanitized.email
@@ -72,7 +72,7 @@ class Logger {
         sanitized.email = `${local.substring(0, 2)}***@${domain}`
       }
     }
-    
+
     // Mascarar IP parcialmente
     if (sanitized.ip && typeof sanitized.ip === 'string') {
       const parts = sanitized.ip.split('.')
@@ -80,7 +80,7 @@ class Logger {
         sanitized.ip = `${parts[0]}.${parts[1]}.***.***.`
       }
     }
-    
+
     return sanitized
   }
 
@@ -93,7 +93,7 @@ class Logger {
       message,
       context: this.sanitizeContext(context),
       timestamp: new Date().toISOString(),
-      service: this.serviceName
+      service: this.serviceName,
     }
   }
 
@@ -103,15 +103,14 @@ class Logger {
   private formatLog(entry: LogEntry): string {
     const levelNames = ['ERROR', 'WARN', 'INFO', 'DEBUG']
     const levelName = levelNames[entry.level]
-    
+
     if (process.env.NODE_ENV === 'production') {
       // JSON estruturado para produção
       return JSON.stringify(entry)
     } else {
       // Formato legível para desenvolvimento
-      const contextStr = Object.keys(entry.context).length > 0 
-        ? ` | ${JSON.stringify(entry.context)}`
-        : ''
+      const contextStr =
+        Object.keys(entry.context).length > 0 ? ` | ${JSON.stringify(entry.context)}` : ''
       return `[${entry.timestamp}] ${levelName}: ${entry.message}${contextStr}`
     }
   }
@@ -123,7 +122,7 @@ class Logger {
     if (level <= this.logLevel) {
       const entry = this.createLogEntry(level, message, context)
       const formatted = this.formatLog(entry)
-      
+
       switch (level) {
         case LogLevel.ERROR:
           console.error(formatted)
@@ -167,7 +166,7 @@ class Logger {
     this.error(`SECURITY: ${action}`, {
       ...context,
       security: true,
-      action
+      action,
     })
   }
 
@@ -179,7 +178,7 @@ class Logger {
       ...context,
       audit: true,
       action,
-      resource
+      resource,
     })
   }
 
@@ -191,7 +190,7 @@ class Logger {
       ...context,
       performance: true,
       operation,
-      duration
+      duration,
     })
   }
 }
@@ -214,18 +213,18 @@ export function withPerformanceLogging<T>(
   context: LogContext = {}
 ): Promise<T> {
   const start = Date.now()
-  
+
   return fn()
-    .then(result => {
+    .then((result) => {
       const duration = Date.now() - start
       logger.performance(operation, duration, context)
       return result
     })
-    .catch(error => {
+    .catch((error) => {
       const duration = Date.now() - start
       logger.error(`${operation} failed after ${duration}ms`, {
         ...context,
-        error: error.message
+        error: error.message,
       })
       throw error
     })
@@ -234,46 +233,46 @@ export function withPerformanceLogging<T>(
 /**
  * Decorator para logging automático de métodos
  */
-export function logMethod(target: any, propertyName: string, descriptor: PropertyDescriptor) {
+export function logMethod(target: object, propertyName: string, descriptor: PropertyDescriptor) {
   const method = descriptor.value
-  
-  descriptor.value = function (...args: any[]) {
+
+  descriptor.value = function (...args: unknown[]) {
     const className = target.constructor.name
     const methodName = `${className}.${propertyName}`
-    
+
     logger.debug(`Calling ${methodName}`, {
       method: methodName,
-      args: args.length
+      args: args.length,
     })
-    
+
     try {
       const result = method.apply(this, args)
-      
+
       if (result instanceof Promise) {
         return result
-          .then(res => {
+          .then((res) => {
             logger.debug(`${methodName} completed successfully`)
             return res
           })
-          .catch(error => {
+          .catch((error) => {
             logger.error(`${methodName} failed`, {
               method: methodName,
-              error: error.message
+              error: error.message,
             })
             throw error
           })
       }
-      
+
       logger.debug(`${methodName} completed successfully`)
       return result
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`${methodName} failed`, {
         method: methodName,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error),
       })
       throw error
     }
   }
-  
+
   return descriptor
 }

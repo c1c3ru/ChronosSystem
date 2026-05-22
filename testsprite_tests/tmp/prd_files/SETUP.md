@@ -37,6 +37,7 @@ cp kiosk/.env.example kiosk/.env
 ### 3. Edite os arquivos .env
 
 **backend/.env:**
+
 ```env
 DATABASE_URL="postgresql://ponto_user:ponto_password_dev@postgres:5432/ponto_db"
 REDIS_URL="redis://redis:6379"
@@ -48,17 +49,20 @@ GOOGLE_CLIENT_SECRET="seu-google-client-secret"
 ```
 
 **frontend-admin/.env:**
+
 ```env
 VITE_API_URL=http://localhost:4000/api
 VITE_GOOGLE_CLIENT_ID=seu-google-client-id
 ```
 
 **pwa-estagiario/.env:**
+
 ```env
 VITE_API_URL=http://localhost:4000/api
 ```
 
 **kiosk/.env:**
+
 ```env
 VITE_API_URL=http://localhost:4000/api
 VITE_MACHINE_ID=MACHINE_001
@@ -98,14 +102,17 @@ exit
 Após executar o seed, você terá:
 
 ### Admin
+
 - **Email**: admin@ponto.com
 - **Senha**: admin123
 
 ### Supervisor
+
 - **Email**: supervisor@ponto.com
 - **Senha**: supervisor123
 
 ### Estagiário
+
 - **Email**: estagiario@ponto.com
 - **Senha**: estagio123
 
@@ -185,7 +192,7 @@ npm run dev
 
 1. Acesse o [Google Cloud Console](https://console.cloud.google.com/)
 2. Crie um novo projeto ou selecione um existente
-3. Ative a API do Google+ 
+3. Ative a API do Google+
 4. Vá em "Credenciais" e crie um "ID do cliente OAuth 2.0"
 5. Configure as URLs de redirecionamento:
    - `http://localhost:4000/api/auth/google/callback`

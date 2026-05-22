@@ -25,7 +25,7 @@ export default function SecurityPage() {
   }
 
   // Fallback visual caso o middleware falhe e o usuário não tenha permissão
-  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
         <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
@@ -33,7 +33,7 @@ export default function SecurityPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -70,7 +70,7 @@ export default function SecurityPage() {
 
             <div className="text-right">
               <p className="text-white font-medium">{session.user.name}</p>
-              <p className="text-slate-400 text-sm">{(session.user as any).role}</p>
+              <p className="text-slate-400 text-sm">{session.user.role}</p>
             </div>
           </div>
         </div>
@@ -79,7 +79,6 @@ export default function SecurityPage() {
       {/* Conteúdo */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          
           {/* Informações da conta */}
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardHeader>
@@ -93,7 +92,7 @@ export default function SecurityPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-300">Função</p>
-                  <p className="text-white">{(session.user as any).role}</p>
+                  <p className="text-white">{session.user.role}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-300">Nome</p>
@@ -135,9 +134,7 @@ export default function SecurityPage() {
                     <p className="text-sm text-slate-400">Visualize suas atividades recentes</p>
                   </div>
                   <Link href="/admin/audit">
-                    <Button variant="secondary">
-                      Ver Logs
-                    </Button>
+                    <Button variant="secondary">Ver Logs</Button>
                   </Link>
                 </div>
 
@@ -173,7 +170,6 @@ export default function SecurityPage() {
               </ul>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>

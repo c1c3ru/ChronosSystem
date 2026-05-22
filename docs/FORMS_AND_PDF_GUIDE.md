@@ -16,6 +16,7 @@ Sistema completo de formulários profissionais com exportação para PDF. Os for
 ### Componentes
 
 #### 1. **FormHeader** (`components/FormHeader.tsx`)
+
 Cabeçalho profissional dos formulários.
 
 ```tsx
@@ -27,6 +28,7 @@ Cabeçalho profissional dos formulários.
 ```
 
 **Recursos:**
+
 - Logo IFCE (esquerda)
 - Brasão do Brasil (direita)
 - Título e subtítulo centralizados
@@ -34,22 +36,22 @@ Cabeçalho profissional dos formulários.
 - Estilos para impressão
 
 #### 2. **FormPDFExport** (`components/FormPDFExport.tsx`)
+
 Botão para exportar formulário como PDF.
 
 ```tsx
-<FormPDFExport
-  formId="attendance-declaration-form"
-  fileName="declaracao-participacao-extensao"
-/>
+<FormPDFExport formId="attendance-declaration-form" fileName="declaracao-participacao-extensao" />
 ```
 
 **Recursos:**
+
 - Exportação via print nativo
 - Preservação de estilos CSS
 - Feedback visual
 - Sem dependências externas
 
 #### 3. **AttendanceDeclarationForm** (`components/AttendanceDeclarationForm.tsx`)
+
 Formulário completo de declaração.
 
 ```tsx
@@ -61,6 +63,7 @@ Formulário completo de declaração.
 ```
 
 **Seções:**
+
 - Informações do declarante
 - Dados acadêmicos (discente)
 - Tipo de experiência
@@ -71,11 +74,13 @@ Formulário completo de declaração.
 ### Páginas
 
 #### **Página de Declaração** (`app/employee/declaration/page.tsx`)
+
 Página protegida para gerar declarações.
 
 **Acesso:** `/employee/declaration`
 
 **Recursos:**
+
 - Autenticação obrigatória
 - Pré-preenchimento com dados do usuário
 - Instruções de uso
@@ -96,18 +101,21 @@ Os logos estão localizados em `/public/assets/`:
 ### Estilos
 
 #### Cores
+
 - **Texto:** Preto (#000000)
 - **Bordas:** Preto (#000000)
 - **Fundo:** Branco (#FFFFFF)
 - **Destaque:** Cinza claro (#f5f5f5)
 
 #### Tipografia
+
 - **Títulos:** Bold, 16px
 - **Subtítulos:** Normal, 12px
 - **Corpo:** Normal, 12px
 - **Fonte:** Arial, sans-serif
 
 #### Tabelas
+
 - Bordas: 1px sólida preta
 - Padding: 8px
 - Collapse: Ativado
@@ -156,14 +164,9 @@ import { FormPDFExport } from '@/components/FormPDFExport'
 export function MyForm() {
   return (
     <>
-      <FormPDFExport
-        formId="my-form"
-        fileName="meu-formulario"
-      />
-      
-      <div id="my-form">
-        {/* Conteúdo do formulário */}
-      </div>
+      <FormPDFExport formId="my-form" fileName="meu-formulario" />
+
+      <div id="my-form">{/* Conteúdo do formulário */}</div>
     </>
   )
 }
@@ -174,11 +177,13 @@ export function MyForm() {
 ### Declaração de Participação
 
 #### Seção 1: Declarante
+
 - Nome do declarante
 - Tipo de documento (CPF, RG, CNPJ)
 - Número do documento
 
 #### Seção 2: Discente
+
 - Nome do aluno (pré-preenchido)
 - Curso
 - Matrícula
@@ -186,18 +191,22 @@ export function MyForm() {
 - Campus (Morada Nova - pré-preenchido)
 
 #### Seção 3: Experiência
+
 - Tipo: Extensão / Iniciação Científica / Monitoria
 
 #### Seção 4: Projeto
+
 - Nome do projeto/programa
 - Instituição responsável
 
 #### Seção 5: Atividades
+
 - Descrição das atividades
 - Data de início
 - Carga horária semanal
 
 #### Seção 6: Assinatura
+
 - Local e data
 - Espaço para assinatura
 
@@ -206,14 +215,12 @@ export function MyForm() {
 ### Adicionar Novo Formulário
 
 1. **Criar Componente**
+
 ```tsx
 export function MyForm() {
   return (
     <div id="my-form">
-      <FormHeader
-        title="Meu Formulário"
-        subtitle="Descrição"
-      />
+      <FormHeader title="Meu Formulário" subtitle="Descrição" />
       {/* Conteúdo */}
     </div>
   )
@@ -221,14 +228,13 @@ export function MyForm() {
 ```
 
 2. **Adicionar Exportação**
+
 ```tsx
-<FormPDFExport
-  formId="my-form"
-  fileName="meu-formulario"
-/>
+<FormPDFExport formId="my-form" fileName="meu-formulario" />
 ```
 
 3. **Criar Página**
+
 ```tsx
 export default function MyFormPage() {
   return <MyForm />
@@ -260,6 +266,7 @@ const styles = `
 ## 📋 Validações
 
 ### Campos Obrigatórios
+
 - Nome do declarante
 - Tipo e número de documento
 - Curso e matrícula
@@ -268,6 +275,7 @@ const styles = `
 - Data de início
 
 ### Validação de Entrada
+
 - Documentos: Formato correto
 - Datas: Formato DD/MM/YYYY
 - Horas: Número positivo
@@ -276,6 +284,7 @@ const styles = `
 ## 🖼️ Visualização
 
 ### Antes de Exportar
+
 ```
 ┌─────────────────────────────────┐
 │  [Logo IFCE]    [Título]    [Brasão] │
@@ -292,6 +301,7 @@ const styles = `
 ```
 
 ### Após Exportar (PDF)
+
 ```
 Arquivo: declaracao-participacao-extensao.pdf
 Tamanho: ~500KB
@@ -313,14 +323,17 @@ Qualidade: Alta (300 DPI)
 ### Problemas Comuns
 
 **PDF não abre após exportar**
+
 - Verificar se navegador tem bloqueador de pop-ups
 - Tentar com outro navegador
 
 **Estilos não aparecem no PDF**
+
 - Verificar se CSS está inline
 - Testar com print preview
 
 **Imagens não aparecem**
+
 - Verificar se URLs são absolutas
 - Testar com data URLs
 
@@ -353,23 +366,15 @@ export default function DeclarationPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <FormPDFExport
-        formId="declaration-form"
-        fileName="declaracao"
-      />
+      <FormPDFExport formId="declaration-form" fileName="declaracao" />
 
       <div id="declaration-form" className="bg-white p-8">
-        <FormHeader
-          title="DECLARAÇÃO"
-          subtitle="De Participação"
-        />
+        <FormHeader title="DECLARAÇÃO" subtitle="De Participação" />
 
         <table className="w-full border border-black">
           <tbody>
             <tr>
-              <td className="border border-black p-2">
-                Nome: {session?.user?.name}
-              </td>
+              <td className="border border-black p-2">Nome: {session?.user?.name}</td>
             </tr>
           </tbody>
         </table>

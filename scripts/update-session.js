@@ -10,13 +10,12 @@ async function updateUserSession() {
     const user = await prisma.user.update({
       where: { email: 'cicero.silva@ifce.edu.br' },
       data: {
-        updatedAt: new Date() // Força update para trigger session refresh
-      }
+        updatedAt: new Date(), // Força update para trigger session refresh
+      },
     })
-    
+
     console.log('✅ Sessão do usuário atualizada:', user.email)
     console.log('🔄 Faça logout e login novamente para ver as mudanças')
-    
   } catch (error) {
     console.error('❌ Erro:', error.message)
   } finally {

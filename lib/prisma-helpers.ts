@@ -1,12 +1,17 @@
 import { prisma } from '@/lib/prisma'
-import { UserWith2FA, User2FASelect, User2FAUpdate, UserWith2FAFields } from '@/types/prisma-extensions'
+import {
+  UserWith2FA,
+  User2FASelect,
+  User2FAUpdate,
+  UserWith2FAFields,
+} from '@/types/prisma-extensions'
 
 // Helper type-safe para operações de 2FA
 export const prisma2FA = {
   // Buscar usuário completo com campos de 2FA
   async findUserWith2FA(userId: string): Promise<UserWith2FA | null> {
     return prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     }) as Promise<UserWith2FA | null>
   },
 
@@ -16,8 +21,8 @@ export const prisma2FA = {
       where: { id: userId },
       select: {
         twoFactorEnabled: true,
-        twoFactorSecret: true
-      }
+        twoFactorSecret: true,
+      },
     }) as Promise<User2FASelect | null>
   },
 
@@ -29,8 +34,8 @@ export const prisma2FA = {
         id: true,
         email: true,
         twoFactorEnabled: true,
-        twoFactorSecret: true
-      }
+        twoFactorSecret: true,
+      },
     }) as Promise<UserWith2FAFields | null>
   },
 
@@ -38,7 +43,7 @@ export const prisma2FA = {
   async update2FA(userId: string, data: User2FAUpdate): Promise<UserWith2FA> {
     return prisma.user.update({
       where: { id: userId },
-      data
+      data,
     }) as Promise<UserWith2FA>
   },
 
@@ -46,7 +51,7 @@ export const prisma2FA = {
   async enable2FA(userId: string, secret: string): Promise<UserWith2FA> {
     return this.update2FA(userId, {
       twoFactorSecret: secret,
-      twoFactorEnabled: true
+      twoFactorEnabled: true,
     })
   },
 
@@ -54,7 +59,7 @@ export const prisma2FA = {
   async disable2FA(userId: string): Promise<UserWith2FA> {
     return this.update2FA(userId, {
       twoFactorEnabled: false,
-      twoFactorSecret: null
+      twoFactorSecret: null,
     })
   },
 
@@ -62,7 +67,7 @@ export const prisma2FA = {
   async setupSecret(userId: string, secret: string): Promise<UserWith2FA> {
     return this.update2FA(userId, {
       twoFactorSecret: secret,
-      twoFactorEnabled: false
+      twoFactorEnabled: false,
     })
   },
 
@@ -76,5 +81,5 @@ export const prisma2FA = {
   async hasSecret(userId: string): Promise<boolean> {
     const user = await this.find2FAFields(userId)
     return !!user?.twoFactorSecret
-  }
+  },
 }

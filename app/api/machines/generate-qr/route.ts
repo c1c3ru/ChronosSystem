@@ -4,13 +4,16 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateSecureQR } from '@/lib/qr-security'
 
+/** TTL do payload HMAC e do QrEvent.expiresAt (segundos) — deve ser o mesmo valor em todo o fluxo */
+const ADMIN_QR_TTL_SECONDS = 300
+
 // GET /api/machines/generate-qr?machineId=xxx - Gerar QR code seguro para máquina
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -30,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Verificar se a máquina existe
     const machine = await prisma.machine.findUnique({
       where: { id: machineId },
-      select: { id: true, name: true, location: true, isActive: true }
+      select: { id: true, name: true, location: true, isActive: true },
     })
 
     if (!machine) {
@@ -41,18 +44,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Máquina inativa' }, { status: 400 })
     }
 
-    // Gerar QR code seguro
-    const qrData = generateSecureQR(machineId)
+    const qrData = generateSecureQR(machineId, ADMIN_QR_TTL_SECONDS)
+    const payload = JSON.parse(Buffer.from(qrData.payload, 'base64url').toString())
+    const expiresAt = new Date(payload.timestamp + payload.expiresIn * 1000)
 
-    // Registrar evento de geração de QR
     await prisma.qrEvent.create({
       data: {
         machineId: machineId,
         qrData: qrData.fullQR,
-        nonce: JSON.parse(Buffer.from(qrData.payload, 'base64url').toString()).nonce,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutos
-        used: false
-      }
+        nonce: payload.nonce,
+        expiresAt,
+        used: false,
+      },
     })
 
     // Log de auditoria
@@ -61,8 +64,8 @@ export async function GET(request: NextRequest) {
         userId: session.user.id,
         action: 'GENERATE_QR_CODE',
         resource: 'MACHINE',
-        details: `QR code gerado para máquina ${machine.name} (${machine.location})`
-      }
+        details: `QR code gerado para máquina ${machine.name} (${machine.location})`,
+      },
     })
 
     console.log(`🔐 [QR] QR code gerado para máquina ${machine.name}`)
@@ -73,13 +76,12 @@ export async function GET(request: NextRequest) {
       machine: {
         id: machine.id,
         name: machine.name,
-        location: machine.location
+        location: machine.location,
       },
-      expiresIn: 300, // 5 minutos
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+      expiresIn: ADMIN_QR_TTL_SECONDS,
+      expiresAt: expiresAt.toISOString(),
     })
-
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao gerar QR code:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
@@ -89,7 +91,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -109,9 +111,9 @@ export async function POST(request: NextRequest) {
     const machines = await prisma.machine.findMany({
       where: {
         id: { in: machineIds },
-        isActive: true
+        isActive: true,
       },
-      select: { id: true, name: true, location: true }
+      select: { id: true, name: true, location: true },
     })
 
     if (machines.length === 0) {
@@ -123,29 +125,30 @@ export async function POST(request: NextRequest) {
     const qrEvents = []
 
     for (const machine of machines) {
-      const qrData = generateSecureQR(machine.id)
+      const qrData = generateSecureQR(machine.id, ADMIN_QR_TTL_SECONDS)
       const payload = JSON.parse(Buffer.from(qrData.payload, 'base64url').toString())
-      
+      const expiresAt = new Date(payload.timestamp + payload.expiresIn * 1000)
+
       qrCodes.push({
         machineId: machine.id,
         machineName: machine.name,
         location: machine.location,
         qrData: qrData.fullQR,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+        expiresAt: expiresAt.toISOString(),
       })
 
       qrEvents.push({
         machineId: machine.id,
         qrData: qrData.fullQR,
         nonce: payload.nonce,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-        used: false
+        expiresAt,
+        used: false,
       })
     }
 
     // Registrar eventos em lote
     await prisma.qrEvent.createMany({
-      data: qrEvents
+      data: qrEvents,
     })
 
     // Log de auditoria
@@ -154,8 +157,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'GENERATE_QR_BATCH',
         resource: 'MACHINE',
-        details: `QR codes gerados para ${machines.length} máquinas`
-      }
+        details: `QR codes gerados para ${machines.length} máquinas`,
+      },
     })
 
     console.log(`🔐 [QR] ${qrCodes.length} QR codes gerados em lote`)
@@ -164,10 +167,9 @@ export async function POST(request: NextRequest) {
       success: true,
       qrCodes,
       count: qrCodes.length,
-      expiresIn: 300
+      expiresIn: ADMIN_QR_TTL_SECONDS,
     })
-
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao gerar QR codes em lote:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

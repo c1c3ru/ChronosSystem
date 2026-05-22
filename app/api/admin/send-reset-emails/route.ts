@@ -8,14 +8,14 @@ import { z } from 'zod'
 // Schema para validação
 const sendEmailsSchema = z.object({
   tokenIds: z.array(z.string()).min(1, 'Pelo menos um token deve ser selecionado'),
-  customMessage: z.string().optional()
+  customMessage: z.string().optional(),
 })
 
 // POST /api/admin/send-reset-emails - Enviar emails de reset
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -24,21 +24,21 @@ export async function POST(request: NextRequest) {
     const validatedData = sendEmailsSchema.parse(body)
 
     // Buscar tokens válidos
-    const tokens = await (prisma as any).passwordResetToken.findMany({
+    const tokens = await prisma.passwordResetToken.findMany({
       where: {
         id: { in: validatedData.tokenIds },
         used: false,
-        expires: { gt: new Date() }
+        expires: { gt: new Date() },
       },
       include: {
         user: {
           select: {
             id: true,
             email: true,
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     })
 
     if (tokens.length === 0) {
@@ -53,13 +53,13 @@ export async function POST(request: NextRequest) {
     for (const token of tokens) {
       try {
         const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token.token}`
-        
+
         const emailSent = await emailService.sendPasswordResetEmail({
           userName: token.user.name || 'Usuário',
           userEmail: token.user.email,
           resetUrl,
           expiresAt: token.expires,
-          reason: validatedData.customMessage
+          reason: validatedData.customMessage,
         })
 
         if (emailSent) {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           emailResults.push({
             userId: token.user.id,
             email: token.user.email,
-            status: 'success'
+            status: 'success',
           })
         } else {
           failureCount++
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
             userId: token.user.id,
             email: token.user.email,
             status: 'failed',
-            error: 'Falha no envio'
+            error: 'Falha no envio',
           })
         }
       } catch (error) {
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           userId: token.user.id,
           email: token.user.email,
           status: 'failed',
-          error: error instanceof Error ? error.message : 'Erro desconhecido'
+          error: error instanceof Error ? error.message : 'Erro desconhecido',
         })
       }
     }
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'SEND_RESET_EMAILS',
         resource: 'PASSWORD_RESET_EMAIL',
-        details: `Emails enviados: ${successCount} sucessos, ${failureCount} falhas. Tokens: ${validatedData.tokenIds.join(', ')}`
-      }
+        details: `Emails enviados: ${successCount} sucessos, ${failureCount} falhas. Tokens: ${validatedData.tokenIds.join(', ')}`,
+      },
     })
 
     return NextResponse.json({
@@ -106,16 +106,18 @@ export async function POST(request: NextRequest) {
         total: tokens.length,
         success: successCount,
         failed: failureCount,
-        details: emailResults
-      }
+        details: emailResults,
+      },
     })
-
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao enviar emails de reset:', error)
@@ -127,7 +129,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -139,7 +141,7 @@ export async function GET(request: NextRequest) {
     const emailLogs = await prisma.auditLog.findMany({
       where: {
         action: 'SEND_RESET_EMAILS',
-        timestamp: { gte: thirtyDaysAgo }
+        timestamp: { gte: thirtyDaysAgo },
       },
       orderBy: { timestamp: 'desc' },
       take: 50,
@@ -147,31 +149,40 @@ export async function GET(request: NextRequest) {
         user: {
           select: {
             name: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     })
+
+    interface AuditLogWithUser {
+      id: string
+      timestamp: Date
+      details: string | null
+      user: {
+        name: string | null
+        email: string
+      } | null
+    }
 
     // Estatísticas
     const stats = {
       totalEmailsSent: emailLogs.length,
-      last24Hours: emailLogs.filter((log: any) => 
-        log.timestamp >= new Date(Date.now() - 24 * 60 * 60 * 1000)
+      last24Hours: (emailLogs as AuditLogWithUser[]).filter(
+        (log) => log.timestamp >= new Date(Date.now() - 24 * 60 * 60 * 1000)
       ).length,
-      last7Days: emailLogs.filter((log: any) => 
-        log.timestamp >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      last7Days: (emailLogs as AuditLogWithUser[]).filter(
+        (log) => log.timestamp >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       ).length,
-      recentLogs: emailLogs.slice(0, 10).map((log: any) => ({
+      recentLogs: (emailLogs as AuditLogWithUser[]).slice(0, 10).map((log) => ({
         id: log.id,
         timestamp: log.timestamp,
         details: log.details,
-        sentBy: log.user?.name || 'Sistema'
-      }))
+        sentBy: log.user?.name || 'Sistema',
+      })),
     }
 
     return NextResponse.json(stats)
-
   } catch (error) {
     console.error('Erro ao obter estatísticas de email:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

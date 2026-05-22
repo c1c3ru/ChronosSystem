@@ -11,7 +11,7 @@ export function Loading({ size = 'md', className, text = 'Carregando...' }: Load
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-8 w-8',
-    lg: 'h-12 w-12'
+    lg: 'h-12 w-12',
   }
 
   return (
@@ -28,9 +28,7 @@ export function Loading({ size = 'md', className, text = 'Carregando...' }: Load
         )}
         aria-hidden="true"
       />
-      {text && (
-        <p className="text-sm text-muted-foreground animate-pulse">{text}</p>
-      )}
+      {text && <p className="text-sm text-muted-foreground animate-pulse">{text}</p>}
       <span className="sr-only">{text}</span>
     </div>
   )
@@ -44,9 +42,17 @@ export function LoadingScreen({ text = 'Carregando...' }: { text?: string }) {
   )
 }
 
-export function LoadingButton({ children, loading, ...props }: any) {
+export function LoadingButton({
+  children,
+  loading,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
   return (
-    <button {...props} disabled={loading || props.disabled} aria-busy={loading}>
+    <button
+      {...props}
+      disabled={loading || props.disabled}
+      {...(loading ? { 'aria-busy': 'true' } : { 'aria-busy': 'false' })}
+    >
       {loading && (
         <div
           className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"

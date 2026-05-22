@@ -13,6 +13,7 @@ Acesse: **GitHub Repository → Settings → Secrets and variables → Actions**
 ### **Secrets Obrigatórios:**
 
 #### 1. **VERCEL_TOKEN**
+
 ```bash
 # Obter em: https://vercel.com/account/tokens
 # Criar novo token com escopo "Full Account"
@@ -20,6 +21,7 @@ VERCEL_TOKEN=seu_token_aqui
 ```
 
 #### 2. **VERCEL_ORG_ID**
+
 ```bash
 # Encontrar em: .vercel/project.json (após vercel link)
 # Ou no dashboard do Vercel → Settings → General
@@ -27,13 +29,15 @@ VERCEL_ORG_ID=team_ge7p7mFdCYM0IeLheUarDt1M
 ```
 
 #### 3. **VERCEL_PROJECT_ID**
+
 ```bash
 # Encontrar em: .vercel/project.json (após vercel link)
-# Ou no dashboard do Vercel → Settings → General  
+# Ou no dashboard do Vercel → Settings → General
 VERCEL_PROJECT_ID=prj_kUDaw1Z8oPHJShwXQk1bbwNCuNP6
 ```
 
 #### 4. **DATABASE_URL**
+
 ```bash
 # URL do banco PostgreSQL para produção
 DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
@@ -70,6 +74,7 @@ NEXT_TELEMETRY_DISABLED=1
 ## 🔄 **Como Funciona o Deploy**
 
 ### **Deploy Automático (Push para main):**
+
 1. **Push para branch main** → Trigger automático
 2. **GitHub Actions** executa o workflow
 3. **Build do projeto** com Prisma e dependências
@@ -77,6 +82,7 @@ NEXT_TELEMETRY_DISABLED=1
 5. **Migração do banco** (se necessário)
 
 ### **Deploy de Preview (Pull Request):**
+
 1. **Abrir PR** → Deploy de preview automático
 2. **URL de preview** comentada no PR
 3. **Testes** na URL temporária
@@ -92,12 +98,15 @@ NEXT_TELEMETRY_DISABLED=1
 ## 🔍 **Verificar Deploy**
 
 ### **Status do Workflow:**
+
 - GitHub → Actions → Deploy to Vercel
 
 ### **Logs do Vercel:**
+
 - Vercel Dashboard → Deployments → Ver logs
 
 ### **Testar Funcionalidades:**
+
 - ✅ Login Google
 - ✅ Completar perfil
 - ✅ Registro de ponto
@@ -107,6 +116,7 @@ NEXT_TELEMETRY_DISABLED=1
 ## 🚨 **Troubleshooting**
 
 ### **Erro de Build:**
+
 ```bash
 # Verificar dependências
 npm ci
@@ -115,12 +125,14 @@ npm run build
 ```
 
 ### **Erro de Database:**
+
 ```bash
 # Verificar conexão
 npx prisma db push
 ```
 
 ### **Erro de OAuth:**
+
 ```bash
 # Verificar URLs no Google Cloud Console:
 # https://chronos-system.vercel.app/api/auth/callback/google

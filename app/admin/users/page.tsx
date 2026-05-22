@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Building
+  Building,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -58,38 +58,51 @@ export default function UsersPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load users data
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
-      loadUsers()
-    }
-  }, [session])
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/users')
 
       if (response.ok) {
         const data = await response.json()
-        setUsers(data.users || [])
+        // O cache da API pode retornar um array diretamente em vez de um objeto com a propriedade users
+        if (Array.isArray(data)) {
+          setUsers(data)
+        } else {
+          setUsers(data.users || [])
+        }
+      } else {
+        toast.error('Falha ao carregar usuários. Verifique a conexão com o servidor.')
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error)
+      toast.error('Erro de conexão ao buscar usuários.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Load users data
+  useEffect(() => {
+    if (session && ['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
+      loadUsers()
+    }
+  }, [session, loadUsers])
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o usuário "${userName}"?\n\nEsta ação não pode ser desfeita.`)) return
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir o usuário "${userName}"?\n\nEsta ação não pode ser desfeita.`
+      )
+    )
+      return
 
     try {
       setDeleting(userId)
       toast.loading('Excluindo usuário...', { id: 'delete-user' })
 
       const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
@@ -112,9 +125,16 @@ export default function UsersPage() {
     toast.success('Lista de usuários atualizada!')
   }
 
-  const filteredUsers = (users || []).filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = (users || []).filter((user) => {
+    const search = searchTerm.trim().toLowerCase()
+    const name = user.name || ''
+    const email = user.email || ''
+    
+    const matchesSearch =
+      search === '' ||
+      name.toLowerCase().includes(search) ||
+      email.toLowerCase().includes(search)
+      
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
   })
@@ -139,21 +159,21 @@ export default function UsersPage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
       {/* Header */}
       <div className="bg-neutral-800/50 border-b border-neutral-700">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button asChild variant="ghost" size="sm">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <Button asChild variant="ghost" size="sm" className="self-start sm:self-auto">
                 <Link href="/admin">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Voltar ao Dashboard
+                  Voltar
                 </Link>
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Gerenciar Usuários</h1>
-                <p className="text-neutral-400">Administre usuários do sistema</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">Gerenciar Usuários</h1>
+                <p className="text-sm sm:text-base text-neutral-400">Administre usuários do sistema</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 self-start sm:self-auto">
               <Button variant="ghost" onClick={handleRefresh} title="Atualizar lista">
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -169,14 +189,16 @@ export default function UsersPage() {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-full overflow-hidden">
         {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
+        <Card className="mb-6 w-full">
+          <CardContent className="p-4 sm:p-6 w-full">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <label htmlFor="search-users" className="sr-only">Buscar usuários</label>
+                  <label htmlFor="search-users" className="sr-only">
+                    Buscar usuários
+                  </label>
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
                     id="search-users"
@@ -188,12 +210,14 @@ export default function UsersPage() {
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="role-filter" className="sr-only">Filtrar por papel</label>
-                <Filter className="h-4 w-4 text-neutral-400" />
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <label htmlFor="role-filter" className="sr-only">
+                  Filtrar por papel
+                </label>
+                <Filter className="h-4 w-4 text-neutral-400 shrink-0" />
                 <select
                   id="role-filter"
-                  className="input"
+                  className="input w-full md:w-auto"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                   title="Filtrar por papel"
@@ -209,69 +233,74 @@ export default function UsersPage() {
         </Card>
 
         {/* Users List */}
-        <div className="grid gap-4">
+        <div className="grid gap-4 w-full">
           {filteredUsers.map((user) => (
-            <Card key={user.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                      <Users className="h-6 w-6 text-primary" />
+            <Card key={user.id} className="w-full overflow-hidden">
+              <CardContent className="p-4 sm:p-6 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+                  <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 flex-1 w-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Users className="h-5 w-5 sm:h-6 w-6 text-primary" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-white">{user.name}</h3>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
-                          user.role === 'SUPERVISOR' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-blue-500/20 text-blue-400'
-                          }`}>
+                    <div className="flex-1 min-w-0 w-full">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-white break-words min-w-0">{user.name}</h3>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
+                            user.role === 'ADMIN'
+                              ? 'bg-red-500/20 text-red-400'
+                              : user.role === 'SUPERVISOR'
+                                ? 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-blue-500/20 text-blue-400'
+                          }`}
+                        >
                           {user.role}
                         </span>
                         {user.profileComplete ? (
-                          <CheckCircle className="h-4 w-4 text-green-400" />
+                          <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
                         ) : (
-                          <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                          <AlertTriangle className="h-4 w-4 text-yellow-400 shrink-0" />
                         )}
                       </div>
 
-                      <p className="text-neutral-400 text-sm mb-2">{user.email}</p>
+                      <p className="text-neutral-400 text-sm mb-2 break-all">{user.email}</p>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-xs mt-3 w-full">
                         {user.siapeNumber && (
-                          <div>
-                            <span className="text-neutral-500">SIAPE:</span>
-                            <p className="text-white font-medium">{user.siapeNumber}</p>
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">SIAPE:</span>
+                            <p className="text-white font-medium break-all">{user.siapeNumber}</p>
                           </div>
                         )}
                         {user.department && (
-                          <div>
-                            <span className="text-neutral-500">Departamento:</span>
-                            <p className="text-white font-medium">{user.department}</p>
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">Departamento:</span>
+                            <p className="text-white font-medium break-words">{user.department}</p>
                           </div>
                         )}
                         {user.contractType && (
-                          <div>
-                            <span className="text-neutral-500">Contrato:</span>
-                            <p className="text-white font-medium">{user.contractType}</p>
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">Contrato:</span>
+                            <p className="text-white font-medium break-words">{user.contractType}</p>
                           </div>
                         )}
                         {user.weeklyHours && (
-                          <div>
-                            <span className="text-neutral-500">Carga Horária:</span>
-                            <p className="text-white font-medium">{user.weeklyHours}h/semana</p>
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">Carga Horária:</span>
+                            <p className="text-white font-medium truncate">{user.weeklyHours}h/semana</p>
                           </div>
                         )}
                         {user.shiftStartTime && user.shiftEndTime && (
-                          <div>
-                            <span className="text-neutral-500">Horário:</span>
-                            <p className="text-white font-medium">
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">Horário:</span>
+                            <p className="text-white font-medium truncate">
                               {user.shiftStartTime} - {user.shiftEndTime}
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-4 mt-3 text-xs text-neutral-500">
+                      <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-neutral-500">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {user._count.attendanceRecords} registros
@@ -282,7 +311,7 @@ export default function UsersPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 shrink-0 self-end sm:self-center mt-4 sm:mt-0 pt-3 sm:pt-0 border-t border-neutral-700/50 sm:border-0 w-full sm:w-auto justify-end">
                     <Button asChild variant="ghost" size="sm" title="Visualizar">
                       <Link href={`/admin/users/${user.id}`}>
                         <Eye className="h-4 w-4" />
@@ -319,10 +348,9 @@ export default function UsersPage() {
               <p className="text-neutral-400 mb-4">
                 {searchTerm || roleFilter !== 'ALL'
                   ? 'Tente ajustar os filtros de busca'
-                  : 'Comece criando o primeiro usuário'
-                }
+                  : 'Comece criando o primeiro usuário'}
               </p>
-              {(!searchTerm && roleFilter === 'ALL') && (
+              {!searchTerm && roleFilter === 'ALL' && (
                 <Button asChild>
                   <Link href="/admin/users/new">
                     <UserPlus className="h-4 w-4 mr-2" />

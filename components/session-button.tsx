@@ -32,13 +32,11 @@ export function SessionButton() {
         <span className="text-white text-sm font-medium">
           {session.user.name || session.user.email}
         </span>
-        <span className="text-slate-400 text-xs ml-2">
-          ({session.user.role})
-        </span>
+        <span className="text-slate-400 text-xs ml-2">({session.user.role})</span>
       </div>
-      <Button 
-        variant="ghost" 
-        size="sm" 
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleCompleteLogout}
         className="bg-slate-800/80 backdrop-blur-sm border border-slate-700 hover:bg-slate-700/80"
       >

@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
         role: true,
         profileComplete: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     })
 
     if (existingUser) {
@@ -35,20 +35,19 @@ export async function GET(request: NextRequest) {
           role: existingUser.role,
           profileComplete: existingUser.profileComplete,
           createdAt: existingUser.createdAt,
-          updatedAt: existingUser.updatedAt
+          updatedAt: existingUser.updatedAt,
         },
-        message: existingUser.profileComplete 
+        message: existingUser.profileComplete
           ? 'Usuário já cadastrado e com perfil completo'
-          : 'Usuário já cadastrado mas precisa completar o perfil'
+          : 'Usuário já cadastrado mas precisa completar o perfil',
       })
     }
 
     return NextResponse.json({
       exists: false,
-      message: 'Usuário não encontrado'
+      message: 'Usuário não encontrado',
     })
-
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao verificar usuário:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

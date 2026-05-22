@@ -7,11 +7,13 @@
 **Status:** ✅ **IGNORAR - Falsos Positivos**
 
 #### **Por que aparecem?**
+
 - O IDE YAML não reconhece o contexto específico do GitHub Actions
 - As variáveis `${{ secrets.VARIABLE_NAME }}` são válidas no GitHub Actions
 - O linter YAML genérico não conhece o schema do GitHub Actions
 
 #### **Exemplos de warnings que são normais:**
+
 ```yaml
 # ⚠️ IDE mostra warning, mas é VÁLIDO no GitHub Actions
 VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -20,11 +22,13 @@ DATABASE_URL: ${{ secrets.DATABASE_URL }}
 ```
 
 #### **Como verificar se está funcionando:**
+
 1. ✅ O workflow executa sem erros no GitHub Actions
 2. ✅ As variáveis são resolvidas corretamente
 3. ✅ O deploy funciona normalmente
 
 #### **Não fazer:**
+
 - ❌ Não remover as variáveis de ambiente
 - ❌ Não tentar "corrigir" esses warnings
 - ❌ Não usar hardcoded values
@@ -36,11 +40,13 @@ DATABASE_URL: ${{ secrets.DATABASE_URL }}
 ### **Erros reais vs Falsos positivos**
 
 #### **✅ Ignorar (Falsos positivos):**
+
 - `Context access might be invalid: VERCEL_*`
 - `Context access might be invalid: DATABASE_URL`
 - Warnings em arquivos `.github/workflows/*.yml`
 
 #### **❌ Corrigir (Erros reais):**
+
 - `Cannot find module` em arquivos TypeScript
 - `Property does not exist` em código da aplicação
 - `Syntax error` em qualquer arquivo
@@ -51,6 +57,7 @@ DATABASE_URL: ${{ secrets.DATABASE_URL }}
 ## 🛠️ Configuração do IDE
 
 ### **VS Code**
+
 Para suprimir warnings específicos do GitHub Actions, adicione ao `settings.json`:
 
 ```json
@@ -64,6 +71,7 @@ Para suprimir warnings específicos do GitHub Actions, adicione ao `settings.jso
 ```
 
 ### **Outros IDEs**
+
 - **IntelliJ/WebStorm:** Instalar plugin "GitHub Actions"
 - **Vim/Neovim:** Usar LSP com schema do GitHub Actions
 - **Emacs:** Configurar yaml-mode com schema
@@ -72,18 +80,19 @@ Para suprimir warnings específicos do GitHub Actions, adicione ao `settings.jso
 
 ## 📊 Status dos Arquivos
 
-| Arquivo | Warnings IDE | Status Real | Ação |
-|---------|-------------|-------------|------|
+| Arquivo      | Warnings IDE      | Status Real  | Ação    |
+| ------------ | ----------------- | ------------ | ------- |
 | `deploy.yml` | ⚠️ Context access | ✅ Funcional | Ignorar |
-| `ci.yml` | ⚠️ Context access | ✅ Funcional | Ignorar |
-| `*.test.tsx` | ✅ Sem warnings | ✅ Funcional | OK |
-| `*.spec.ts` | ✅ Sem warnings | ✅ Funcional | OK |
+| `ci.yml`     | ⚠️ Context access | ✅ Funcional | Ignorar |
+| `*.test.tsx` | ✅ Sem warnings   | ✅ Funcional | OK      |
+| `*.spec.ts`  | ✅ Sem warnings   | ✅ Funcional | OK      |
 
 ---
 
 ## 🔍 Como Validar
 
 ### **1. Teste Local**
+
 ```bash
 # Validar sintaxe YAML
 yamllint .github/workflows/
@@ -93,6 +102,7 @@ act -j deploy --dry-run
 ```
 
 ### **2. Teste no GitHub**
+
 ```bash
 # Push para branch de teste
 git push origin test-branch
@@ -102,6 +112,7 @@ git push origin test-branch
 ```
 
 ### **3. Validação Online**
+
 - [GitHub Actions Schema Validator](https://rhymond.github.io/yaml-cheat-sheet/)
 - [YAML Lint Online](http://www.yamllint.com/)
 
@@ -110,16 +121,19 @@ git push origin test-branch
 ## 📝 Resumo
 
 **✅ O que está funcionando:**
+
 - Todos os workflows do GitHub Actions
 - Deploy automático para Vercel
 - Testes automatizados
 - Pipeline de CI/CD
 
 **⚠️ O que são falsos positivos:**
+
 - Warnings de "Context access might be invalid"
 - Warnings em arquivos `.github/workflows/`
 
 **🎯 Foco no que importa:**
+
 - Funcionalidade real do sistema
 - Testes passando
 - Deploy funcionando

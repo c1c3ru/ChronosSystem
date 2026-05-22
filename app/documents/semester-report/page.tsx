@@ -9,13 +9,20 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { SemesterReportDocument } from '@/components/templates/SemesterReportDocument'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency } from '@/lib/input-masks'
+import {
+  maskCPF,
+  maskRG,
+  maskCTPS,
+  maskCNPJ,
+  maskCEP,
+  maskPhone,
+  maskCurrency,
+} from '@/lib/input-masks'
 
 export default function SemesterReportPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState<any>({})
+  const [formData, setFormData] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -24,14 +31,16 @@ export default function SemesterReportPage() {
         if (formRef.current) {
           populateFormWithData(formRef.current, draft)
         }
-        setFormData(draft)
+        setFormData(draft as Record<string, string>)
         toast.success('Rascunho carregado!')
       }
     }
     loadDraft()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target
     let maskedValue = value
 
@@ -61,12 +70,12 @@ export default function SemesterReportPage() {
     const { type } = e.target
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev: any) => ({ ...prev, [name]: checked ? value : '' }))
+      setFormData((prev) => ({ ...prev, [name]: checked ? value : '' }))
     } else if (type === 'radio') {
       // Radio buttons: sempre salvar o value quando selecionado
-      setFormData((prev: any) => ({ ...prev, [name]: value }))
+      setFormData((prev) => ({ ...prev, [name]: value }))
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
@@ -75,7 +84,7 @@ export default function SemesterReportPage() {
 
     setIsSaving(true)
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
+    const data: Record<string, string> = { ...formData }
 
     await saveDraft('semester-report', data)
     toast.success('Rascunho salvo com sucesso!')
@@ -84,27 +93,31 @@ export default function SemesterReportPage() {
 
   const handleGeneratePDF = async () => {
     try {
-      if (!formRef.current) return
-
-      // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
-      const data: any = { ...formData }
-
-      // Adicionar data atual se não estiver presente (se aplicável)
-      const now = new Date()
-      if (!data.date_day) data.date_day = String(now.getDate()).padStart(2, '0')
-      if (!data.date_month) data.date_month = now.toLocaleString('pt-BR', { month: 'long' })
-      if (!data.date_year) data.date_year = String(now.getFullYear())
-
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-
-      const { generateAndDownloadPDF } = await import('@/lib/pdf-generator-react')
-
-      // Criar o documento React-PDF
-      const pdfDocument = <SemesterReportDocument data={data as any} />
-
-      // Gerar e baixar o PDF
-      await generateAndDownloadPDF(pdfDocument, 'semester-report.pdf')
-
+      const { buildSemesterReportDoc } = await import('@/lib/pdf-templates/semester-report.pdf')
+      const { generatePDF } = await import('@/lib/pdfmake-base-service')
+      const doc = await buildSemesterReportDoc({
+        student_name: formData.student_name,
+        student_course: formData.student_course,
+        student_enrollment: formData.student_enrollment,
+        supervisor_name: formData.supervisor_name,
+        advisor_name: formData.advisor_name,
+        period_start: formData.period_start,
+        period_end: formData.period_end,
+        hours_semester: formData.hours_semester,
+        hours_total: formData.hours_total,
+        activities: formData.activities,
+        comments: formData.comments,
+        criteria_1: formData.criteria_1,
+        criteria_2: formData.criteria_2,
+        criteria_3: formData.criteria_3,
+        criteria_4: formData.criteria_4,
+        criteria_5: formData.criteria_5,
+        criteria_6: formData.criteria_6,
+        criteria_7: formData.criteria_7,
+        criteria_8: formData.criteria_8,
+      })
+      await generatePDF(doc, { filename: 'relatorio-semestral.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
@@ -164,12 +177,10 @@ export default function SemesterReportPage() {
           </CardHeader>
         </Card>
 
-        <form ref={formRef} className="space-y-6" onChange={() => {
-          if (formRef.current) {
-            const data = new FormData(formRef.current)
-            setFormData(Object.fromEntries(data.entries()))
-          }
-        }}>
+        <form
+          ref={formRef}
+          className="space-y-6"
+        >
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Identificação e Período</CardTitle>
@@ -177,40 +188,117 @@ export default function SemesterReportPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome do Discente</label>
-                  <input type="text" name="student_name" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome do Discente
+                  </label>
+                  <input
+                    type="text"
+                    name="student_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome do Discente"
+                    placeholder="Nome Completo"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Curso</label>
-                  <input type="text" name="student_course" className="input w-full" onChange={handleInputChange} />
+                  <input
+                    type="text"
+                    name="student_course"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Curso"
+                    placeholder="Nome do Curso"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Matrícula</label>
-                  <input type="text" name="student_enrollment" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Matrícula
+                  </label>
+                  <input
+                    type="text"
+                    name="student_enrollment"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Matrícula"
+                    placeholder="Número da Matrícula"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Supervisor do Estágio</label>
-                  <input type="text" name="supervisor_name" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Supervisor do Estágio
+                  </label>
+                  <input
+                    type="text"
+                    name="supervisor_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Supervisor do Estágio"
+                    placeholder="Nome do Supervisor"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Docente Orientador</label>
-                  <input type="text" name="advisor_name" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Docente Orientador
+                  </label>
+                  <input
+                    type="text"
+                    name="advisor_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Docente Orientador"
+                    placeholder="Nome do Orientador"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Inicial Parcial</label>
-                  <input type="date" name="period_start" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Inicial Parcial
+                  </label>
+                  <input
+                    type="date"
+                    name="period_start"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Inicial Parcial"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Final Parcial</label>
-                  <input type="date" name="period_end" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Final Parcial
+                  </label>
+                  <input
+                    type="date"
+                    name="period_end"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Final Parcial"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Estagiada no Período (Horas)</label>
-                  <input type="number" name="hours_semester" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Estagiada no Período (Horas)
+                  </label>
+                  <input
+                    type="number"
+                    name="hours_semester"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Estagiada no Período (Horas)"
+                    placeholder="000"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Acumulada no Período (Horas)</label>
-                  <input type="number" name="hours_total" className="input w-full" onChange={handleInputChange} />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Acumulada no Período (Horas)
+                  </label>
+                  <input
+                    type="number"
+                    name="hours_total"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Acumulada no Período (Horas)"
+                    placeholder="000"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -222,8 +310,17 @@ export default function SemesterReportPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Principais Atividades</label>
-                <textarea name="activities" rows={8} className="input w-full" onChange={handleInputChange}></textarea>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Principais Atividades
+                </label>
+                <textarea
+                  name="activities"
+                  rows={8}
+                  className="input w-full"
+                  onChange={handleInputChange}
+                  title="Principais Atividades"
+                  placeholder="Descreva as principais atividades realizadas"
+                ></textarea>
               </div>
             </CardContent>
           </Card>
@@ -231,7 +328,9 @@ export default function SemesterReportPage() {
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Avaliação do Discente</CardTitle>
-              <p className="text-sm text-neutral-400">Atribua valores de 1 (Insuficiente) a 4 (Muito Satisfatório)</p>
+              <p className="text-sm text-neutral-400">
+                Atribua valores de 1 (Insuficiente) a 4 (Muito Satisfatório)
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="overflow-x-auto">
@@ -251,6 +350,7 @@ export default function SemesterReportPage() {
                             name={criteria.key}
                             className="bg-neutral-800 border-none rounded px-2 py-1 text-sm w-20 text-center"
                             onChange={handleInputChange}
+                            title={`Avaliação: ${criteria.label}`}
                           >
                             <option value="">-</option>
                             <option value="1">1</option>
@@ -273,8 +373,17 @@ export default function SemesterReportPage() {
             </CardHeader>
             <CardContent>
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Comentários e Sugestões</label>
-                <textarea name="comments" rows={5} className="input w-full" onChange={handleInputChange}></textarea>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Comentários e Sugestões
+                </label>
+                <textarea
+                  name="comments"
+                  rows={5}
+                  className="input w-full"
+                  onChange={handleInputChange}
+                  title="Comentários e Sugestões"
+                  placeholder="Observações adicionais, comentários e sugestões"
+                ></textarea>
               </div>
             </CardContent>
           </Card>

@@ -3,11 +3,13 @@
 ## 📚 **BIBLIOTECAS ANALISADAS:**
 
 ### **1️⃣ jsQR (NOSSA ESCOLHA ATUAL)**
+
 ```bash
 npm install jsqr
 ```
 
 **Prós:**
+
 - ✅ Biblioteca pura JavaScript
 - ✅ Sem dependências externas
 - ✅ Funciona com Canvas API
@@ -16,12 +18,14 @@ npm install jsqr
 - ✅ Tamanho pequeno (~50KB)
 
 **Contras:**
+
 - ⚠️ Requer processamento manual do Canvas
 - ⚠️ Não tem UI própria
 
 **Nossa Implementação:**
+
 ```javascript
-import('jsqr').then(jsQR => {
+import('jsqr').then((jsQR) => {
   const code = jsQR(imageData.data, width, height)
   if (code) {
     onScan(code.data)
@@ -32,23 +36,27 @@ import('jsqr').then(jsQR => {
 ---
 
 ### **2️⃣ ZXing.js**
+
 ```bash
 npm install @zxing/library
 ```
 
 **Prós:**
+
 - ✅ Baseada na biblioteca Java ZXing (muito madura)
 - ✅ Suporte a múltiplos formatos (QR, Code128, etc.)
 - ✅ Boa precisão de detecção
 - ✅ Documentação extensa
 
 **Contras:**
+
 - ❌ Biblioteca pesada (~200KB+)
 - ❌ Complexidade desnecessária para só QR
 - ❌ Mais lenta que jsQR
 - ❌ Configuração mais complexa
 
 **Exemplo de Uso:**
+
 ```javascript
 import { BrowserQRCodeReader } from '@zxing/library'
 
@@ -63,22 +71,26 @@ codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, err) => {
 ---
 
 ### **3️⃣ InstaScan**
+
 ```bash
 npm install instascan
 ```
 
 **Prós:**
+
 - ✅ Interface simples e direta
 - ✅ Configuração fácil
 - ✅ Boa para prototipagem rápida
 
 **Contras:**
+
 - ❌ Biblioteca descontinuada (última atualização 2018)
 - ❌ Não funciona com navegadores modernos
 - ❌ Problemas de segurança não corrigidos
 - ❌ Dependências desatualizadas
 
 **Exemplo (NÃO RECOMENDADO):**
+
 ```javascript
 // ⚠️ BIBLIOTECA DESCONTINUADA
 let scanner = new Instascan.Scanner({ video: document.getElementById('preview') })
@@ -90,11 +102,13 @@ scanner.addListener('scan', function (content) {
 ---
 
 ### **4️⃣ html5-qrcode (ANTERIOR - REMOVIDA)**
+
 ```bash
 npm install html5-qrcode
 ```
 
 **Por que removemos:**
+
 - ❌ Falhas intermitentes na inicialização
 - ❌ Problemas com permissões de câmera
 - ❌ Configuração complexa e frágil
@@ -106,6 +120,7 @@ npm install html5-qrcode
 ### **5️⃣ BarcodeDetector API (NATIVO - NOSSA ESCOLHA PRIMÁRIA)**
 
 **Prós:**
+
 - ✅ API nativa do navegador
 - ✅ Performance máxima
 - ✅ Zero dependências
@@ -113,10 +128,12 @@ npm install html5-qrcode
 - ✅ Baixo consumo de recursos
 
 **Contras:**
+
 - ⚠️ Suporte limitado (Chrome, Edge, Opera)
 - ⚠️ Não funciona em Firefox/Safari
 
 **Nossa Implementação:**
+
 ```javascript
 if ('BarcodeDetector' in window) {
   const detector = new BarcodeDetector({ formats: ['qr_code'] })
@@ -132,6 +149,7 @@ if ('BarcodeDetector' in window) {
 ## 🎯 **NOSSA ESTRATÉGIA HÍBRIDA:**
 
 ### **Abordagem Inteligente:**
+
 ```javascript
 // 1. Tentar API nativa primeiro (melhor performance)
 if ('BarcodeDetector' in window) {
@@ -142,6 +160,7 @@ if ('BarcodeDetector' in window) {
 ```
 
 ### **Vantagens da Estratégia:**
+
 - ✅ **Melhor performance** onde disponível
 - ✅ **Compatibilidade total** com fallback
 - ✅ **Código limpo** e maintível
@@ -152,19 +171,20 @@ if ('BarcodeDetector' in window) {
 
 ## 📊 **COMPARAÇÃO DE PERFORMANCE:**
 
-| Biblioteca | Tamanho | Performance | Compatibilidade | Manutenção |
-|------------|---------|-------------|------------------|------------|
-| **BarcodeDetector** | 0KB | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **jsQR** | 50KB | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **ZXing.js** | 200KB+ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **InstaScan** | 100KB | ⭐⭐ | ⭐ | ❌ |
-| **html5-qrcode** | 150KB | ⭐⭐ | ⭐⭐ | ⭐ |
+| Biblioteca          | Tamanho | Performance | Compatibilidade | Manutenção |
+| ------------------- | ------- | ----------- | --------------- | ---------- |
+| **BarcodeDetector** | 0KB     | ⭐⭐⭐⭐⭐  | ⭐⭐⭐          | ⭐⭐⭐⭐⭐ |
+| **jsQR**            | 50KB    | ⭐⭐⭐⭐    | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐   |
+| **ZXing.js**        | 200KB+  | ⭐⭐⭐      | ⭐⭐⭐⭐        | ⭐⭐⭐     |
+| **InstaScan**       | 100KB   | ⭐⭐        | ⭐              | ❌         |
+| **html5-qrcode**    | 150KB   | ⭐⭐        | ⭐⭐            | ⭐         |
 
 ---
 
 ## 🚀 **RECOMENDAÇÃO FINAL:**
 
 ### **Nossa Implementação Atual é IDEAL:**
+
 1. **BarcodeDetector** para navegadores modernos
 2. **jsQR** como fallback universal
 3. **Controle total** da interface
@@ -172,6 +192,7 @@ if ('BarcodeDetector' in window) {
 5. **Compatibilidade máxima**
 
 ### **Por que NÃO usar outras:**
+
 - **ZXing.js**: Muito pesada para só QR
 - **InstaScan**: Descontinuada e insegura
 - **html5-qrcode**: Problemática e instável

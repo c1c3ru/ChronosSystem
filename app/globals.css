@@ -313,12 +313,17 @@
 /* === UTILITY STYLES === */
 @layer utilities {
   .text-balance {
-    text-wrap: balance;
+    /* text-wrap is a newer property, used as progressive enhancement */
+    @supports (text-wrap: balance) {
+      text-wrap: balance;
+    }
   }
 
   .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    -ms-overflow-style: none; /* IE and Edge */
+    @supports (scrollbar-width: none) {
+      scrollbar-width: none; /* Firefox */
+    }
   }
 
   .scrollbar-hide::-webkit-scrollbar {

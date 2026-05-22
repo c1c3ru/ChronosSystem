@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Filter,
   Search,
-  Download
+  Download,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -59,7 +59,7 @@ export default function AttendanceHistoryPage() {
     total: 0,
     totalPages: 0,
     hasNextPage: false,
-    hasPrevPage: false
+    hasPrevPage: false,
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState('ALL')
@@ -69,14 +69,7 @@ export default function AttendanceHistoryPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  // Load records
-  useEffect(() => {
-    if (session) {
-      loadRecords(1)
-    }
-  }, [session])
-
-  const loadRecords = async (page: number) => {
+  const loadRecords = useCallback(async (page: number) => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -98,7 +91,14 @@ export default function AttendanceHistoryPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [typeFilter, dateFrom, dateTo])
+
+  // Load records
+  useEffect(() => {
+    if (session) {
+      loadRecords(1)
+    }
+  }, [session, loadRecords])
 
   const handleFilterChange = () => {
     loadRecords(1)
@@ -165,7 +165,9 @@ export default function AttendanceHistoryPage() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-white">Histórico de Ponto</h1>
-                <p className="text-neutral-400">Visualize todos os seus registros de entrada e saída</p>
+                <p className="text-neutral-400">
+                  Visualize todos os seus registros de entrada e saída
+                </p>
               </div>
             </div>
           </div>
@@ -186,7 +188,10 @@ export default function AttendanceHistoryPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Type Filter */}
                 <div>
-                  <label htmlFor="attendance-type-filter" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="attendance-type-filter"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Tipo de Registro
                   </label>
                   <select
@@ -203,7 +208,10 @@ export default function AttendanceHistoryPage() {
 
                 {/* Date From */}
                 <div>
-                  <label htmlFor="attendance-date-from" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="attendance-date-from"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Data Inicial
                   </label>
                   <input
@@ -217,7 +225,10 @@ export default function AttendanceHistoryPage() {
 
                 {/* Date To */}
                 <div>
-                  <label htmlFor="attendance-date-to" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="attendance-date-to"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Data Final
                   </label>
                   <input
@@ -316,12 +327,12 @@ export default function AttendanceHistoryPage() {
                         <Calendar className="h-5 w-5 text-primary" />
                         <div>
                           <p className="text-white font-semibold">{day.date}</p>
-                          <p className="text-neutral-400 text-sm">
-                            Total: {day.totalHours}
-                          </p>
+                          <p className="text-neutral-400 text-sm">Total: {day.totalHours}</p>
                         </div>
                       </div>
-                      <span className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(day.status)}`}>
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(day.status)}`}
+                      >
                         {day.status}
                       </span>
                     </div>
@@ -346,19 +357,19 @@ export default function AttendanceHistoryPage() {
                                   </div>
                                   <div>
                                     <p className="text-white font-medium">
-                                    {(() => {
-                                      try {
-                                        const date = new Date(entry.timestamp)
-                                        if (Number.isNaN(date.getTime())) return '--:--'
-                                        return date.toLocaleTimeString('pt-BR', {
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
-                                      } catch {
-                                        return '--:--'
-                                      }
-                                    })()}
-                                  </p>
+                                      {(() => {
+                                        try {
+                                          const date = new Date(entry.timestamp)
+                                          if (Number.isNaN(date.getTime())) return '--:--'
+                                          return date.toLocaleTimeString('pt-BR', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
+                                        } catch {
+                                          return '--:--'
+                                        }
+                                      })()}
+                                    </p>
                                     <p className="text-neutral-400 text-xs flex items-center">
                                       <MapPin className="h-3 w-3 mr-1" />
                                       {entry.location}
@@ -392,19 +403,19 @@ export default function AttendanceHistoryPage() {
                                   </div>
                                   <div>
                                     <p className="text-white font-medium">
-                                    {(() => {
-                                      try {
-                                        const date = new Date(exit.timestamp)
-                                        if (Number.isNaN(date.getTime())) return '--:--'
-                                        return date.toLocaleTimeString('pt-BR', {
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                        })
-                                      } catch {
-                                        return '--:--'
-                                      }
-                                    })()}
-                                  </p>
+                                      {(() => {
+                                        try {
+                                          const date = new Date(exit.timestamp)
+                                          if (Number.isNaN(date.getTime())) return '--:--'
+                                          return date.toLocaleTimeString('pt-BR', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                          })
+                                        } catch {
+                                          return '--:--'
+                                        }
+                                      })()}
+                                    </p>
                                     <p className="text-neutral-400 text-xs flex items-center">
                                       <MapPin className="h-3 w-3 mr-1" />
                                       {exit.location}
@@ -456,7 +467,7 @@ export default function AttendanceHistoryPage() {
 
             <div className="flex items-center space-x-2">
               {Array.from({ length: Math.min(5, pagination.totalPages) }).map((_, i) => {
-                let pageNum = pagination.page - 2 + i
+                const pageNum = pagination.page - 2 + i
                 if (pageNum < 1 || pageNum > pagination.totalPages) return null
 
                 return (

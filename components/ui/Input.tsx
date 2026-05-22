@@ -16,6 +16,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const errorId = error && helperText ? `${inputId}-error` : undefined
     const describedBy = error ? errorId : helperTextId
 
+    const inputProps = {
+      ...props,
+      id: inputId,
+      type: type,
+      className: cn(
+        'input',
+        error && 'border-destructive focus-visible:ring-destructive',
+        className
+      ),
+      ref: ref,
+      'aria-invalid': (error ? 'true' : 'false') as 'true' | 'false',
+      'aria-describedby': describedBy,
+      'aria-required': (required ? 'true' : 'false') as boolean | 'true' | 'false',
+    }
+
     return (
       <div className="w-full">
         {label && (
@@ -27,32 +42,30 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
           >
             {label}
-            {required && <span className="text-destructive ml-1" aria-label="obrigatório">*</span>}
+            {required && (
+              <span className="text-destructive ml-1" aria-label="obrigatório">
+                *
+              </span>
+            )}
           </label>
         )}
-        <input
-          id={inputId}
-          type={type}
-          className={cn(
-            'input',
-            error && 'border-destructive focus-visible:ring-destructive',
-            className
-          )}
-          ref={ref}
-          aria-invalid={error}
-          aria-describedby={describedBy}
-          aria-required={required}
-          {...props}
-        />
-        {helperText && (
+        <input {...inputProps} />
+        {helperText && error && (
           <p
-            id={error ? errorId : helperTextId}
-            className={cn(
-              'mt-1 text-xs',
-              error ? 'text-destructive' : 'text-muted-foreground'
-            )}
-            role={error ? 'alert' : 'status'}
-            aria-live={error ? 'assertive' : 'polite'}
+            id={errorId}
+            className={cn('mt-1 text-xs text-destructive')}
+            role="alert"
+            aria-live="assertive"
+          >
+            {helperText}
+          </p>
+        )}
+        {helperText && !error && (
+          <p
+            id={helperTextId}
+            className={cn('mt-1 text-xs text-muted-foreground')}
+            role="status"
+            aria-live="polite"
           >
             {helperText}
           </p>

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Verificar se a máquina existe
     const machine = await prisma.machine.findUnique({
-      where: { id: machineId }
+      where: { id: machineId },
     })
 
     if (!machine) {
@@ -34,16 +34,16 @@ export async function POST(request: NextRequest) {
     // Gerar nonce único
     const nonce = crypto.randomBytes(16).toString('hex')
     const timestamp = Date.now()
-    
+
     // Criar dados do QR (válido por 5 minutos)
     const expiresAt = new Date(timestamp + 5 * 60 * 1000)
-    
+
     // Dados que serão codificados no QR
     const qrData = JSON.stringify({
       machineId,
       nonce,
       timestamp,
-      expires: expiresAt.getTime()
+      expires: expiresAt.getTime(),
     })
 
     // Salvar evento QR no banco
@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
         qrData,
         nonce,
         expiresAt,
-        used: false
-      }
+        used: false,
+      },
     })
 
     // Log de auditoria
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: 'GENERATE_QR',
         resource: 'QR_CODE',
-        details: `QR code gerado para máquina ${machine.name}`
-      }
+        details: `QR code gerado para máquina ${machine.name}`,
+      },
     })
 
     return NextResponse.json({
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       machineName: machine.name,
       location: machine.location,
       expiresAt: expiresAt.toISOString(),
-      validFor: 300 // 5 minutos em segundos
+      validFor: 300, // 5 minutos em segundos
     })
   } catch (error) {
     console.error('Erro ao gerar QR code:', error)

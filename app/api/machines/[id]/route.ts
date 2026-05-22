@@ -4,29 +4,26 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 const updateMachineSchema = z.object({
   name: z.string().min(2).optional(),
   location: z.string().min(2).optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
 })
 
 // GET /api/machines/[id] - Buscar máquina por ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     const machine = await prisma.machine.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -37,10 +34,10 @@ export async function GET(
         _count: {
           select: {
             attendanceRecords: true,
-            qrEvents: true
-          }
-        }
-      }
+            qrEvents: true,
+          },
+        },
+      },
     })
 
     if (!machine) {
@@ -48,20 +45,18 @@ export async function GET(
     }
 
     return NextResponse.json(machine)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar máquina:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
 // PATCH /api/machines/[id] - Atualizar máquina
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
@@ -71,7 +66,7 @@ export async function PATCH(
 
     // Verificar se máquina existe
     const existingMachine = await prisma.machine.findUnique({
-      where: { id: params.id }
+      where: { id },
     })
 
     if (!existingMachine) {
@@ -79,15 +74,15 @@ export async function PATCH(
     }
 
     const machine = await prisma.machine.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
       select: {
         id: true,
         name: true,
         location: true,
         isActive: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     })
 
     // Log de auditoria
@@ -96,17 +91,20 @@ export async function PATCH(
         userId: session.user.id,
         action: 'UPDATE_MACHINE',
         resource: 'MACHINE',
-        details: `Máquina atualizada: ${machine.name} - ${machine.location}`
-      }
+        details: `Máquina atualizada: ${machine.name} - ${machine.location}`,
+      },
     })
 
     return NextResponse.json(machine)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Erro ao atualizar máquina:', error)
@@ -117,26 +115,27 @@ export async function PATCH(
 // DELETE /api/machines/[id] - Deletar máquina
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const machine = await prisma.machine.findUnique({
-      where: { id: params.id },
-      select: { 
-        name: true, 
+      where: { id },
+      select: {
+        name: true,
         location: true,
         _count: {
           select: {
-            attendanceRecords: true
-          }
-        }
-      }
+            attendanceRecords: true,
+          },
+        },
+      },
     })
 
     if (!machine) {
@@ -145,15 +144,18 @@ export async function DELETE(
 
     // Verificar se há registros associados
     if (machine._count.attendanceRecords > 0) {
-      return NextResponse.json({ 
-        error: `Não é possível deletar máquina com ${machine._count.attendanceRecords} registro(s) de ponto associado(s). Desative a máquina em vez de excluir.`,
-        code: 'MACHINE_HAS_RECORDS',
-        recordCount: machine._count.attendanceRecords
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: `Não é possível deletar máquina com ${machine._count.attendanceRecords} registro(s) de ponto associado(s). Desative a máquina em vez de excluir.`,
+          code: 'MACHINE_HAS_RECORDS',
+          recordCount: machine._count.attendanceRecords,
+        },
+        { status: 400 }
+      )
     }
 
     await prisma.machine.delete({
-      where: { id: params.id }
+      where: { id },
     })
 
     // Log de auditoria
@@ -162,12 +164,12 @@ export async function DELETE(
         userId: session.user.id,
         action: 'DELETE_MACHINE',
         resource: 'MACHINE',
-        details: `Máquina deletada: ${machine.name} - ${machine.location}`
-      }
+        details: `Máquina deletada: ${machine.name} - ${machine.location}`,
+      },
     })
 
     return NextResponse.json({ message: 'Máquina deletada com sucesso' })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao deletar máquina:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }

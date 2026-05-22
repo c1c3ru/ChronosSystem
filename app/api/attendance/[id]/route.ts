@@ -3,15 +3,13 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { updateHourBalance } from '@/lib/hour-calculator'
+import { apiLogger } from '@/lib/logger'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 // GET /api/attendance/[id] - Obter detalhes de um registro
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -19,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const recordId = params.id
+    const { id: recordId } = await params
 
     const record = await prisma.attendanceRecord.findUnique({
       where: { id: recordId },
@@ -28,17 +26,17 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             id: true,
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     if (!record) {
@@ -46,15 +44,16 @@ export async function GET(
     }
 
     // Verificar permissões: admin/supervisor podem ver qualquer registro, usuário comum só seu próprio
-    const canView = ['ADMIN', 'SUPERVISOR'].includes(session.user.role) || record.userId === session.user.id
+    const canView =
+      ['ADMIN', 'SUPERVISOR'].includes(session.user.role) || record.userId === session.user.id
 
     if (!canView) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
     return NextResponse.json(record)
-  } catch (error) {
-    console.error('Erro ao buscar registro:', error)
+  } catch (error: unknown) {
+    apiLogger.error('Error fetching attendance record', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -62,7 +61,7 @@ export async function GET(
 // DELETE /api/attendance/[id] - Deletar um registro (apenas admin/supervisor)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -73,10 +72,13 @@ export async function DELETE(
 
     // Apenas admin e supervisor podem deletar
     if (!['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Não autorizado. Apenas admin/supervisor podem deletar registros.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Não autorizado. Apenas admin/supervisor podem deletar registros.' },
+        { status: 403 }
+      )
     }
 
-    const recordId = params.id
+    const { id: recordId } = await params
 
     // Verificar se o registro existe
     const record = await prisma.attendanceRecord.findUnique({
@@ -85,16 +87,16 @@ export async function DELETE(
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
 
     if (!record) {
@@ -103,15 +105,14 @@ export async function DELETE(
 
     // Deletar o registro
     await prisma.attendanceRecord.delete({
-      where: { id: recordId }
+      where: { id: recordId },
     })
-
 
     // Atualizar saldo de horas do usuário afetado
     try {
       await updateHourBalance(record.userId)
-    } catch (hourError) {
-      console.error('Erro ao atualizar saldo de horas após exclusão:', hourError)
+    } catch (hourError: unknown) {
+      apiLogger.error('Error updating hour balance after deletion', { error: hourError instanceof Error ? hourError.message : String(hourError) })
     }
 
     // Log de auditoria
@@ -120,11 +121,15 @@ export async function DELETE(
         userId: session.user.id,
         action: 'DELETE_ATTENDANCE_RECORD',
         resource: 'ATTENDANCE_RECORD',
-        details: `Registro de ${record.type} deletado - Usuário: ${record.user.name} (${record.user.email}), Máquina: ${record.machine.name}, Data: ${record.timestamp.toLocaleString('pt-BR')}`
-      }
+        details: `Registro de ${record.type} deletado - Usuário: ${record.user.name} (${record.user.email}), Máquina: ${record.machine.name}, Data: ${record.timestamp.toLocaleString('pt-BR')}`,
+      },
     })
 
-    console.log(`✅ [ATTENDANCE] Registro deletado por ${session.user.email}: ${record.type} de ${record.user.email} em ${record.timestamp.toLocaleString('pt-BR')}`)
+    apiLogger.info('Attendance record deleted', {
+      recordId: record.id,
+      type: record.type,
+      deletedBy: session.user.id,
+    })
 
     return NextResponse.json({
       success: true,
@@ -134,20 +139,17 @@ export async function DELETE(
         type: record.type,
         timestamp: record.timestamp,
         user: record.user,
-        machine: record.machine
-      }
+        machine: record.machine,
+      },
     })
-  } catch (error) {
-    console.error('Erro ao deletar registro:', error)
+  } catch (error: unknown) {
+    apiLogger.error('Error deleting attendance record', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
 // PATCH /api/attendance/[id] - Atualizar um registro (apenas admin/supervisor)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -157,15 +159,18 @@ export async function PATCH(
 
     // Apenas admin e supervisor podem atualizar
     if (!['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Não autorizado. Apenas admin/supervisor podem atualizar registros.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Não autorizado. Apenas admin/supervisor podem atualizar registros.' },
+        { status: 403 }
+      )
     }
 
-    const recordId = params.id
+    const { id: recordId } = await params
     const body = await request.json()
 
     // Verificar se o registro existe
     const record = await prisma.attendanceRecord.findUnique({
-      where: { id: recordId }
+      where: { id: recordId },
     })
 
     if (!record) {
@@ -173,7 +178,7 @@ export async function PATCH(
     }
 
     // Apenas permitir atualizar timestamp e tipo
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
 
     if (body.timestamp) {
       updateData.timestamp = new Date(body.timestamp)
@@ -195,24 +200,23 @@ export async function PATCH(
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         machine: {
           select: {
             name: true,
-            location: true
-          }
-        }
-      }
+            location: true,
+          },
+        },
+      },
     })
-
 
     // Atualizar saldo de horas do usuário afetado
     try {
       await updateHourBalance(record.userId)
-    } catch (hourError) {
-      console.error('Erro ao atualizar saldo de horas após atualização:', hourError)
+    } catch (hourError: unknown) {
+      apiLogger.error('Error updating hour balance after update', { error: hourError instanceof Error ? hourError.message : String(hourError) })
     }
 
     // Log de auditoria
@@ -221,19 +225,22 @@ export async function PATCH(
         userId: session.user.id,
         action: 'UPDATE_ATTENDANCE_RECORD',
         resource: 'ATTENDANCE_RECORD',
-        details: `Registro de ${record.type} atualizado - Usuário ID: ${record.userId}, Alterações: ${JSON.stringify(updateData)}`
-      }
+        details: `Registro de ${record.type} atualizado - Usuário ID: ${record.userId}, Alterações: ${JSON.stringify(updateData)}`,
+      },
     })
 
-    console.log(`✅ [ATTENDANCE] Registro atualizado por ${session.user.email}:`, updateData)
+    apiLogger.info('Attendance record updated', {
+      recordId: record.id,
+      updatedBy: session.user.id,
+    })
 
     return NextResponse.json({
       success: true,
       message: 'Registro atualizado com sucesso',
-      updatedRecord
+      updatedRecord,
     })
-  } catch (error) {
-    console.error('Erro ao atualizar registro:', error)
+  } catch (error: unknown) {
+    apiLogger.error('Error updating attendance record', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

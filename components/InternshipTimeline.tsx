@@ -1,15 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Calendar, Clock, Target, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { 
-  calculateInternshipProgress, 
-  getInternshipMilestones, 
-  formatDate, 
+import {
+  calculateInternshipProgress,
+  getInternshipMilestones,
+  formatDate,
   formatDuration,
-  type InternshipProgress 
+  type InternshipProgress,
 } from '@/lib/internship-calculator'
+
+interface Milestone {
+  label: string
+  hours: number
+  estimatedDate: Date
+  percentage: number
+}
 
 interface InternshipTimelineProps {
   startDate: string
@@ -18,14 +26,14 @@ interface InternshipTimelineProps {
   contractType: string
 }
 
-export default function InternshipTimeline({ 
-  startDate, 
-  weeklyHours, 
-  completedHours, 
-  contractType 
+export default function InternshipTimeline({
+  startDate,
+  weeklyHours,
+  completedHours,
+  contractType,
 }: InternshipTimelineProps) {
   const [progress, setProgress] = useState<InternshipProgress | null>(null)
-  const [milestones, setMilestones] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<Milestone[]>([])
 
   useEffect(() => {
     if (startDate && weeklyHours && contractType?.startsWith('ESTAGIO')) {
@@ -35,13 +43,13 @@ export default function InternshipTimeline({
         completedHours,
         200
       )
-      
+
       const milestonesData = getInternshipMilestones(
         new Date(startDate),
         progressData.actualEndDate || progressData.estimatedEndDate,
         200
       )
-      
+
       setProgress(progressData)
       setMilestones(milestonesData)
     }
@@ -70,15 +78,17 @@ export default function InternshipTimeline({
               {progress.progressPercentage.toFixed(1)}%
             </span>
           </div>
-          
+
           <div className="w-full bg-neutral-700 rounded-full h-3 overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-500 ${
-                progress.isOnTrack 
-                  ? 'bg-gradient-to-r from-success-500 to-primary-500' 
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(progress.progressPercentage, 100)}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              className={`h-full rounded-full ${
+                progress.isOnTrack
+                  ? 'bg-gradient-to-r from-success-500 to-primary-500'
                   : 'bg-gradient-to-r from-warning-500 to-error-500'
               }`}
-              style={{ width: `${Math.min(progress.progressPercentage, 100)}%` }}
             />
           </div>
         </div>
@@ -86,30 +96,33 @@ export default function InternshipTimeline({
         {/* Status e Alertas */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Status Atual */}
-          <div className={`p-4 rounded-lg border ${
-            progress.isOnTrack 
-              ? 'bg-success-900/20 border-success-500/30' 
-              : 'bg-warning-900/20 border-warning-500/30'
-          }`}>
+          <div
+            className={`p-4 rounded-lg border ${
+              progress.isOnTrack
+                ? 'bg-success-900/20 border-success-500/30'
+                : 'bg-warning-900/20 border-warning-500/30'
+            }`}
+          >
             <div className="flex items-center space-x-2 mb-2">
               {progress.isOnTrack ? (
                 <CheckCircle className="h-4 w-4 text-success-400" />
               ) : (
                 <AlertTriangle className="h-4 w-4 text-warning-400" />
               )}
-              <span className={`text-sm font-medium ${
-                progress.isOnTrack ? 'text-success-400' : 'text-warning-400'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  progress.isOnTrack ? 'text-success-400' : 'text-warning-400'
+                }`}
+              >
                 {progress.isOnTrack ? 'No Cronograma' : 'Atenção Necessária'}
               </span>
             </div>
-            <p className={`text-xs ${
-              progress.isOnTrack ? 'text-success-300' : 'text-warning-300'
-            }`}>
-              {progress.isOnTrack 
+            <p
+              className={`text-xs ${progress.isOnTrack ? 'text-success-300' : 'text-warning-300'}`}
+            >
+              {progress.isOnTrack
                 ? 'Você está cumprindo o cronograma previsto'
-                : `${progress.delayDays ? `Atraso de ${progress.delayDays} dias úteis` : 'Verifique sua frequência'}`
-              }
+                : `${progress.delayDays ? `Atraso de ${progress.delayDays} dias úteis` : 'Verifique sua frequência'}`}
             </p>
           </div>
 
@@ -120,10 +133,9 @@ export default function InternshipTimeline({
               <span className="text-sm font-medium text-info-400">Tempo Restante</span>
             </div>
             <p className="text-xs text-info-300">
-              {progress.daysRemaining > 0 
+              {progress.daysRemaining > 0
                 ? `${formatDuration(progress.daysRemaining)} (${progress.remainingHours}h)`
-                : 'Estágio concluído!'
-              }
+                : 'Estágio concluído!'}
             </p>
           </div>
         </div>
@@ -134,49 +146,53 @@ export default function InternshipTimeline({
             <TrendingUp className="h-4 w-4 mr-2" />
             Marcos do Estágio
           </h4>
-          
+
           <div className="space-y-3">
             {milestones.map((milestone, index) => {
               const isCompleted = progress.completedHours >= milestone.hours
-              const isCurrent = !isCompleted && (index === 0 || progress.completedHours >= milestones[index - 1]?.hours)
-              
+              const isCurrent =
+                !isCompleted &&
+                (index === 0 || progress.completedHours >= milestones[index - 1]?.hours)
+
               return (
                 <div key={milestone.percentage} className="flex items-center space-x-4">
                   {/* Indicador */}
-                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                    isCompleted 
-                      ? 'bg-success-500 border-success-500' 
-                      : isCurrent
-                        ? 'bg-primary-500 border-primary-500 animate-pulse'
-                        : 'bg-transparent border-neutral-500'
-                  }`}>
-                    {isCompleted && (
-                      <CheckCircle className="w-3 h-3 text-white m-0.5" />
-                    )}
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      isCompleted
+                        ? 'bg-success-500 border-success-500'
+                        : isCurrent
+                          ? 'bg-primary-500 border-primary-500 animate-pulse'
+                          : 'bg-transparent border-neutral-500'
+                    }`}
+                  >
+                    {isCompleted && <CheckCircle className="w-3 h-3 text-white m-0.5" />}
                   </div>
-                  
+
                   {/* Linha conectora */}
                   {index < milestones.length - 1 && (
-                    <div className={`absolute w-0.5 h-6 ml-1.5 mt-4 ${
-                      isCompleted ? 'bg-success-500' : 'bg-neutral-600'
-                    }`} />
+                    <div
+                      className={`absolute w-0.5 h-6 ml-1.5 mt-4 ${
+                        isCompleted ? 'bg-success-500' : 'bg-neutral-600'
+                      }`}
+                    />
                   )}
-                  
+
                   {/* Conteúdo */}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center">
-                      <span className={`text-sm font-medium ${
-                        isCompleted 
-                          ? 'text-success-400' 
-                          : isCurrent 
-                            ? 'text-primary-400' 
-                            : 'text-neutral-400'
-                      }`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          isCompleted
+                            ? 'text-success-400'
+                            : isCurrent
+                              ? 'text-primary-400'
+                              : 'text-neutral-400'
+                        }`}
+                      >
                         {milestone.label}
                       </span>
-                      <span className="text-xs text-neutral-500">
-                        {milestone.hours}h
-                      </span>
+                      <span className="text-xs text-neutral-500">{milestone.hours}h</span>
                     </div>
                     <p className="text-xs text-neutral-500">
                       Previsto para {formatDate(milestone.estimatedDate)}
@@ -197,7 +213,7 @@ export default function InternshipTimeline({
             </div>
             <p className="text-sm text-white">{formatDate(new Date(startDate))}</p>
           </div>
-          
+
           <div>
             <div className="flex items-center space-x-2 mb-1">
               <Calendar className="h-4 w-4 text-neutral-400" />

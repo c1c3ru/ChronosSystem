@@ -14,6 +14,7 @@ Este documento descreve os testes end-to-end (E2E) criados para o componente QR 
 ### Categorias de Teste
 
 #### 1. **Funcionalidades Principais**
+
 - ✅ Interface inicial do scanner
 - ✅ Ativação da câmera
 - ✅ Detecção de QR codes
@@ -22,16 +23,19 @@ Este documento descreve os testes end-to-end (E2E) criados para o componente QR 
 - ✅ Logs de debug
 
 #### 2. **Compatibilidade entre Navegadores**
+
 - ✅ Chrome com BarcodeDetector nativo
 - ✅ Firefox com jsQR fallback
 - ✅ Safari com jsQR fallback
 
 #### 3. **Integração com Sistema de Ponto**
+
 - ✅ Processamento de QR codes válidos
 - ✅ Tratamento de QR codes inválidos
 - ✅ Chamadas de API para registro de ponto
 
 #### 4. **Testes de Performance**
+
 - ✅ Tempo de inicialização (< 5 segundos)
 - ✅ Tempo de detecção (< 2 segundos)
 
@@ -140,7 +144,7 @@ Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
     canvas.width = 1280
     canvas.height = 720
     return canvas.captureStream()
-  }
+  },
 })
 ```
 
@@ -176,7 +180,7 @@ export const QR_TEST_DATA = {
   VALID_QR_CODE: 'EMP123456789',
   MACHINE_QR_CODE: 'MACHINE_001_VALID_QR',
   INVALID_QR_CODE: 'INVALID_CODE_123',
-  MALFORMED_QR_CODE: '###INVALID###'
+  MALFORMED_QR_CODE: '###INVALID###',
 }
 ```
 
@@ -192,7 +196,7 @@ export const QR_SELECTORS = {
   ERROR_MESSAGE: 'text=/Erro|Error/i',
   RETRY_BUTTON: 'button:has-text("Tentar Novamente")',
   CLOSE_BUTTON: 'button:has(svg), button:has-text("×")',
-  SUCCESS_MESSAGE: 'text=/Ponto registrado|Sucesso/i'
+  SUCCESS_MESSAGE: 'text=/Ponto registrado|Sucesso/i',
 }
 ```
 
@@ -215,12 +219,14 @@ npx playwright test qr-scanner --ui
 ### Captura de Screenshots
 
 Os testes automaticamente capturam screenshots em caso de falha. Os arquivos ficam em:
+
 - `test-results/`
 - `playwright-report/`
 
 ### Logs de Console
 
 Os testes capturam logs do console que contenham:
+
 - `[CAMERA]` - Logs da inicialização da câmera
 - `[QR]` - Logs da detecção de QR codes
 - `[TEST]` - Logs específicos dos testes
@@ -230,18 +236,21 @@ Os testes capturam logs do console que contenham:
 ### Problemas Comuns
 
 #### 1. **Testes falhando por timeout**
+
 ```bash
 # Aumentar timeout global
 npx playwright test --timeout=60000
 ```
 
 #### 2. **Problemas de permissão de câmera**
+
 ```typescript
 // Garantir que as permissões estão configuradas
 await page.context().grantPermissions(['camera'])
 ```
 
 #### 3. **Elementos não encontrados**
+
 ```typescript
 // Usar waitFor para aguardar elementos
 await expect(element).toBeVisible({ timeout: 10000 })
@@ -313,7 +322,7 @@ export default defineConfig({
   use: {
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-  }
+  },
 })
 ```
 

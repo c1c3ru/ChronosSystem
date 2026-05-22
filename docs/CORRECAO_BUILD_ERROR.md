@@ -3,16 +3,19 @@
 ## 🔍 Problema Identificado
 
 **Erro de Build:**
+
 ```
 Error: the name `now` is defined multiple times
 ```
 
 **Localização:**
+
 - `app/api/attendance/qr-scan/route.ts`
 - Linha 83: `const now = new Date()`
 - Linha 114: `const now = Date.now()`
 
 **Causa:**
+
 - Variável `now` declarada duas vezes no mesmo escopo
 - TypeScript/Next.js não permite declaração duplicada de variáveis no mesmo escopo
 
@@ -21,6 +24,7 @@ Error: the name `now` is defined multiple times
 ## ✅ Correção Aplicada
 
 ### **Solução:**
+
 Renomear as variáveis para evitar conflito:
 
 1. **Linha 83:** `const now = new Date()` → `const currentTime = new Date()`
@@ -30,6 +34,7 @@ Renomear as variáveis para evitar conflito:
    - Usada para verificar registro duplicado
 
 ### **Código Corrigido:**
+
 ```typescript
 // Verificar se expirou (verificar no banco E no payload)
 const currentTime = new Date()
@@ -62,17 +67,19 @@ const oneMinuteAgo = new Date(nowTimestamp - 60 * 1000)
 ## 🔍 Verificação
 
 ### **Antes:**
+
 ```typescript
-const now = new Date()  // Linha 83
+const now = new Date() // Linha 83
 // ...
-const now = Date.now()  // Linha 114 - ERRO!
+const now = Date.now() // Linha 114 - ERRO!
 ```
 
 ### **Depois:**
+
 ```typescript
-const currentTime = new Date()  // Linha 83
+const currentTime = new Date() // Linha 83
 // ...
-const nowTimestamp = Date.now()  // Linha 114 - OK!
+const nowTimestamp = Date.now() // Linha 114 - OK!
 ```
 
 ---
@@ -80,6 +87,7 @@ const nowTimestamp = Date.now()  // Linha 114 - OK!
 ## 📋 Próximos Passos
 
 1. **Testar Build:**
+
    ```bash
    npm run build
    ```
@@ -98,4 +106,3 @@ const nowTimestamp = Date.now()  // Linha 114 - OK!
 **Data da Correção:** 2025-01-27  
 **Versão:** 2.0.0  
 **Status:** ✅ Erro corrigido
-

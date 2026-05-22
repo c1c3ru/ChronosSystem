@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { prisma2FA } from '@/lib/prisma-helpers'
 import { generateTwoFactorSecret } from '@/lib/two-factor'
+import { authLogger } from '@/lib/logger'
 
 // POST /api/auth/2fa/setup - Configurar 2FA para o usuário
 
@@ -12,27 +13,27 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    console.log('🔐 Configurando 2FA para usuário:', session.user.email)
+    authLogger.info('Setting up 2FA', { userId: session.user.id })
 
     // Verificar se o usuário já tem 2FA configurado
     const user2FA = await prisma2FA.find2FAFields(session.user.id)
 
     if (user2FA?.twoFactorEnabled) {
-      return NextResponse.json({ 
-        error: '2FA já está habilitado para este usuário' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: '2FA já está habilitado para este usuário',
+        },
+        { status: 400 }
+      )
     }
 
     // Gerar novo secret e QR code
-    const twoFactorSetup = await generateTwoFactorSecret(
-      session.user.email!,
-      'Chronos System'
-    )
+    const twoFactorSetup = await generateTwoFactorSecret(session.user.email!, 'Chronos System')
 
     // Salvar secret temporário no banco (não habilitado ainda)
     await prisma2FA.setupSecret(session.user.id, twoFactorSetup.secret)
@@ -43,11 +44,11 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         action: '2FA_SETUP_INITIATED',
         resource: 'USER_SECURITY',
-        details: 'Usuário iniciou configuração de 2FA'
-      }
+        details: 'Usuário iniciou configuração de 2FA',
+      },
     })
 
-    console.log('✅ 2FA setup gerado com sucesso')
+    authLogger.info('2FA setup generated successfully', { userId: session.user.id })
 
     return NextResponse.json({
       success: true,
@@ -57,13 +58,13 @@ export async function POST(request: NextRequest) {
         instructions: {
           step1: 'Instale um app autenticador (Google Authenticator, Authy, etc.)',
           step2: 'Escaneie o QR code ou digite a chave manual',
-          step3: 'Digite o código de 6 dígitos para confirmar'
-        }
-      }
+          step3: 'Digite o código de 6 dígitos para confirmar',
+        },
+      },
     })
-
-  } catch (error) {
-    console.error('Erro ao configurar 2FA:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    authLogger.error('Error setting up 2FA', { userId: 'unknown', error: errorMessage })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
@@ -82,11 +83,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       enabled: user2FA?.twoFactorEnabled || false,
       hasSecret: !!user2FA?.twoFactorSecret,
-      email: user2FA?.email
+      email: user2FA?.email,
     })
-
-  } catch (error) {
-    console.error('Erro ao verificar status 2FA:', error)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    authLogger.error('Error checking 2FA status', { error: errorMessage })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

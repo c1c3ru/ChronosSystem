@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 })
 
 function question(query: string): Promise<string> {
@@ -20,14 +20,14 @@ async function main() {
 
   // Verificar se já existe um admin
   const existingAdmin = await prisma.user.findFirst({
-    where: { role: 'ADMIN' }
+    where: { role: 'ADMIN' },
   })
 
   if (existingAdmin) {
     console.log('⚠️  Já existe um usuário administrador no sistema.')
     console.log(`📧 Email: ${existingAdmin.email}`)
     console.log(`👤 Nome: ${existingAdmin.name}`)
-    
+
     const overwrite = await question('\nDeseja criar outro administrador? (s/N): ')
     if (overwrite.toLowerCase() !== 's' && overwrite.toLowerCase() !== 'sim') {
       console.log('❌ Operação cancelada.')
@@ -39,7 +39,7 @@ async function main() {
   const name = await question('👤 Nome completo: ')
   const email = await question('📧 Email: ')
   const password = await question('🔒 Senha: ')
-  const department = await question('🏢 Departamento (opcional): ') || 'Administração'
+  const department = (await question('🏢 Departamento (opcional): ')) || 'Administração'
 
   if (!name || !email || !password) {
     console.log('❌ Todos os campos obrigatórios devem ser preenchidos.')
@@ -48,7 +48,7 @@ async function main() {
 
   // Verificar se email já existe
   const existingUser = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   })
 
   if (existingUser) {
@@ -58,7 +58,7 @@ async function main() {
 
   // Criar o usuário admin
   const hashedPassword = await bcrypt.hash(password, 10)
-  
+
   const admin = await prisma.user.create({
     data: {
       name,

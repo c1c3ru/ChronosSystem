@@ -15,7 +15,7 @@ async function runEmailDiagnostics() {
           <p style="color: #6b7280; font-size: 12px;">${new Date().toLocaleString('pt-BR')}</p>
         </div>
       `,
-      text: 'Teste do Sistema Chronos - verifique o HTML na caixa de entrada.'
+      text: 'Teste do Sistema Chronos - verifique o HTML na caixa de entrada.',
     })
     console.log(simpleEmailResult ? '   ✅ Email simples enviado!' : '   ❌ Falha no email simples')
 
@@ -25,7 +25,7 @@ async function runEmailDiagnostics() {
       userEmail: process.env.TEST_EMAIL_TO || 'teste@example.com',
       resetUrl: 'https://chronos.local/auth/reset-password?token=teste',
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
-      reason: 'Teste do script de diagnostico'
+      reason: 'Teste do script de diagnostico',
     })
     console.log(resetResult ? '   ✅ Email de reset enviado!' : '   ❌ Falha no email de reset')
 
@@ -37,7 +37,9 @@ async function runEmailDiagnostics() {
     )
     console.log(adminResult ? '   ✅ Notificação enviada!' : '   ❌ Falha na notificação')
 
-    console.log('\n🎉 Diagnóstico concluído. Configure SMTP_* no .env para testar com sua caixa real.')
+    console.log(
+      '\n🎉 Diagnóstico concluído. Configure SMTP_* no .env para testar com sua caixa real.'
+    )
   } catch (error) {
     console.error('❌ Erro durante o teste de email:', error)
     process.exit(1)
@@ -45,4 +47,3 @@ async function runEmailDiagnostics() {
 }
 
 runEmailDiagnostics()
-

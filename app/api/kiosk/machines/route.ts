@@ -9,26 +9,23 @@ export async function GET(request: NextRequest) {
   try {
     const machines = await prisma.machine.findMany({
       where: {
-        isActive: true
+        isActive: true,
       },
       select: {
         id: true,
         name: true,
         location: true,
-        isActive: true
+        isActive: true,
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
     })
 
     return NextResponse.json({
       success: true,
-      machines
+      machines,
     })
   } catch (error) {
     console.error('Erro ao listar máquinas:', error)
-    return NextResponse.json(
-      { error: 'Erro ao listar máquinas' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao listar máquinas' }, { status: 500 })
   }
 }

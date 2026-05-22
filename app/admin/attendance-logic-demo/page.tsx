@@ -12,7 +12,7 @@ interface TestScenario {
   name: string
   description: string
   currentTime: string
-  lastRecord: { type: 'ENTRY' | 'EXIT', time: string } | null
+  lastRecord: { type: 'ENTRY' | 'EXIT'; time: string } | null
   expectedResult: 'ENTRY' | 'EXIT'
   reason: string
   confidence: 'high' | 'medium' | 'low'
@@ -27,27 +27,27 @@ const testScenarios: TestScenario[] = [
     lastRecord: null,
     expectedResult: 'ENTRY',
     reason: 'Primeiro registro do dia no horário de trabalho',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
-    id: '2', 
+    id: '2',
     name: 'Saída para Almoço',
     description: 'Funcionário saindo para almoço após trabalhar manhã toda',
     currentTime: '12:00',
     lastRecord: { type: 'ENTRY', time: '08:15' },
     expectedResult: 'EXIT',
     reason: 'Saída para almoço (horário esperado)',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     id: '3',
-    name: 'Retorno do Almoço', 
+    name: 'Retorno do Almoço',
     description: 'Funcionário voltando do almoço',
     currentTime: '13:00',
     lastRecord: { type: 'EXIT', time: '12:00' },
     expectedResult: 'ENTRY',
     reason: 'Retorno do almoço',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     id: '4',
@@ -57,7 +57,7 @@ const testScenarios: TestScenario[] = [
     lastRecord: { type: 'ENTRY', time: '13:00' },
     expectedResult: 'EXIT',
     reason: 'Saída do expediente (horário normal)',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     id: '5',
@@ -67,7 +67,7 @@ const testScenarios: TestScenario[] = [
     lastRecord: null,
     expectedResult: 'ENTRY',
     reason: 'Entrada com atraso (1h30min)',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     id: '6',
@@ -77,7 +77,7 @@ const testScenarios: TestScenario[] = [
     lastRecord: { type: 'ENTRY', time: '13:00' },
     expectedResult: 'EXIT',
     reason: 'Saída antecipada (possível emergência)',
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     id: '7',
@@ -87,7 +87,7 @@ const testScenarios: TestScenario[] = [
     lastRecord: { type: 'EXIT', time: '17:00' },
     expectedResult: 'ENTRY',
     reason: 'Entrada noturna (plantão/hora extra)',
-    confidence: 'low'
+    confidence: 'low',
   },
   {
     id: '8',
@@ -97,8 +97,8 @@ const testScenarios: TestScenario[] = [
     lastRecord: { type: 'EXIT', time: '17:00 (ontem)' },
     expectedResult: 'ENTRY',
     reason: 'Novo dia de trabalho',
-    confidence: 'high'
-  }
+    confidence: 'high',
+  },
 ]
 
 export default function AttendanceLogicDemo() {
@@ -108,19 +108,27 @@ export default function AttendanceLogicDemo() {
 
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
-      case 'high': return 'text-green-400 bg-green-500/20'
-      case 'medium': return 'text-yellow-400 bg-yellow-500/20' 
-      case 'low': return 'text-red-400 bg-red-500/20'
-      default: return 'text-gray-400 bg-gray-500/20'
+      case 'high':
+        return 'text-green-400 bg-green-500/20'
+      case 'medium':
+        return 'text-yellow-400 bg-yellow-500/20'
+      case 'low':
+        return 'text-red-400 bg-red-500/20'
+      default:
+        return 'text-gray-400 bg-gray-500/20'
     }
   }
 
   const getConfidenceIcon = (confidence: string) => {
     switch (confidence) {
-      case 'high': return <CheckCircle className="h-4 w-4" />
-      case 'medium': return <Info className="h-4 w-4" />
-      case 'low': return <AlertTriangle className="h-4 w-4" />
-      default: return <Info className="h-4 w-4" />
+      case 'high':
+        return <CheckCircle className="h-4 w-4" />
+      case 'medium':
+        return <Info className="h-4 w-4" />
+      case 'low':
+        return <AlertTriangle className="h-4 w-4" />
+      default:
+        return <Info className="h-4 w-4" />
     }
   }
 
@@ -133,7 +141,7 @@ export default function AttendanceLogicDemo() {
   }
 
   // Fallback visual caso o middleware falhe e o usuário não tenha permissão
-  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+  if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
         <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
@@ -141,7 +149,7 @@ export default function AttendanceLogicDemo() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -187,19 +195,27 @@ export default function AttendanceLogicDemo() {
                 <ul className="space-y-2 text-neutral-300">
                   <li className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <span><strong>Horário atual:</strong> Manhã, almoço, tarde, noite</span>
+                    <span>
+                      <strong>Horário atual:</strong> Manhã, almoço, tarde, noite
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <span><strong>Último registro:</strong> Tipo e quando foi feito</span>
+                    <span>
+                      <strong>Último registro:</strong> Tipo e quando foi feito
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <span><strong>Tempo decorrido:</strong> Intervalo desde último registro</span>
+                    <span>
+                      <strong>Tempo decorrido:</strong> Intervalo desde último registro
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <span><strong>Contexto temporal:</strong> Novo dia, fim de semana</span>
+                    <span>
+                      <strong>Contexto temporal:</strong> Novo dia, fim de semana
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -237,16 +253,16 @@ export default function AttendanceLogicDemo() {
             <CardHeader>
               <CardTitle className="text-white">Cenários de Teste</CardTitle>
               <div className="flex space-x-2">
-                <Button 
-                  size="sm" 
-                  variant={showAllResults ? "ghost" : "primary"}
+                <Button
+                  size="sm"
+                  variant={showAllResults ? 'ghost' : 'primary'}
                   onClick={() => setShowAllResults(false)}
                 >
                   Interativo
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant={showAllResults ? "primary" : "ghost"}
+                <Button
+                  size="sm"
+                  variant={showAllResults ? 'primary' : 'ghost'}
                   onClick={() => setShowAllResults(true)}
                 >
                   Ver Todos
@@ -256,7 +272,7 @@ export default function AttendanceLogicDemo() {
             <CardContent>
               <div className="space-y-3">
                 {testScenarios.map((scenario) => (
-                   <div
+                  <div
                     key={scenario.id}
                     className={`p-4 rounded-lg border cursor-pointer transition-all ${
                       selectedScenario?.id === scenario.id
@@ -283,21 +299,28 @@ export default function AttendanceLogicDemo() {
                           </span>
                           {scenario.lastRecord && (
                             <span className="text-neutral-500">
-                              Último: <span className="text-white">{scenario.lastRecord.type} {scenario.lastRecord.time}</span>
+                              Último:{' '}
+                              <span className="text-white">
+                                {scenario.lastRecord.type} {scenario.lastRecord.time}
+                              </span>
                             </span>
                           )}
                         </div>
                       </div>
                       {showAllResults && (
                         <div className="ml-4 text-right">
-                          <div className={`px-2 py-1 rounded text-xs font-medium ${
-                            scenario.expectedResult === 'ENTRY' 
-                              ? 'text-green-400 bg-green-500/20' 
-                              : 'text-orange-400 bg-orange-500/20'
-                          }`}>
+                          <div
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              scenario.expectedResult === 'ENTRY'
+                                ? 'text-green-400 bg-green-500/20'
+                                : 'text-orange-400 bg-orange-500/20'
+                            }`}
+                          >
                             {scenario.expectedResult === 'ENTRY' ? 'ENTRADA' : 'SAÍDA'}
                           </div>
-                          <div className={`px-2 py-1 rounded text-xs font-medium mt-1 ${getConfidenceColor(scenario.confidence)}`}>
+                          <div
+                            className={`px-2 py-1 rounded text-xs font-medium mt-1 ${getConfidenceColor(scenario.confidence)}`}
+                          >
                             {scenario.confidence.toUpperCase()}
                           </div>
                         </div>
@@ -321,7 +344,7 @@ export default function AttendanceLogicDemo() {
                   <div className="bg-neutral-800/50 rounded-lg p-4">
                     <h3 className="font-semibold text-white mb-2">{selectedScenario.name}</h3>
                     <p className="text-neutral-400 text-sm mb-4">{selectedScenario.description}</p>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-neutral-500">Horário Atual:</span>
@@ -330,10 +353,9 @@ export default function AttendanceLogicDemo() {
                       <div>
                         <span className="text-neutral-500">Último Registro:</span>
                         <div className="text-white font-medium">
-                          {selectedScenario.lastRecord 
+                          {selectedScenario.lastRecord
                             ? `${selectedScenario.lastRecord.type} ${selectedScenario.lastRecord.time}`
-                            : 'Nenhum'
-                          }
+                            : 'Nenhum'}
                         </div>
                       </div>
                     </div>
@@ -343,23 +365,29 @@ export default function AttendanceLogicDemo() {
                   <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-white">Decisão do Sistema</h3>
-                      <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${getConfidenceColor(selectedScenario.confidence)}`}>
+                      <div
+                        className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${getConfidenceColor(selectedScenario.confidence)}`}
+                      >
                         {getConfidenceIcon(selectedScenario.confidence)}
                         <span>{selectedScenario.confidence.toUpperCase()}</span>
                       </div>
                     </div>
-                    
+
                     <div className="text-center mb-4">
-                      <div className={`inline-flex items-center space-x-2 px-6 py-3 rounded-xl text-lg font-bold ${
-                        selectedScenario.expectedResult === 'ENTRY' 
-                          ? 'text-green-400 bg-green-500/20 border border-green-500/30' 
-                          : 'text-orange-400 bg-orange-500/20 border border-orange-500/30'
-                      }`}>
+                      <div
+                        className={`inline-flex items-center space-x-2 px-6 py-3 rounded-xl text-lg font-bold ${
+                          selectedScenario.expectedResult === 'ENTRY'
+                            ? 'text-green-400 bg-green-500/20 border border-green-500/30'
+                            : 'text-orange-400 bg-orange-500/20 border border-orange-500/30'
+                        }`}
+                      >
                         <Clock className="h-5 w-5" />
-                        <span>{selectedScenario.expectedResult === 'ENTRY' ? 'ENTRADA' : 'SAÍDA'}</span>
+                        <span>
+                          {selectedScenario.expectedResult === 'ENTRY' ? 'ENTRADA' : 'SAÍDA'}
+                        </span>
                       </div>
                     </div>
-                    
+
                     <div className="text-center">
                       <p className="text-neutral-300 text-sm">
                         <strong>Motivo:</strong> {selectedScenario.reason}
@@ -372,9 +400,17 @@ export default function AttendanceLogicDemo() {
                     <h4 className="font-medium text-white mb-2">Como chegamos a esta decisão:</h4>
                     <ul className="space-y-2 text-sm text-neutral-300">
                       <li>• Analisamos o horário atual ({selectedScenario.currentTime})</li>
-                      <li>• Verificamos o último registro ({selectedScenario.lastRecord ? `${selectedScenario.lastRecord.type} às ${selectedScenario.lastRecord.time}` : 'nenhum'})</li>
+                      <li>
+                        • Verificamos o último registro (
+                        {selectedScenario.lastRecord
+                          ? `${selectedScenario.lastRecord.type} às ${selectedScenario.lastRecord.time}`
+                          : 'nenhum'}
+                        )
+                      </li>
                       <li>• Aplicamos regras de contexto temporal</li>
-                      <li>• Determinamos: <strong>{selectedScenario.reason}</strong></li>
+                      <li>
+                        • Determinamos: <strong>{selectedScenario.reason}</strong>
+                      </li>
                     </ul>
                   </div>
                 </div>

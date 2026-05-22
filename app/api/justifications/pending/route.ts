@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         timestamp: {
-          gte: thirtyDaysAgo
-        }
+          gte: thirtyDaysAgo,
+        },
       },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     })
 
     // Buscar justificativas já enviadas
@@ -41,19 +41,24 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         date: {
-          gte: thirtyDaysAgo
-        }
-      }
+          gte: thirtyDaysAgo,
+        },
+      },
     })
 
     const justificationMap = new Map(
-      existingJustifications.map(j => [j.date.toISOString().split('T')[0], j])
+      existingJustifications.map((j) => [j.date.toISOString().split('T')[0], j])
     )
 
-    // Agrupar registros por dia
-    const dayRecords = new Map<string, { entry: any, exit: any }>()
+    interface DayRecord {
+      entry: { timestamp: Date } | null
+      exit: { timestamp: Date } | null
+    }
 
-    attendanceRecords.forEach(record => {
+    // Agrupar registros por dia
+    const dayRecords = new Map<string, DayRecord>()
+
+    attendanceRecords.forEach((record) => {
       const dateKey = record.timestamp.toISOString().split('T')[0]
       if (!dayRecords.has(dateKey)) {
         dayRecords.set(dateKey, { entry: null, exit: null })
@@ -66,12 +71,26 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const pendingIssues: any[] = []
+    interface PendingIssue {
+      id: string
+      date: string
+      type: 'LATE' | 'ABSENCE' | 'EARLY_DEPARTURE'
+      description: string
+      canJustify: boolean
+      existingJustification: {
+        id: string
+        status: string
+        reason: string | null
+      } | null
+    }
+
+    const pendingIssues: PendingIssue[] = []
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
     // Analisar cada dia dos últimos 30 dias
-    for (let i = 1; i < 30; i++) { // Começar de 1 para não incluir hoje
+    for (let i = 1; i < 30; i++) {
+      // Começar de 1 para não incluir hoje
       const date = new Date()
       date.setDate(date.getDate() - i)
       date.setHours(0, 0, 0, 0)
@@ -112,14 +131,16 @@ export async function GET(request: NextRequest) {
             if (dayData.entry) {
               const entryTime = new Date(dayData.entry.timestamp).toLocaleTimeString('pt-BR', {
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
               })
               description += ` (entrada às ${entryTime})`
             }
           } else if (analysis.earlyDeparture?.requiresJustification) {
             type = 'EARLY_DEPARTURE'
             const hoursWorked = Math.floor(analysis.earlyDeparture.hoursWorked)
-            const minutesWorked = Math.round((analysis.earlyDeparture.hoursWorked - hoursWorked) * 60)
+            const minutesWorked = Math.round(
+              (analysis.earlyDeparture.hoursWorked - hoursWorked) * 60
+            )
             description = `Saída antecipada: trabalhou ${hoursWorked}h${minutesWorked}min, faltam ${analysis.earlyDeparture.minutesShort} minutos`
           }
 
@@ -129,21 +150,23 @@ export async function GET(request: NextRequest) {
             type,
             description,
             canJustify: !existingJustification || existingJustification.status === 'REJECTED',
-            existingJustification: existingJustification ? {
-              id: existingJustification.id,
-              status: existingJustification.status,
-              reason: existingJustification.reason
-            } : null
+            existingJustification: existingJustification
+              ? {
+                  id: existingJustification.id,
+                  status: existingJustification.status,
+                  reason: existingJustification.reason,
+                }
+              : null,
           })
         }
       }
     }
 
     // Ordenar por data (mais recentes primeiro)
-    pendingIssues.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    pendingIssues.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     return NextResponse.json(pendingIssues)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Erro ao buscar pendências:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
