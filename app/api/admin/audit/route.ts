@@ -19,7 +19,14 @@ export async function GET(request: NextRequest) {
     const searchTerm = searchParams.get('search') || ''
 
     const skip = (page - 1) * limit
-    const whereClause: any = {}
+    // Tipo estruturado compatível com o filtro do Prisma para AuditLog
+    const whereClause: {
+      action?: string
+      OR?: Array<{
+        details?: { contains: string; mode: 'insensitive' }
+        user?: { name?: { contains: string; mode: 'insensitive' }; email?: { contains: string; mode: 'insensitive' } }
+      }>
+    } = {}
 
     if (actionFilter !== 'ALL') {
       whereClause.action = actionFilter
@@ -102,7 +109,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ [API] Erro ao buscar logs de auditoria:', error)
     return NextResponse.json(
       { error: 'Erro ao buscar logs de auditoria' },

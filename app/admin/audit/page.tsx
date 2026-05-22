@@ -2,7 +2,7 @@
 
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { 
   FileText, 
@@ -50,13 +50,9 @@ export default function AuditLogsPage() {
     hasPrevPage: false
   })
 
-  useEffect(() => {
-    if (session && ['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
-      loadAuditLogs(page)
-    }
-  }, [session, page, actionFilter])
+  const usuarioPodeAcessar = session && ['ADMIN', 'SUPERVISOR'].includes((session.user as { role?: string })?.role ?? '')
 
-  const loadAuditLogs = async (currentPage: number) => {
+  const loadAuditLogs = useCallback(async (currentPage: number) => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -77,7 +73,13 @@ export default function AuditLogsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, actionFilter])
+
+  useEffect(() => {
+    if (usuarioPodeAcessar) {
+      loadAuditLogs(page)
+    }
+  }, [usuarioPodeAcessar, page, loadAuditLogs])
 
   const getActionBadge = (action: string) => {
     if (action.includes('REJECTED') || action.includes('FAILED')) {
@@ -117,7 +119,7 @@ export default function AuditLogsPage() {
     return <Loading />
   }
 
-  if (!session || !['ADMIN', 'SUPERVISOR'].includes((session.user as any)?.role)) {
+  if (!usuarioPodeAcessar) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
         <h1 className="text-2xl font-bold mb-4 font-outfit">Acesso Restrito</h1>
