@@ -1,5 +1,16 @@
 import type { TDocumentDefinitions, Content, TableCell } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import {
+  ifceHeader,
+  docTitle,
+  dataTable,
+  cell,
+  emptyCell,
+  sectionBlock,
+  sectionTitle,
+  sigBlock,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface StudentEvaluationData {
   student_name?: string
@@ -49,29 +60,56 @@ const EVAL_LABELS: [string, string][] = [
   ['eval_creativity', 'Criatividade'],
 ]
 
-export async function buildStudentEvaluationDoc(d: StudentEvaluationData): Promise<TDocumentDefinitions> {
+export async function buildStudentEvaluationDoc(
+  d: StudentEvaluationData
+): Promise<TDocumentDefinitions> {
   const header = await ifceHeader()
 
   const identTable = dataTable(
     ['35%', '25%', '20%', '20%'],
     [
-      [cell('Nome do Estagiário', v(d.student_name), { colSpan: 2 }), emptyCell(), cell('Curso', v(d.student_course)), cell('Matrícula', v(d.student_enrollment))],
-      [cell('Empresa', v(d.company_name)), cell('Supervisor', v(d.company_supervisor)), cell('Período Início', fmtDate(d.period_start)), cell('Período Fim', fmtDate(d.period_end))],
-      [cell('Data da Avaliação', fmtDate(d.evaluation_date), { colSpan: 4 }), emptyCell(), emptyCell(), emptyCell()],
+      [
+        cell('Nome do Estagiário', v(d.student_name), { colSpan: 2 }),
+        emptyCell(),
+        cell('Curso', v(d.student_course)),
+        cell('Matrícula', v(d.student_enrollment)),
+      ],
+      [
+        cell('Empresa', v(d.company_name)),
+        cell('Supervisor', v(d.company_supervisor)),
+        cell('Período Início', fmtDate(d.period_start)),
+        cell('Período Fim', fmtDate(d.period_end)),
+      ],
+      [
+        cell('Data da Avaliação', fmtDate(d.evaluation_date), { colSpan: 4 }),
+        emptyCell(),
+        emptyCell(),
+        emptyCell(),
+      ],
     ]
   )
 
-  const evalRows: TableCell[][] = EVAL_LABELS.map(([key, label]) => [cell(label, ''), cell('Nota (1-5)', (d as Record<string, string>)[key] || '-')])
+  const evalRows: TableCell[][] = EVAL_LABELS.map(([key, label]) => [
+    cell(label, ''),
+    cell('Nota (1-5)', (d as Record<string, string>)[key] || '-'),
+  ])
   const evalTable = dataTable(['75%', '25%'], evalRows)
 
-  const recText = d.recommendation === 'sim' ? '(X) Sim   ( ) Não' : d.recommendation === 'nao' ? '( ) Sim   (X) Não' : '( ) Sim   ( ) Não'
+  const recText =
+    d.recommendation === 'sim'
+      ? '(X) Sim   ( ) Não'
+      : d.recommendation === 'nao'
+        ? '( ) Sim   (X) Não'
+        : '( ) Sim   ( ) Não'
 
   const content: Content[] = [
     ...header,
     docTitle('Ficha de Avaliação do Discente Estagiário'),
     sectionTitle('IDENTIFICAÇÃO'),
     identTable,
-    sectionTitle('CRITÉRIOS DE AVALIAÇÃO (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Bom / 5=Excelente)'),
+    sectionTitle(
+      'CRITÉRIOS DE AVALIAÇÃO (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Bom / 5=Excelente)'
+    ),
     evalTable,
     ...sectionBlock('OBSERVAÇÕES E COMENTÁRIOS', v(d.observations)),
     dataTable(['*'], [[cell('Recomendaria este estagiário?', recText)]]),

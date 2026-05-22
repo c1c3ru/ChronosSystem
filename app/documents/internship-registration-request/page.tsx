@@ -232,7 +232,8 @@ export default function InternshipRegistrationRequestPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-      const { buildInternshipRegistrationRequestDoc } = await import('@/lib/pdf-templates/internship-registration-request.pdf')
+      const { buildInternshipRegistrationRequestDoc } =
+        await import('@/lib/pdf-templates/internship-registration-request.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
       const doc = await buildInternshipRegistrationRequestDoc({
         nome: formData.nome,
@@ -287,7 +288,6 @@ export default function InternshipRegistrationRequestPage() {
     }
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -315,7 +315,6 @@ export default function InternshipRegistrationRequestPage() {
               Gerar PDF
             </Button>
           </div>
-
         </div>
 
         <Card variant="glass" className="border-t-4 border-primary">
@@ -896,7 +895,7 @@ export default function InternshipRegistrationRequestPage() {
                 <textarea
                   name="activities"
                   value={formData.activities}
-                  onChange={(e) => setFormData(prev => ({ ...prev, activities: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, activities: e.target.value }))}
                   placeholder="Descreva as atividades a serem desenvolvidas..."
                   className="input min-h-[120px] w-full resize-y"
                   title="Descrição das Atividades"

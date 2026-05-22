@@ -1,7 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Clock, Wifi, WifiOff, RotateCw, MapPin, Users, CheckCircle, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import {
+  Clock,
+  Wifi,
+  WifiOff,
+  RotateCw,
+  MapPin,
+  Users,
+  CheckCircle,
+  ArrowDownLeft,
+  ArrowUpRight,
+} from 'lucide-react'
 import QRCode from 'qrcode'
 import Image from 'next/image'
 
@@ -198,30 +208,34 @@ export default function KioskPage() {
 
       if (data.success) {
         // Garantir que timestamp venha como string ISO e seja usado para formatar a hora no frontend
-        const normalized = (data.activity || []).map((item: {
-          id: string
-          user: string
-          type: string
-          timestamp: string | number | Date
-        }) => ({
-          ...item,
-          timestamp:
-            typeof item.timestamp === 'string'
-              ? item.timestamp
-              : new Date(item.timestamp).toISOString(),
-        }))
+        const normalized = (data.activity || []).map(
+          (item: {
+            id: string
+            user: string
+            type: string
+            timestamp: string | number | Date
+          }) => ({
+            ...item,
+            timestamp:
+              typeof item.timestamp === 'string'
+                ? item.timestamp
+                : new Date(item.timestamp).toISOString(),
+          })
+        )
 
-        const today = new Date();
+        const today = new Date()
         const todayRecords = normalized.filter((scan: { timestamp: string }) => {
           try {
-            const scanDate = new Date(scan.timestamp);
-            return scanDate.getDate() === today.getDate() && 
-                   scanDate.getMonth() === today.getMonth() && 
-                   scanDate.getFullYear() === today.getFullYear();
+            const scanDate = new Date(scan.timestamp)
+            return (
+              scanDate.getDate() === today.getDate() &&
+              scanDate.getMonth() === today.getMonth() &&
+              scanDate.getFullYear() === today.getFullYear()
+            )
           } catch {
-            return false;
+            return false
           }
-        });
+        })
 
         setRecentScans(todayRecords)
       } else {

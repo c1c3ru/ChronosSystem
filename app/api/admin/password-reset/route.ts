@@ -44,7 +44,11 @@ export async function POST(request: NextRequest) {
 }
 
 // Reset em massa
-async function handleMassReset(request: NextRequest, session: { user: { id: string } }, body: unknown) {
+async function handleMassReset(
+  request: NextRequest,
+  session: { user: { id: string } },
+  body: unknown
+) {
   try {
     const validatedData = massResetSchema.parse(body)
 
@@ -136,7 +140,11 @@ async function handleMassReset(request: NextRequest, session: { user: { id: stri
 }
 
 // Reset individual
-async function handleIndividualReset(request: NextRequest, session: { user: { id: string } }, body: unknown) {
+async function handleIndividualReset(
+  request: NextRequest,
+  session: { user: { id: string } },
+  body: unknown
+) {
   try {
     const validatedData = individualResetSchema.parse(body)
 
@@ -239,14 +247,16 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      activeTokens: activeTokens.map((token: { id: string; token: string; expires: Date; createdAt: Date; user: unknown }) => ({
-        id: token.id,
-        token: token.token,
-        expires: token.expires,
-        createdAt: token.createdAt,
-        user: token.user,
-        resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token.token}`,
-      })),
+      activeTokens: activeTokens.map(
+        (token: { id: string; token: string; expires: Date; createdAt: Date; user: unknown }) => ({
+          id: token.id,
+          token: token.token,
+          expires: token.expires,
+          createdAt: token.createdAt,
+          user: token.user,
+          resetUrl: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token.token}`,
+        })
+      ),
     })
   } catch (error) {
     console.error('Erro ao listar tokens:', error)

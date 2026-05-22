@@ -10,7 +10,16 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { maskCPF, maskRG, maskCTPS, maskCNPJ, maskCEP, maskPhone, maskCurrency, maskOnlyText } from '@/lib/input-masks'
+import {
+  maskCPF,
+  maskRG,
+  maskCTPS,
+  maskCNPJ,
+  maskCEP,
+  maskPhone,
+  maskCurrency,
+  maskOnlyText,
+} from '@/lib/input-masks'
 
 export default function CommitmentTermPage() {
   const formRef = useRef<HTMLFormElement>(null)
@@ -769,7 +778,11 @@ export default function CommitmentTermPage() {
                     <tr>
                       <th className="px-4 py-2 border border-neutral-700">Turno</th>
                       {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d) => (
-                        <th key={d} colSpan={2} className="px-4 py-2 text-center border border-neutral-700">
+                        <th
+                          key={d}
+                          colSpan={2}
+                          className="px-4 py-2 text-center border border-neutral-700"
+                        >
                           {d}
                         </th>
                       ))}
@@ -778,8 +791,12 @@ export default function CommitmentTermPage() {
                       <th className="px-4 py-1 border border-neutral-700"></th>
                       {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d, i) => (
                         <React.Fragment key={i}>
-                          <th className="px-2 py-1 text-[10px] text-center border border-neutral-700">Início</th>
-                          <th className="px-2 py-1 text-[10px] text-center border border-neutral-700">Fim</th>
+                          <th className="px-2 py-1 text-[10px] text-center border border-neutral-700">
+                            Início
+                          </th>
+                          <th className="px-2 py-1 text-[10px] text-center border border-neutral-700">
+                            Fim
+                          </th>
                         </React.Fragment>
                       ))}
                     </tr>

@@ -124,7 +124,9 @@ export async function GET(request: NextRequest) {
           )
 
           if (analysis.requiresJustification) {
-            const justification = userJMap.get(dateKey) as { status: string; id: string; reason: string } | undefined
+            const justification = userJMap.get(dateKey) as
+              | { status: string; id: string; reason: string }
+              | undefined
             if (!justification) {
               missingDates.push({
                 date: dateKey,

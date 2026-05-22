@@ -1,5 +1,16 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import {
+  ifceHeader,
+  docTitle,
+  dataTable,
+  cell,
+  emptyCell,
+  sectionBlock,
+  sectionTitle,
+  sigBlock,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface MonthlyReportData {
   student_name?: string
@@ -25,7 +36,8 @@ export async function buildMonthlyReportDoc(d: MonthlyReportData): Promise<TDocu
     ['35%', '25%', '20%', '20%'],
     [
       [
-        cell('Nome do Discente', v(d.student_name), { colSpan: 2 }), emptyCell(),
+        cell('Nome do Discente', v(d.student_name), { colSpan: 2 }),
+        emptyCell(),
         cell('Curso', v(d.student_course)),
         cell('Matrícula', v(d.student_enrollment)),
       ],
@@ -38,7 +50,8 @@ export async function buildMonthlyReportDoc(d: MonthlyReportData): Promise<TDocu
       [
         cell('H. no Período', v(d.hours_month)),
         cell('H. Acumuladas', v(d.hours_total), { colSpan: 3 }),
-        emptyCell(), emptyCell(),
+        emptyCell(),
+        emptyCell(),
       ],
     ]
   )

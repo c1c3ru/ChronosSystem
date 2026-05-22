@@ -3,16 +3,24 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft, Save, FileText, Download, CheckCircle, User, Building2, Calendar, Star, ClipboardList } from 'lucide-react'
+import {
+  ArrowLeft,
+  Save,
+  FileText,
+  Download,
+  CheckCircle,
+  User,
+  Building2,
+  Calendar,
+  Star,
+  ClipboardList,
+} from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import {
-  maskCNPJ,
-  maskPhone,
-} from '@/lib/input-masks'
+import { maskCNPJ, maskPhone } from '@/lib/input-masks'
 
 import type { RealizationTermData } from '@/lib/pdf-templates/realization-term.pdf'
 
@@ -49,22 +57,31 @@ export default function RealizationTermPage() {
       const key = name.split('.')[1]
       setFormData((prev) => ({
         ...prev,
-        traits: { ...(prev.traits || {}), [key]: parseInt(value, 10) }
+        traits: { ...(prev.traits || {}), [key]: parseInt(value, 10) },
       }))
     } else if (name.startsWith('tracking_student.')) {
       const key = name.split('.')[1]
       setFormData((prev) => ({
         ...prev,
-        tracking_student: { ...(prev.tracking_student || {}), [key]: (e.target as HTMLInputElement).checked }
+        tracking_student: {
+          ...(prev.tracking_student || {}),
+          [key]: (e.target as HTMLInputElement).checked,
+        },
       }))
     } else if (name.startsWith('tracking_supervisor_advisor.')) {
       const key = name.split('.')[1]
       setFormData((prev) => ({
         ...prev,
-        tracking_supervisor_advisor: { ...(prev.tracking_supervisor_advisor || {}), [key]: (e.target as HTMLInputElement).checked }
+        tracking_supervisor_advisor: {
+          ...(prev.tracking_supervisor_advisor || {}),
+          [key]: (e.target as HTMLInputElement).checked,
+        },
       }))
     } else {
-      setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : maskedValue }))
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : maskedValue,
+      }))
     }
   }
 
@@ -80,7 +97,7 @@ export default function RealizationTermPage() {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
       const { buildRealizationTermDoc } = await import('@/lib/pdf-templates/realization-term.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
-      
+
       const doc = await buildRealizationTermDoc(formData as RealizationTermData)
       await generatePDF(doc, { filename: 'termo-realizacao-estagio.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
@@ -111,7 +128,10 @@ export default function RealizationTermPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Actions */}
         <div className="flex items-center justify-between">
-          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+          <Link
+            href="/employee"
+            className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group"
+          >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Voltar ao Dashboard
           </Link>
@@ -136,7 +156,9 @@ export default function RealizationTermPage() {
               </div>
               <div>
                 <CardTitle className="text-2xl">Termo de Realização de Estágio</CardTitle>
-                <p className="text-neutral-400 text-sm mt-1">Conformidade Institucional IFCE Maracanaú</p>
+                <p className="text-neutral-400 text-sm mt-1">
+                  Conformidade Institucional IFCE Maracanaú
+                </p>
               </div>
             </div>
           </CardHeader>
@@ -316,10 +338,15 @@ export default function RealizationTermPage() {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div>
-                <label className="label block mb-4 font-bold text-primary italic">Conceitos: 1-Insuficiente, 2-Regular, 3-Bom, 4-Ótimo</label>
+                <label className="label block mb-4 font-bold text-primary italic">
+                  Conceitos: 1-Insuficiente, 2-Regular, 3-Bom, 4-Ótimo
+                </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                  {evaluationTraits.map(item => (
-                    <div key={item.key} className="flex items-center justify-between py-2 border-b border-white/5">
+                  {evaluationTraits.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex items-center justify-between py-2 border-b border-white/5"
+                    >
                       <span className="text-sm text-neutral-300">{item.label}</span>
                       <select
                         name={`traits.${item.key}`}

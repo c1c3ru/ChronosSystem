@@ -11,7 +11,13 @@ interface DiagnosticResult {
   error?: string
   devices?: Array<{ id: string; label: string }>
   userAgent?: string
-  [key: string]: string | number | boolean | undefined | string[] | Array<{ id: string; label: string }>
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | undefined
+    | string[]
+    | Array<{ id: string; label: string }>
 }
 
 export default function QRDiagnosticPage() {
@@ -117,8 +123,10 @@ export default function QRDiagnosticPage() {
 
     // 6. Verificar BarcodeDetector
     results.barcodeDetector = {
-      status: !!(window as Window & typeof globalThis & { BarcodeDetector?: unknown }).BarcodeDetector,
-      message: (window as Window & typeof globalThis & { BarcodeDetector?: unknown }).BarcodeDetector
+      status: !!(window as Window & typeof globalThis & { BarcodeDetector?: unknown })
+        .BarcodeDetector,
+      message: (window as Window & typeof globalThis & { BarcodeDetector?: unknown })
+        .BarcodeDetector
         ? '✅ BarcodeDetector nativo disponível (mais rápido)'
         : '⚠️ BarcodeDetector não disponível (usará jsQR como fallback)',
     }
@@ -192,9 +200,11 @@ export default function QRDiagnosticPage() {
                           <div className="mt-2 text-sm text-neutral-400">
                             <p className="font-medium mb-1">Câmeras detectadas:</p>
                             <ul className="list-disc list-inside">
-                              {value.devices.map((device: { id: string; label: string }, idx: number) => (
-                                <li key={idx}>{device.label || `Câmera ${idx + 1}`}</li>
-                              ))}
+                              {value.devices.map(
+                                (device: { id: string; label: string }, idx: number) => (
+                                  <li key={idx}>{device.label || `Câmera ${idx + 1}`}</li>
+                                )
+                              )}
                             </ul>
                           </div>
                         )}

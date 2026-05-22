@@ -82,7 +82,11 @@ export async function checkAndNotifyAttendance() {
   return sentNotifications
 }
 
-async function sendNotification(user: { id: string; name: string | null; email: string }, type: NotificationType, shiftEndTime: string) {
+async function sendNotification(
+  user: { id: string; name: string | null; email: string },
+  type: NotificationType,
+  shiftEndTime: string
+) {
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + 3)
 

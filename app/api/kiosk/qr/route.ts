@@ -89,7 +89,8 @@ async function generateQRResponse(machineId: string, machineName: string, locati
         expiresIn: payload.expiresIn,
       })
     } catch (decodeError: unknown) {
-      const decodeErrorMessage = decodeError instanceof Error ? decodeError.message : String(decodeError)
+      const decodeErrorMessage =
+        decodeError instanceof Error ? decodeError.message : String(decodeError)
       qrLogger.error('Error decoding QR payload', { error: decodeErrorMessage })
       throw new Error(`Erro ao gerar QR code: ${decodeErrorMessage}`)
     }

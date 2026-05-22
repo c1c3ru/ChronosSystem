@@ -202,89 +202,92 @@ export default function CompleteProfilePage() {
     return Object.keys(newErrors).length === 0
   }, [profileData, effectiveRole])
 
-  const handleSubmit = useCallback(async (e: React.FormEvent | Event) => {
-    console.log('🚀 handleSubmit chamado!')
-    e.preventDefault()
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent | Event) => {
+      console.log('🚀 handleSubmit chamado!')
+      e.preventDefault()
 
-    console.log('📝 Dados do formulário:', profileData)
+      console.log('📝 Dados do formulário:', profileData)
 
-    if (!validateForm()) {
-      console.log('❌ Validação falhou')
-      return
-    }
+      if (!validateForm()) {
+        console.log('❌ Validação falhou')
+        return
+      }
 
-    console.log('✅ Validação passou')
+      console.log('✅ Validação passou')
 
-    try {
-      setLoading(true)
-      setErrors({}) // Limpar erros anteriores
+      try {
+        setLoading(true)
+        setErrors({}) // Limpar erros anteriores
 
-      console.log('Enviando dados:', profileData)
+        console.log('Enviando dados:', profileData)
 
-      const response = await fetch('/api/auth/complete-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileData),
-      })
+        const response = await fetch('/api/auth/complete-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(profileData),
+        })
 
-      console.log('Response status:', response.status)
+        console.log('Response status:', response.status)
 
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ Perfil salvo com sucesso:', result)
+        if (response.ok) {
+          const result = await response.json()
+          console.log('✅ Perfil salvo com sucesso:', result)
 
-        // Mostrar estado de sucesso
-        setSuccess(true)
-        setErrors({}) // Limpar erros
+          // Mostrar estado de sucesso
+          setSuccess(true)
+          setErrors({}) // Limpar erros
 
-        // Mostrar toast de sucesso
-        toast.success('Perfil completado com sucesso!')
+          // Mostrar toast de sucesso
+          toast.success('Perfil completado com sucesso!')
 
-        // Aguardar um pouco para o toast aparecer
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+          // Aguardar um pouco para o toast aparecer
+          await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        // Mostrar estado de redirecionamento
-        setRedirecting(true)
+          // Mostrar estado de redirecionamento
+          setRedirecting(true)
 
-        // Atualizar sessão para refletir mudanças no banco
-        console.log('🔄 Atualizando sessão...')
-        await update()
+          // Atualizar sessão para refletir mudanças no banco
+          console.log('🔄 Atualizando sessão...')
+          await update()
 
-        // Aguardar um pouco para a sessão atualizar
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+          // Aguardar um pouco para a sessão atualizar
+          await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        // Forçar atualização da sessão novamente para garantir
-        console.log('🔄 Forçando segunda atualização da sessão...')
-        await update()
+          // Forçar atualização da sessão novamente para garantir
+          console.log('🔄 Forçando segunda atualização da sessão...')
+          await update()
 
-        // Aguardar mais um pouco
-        await new Promise((resolve) => setTimeout(resolve, 500))
+          // Aguardar mais um pouco
+          await new Promise((resolve) => setTimeout(resolve, 500))
 
-        // Usar URL de redirecionamento da API
-        const redirectUrl = result.redirectUrl || '/employee'
-        console.log('🔄 Redirecionando para:', redirectUrl)
+          // Usar URL de redirecionamento da API
+          const redirectUrl = result.redirectUrl || '/employee'
+          console.log('🔄 Redirecionando para:', redirectUrl)
 
-        // Redirecionamento com reload completo para forçar nova verificação do middleware
-        console.log('🔄 Forçando reload completo...')
-        window.location.replace(redirectUrl)
-      } else {
-        const error = await response.json()
-        console.error('Erro na API:', error)
-        const errorMessage = error.message || 'Erro ao salvar perfil'
+          // Redirecionamento com reload completo para forçar nova verificação do middleware
+          console.log('🔄 Forçando reload completo...')
+          window.location.replace(redirectUrl)
+        } else {
+          const error = await response.json()
+          console.error('Erro na API:', error)
+          const errorMessage = error.message || 'Erro ao salvar perfil'
+          setErrors({ general: errorMessage })
+          toast.error(errorMessage)
+        }
+      } catch (error) {
+        console.error('Erro no submit:', error)
+        const errorMessage = 'Erro interno. Tente novamente.'
         setErrors({ general: errorMessage })
         toast.error(errorMessage)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Erro no submit:', error)
-      const errorMessage = 'Erro interno. Tente novamente.'
-      setErrors({ general: errorMessage })
-      toast.error(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }, [profileData, update, validateForm])
+    },
+    [profileData, update, validateForm]
+  )
 
   // Anexar event listener após hidratação e quando formulário estiver disponível
   useEffect(() => {
@@ -871,11 +874,20 @@ export default function CompleteProfilePage() {
                             }}
                           >
                             <option value="">Selecione o tipo de contrato</option>
-                            {(CONTRACT_TYPES as { id: string; name: string; dailyHours: number; description: string }[]).filter((type) => type.id !== 'CUSTOM').map((type) => (
-                              <option key={type.id} value={type.id}>
-                                {type.name} - {formatHours(type.dailyHours)}/dia
-                              </option>
-                            ))}
+                            {(
+                              CONTRACT_TYPES as {
+                                id: string
+                                name: string
+                                dailyHours: number
+                                description: string
+                              }[]
+                            )
+                              .filter((type) => type.id !== 'CUSTOM')
+                              .map((type) => (
+                                <option key={type.id} value={type.id}>
+                                  {type.name} - {formatHours(type.dailyHours)}/dia
+                                </option>
+                              ))}
                           </select>
                           {errors.contractType && (
                             <p className="text-error text-xs mt-1">{errors.contractType}</p>
@@ -957,7 +969,9 @@ export default function CompleteProfilePage() {
               {/* Configuração de Turno - Apenas para funcionários */}
               {effectiveRole === 'EMPLOYEE' && (
                 <ShiftConfigForm
-                  shift={(profileData.shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID') || 'MORNING'}
+                  shift={
+                    (profileData.shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID') || 'MORNING'
+                  }
                   shiftStartTime={profileData.shiftStartTime || '08:00'}
                   shiftEndTime={profileData.shiftEndTime || '12:00'}
                   workingDaysPerWeek={profileData.workingDaysPerWeek || 5}

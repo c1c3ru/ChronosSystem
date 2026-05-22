@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     })
 
     let isSecureQR = false
-    let qrEvent: (Prisma.QrEventGetPayload<{ include: { machine: true } }>) | null = null
+    let qrEvent: Prisma.QrEventGetPayload<{ include: { machine: true } }> | null = null
 
     // ESTRATÉGIA ÚNICA E SEGURA: Validar como QR seguro (HMAC-SHA256)
     const secureValidation = validateSecureQR(qrData)
@@ -320,8 +320,9 @@ export async function POST(request: NextRequest) {
       const mensagemErro = validation.errors.join(', ')
       apiLogger.warn('Attendance validation failed', {
         userId: session.user.id,
-        machineId, machineName: machine.name,
-        errors: mensagemErro
+        machineId,
+        machineName: machine.name,
+        errors: mensagemErro,
       })
 
       await prisma.auditLog.create({
@@ -329,15 +330,18 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           action: 'REJECTED_ATTENDANCE',
           resource: 'ATTENDANCE_RECORD',
-          details: `Tentativa de ${recordType} rejeitada na máquina ${machine.name}. Motivo: ${mensagemErro}`
-        }
+          details: `Tentativa de ${recordType} rejeitada na máquina ${machine.name}. Motivo: ${mensagemErro}`,
+        },
       })
 
-      return NextResponse.json({
-        error: `Registro bloqueado: ${mensagemErro}`,
-        warnings: validation.warnings,
-        code: 'VALIDATION_FAILED'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: `Registro bloqueado: ${mensagemErro}`,
+          warnings: validation.warnings,
+          code: 'VALIDATION_FAILED',
+        },
+        { status: 400 }
+      )
     }
 
     // Verificar se não há registro duplicado no mesmo minuto (qualquer tipo)
@@ -355,11 +359,12 @@ export async function POST(request: NextRequest) {
     if (recentRecord) {
       const recordTypeLabel = recentRecord.type === 'ENTRY' ? 'entrada' : 'saída'
       const mensagemDuplicada = `Você já registrou ${recordTypeLabel} recentemente. Aguarde 1 minuto entre registros.`
-      
+
       apiLogger.warn('Duplicate attendance record attempt', {
         userId: session.user.id,
-        machineId, machineName: machine.name,
-        lastRecordType: recentRecord.type
+        machineId,
+        machineName: machine.name,
+        lastRecordType: recentRecord.type,
       })
 
       await prisma.auditLog.create({
@@ -367,18 +372,24 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           action: 'REJECTED_ATTENDANCE',
           resource: 'ATTENDANCE_RECORD',
-          details: `Tentativa de ponto duplicado (${recordType}) na máquina ${machine.name}. Motivo: Já registrou ${recordTypeLabel} há menos de 1 minuto.`
-        }
+          details: `Tentativa de ponto duplicado (${recordType}) na máquina ${machine.name}. Motivo: Já registrou ${recordTypeLabel} há menos de 1 minuto.`,
+        },
       })
 
-      return NextResponse.json({
-        error: mensagemDuplicada,
-        code: 'DUPLICATE_RECORD',
-        lastRecord: {
-          type: recentRecord.type,
-          time: recentRecord.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        }
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: mensagemDuplicada,
+          code: 'DUPLICATE_RECORD',
+          lastRecord: {
+            type: recentRecord.type,
+            time: recentRecord.timestamp.toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          },
+        },
+        { status: 400 }
+      )
     }
 
     // Criar hash para integridade usando o último registro do próprio usuário

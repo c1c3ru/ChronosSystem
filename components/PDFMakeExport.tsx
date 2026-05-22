@@ -9,7 +9,7 @@ import { generatePDFMakeClient } from '@/lib/pdfmake-engine'
 interface PDFMakeExportProps {
   fileName: string
   isLoading?: boolean
-  /** 
+  /**
    * Função que deve retornar o objeto de definição do PDFMake.
    * É chamada apenas quando o usuário clica no botão, evitando peso no carregamento inicial.
    */
@@ -21,17 +21,17 @@ export function PDFMakeExport({
   fileName,
   isLoading = false,
   documentDefinitionGenerator,
-  buttonText = 'Exportar PDF'
+  buttonText = 'Exportar PDF',
 }: PDFMakeExportProps) {
   const [loading, setLoading] = useState(false)
 
   const handleExport = async () => {
     try {
       setLoading(true)
-      
+
       // Gera as definições usando a função fornecida (ex: extrair os valores do React Hook Form)
       const docDefinition = await documentDefinitionGenerator()
-      
+
       // Gera e baixa o PDF
       await generatePDFMakeClient(docDefinition, { filename: fileName })
     } catch (error) {

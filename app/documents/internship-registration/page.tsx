@@ -117,7 +117,8 @@ export default function InternshipRegistrationPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-      const { buildInternshipRegistrationDoc } = await import('@/lib/pdf-templates/internship-registration.pdf')
+      const { buildInternshipRegistrationDoc } =
+        await import('@/lib/pdf-templates/internship-registration.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
       const raw = { ...formData }
       const doc = await buildInternshipRegistrationDoc({
@@ -162,34 +163,88 @@ export default function InternshipRegistrationPage() {
         weekly_hours: raw.weekly_hours,
         schedule: {
           mon: {
-            morning: schedule.seg_start_1 && schedule.seg_end_1 ? `${schedule.seg_start_1} - ${schedule.seg_end_1}` : '',
-            afternoon: schedule.seg_start_2 && schedule.seg_end_2 ? `${schedule.seg_start_2} - ${schedule.seg_end_2}` : '',
-            evening: schedule.seg_start_3 && schedule.seg_end_3 ? `${schedule.seg_start_3} - ${schedule.seg_end_3}` : '',
+            morning:
+              schedule.seg_start_1 && schedule.seg_end_1
+                ? `${schedule.seg_start_1} - ${schedule.seg_end_1}`
+                : '',
+            afternoon:
+              schedule.seg_start_2 && schedule.seg_end_2
+                ? `${schedule.seg_start_2} - ${schedule.seg_end_2}`
+                : '',
+            evening:
+              schedule.seg_start_3 && schedule.seg_end_3
+                ? `${schedule.seg_start_3} - ${schedule.seg_end_3}`
+                : '',
           },
           tue: {
-            morning: schedule.ter_start_1 && schedule.ter_end_1 ? `${schedule.ter_start_1} - ${schedule.ter_end_1}` : '',
-            afternoon: schedule.ter_start_2 && schedule.ter_end_2 ? `${schedule.ter_start_2} - ${schedule.ter_end_2}` : '',
-            evening: schedule.ter_start_3 && schedule.ter_end_3 ? `${schedule.ter_start_3} - ${schedule.ter_end_3}` : '',
+            morning:
+              schedule.ter_start_1 && schedule.ter_end_1
+                ? `${schedule.ter_start_1} - ${schedule.ter_end_1}`
+                : '',
+            afternoon:
+              schedule.ter_start_2 && schedule.ter_end_2
+                ? `${schedule.ter_start_2} - ${schedule.ter_end_2}`
+                : '',
+            evening:
+              schedule.ter_start_3 && schedule.ter_end_3
+                ? `${schedule.ter_start_3} - ${schedule.ter_end_3}`
+                : '',
           },
           wed: {
-            morning: schedule.qua_start_1 && schedule.qua_end_1 ? `${schedule.qua_start_1} - ${schedule.qua_end_1}` : '',
-            afternoon: schedule.qua_start_2 && schedule.qua_end_2 ? `${schedule.qua_start_2} - ${schedule.qua_end_2}` : '',
-            evening: schedule.qua_start_3 && schedule.qua_end_3 ? `${schedule.qua_start_3} - ${schedule.qua_end_3}` : '',
+            morning:
+              schedule.qua_start_1 && schedule.qua_end_1
+                ? `${schedule.qua_start_1} - ${schedule.qua_end_1}`
+                : '',
+            afternoon:
+              schedule.qua_start_2 && schedule.qua_end_2
+                ? `${schedule.qua_start_2} - ${schedule.qua_end_2}`
+                : '',
+            evening:
+              schedule.qua_start_3 && schedule.qua_end_3
+                ? `${schedule.qua_start_3} - ${schedule.qua_end_3}`
+                : '',
           },
           thu: {
-            morning: schedule.qui_start_1 && schedule.qui_end_1 ? `${schedule.qui_start_1} - ${schedule.qui_end_1}` : '',
-            afternoon: schedule.qui_start_2 && schedule.qui_end_2 ? `${schedule.qui_start_2} - ${schedule.qui_end_2}` : '',
-            evening: schedule.qui_start_3 && schedule.qui_end_3 ? `${schedule.qui_start_3} - ${schedule.qui_end_3}` : '',
+            morning:
+              schedule.qui_start_1 && schedule.qui_end_1
+                ? `${schedule.qui_start_1} - ${schedule.qui_end_1}`
+                : '',
+            afternoon:
+              schedule.qui_start_2 && schedule.qui_end_2
+                ? `${schedule.qui_start_2} - ${schedule.qui_end_2}`
+                : '',
+            evening:
+              schedule.qui_start_3 && schedule.qui_end_3
+                ? `${schedule.qui_start_3} - ${schedule.qui_end_3}`
+                : '',
           },
           fri: {
-            morning: schedule.sex_start_1 && schedule.sex_end_1 ? `${schedule.sex_start_1} - ${schedule.sex_end_1}` : '',
-            afternoon: schedule.sex_start_2 && schedule.sex_end_2 ? `${schedule.sex_start_2} - ${schedule.sex_end_2}` : '',
-            evening: schedule.sex_start_3 && schedule.sex_end_3 ? `${schedule.sex_start_3} - ${schedule.sex_end_3}` : '',
+            morning:
+              schedule.sex_start_1 && schedule.sex_end_1
+                ? `${schedule.sex_start_1} - ${schedule.sex_end_1}`
+                : '',
+            afternoon:
+              schedule.sex_start_2 && schedule.sex_end_2
+                ? `${schedule.sex_start_2} - ${schedule.sex_end_2}`
+                : '',
+            evening:
+              schedule.sex_start_3 && schedule.sex_end_3
+                ? `${schedule.sex_start_3} - ${schedule.sex_end_3}`
+                : '',
           },
           sat: {
-            morning: schedule.sab_start_1 && schedule.sab_end_1 ? `${schedule.sab_start_1} - ${schedule.sab_end_1}` : '',
-            afternoon: schedule.sab_start_2 && schedule.sab_end_2 ? `${schedule.sab_start_2} - ${schedule.sab_end_2}` : '',
-            evening: schedule.sab_start_3 && schedule.sab_end_3 ? `${schedule.sab_start_3} - ${schedule.sab_end_3}` : '',
+            morning:
+              schedule.sab_start_1 && schedule.sab_end_1
+                ? `${schedule.sab_start_1} - ${schedule.sab_end_1}`
+                : '',
+            afternoon:
+              schedule.sab_start_2 && schedule.sab_end_2
+                ? `${schedule.sab_start_2} - ${schedule.sab_end_2}`
+                : '',
+            evening:
+              schedule.sab_start_3 && schedule.sab_end_3
+                ? `${schedule.sab_start_3} - ${schedule.sab_end_3}`
+                : '',
           },
         },
       })
@@ -242,10 +297,7 @@ export default function InternshipRegistrationPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           {/* 1. Dados do Discente */}
           <Card variant="elevated">
             <CardHeader>

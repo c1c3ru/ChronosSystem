@@ -94,7 +94,8 @@ export default function StudentEvaluationPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-      const { buildStudentEvaluationDoc } = await import('@/lib/pdf-templates/student-evaluation.pdf')
+      const { buildStudentEvaluationDoc } =
+        await import('@/lib/pdf-templates/student-evaluation.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
       const doc = await buildStudentEvaluationDoc({
         student_name: formData.student_name,
@@ -192,10 +193,7 @@ export default function StudentEvaluationPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           {/* Dados do Estagiário */}
           <Card variant="elevated">
             <CardHeader>

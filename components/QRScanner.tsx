@@ -191,9 +191,7 @@ const QRScannerOverlay = React.memo(function QRScannerOverlay({
       </div>
 
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div
-          className="absolute inset-0 bg-black/50 [clip-path:polygon(0%_0%,_0%_100%,_calc(50%_-_128px)_100%,_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_+_128px),_calc(50%_-_128px)_calc(50%_+_128px),_calc(50%_-_128px)_100%,_100%_100%,_100%_0%)]"
-        />
+        <div className="absolute inset-0 bg-black/50 [clip-path:polygon(0%_0%,_0%_100%,_calc(50%_-_128px)_100%,_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_-_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_-_128px),_calc(50%_+_128px)_calc(50%_+_128px),_calc(50%_-_128px)_calc(50%_+_128px),_calc(50%_-_128px)_100%,_100%_100%,_100%_0%)]" />
       </div>
 
       {/* Validation Feedback */}

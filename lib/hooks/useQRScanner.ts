@@ -19,7 +19,17 @@ export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
   const [validation, setValidation] = useState<QRValidationResult | null>(null)
   const [lastError, setLastError] = useState<string | null>(null)
   const barcodeDetectorRef = useRef<BarcodeDetector | null>(null)
-  const jsQRRef = useRef<((data: Uint8ClampedArray, width: number, height: number, options?: { inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst' }) => { data: string } | null) | null>(null)
+  const jsQRRef = useRef<
+    | ((
+        data: Uint8ClampedArray,
+        width: number,
+        height: number,
+        options?: {
+          inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst'
+        }
+      ) => { data: string } | null)
+    | null
+  >(null)
   const isLoadingLibRef = useRef(false)
 
   // Use ref to stabilize the callback identity
@@ -71,7 +81,10 @@ export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
       if ('BarcodeDetector' in window) {
         try {
           if (!barcodeDetectorRef.current) {
-            barcodeDetectorRef.current = new (window as Window & typeof globalThis & { BarcodeDetector: new (opts?: unknown) => unknown }).BarcodeDetector({
+            barcodeDetectorRef.current = new (
+              window as Window &
+                typeof globalThis & { BarcodeDetector: new (opts?: unknown) => unknown }
+            ).BarcodeDetector({
               formats: ['qr_code'],
             })
           }
