@@ -24,7 +24,8 @@
       "@/*": ["./*"],
       "@/components/*": ["./components/*"],
       "@/lib/*": ["./lib/*"],
-      "@/app/*": ["./app/*"]
+      "@/app/*": ["./app/*"],
+      "pdfmake/interfaces": ["./node_modules/@types/pdfmake/interfaces.d.ts"]
     }
   },
   "include": [

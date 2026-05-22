@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         shift: true,
         shiftStartTime: true,
         shiftEndTime: true,
+        workingDaysPerWeek: true, // Adicionado para calcular os dias de trabalho na interface
         contractType: true,
         weeklyHours: true,
         dailyHours: true,

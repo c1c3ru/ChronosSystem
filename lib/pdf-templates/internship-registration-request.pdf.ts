@@ -32,6 +32,8 @@ export interface InternshipRegistrationRequestData {
   telefone_responsavel?: string
   supervisor_nome?: string
   supervisor_cargo?: string
+  supervisor_cpf?: string
+  supervisor_telefone?: string
   setor_realizacao?: string
   tipo_estagio?: string
   forma_estagio?: string

@@ -56,6 +56,7 @@ interface InternOverview {
   shift: string
   shiftStartTime: string
   shiftEndTime: string
+  workingDaysPerWeek: number
   contractType: string
   weeklyHours: number
   dailyHours: number
@@ -69,6 +70,21 @@ interface InternOverview {
   } | null
   isPresent: boolean
 }
+
+// Mapeia a quantidade de dias úteis semanais para uma descrição textual amigável em português
+const obterDiasTrabalhoTexto = (diasPorSemana: number): string => {
+  switch (diasPorSemana) {
+    case 5:
+      return 'Segunda a Sexta'
+    case 6:
+      return 'Segunda a Sábado'
+    case 7:
+      return 'Segunda a Domingo'
+    default:
+      return `${diasPorSemana} dias por semana`
+  }
+}
+
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -442,35 +458,45 @@ export default function AdminPage() {
                       </div>
 
                       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                        <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50">
-                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">
-                            Horário
-                          </p>
-                          <p className="text-white text-xs font-medium">
-                            {intern.shiftStartTime} - {intern.shiftEndTime}
+                        <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50 flex flex-col justify-between">
+                          <div>
+                            <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Horário</p>
+                            <p className="text-white text-xs font-medium">{intern.shiftStartTime} - {intern.shiftEndTime}</p>
+                          </div>
+                          <p className="text-[10px] text-neutral-400 mt-1 font-normal">
+                            {obterDiasTrabalhoTexto(intern.workingDaysPerWeek)}
                           </p>
                         </div>
-                        <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50">
-                          <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">
-                            Saldo Atual
-                          </p>
-                          <p
-                            className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}
-                          >
-                            {intern.hourBalance > 0 ? '+' : ''}
-                            {intern.hourBalance.toFixed(1)}h
-                          </p>
+                        <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50 flex flex-col justify-between">
+                          <div>
+                            <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Saldo Atual</p>
+                            <p className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}>
+                              {intern.hourBalance > 0 ? '+' : ''}{intern.hourBalance.toFixed(1)}h
+                            </p>
+                          </div>
                         </div>
                       </div>
 
                       <div className="mt-4 pt-3 border-t border-neutral-800/50 flex items-center justify-between text-[11px] text-neutral-400">
                         <div className="flex items-center">
-                          <div
-                            className={`h-1.5 w-1.5 rounded-full mr-2 ${intern.lastStatus?.type === 'ENTRY' ? 'bg-success animate-pulse' : 'bg-neutral-600'}`}
-                          />
-                          {intern.lastStatus
-                            ? `${intern.lastStatus.type === 'ENTRY' ? 'Entrou às' : 'Saiu às'} ${new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-                            : 'Sem registros hoje'}
+                          {intern.lastStatus ? (
+                            intern.lastStatus.type === 'ENTRY' ? (
+                              <span className="flex items-center gap-1.5 bg-success/15 text-success px-2.5 py-0.5 rounded-full font-medium">
+                                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                                Entrou às {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 bg-warning/15 text-warning px-2.5 py-0.5 rounded-full font-medium">
+                                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                                Saída às {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )
+                          ) : (
+                            <span className="flex items-center gap-1.5 bg-neutral-800/40 text-neutral-500 px-2.5 py-0.5 rounded-full font-medium">
+                              <span className="h-1.5 w-1.5 rounded-full bg-neutral-600" />
+                              Sem registros hoje
+                            </span>
+                          )}
                         </div>
                         <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
                           {intern.contractType.split('_')[1] || intern.contractType}
