@@ -18,14 +18,16 @@ export interface AttendanceDeclarationData {
   weeklyHours: string
 }
 
-export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationData): TDocumentDefinitions {
+export function buildAttendanceDeclarationPdfMake(
+  data: AttendanceDeclarationData
+): TDocumentDefinitions {
   return {
     pageSize: 'A4',
     defaultStyle: {
       font: 'Roboto',
       fontSize: 10,
       lineHeight: 1.2,
-      columnGap: 20
+      columnGap: 20,
     },
     content: [
       // HEADER
@@ -35,34 +37,37 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
             image: BRASAO_BASE64,
             width: 50,
             background: 'rgba(255, 255, 255, 1)',
-            alignment: 'left'
+            alignment: 'left',
           },
           {
             stack: [
               { text: 'MINISTÉRIO DA EDUCAÇÃO', style: 'headerBold' },
               { text: 'SECRETARIA DE EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA', style: 'headerBold' },
-              { text: 'INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA DO CEARÁ', style: 'headerBold' },
+              {
+                text: 'INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA DO CEARÁ',
+                style: 'headerBold',
+              },
               { text: 'PRÓ-REITORIA DE EXTENSÃO', style: 'headerBold' },
-              { text: 'COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS', style: 'headerBold' }
+              { text: 'COORDENAÇÃO DE ESTÁGIOS E ACOMPANHAMENTO DE EGRESSOS', style: 'headerBold' },
             ],
             alignment: 'center',
             width: '*',
-            margin: [0, 5, 0, 0]
+            margin: [0, 5, 0, 0],
           },
           {
             image: LOGO_IFCE_BASE64,
             width: 70,
-            alignment: 'right'
-          }
+            alignment: 'right',
+          },
         ],
-        margin: [0, 0, 0, 20]
+        margin: [0, 0, 0, 20],
       },
 
       // TITLE
       {
         text: 'DECLARAÇÃO DE PARTICIPAÇÃO EM EXPERIÊNCIA\nDE EXTENSÃO, INICIAÇÃO CIENTÍFICA OU MONITORIA',
         style: 'title',
-        margin: [0, 0, 0, 15]
+        margin: [0, 0, 0, 15],
       },
 
       // DESCRIPTION
@@ -70,10 +75,10 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
         text: [
           'Para fins de ',
           { text: 'EQUIPARAÇÃO', bold: true },
-          ' a atividades de estágio supervisionado obrigatório, declaro os fatos a seguir descritos, para que surjam efeitos legais.'
+          ' a atividades de estágio supervisionado obrigatório, declaro os fatos a seguir descritos, para que surjam efeitos legais.',
         ],
         alignment: 'justify',
-        margin: [0, 0, 0, 15]
+        margin: [0, 0, 0, 15],
       },
 
       // FIRST TABLE: Declarant and Student Details
@@ -85,80 +90,73 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
               {
                 text: [
                   { text: 'NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/SUPERVISOR)\n', style: 'label' },
-                  { text: data.declarantName || ' ' }
+                  { text: data.declarantName || ' ' },
                 ],
-                colSpan: 3
+                colSpan: 3,
               },
-              {}, {}
+              {},
+              {},
             ],
             [
               {
                 text: [
                   { text: 'TIPO DE DOCUMENTO\n', style: 'label' },
-                  { text: data.documentType || ' ' }
-                ]
+                  { text: data.documentType || ' ' },
+                ],
               },
               {
                 text: [
                   { text: 'NÚMERO DO DOCUMENTO\n', style: 'label' },
-                  { text: data.documentNumber || ' ' }
+                  { text: data.documentNumber || ' ' },
                 ],
-                colSpan: 2
+                colSpan: 2,
               },
-              {}
+              {},
             ],
             [
               {
                 text: [
                   { text: 'NOME DO DISCENTE\n', style: 'label' },
-                  { text: data.studentName || ' ' }
+                  { text: data.studentName || ' ' },
                 ],
-                colSpan: 3
+                colSpan: 3,
               },
-              {}, {}
+              {},
+              {},
             ],
             [
               {
-                text: [
-                  { text: 'CURSO\n', style: 'label' },
-                  { text: data.course || ' ' }
-                ],
-                colSpan: 2
+                text: [{ text: 'CURSO\n', style: 'label' }, { text: data.course || ' ' }],
+                colSpan: 2,
               },
               {},
               {
-                text: [
-                  { text: 'MATRÍCULA\n', style: 'label' },
-                  { text: data.registration || ' ' }
-                ]
-              }
+                text: [{ text: 'MATRÍCULA\n', style: 'label' }, { text: data.registration || ' ' }],
+              },
             ],
             [
               {
                 text: [
                   { text: 'INSTITUIÇÃO DE ENSINO\n', style: 'label' },
-                  { text: data.institution || ' ' }
+                  { text: data.institution || ' ' },
                 ],
-                colSpan: 2
+                colSpan: 2,
               },
               {},
               {
-                text: [
-                  { text: 'CAMPUS\n', style: 'label' },
-                  { text: data.campus || ' ' }
-                ]
-              }
-            ]
-          ]
+                text: [{ text: 'CAMPUS\n', style: 'label' }, { text: data.campus || ' ' }],
+              },
+            ],
+          ],
         },
-        margin: [0, 0, 0, 15]
+        margin: [0, 0, 0, 15],
       },
 
       // SECTION TITLE
       {
         text: 'DETALHES DA EXPERIÊNCIA',
         style: 'sectionTitle',
-        margin: [0, 0, 0, 5]
+        margin: [0, 0, 0, 5],
       },
 
       // SECOND TABLE: Experience Details
@@ -170,62 +168,66 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
               {
                 text: [
                   { text: 'TIPO DE EXPERIÊNCIA\n', style: 'label' },
-                  { text: data.experienceType || ' ' }
+                  { text: data.experienceType || ' ' },
                 ],
-                colSpan: 3
+                colSpan: 3,
               },
-              {}, {}
+              {},
+              {},
             ],
             [
               {
                 text: [
                   { text: 'NOME DO PROJETO / PROGRAMA\n', style: 'label' },
-                  { text: data.projectProgram || ' ' }
+                  { text: data.projectProgram || ' ' },
                 ],
-                colSpan: 3
+                colSpan: 3,
               },
-              {}, {}
+              {},
+              {},
             ],
             [
               {
                 text: [
                   { text: 'INSTITUIÇÃO RESPONSÁVEL\n', style: 'label' },
-                  { text: data.projectInstitution || ' ' }
+                  { text: data.projectInstitution || ' ' },
                 ],
-                colSpan: 3
+                colSpan: 3,
               },
-              {}, {}
+              {},
+              {},
             ],
             [
               {
                 text: [
                   { text: 'ATIVIDADES DESENVOLVIDAS PELO(A) DISCENTE\n', style: 'label' },
-                  { text: data.activities || ' ' }
+                  { text: data.activities || ' ' },
                 ],
                 colSpan: 3,
-                margin: [0, 0, 0, 40]
+                margin: [0, 0, 0, 40],
               },
-              {}, {}
+              {},
+              {},
             ],
             [
               {
                 text: [
                   { text: 'DATA DE INÍCIO\n', style: 'label' },
-                  { text: data.startDate || ' ' }
-                ]
+                  { text: data.startDate || ' ' },
+                ],
               },
               {
                 text: [
                   { text: 'CARGA HORÁRIA SEMANAL\n', style: 'label' },
-                  { text: data.weeklyHours ? `${data.weeklyHours} HORAS` : ' ' }
+                  { text: data.weeklyHours ? `${data.weeklyHours} HORAS` : ' ' },
                 ],
-                colSpan: 2
+                colSpan: 2,
               },
-              {}
-            ]
-          ]
+              {},
+            ],
+          ],
         },
-        margin: [0, 0, 0, 30]
+        margin: [0, 0, 0, 30],
       },
 
       // SIGNATURES
@@ -234,43 +236,43 @@ export function buildAttendanceDeclarationPdfMake(data: AttendanceDeclarationDat
           {
             stack: [
               { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 1 }] },
-              { text: 'Assinatura do Declarante', alignment: 'center', margin: [0, 5, 0, 0] }
+              { text: 'Assinatura do Declarante', alignment: 'center', margin: [0, 5, 0, 0] },
             ],
-            alignment: 'center'
+            alignment: 'center',
           },
           {
             stack: [
               { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 1 }] },
-              { text: 'Assinatura do Discente', alignment: 'center', margin: [0, 5, 0, 0] }
+              { text: 'Assinatura do Discente', alignment: 'center', margin: [0, 5, 0, 0] },
             ],
-            alignment: 'center'
-          }
+            alignment: 'center',
+          },
         ],
-        margin: [0, 40, 0, 0]
-      }
+        margin: [0, 40, 0, 0],
+      },
     ],
     styles: {
       headerBold: {
         fontSize: 10,
         bold: true,
-        alignment: 'center'
+        alignment: 'center',
       },
       title: {
         fontSize: 12,
         bold: true,
-        alignment: 'center'
+        alignment: 'center',
       },
       sectionTitle: {
         fontSize: 9,
         bold: true,
         fillColor: '#eeeeee',
-        alignment: 'left'
+        alignment: 'left',
       },
       label: {
         fontSize: 7,
         bold: true,
-        color: '#555555'
-      }
-    }
+        color: '#555555',
+      },
+    },
   }
 }

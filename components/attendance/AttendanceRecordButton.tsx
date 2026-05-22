@@ -48,41 +48,44 @@ export function AttendanceRecordButton({ onSuccess }: AttendanceRecordButtonProp
     fetchSuggestion()
   }, [fetchSuggestion])
 
-  const handleRecord = useCallback(async (forcedType?: 'ENTRY' | 'EXIT') => {
-    if (loading || isDone) return
+  const handleRecord = useCallback(
+    async (forcedType?: 'ENTRY' | 'EXIT') => {
+      if (loading || isDone) return
 
-    setLoading(true)
-    setIsPaused(true)
+      setLoading(true)
+      setIsPaused(true)
 
-    const typeToUse = forcedType || suggestedType
+      const typeToUse = forcedType || suggestedType
 
-    try {
-      const res = await fetch('/api/attendance/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: typeToUse }),
-      })
+      try {
+        const res = await fetch('/api/attendance/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: typeToUse }),
+        })
 
-      const data = await res.json()
+        const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.message || 'Erro ao registrar ponto')
+        if (!res.ok) {
+          throw new Error(data.message || 'Erro ao registrar ponto')
+        }
+
+        setIsDone(true)
+        toast.success(
+          `Registro de ${typeToUse === 'ENTRY' ? 'Entrada' : 'Saída'} realizado com sucesso!`
+        )
+
+        if (onSuccess) onSuccess()
+      } catch (error) {
+        const err = error as Error
+        toast.error(err.message)
+        setIsPaused(false) // Permitir tentar novamente
+      } finally {
+        setLoading(false)
       }
-
-      setIsDone(true)
-      toast.success(
-        `Registro de ${typeToUse === 'ENTRY' ? 'Entrada' : 'Saída'} realizado com sucesso!`
-      )
-
-      if (onSuccess) onSuccess()
-    } catch (error) {
-      const err = error as Error
-      toast.error(err.message)
-      setIsPaused(false) // Permitir tentar novamente
-    } finally {
-      setLoading(false)
-    }
-  }, [loading, isDone, suggestedType, onSuccess])
+    },
+    [loading, isDone, suggestedType, onSuccess]
+  )
 
   // Lógica do Countdown
   useEffect(() => {

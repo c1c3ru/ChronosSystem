@@ -97,7 +97,9 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error: unknown) {
-    logger.error('Erro ao buscar registros de ponto', { error: error instanceof Error ? error.message : String(error) })
+    logger.error('Erro ao buscar registros de ponto', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -223,8 +225,9 @@ export async function POST(request: NextRequest) {
       const errorMsg = validadorRegistro.errors[0]
       logger.warn('Registro de ponto rejeitado por regras de validação', {
         userId: sessao.user.id,
-        machineId: maquina.id, machineName: maquina.name,
-        error: errorMsg
+        machineId: maquina.id,
+        machineName: maquina.name,
+        error: errorMsg,
       })
 
       await prisma.auditLog.create({
@@ -232,8 +235,8 @@ export async function POST(request: NextRequest) {
           userId: sessao.user.id,
           action: 'REJECTED_ATTENDANCE',
           resource: 'ATTENDANCE_RECORD',
-          details: `Tentativa de ${dadosValidados.type} rejeitada na máquina ${maquina.name}. Motivo: ${errorMsg}`
-        }
+          details: `Tentativa de ${dadosValidados.type} rejeitada na máquina ${maquina.name}. Motivo: ${errorMsg}`,
+        },
       })
 
       return NextResponse.json({ error: errorMsg }, { status: 400 })

@@ -112,7 +112,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(stats)
   } catch (error: unknown) {
-    apiLogger.error('Erro ao buscar estatísticas do dashboard', { error: error instanceof Error ? error.message : String(error) })
+    apiLogger.error('Erro ao buscar estatísticas do dashboard', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

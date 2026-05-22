@@ -186,10 +186,7 @@ export default function AdditiveTermPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           {/* Identificação das Partes */}
           <Card variant="elevated">
             <CardHeader>

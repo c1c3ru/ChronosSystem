@@ -68,7 +68,9 @@ export function ShiftConfigForm({
           <option value="NIGHT">🌙 Período Noturno (18:00-22:00)</option>
           <option value="HYBRID">🔄 Período Híbrido (08:00-14:00)</option>
         </select>
-        <p className="mt-1 text-xs text-neutral-400">{getShiftDescription(shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')}</p>
+        <p className="mt-1 text-xs text-neutral-400">
+          {getShiftDescription(shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')}
+        </p>
       </div>
 
       {/* Horário de Início */}

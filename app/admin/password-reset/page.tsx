@@ -56,7 +56,9 @@ export default function PasswordResetPage() {
 
       if (response.ok) {
         // Filtrar apenas usuários com senha (não só Google)
-        const usersWithPassword = data.users.filter((user: { password?: string | null }) => user.password !== null)
+        const usersWithPassword = data.users.filter(
+          (user: { password?: string | null }) => user.password !== null
+        )
         setUsers(usersWithPassword)
       }
     } catch (error) {
@@ -449,7 +451,12 @@ export default function PasswordResetPage() {
               <Clock className="h-5 w-5 mr-2" />
               Tokens Ativos
             </h2>
-            <button onClick={loadActiveTokens} className="text-blue-600 hover:text-blue-700" title="Atualizar Tokens" aria-label="Atualizar Tokens">
+            <button
+              onClick={loadActiveTokens}
+              className="text-blue-600 hover:text-blue-700"
+              title="Atualizar Tokens"
+              aria-label="Atualizar Tokens"
+            >
               <RefreshCw className="h-4 w-4" />
             </button>
           </div>

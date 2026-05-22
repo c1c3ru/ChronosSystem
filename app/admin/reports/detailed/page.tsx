@@ -48,31 +48,34 @@ export default function DetailedReportsPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  const loadDetailedRecords = useCallback(async (page: number = 1) => {
-    try {
-      setLoading(true)
-      const params = new URLSearchParams()
-      params.append('page', page.toString())
-      params.append('limit', '50')
-      if (searchTerm) params.append('search', searchTerm)
-      if (dateFilter) params.append('date', dateFilter)
-      if (typeFilter !== 'ALL') params.append('type', typeFilter)
-      if (userFilter !== 'ALL') params.append('role', userFilter)
+  const loadDetailedRecords = useCallback(
+    async (page: number = 1) => {
+      try {
+        setLoading(true)
+        const params = new URLSearchParams()
+        params.append('page', page.toString())
+        params.append('limit', '50')
+        if (searchTerm) params.append('search', searchTerm)
+        if (dateFilter) params.append('date', dateFilter)
+        if (typeFilter !== 'ALL') params.append('type', typeFilter)
+        if (userFilter !== 'ALL') params.append('role', userFilter)
 
-      const response = await fetch(`/api/attendance/detailed-paginated?${params}`)
+        const response = await fetch(`/api/attendance/detailed-paginated?${params}`)
 
-      if (response.ok) {
-        const data = await response.json()
-        setRecords(data.data)
-        // Armazenar informações de paginação (você pode adicionar estado para isso)
-        console.log('Paginação:', data.pagination)
+        if (response.ok) {
+          const data = await response.json()
+          setRecords(data.data)
+          // Armazenar informações de paginação (você pode adicionar estado para isso)
+          console.log('Paginação:', data.pagination)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar registros detalhados:', error)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Erro ao carregar registros detalhados:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [searchTerm, dateFilter, typeFilter, userFilter])
+    },
+    [searchTerm, dateFilter, typeFilter, userFilter]
+  )
 
   // Load detailed records
   useEffect(() => {

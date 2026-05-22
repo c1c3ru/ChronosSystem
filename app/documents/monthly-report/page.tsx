@@ -109,7 +109,7 @@ export default function MonthlyReportPage() {
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <PDFMakeExport 
+            <PDFMakeExport
               fileName="relatorio-mensal.pdf"
               buttonText="Gerar PDF"
               documentDefinitionGenerator={() => buildMonthlyReportDoc(formData)}
@@ -133,10 +133,7 @@ export default function MonthlyReportPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Identificação e Período</CardTitle>

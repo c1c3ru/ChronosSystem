@@ -1,5 +1,16 @@
 import type { TDocumentDefinitions, Content } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import {
+  ifceHeader,
+  docTitle,
+  dataTable,
+  cell,
+  emptyCell,
+  sectionBlock,
+  sectionTitle,
+  sigBlock,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface ProfessionalDeclarationData {
   company_name?: string
@@ -18,19 +29,16 @@ export interface ProfessionalDeclarationData {
   authorization_date?: string
 }
 
-export async function buildProfessionalDeclarationDoc(d: ProfessionalDeclarationData): Promise<TDocumentDefinitions> {
+export async function buildProfessionalDeclarationDoc(
+  d: ProfessionalDeclarationData
+): Promise<TDocumentDefinitions> {
   const header = await ifceHeader()
 
   const companyTable = dataTable(
     ['50%', '50%'],
     [
-      [
-        cell('Razão Social', v(d.company_name)),
-        cell('CNPJ', v(d.company_cnpj)),
-      ],
-      [
-        cell('Endereço', v(d.company_address), { colSpan: 2 }), emptyCell()
-      ],
+      [cell('Razão Social', v(d.company_name)), cell('CNPJ', v(d.company_cnpj))],
+      [cell('Endereço', v(d.company_address), { colSpan: 2 }), emptyCell()],
     ]
   )
 
@@ -40,16 +48,12 @@ export async function buildProfessionalDeclarationDoc(d: ProfessionalDeclaration
       [
         cell('Nome do Funcionário', v(d.employee_name)),
         cell('CPF', v(d.employee_cpf)),
-        emptyCell()
+        emptyCell(),
       ],
-      [
-        cell('CTPS Nº', v(d.employee_ctps)),
-        cell('Série', v(d.employee_ctps_series)),
-        emptyCell()
-      ]
+      [cell('CTPS Nº', v(d.employee_ctps)), cell('Série', v(d.employee_ctps_series)), emptyCell()],
     ]
   )
-  
+
   // Correction: emptyCell wasn't enough for 3 cols when colSpan is 1 for everything. Wait.
   // The widths are 3. The first row has 3 cells (the 3rd is emptyCell). Wait, `cell` with no colSpan occupies 1.
   // So: [cell, cell, cell]. Correct.
@@ -61,12 +65,14 @@ export async function buildProfessionalDeclarationDoc(d: ProfessionalDeclaration
     [
       [
         cell('Nome do Funcionário', v(d.employee_name)),
-        cell('CPF', v(d.employee_cpf), { colSpan: 2 }), emptyCell()
+        cell('CPF', v(d.employee_cpf), { colSpan: 2 }),
+        emptyCell(),
       ],
       [
-        cell('CTPS Nº', v(d.employee_ctps), { colSpan: 2 }), emptyCell(),
+        cell('CTPS Nº', v(d.employee_ctps), { colSpan: 2 }),
+        emptyCell(),
         cell('Série', v(d.employee_ctps_series)),
-      ]
+      ],
     ]
   )
 
@@ -91,7 +97,11 @@ export async function buildProfessionalDeclarationDoc(d: ProfessionalDeclaration
     sectionTitle('DADOS DO VÍNCULO'),
     linkTable,
     ...sectionBlock('DESCRIÇÃO DAS ATIVIDADES', v(d.activities)),
-    { text: `${v(d.city) || 'Fortaleza'}, ____ de ______________ de _______`, alignment: 'right', margin: [0, 10, 0, 5] },
+    {
+      text: `${v(d.city) || 'Fortaleza'}, ____ de ______________ de _______`,
+      alignment: 'right',
+      margin: [0, 10, 0, 5],
+    },
     ...sigBlock(
       ['Representante da Empresa', 'Funcionário'],
       undefined,

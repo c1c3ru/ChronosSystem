@@ -177,10 +177,7 @@ export default function SemesterReportPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="text-lg">Identificação e Período</CardTitle>

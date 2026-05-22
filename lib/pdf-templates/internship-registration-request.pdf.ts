@@ -1,5 +1,16 @@
 import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, emptyCell, sectionBlock, sectionTitle, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import {
+  ifceHeader,
+  docTitle,
+  dataTable,
+  cell,
+  emptyCell,
+  sectionBlock,
+  sectionTitle,
+  sigBlock,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface InternshipRegistrationRequestData {
   nome?: string
@@ -87,7 +98,9 @@ const DEF_LABELS: Record<string, string> = {
   surdocegueira: 'Surdocegueira',
 }
 
-export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistrationRequestData): Promise<TDocumentDefinitions> {
+export async function buildInternshipRegistrationRequestDoc(
+  d: InternshipRegistrationRequestData
+): Promise<TDocumentDefinitions> {
   const header = await ifceHeader()
 
   const studentTable = dataTable(
@@ -98,8 +111,8 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
           columns: [
             cell('NOME', v(d.nome), { border: [false, false, true, true] }),
             cell('CPF', v(d.cpf), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
       [cell('NOME SOCIAL', v(d.nome_social))],
       [
@@ -107,8 +120,8 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
           columns: [
             cell('CURSO', v(d.curso), { border: [false, false, true, true] }),
             cell('MATRÍCULA', v(d.matricula), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
       [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.endereco))],
       [
@@ -117,17 +130,19 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
             cell('BAIRRO/DISTRITO', v(d.bairro), { border: [false, false, true, true] }),
             cell('MUNICÍPIO-UF', v(d.municipio_uf), { border: [false, false, true, true] }),
             cell('CEP', v(d.cep), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
       [
         {
           columns: [
             cell('DDD + TELEFONE', v(d.telefone), { border: [false, false, true, true] }),
-            cell('E-MAIL INSTITUCIONAL', v(d.email_institucional), { border: [false, false, true, true] }),
+            cell('E-MAIL INSTITUCIONAL', v(d.email_institucional), {
+              border: [false, false, true, true],
+            }),
             cell('E-MAIL PESSOAL', v(d.email_pessoal), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
     ]
   )
@@ -140,7 +155,11 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
       [
         { text: 'COR/RAÇA', style: 'tableHeader', alignment: 'center' as Alignment },
         { text: 'ETNIA', style: 'tableHeader', alignment: 'center' as Alignment },
-        { text: 'APENAS PARA PESSOA COM DEFICIÊNCIA (CID e laudo)', style: 'tableHeader', alignment: 'center' as Alignment },
+        {
+          text: 'APENAS PARA PESSOA COM DEFICIÊNCIA (CID e laudo)',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+        },
       ],
       [
         {
@@ -152,7 +171,7 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
             { text: `${cb(d.cor_raca === 'preto')} Preto(a)`, fontSize: 7 },
             { text: `${cb(d.cor_raca === 'nao_declarar')} Prefiro não declarar`, fontSize: 7 },
           ],
-          margin: [2, 2, 2, 2]
+          margin: [2, 2, 2, 2],
         },
         {
           stack: [
@@ -160,23 +179,43 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
             { text: `${cb(d.etnia === 'quilombola')} Quilombola`, fontSize: 7 },
             { text: `${cb(d.etnia === 'outra')} Outra ________________`, fontSize: 7 },
             { text: `${cb(d.etnia === 'nao_declarar')} Prefiro não declarar`, fontSize: 7 },
-            { text: `Informar comunidade se marcar etnia:\n${v(d.comunidade_etnia)}`, fontSize: 6, italics: true, margin: [0, 4, 0, 0] },
+            {
+              text: `Informar comunidade se marcar etnia:\n${v(d.comunidade_etnia)}`,
+              fontSize: 6,
+              italics: true,
+              margin: [0, 4, 0, 0],
+            },
           ],
-          margin: [2, 2, 2, 2]
+          margin: [2, 2, 2, 2],
         },
         {
           stack: [
-            { text: `${cb(!!d.deficiencia?.includes('alta_habilidade'))} Alta habilidade/superdotação`, fontSize: 7 },
-            { text: `${cb(!!d.deficiencia?.includes('auditiva'))} Deficiência auditiva`, fontSize: 7 },
-            { text: `${cb(!!d.deficiencia?.includes('intelectual'))} Deficiência intelectual`, fontSize: 7 },
+            {
+              text: `${cb(!!d.deficiencia?.includes('alta_habilidade'))} Alta habilidade/superdotação`,
+              fontSize: 7,
+            },
+            {
+              text: `${cb(!!d.deficiencia?.includes('auditiva'))} Deficiência auditiva`,
+              fontSize: 7,
+            },
+            {
+              text: `${cb(!!d.deficiencia?.includes('intelectual'))} Deficiência intelectual`,
+              fontSize: 7,
+            },
             { text: `${cb(!!d.deficiencia?.includes('motora'))} Deficiência motora`, fontSize: 7 },
-            { text: `${cb(!!d.deficiencia?.includes('visual_baixa'))} Deficiência visual/baixa visão`, fontSize: 7 },
+            {
+              text: `${cb(!!d.deficiencia?.includes('visual_baixa'))} Deficiência visual/baixa visão`,
+              fontSize: 7,
+            },
             { text: `${cb(!!d.deficiencia?.includes('visual'))} Deficiência visual`, fontSize: 7 },
-            { text: `${cb(!!d.deficiencia?.includes('surdocegueira'))} Surdocegueira`, fontSize: 7 },
+            {
+              text: `${cb(!!d.deficiencia?.includes('surdocegueira'))} Surdocegueira`,
+              fontSize: 7,
+            },
           ],
-          margin: [2, 2, 2, 2]
-        }
-      ]
+          margin: [2, 2, 2, 2],
+        },
+      ],
     ]
   )
 
@@ -185,15 +224,25 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
     [
       [{ text: 'RAZÃO SOCIAL', style: 'tableHeader', alignment: 'center' as Alignment }],
       [cell(' ', '')], // Placeholder for social name if needed, usually empty in this doc
-      [{ text: 'NOME DE FANTASIA OU DE PESSOA FÍSICA', style: 'tableHeader', alignment: 'center' as Alignment }],
+      [
+        {
+          text: 'NOME DE FANTASIA OU DE PESSOA FÍSICA',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+        },
+      ],
       [cell(' ', v(d.nome_fantasia_pf))],
       [
         {
           columns: [
-            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.cnpj_registro_conselho), { border: [false, false, true, true] }),
-            cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.endereco_pf), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.cnpj_registro_conselho), {
+              border: [false, false, true, true],
+            }),
+            cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.endereco_pf), {
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
       ],
       [
         {
@@ -201,38 +250,56 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
             cell('BAIRRO', v(d.bairro_pf), { border: [false, false, true, true] }),
             cell('MUNICÍPIO-UF', v(d.municipio_uf_pf), { border: [false, false, true, true] }),
             cell('CEP', v(d.cep_pf), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
       [
         {
           columns: [
             cell('DDD + TELEFONE', v(d.telefone_pf), { border: [false, false, true, true] }),
             cell('E-MAIL', v(d.email_pf), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
-      [{ text: 'RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM', style: 'tableHeader', alignment: 'center' as Alignment }],
+      [
+        {
+          text: 'RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+        },
+      ],
       [cell(' ', v(d.responsavel_legal))],
       [
         {
           columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.cargo_qualificacao), { border: [false, false, true, true] }),
+            cell('CARGO/QUALIFICAÇÃO', v(d.cargo_qualificacao), {
+              border: [false, false, true, true],
+            }),
             cell('CPF', v(d.cpf_responsavel), { border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', v(d.telefone_responsavel), { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+            cell('DDD + TELEFONE', v(d.telefone_responsavel), {
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
       ],
-      [{ text: 'SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment }],
+      [
+        {
+          text: 'SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+        },
+      ],
       [cell(' ', v(d.supervisor_nome))],
       [
         {
           columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.supervisor_cargo), { border: [false, false, true, true] }),
+            cell('CARGO/QUALIFICAÇÃO', v(d.supervisor_cargo), {
+              border: [false, false, true, true],
+            }),
             cell('CPF', ' ', { border: [false, false, true, true] }), // CPF supervisor often not in basic registration
             cell('DDD + TELEFONE', ' ', { border: [false, false, false, true] }),
-          ]
-        } as TableCell
+          ],
+        } as TableCell,
       ],
       [cell('SETOR DE REALIZAÇÃO DO ESTÁGIO', v(d.setor_realizacao))],
     ]
@@ -254,19 +321,19 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
             { text: `${cb(d.tipo_estagio === 'obrigatorio')} OBRIGATÓRIO`, fontSize: 7 },
             { text: `${cb(d.tipo_estagio === 'nao_obrigatorio')} NÃO OBRIGATÓRIO`, fontSize: 7 },
           ],
-          margin: [4, 4, 4, 4]
+          margin: [4, 4, 4, 4],
         },
         {
           stack: [
             { text: `${cb(d.forma_estagio === 'presencial')} PRESENCIAL`, fontSize: 7 },
             { text: `${cb(d.forma_estagio === 'remoto')} REMOTO`, fontSize: 7 },
           ],
-          margin: [4, 4, 4, 4]
+          margin: [4, 4, 4, 4],
         },
         { text: fmtDate(d.data_inicial), alignment: 'center', margin: [0, 8] },
         { text: `${v(d.carga_horaria_semanal)} HORAS`, alignment: 'center', margin: [0, 8] },
         { text: fmtDate(d.data_final_prevista), alignment: 'center', margin: [0, 8] },
-      ]
+      ],
     ]
   )
 
@@ -276,42 +343,118 @@ export async function buildInternshipRegistrationRequestDoc(d: InternshipRegistr
     ['12%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%', '6%'],
     [
       [
-        { text: 'TURNO', style: 'tableHeader', alignment: 'center' as Alignment, rowSpan: 2, margin: [0, 8] },
-        { text: 'PREVISÃO DE DISTRIBUIÇÃO DA CARGA HORÁRIA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 14 },
-        {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        {
+          text: 'TURNO',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+          rowSpan: 2,
+          margin: [0, 8],
+        },
+        {
+          text: 'PREVISÃO DE DISTRIBUIÇÃO DA CARGA HORÁRIA',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+          colSpan: 14,
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
       ],
       [
         {},
-        { text: 'SEG-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
-        { text: 'TER-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
-        { text: 'QUA-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
-        { text: 'QUI-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
-        { text: 'SEX-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
-        { text: 'SÁBADO', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
-        { text: 'DOMINGO', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 }, {},
+        { text: 'SEG-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
+        { text: 'TER-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
+        { text: 'QUA-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
+        { text: 'QUI-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
+        { text: 'SEX-FEIRA', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
+        { text: 'SÁBADO', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
+        { text: 'DOMINGO', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 2 },
+        {},
       ],
       [
         { text: '', style: 'tableHeader' },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
-        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 }, { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'INÍCIO', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
+        { text: 'FIM', style: 'tableHeader', alignment: 'center' as Alignment, fontSize: 5 },
       ],
       [
         { text: '1º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 },
-        { text: v(hor.segunda_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.segunda_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
-        { text: v(hor.terca_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.terca_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
-        { text: v(hor.quarta_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.quarta_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
-        { text: v(hor.quinta_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.quinta_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
-        { text: v(hor.sexta_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.sexta_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
-        { text: v(hor.sabado?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.sabado?.final), fontSize: 7, alignment: 'center' as Alignment },
-        { text: v(hor.domingo?.inicio), fontSize: 7, alignment: 'center' as Alignment }, { text: v(hor.domingo?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.segunda_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.segunda_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.terca_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.terca_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.quarta_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.quarta_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.quinta_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.quinta_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.sexta_feira?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.sexta_feira?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.sabado?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.sabado?.final), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.domingo?.inicio), fontSize: 7, alignment: 'center' as Alignment },
+        { text: v(hor.domingo?.final), fontSize: 7, alignment: 'center' as Alignment },
       ],
-      [{ text: '2º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-      [{ text: '3º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+      [
+        { text: '2º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      ],
+      [
+        { text: '3º', style: 'cellValue', alignment: 'center' as Alignment, fontSize: 7 },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      ],
     ]
   )
 

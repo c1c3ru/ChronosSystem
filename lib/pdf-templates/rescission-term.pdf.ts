@@ -1,5 +1,13 @@
 import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
-import { ifceHeader, docTitle, dataTable, cell, sigBlock, fmtDate, v } from '@/lib/pdfmake-base-service'
+import {
+  ifceHeader,
+  docTitle,
+  dataTable,
+  cell,
+  sigBlock,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface RescissionTermData {
   // IFCE Campus Info
@@ -58,7 +66,14 @@ export interface RescissionTermData {
 
   // Motivation Info
   initiator?: 'ifce' | 'company' | 'student'
-  reason?: 'breach' | 'completion' | 'abandonment_activities' | 'abandonment_course' | 'cancellation' | 'suspension' | 'other'
+  reason?:
+    | 'breach'
+    | 'completion'
+    | 'abandonment_activities'
+    | 'abandonment_course'
+    | 'cancellation'
+    | 'suspension'
+    | 'other'
   reason_other?: string
   rescission_reason?: string
   city?: string
@@ -68,127 +83,266 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
   const header = await ifceHeader()
   const cb = (checked: boolean) => (checked ? '(X)' : '( )')
 
-  const ifceTable = dataTable(['*'], [
-    [{ text: 'Instituição de Ensino – IFCE', style: 'tableHeader', alignment: 'center' as Alignment }],
-    [{
-      columns: [
-        cell('CAMPUS', v(d.campus_name), { width: '50%', border: [false, false, true, true] }),
-        cell('CNPJ', v(d.campus_cnpj), { width: '50%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.campus_address))],
-    [{
-      columns: [
-        cell('BAIRRO', v(d.campus_neighborhood), { width: '40%', border: [false, false, true, true] }),
-        cell('MUNICÍPIO', v(d.campus_city), { width: '40%', border: [false, false, true, true] }),
-        cell('CEP', v(d.campus_cep), { width: '20%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [{
-      columns: [
-        cell('DDD + TELEFONE', v(d.campus_phone), { width: '40%', border: [false, false, true, true] }),
-        cell('E-MAIL', v(d.campus_email), { width: '60%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [cell('REPRESENTANTE PARA ESTE ESPECÍFICO FIM', v(d.campus_representative))],
-    [{
-      columns: [
-        cell('CARGO/QUALIFICAÇÃO', v(d.campus_rep_role), { width: '70%', border: [false, false, true, true] }),
-        cell('SIAPE', v(d.campus_rep_siape), { width: '30%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [{
-      columns: [
-        cell('E-MAIL', v(d.campus_rep_email), { width: '60%', border: [false, false, true, true] }),
-        cell('DDD+TELEFONE', v(d.campus_rep_phone), { width: '40%', border: [false, false, false, true] }),
-      ]
-    } as TableCell]
-  ])
-
-  const companyTable = dataTable(['*'], [
-    [{ text: 'Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment }],
-    [cell('RAZÃO SOCIAL', v(d.company_name))],
-    [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
-    [{
-      columns: [
-        cell('CNPJ OU REGISTRO NO CONSELHO', v(d.company_cnpj), { width: '50%', border: [false, false, true, true] }),
-        cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.company_address), { width: '50%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [{
-      columns: [
-        cell('BAIRRO', v(d.company_neighborhood), { width: '40%', border: [false, false, true, true] }),
-        cell('MUNICÍPIO', v(d.company_city), { width: '40%', border: [false, false, true, true] }),
-        cell('CEP', v(d.company_cep), { width: '20%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [{
-      columns: [
-        cell('DDD + TELEFONE', v(d.company_phone), { width: '40%', border: [false, false, true, true] }),
-        cell('E-MAIL', v(d.company_email), { width: '60%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [cell('REPRESENTANTE LEGAL PARA ASSINATURA DESTE TERMO', v(d.company_representative))],
-    [{
-      columns: [
-        cell('CARGO/QUALIFICAÇÃO', v(d.company_rep_role), { width: '40%', border: [false, false, true, true] }),
-        cell('CPF', v(d.company_rep_cpf), { width: '30%', border: [false, false, true, true] }),
-        cell('DDD + TELEFONE', v(d.company_rep_phone), { width: '30%', border: [false, false, false, true] }),
-      ]
-    } as TableCell]
-  ])
-
-  const studentTable = dataTable(['*'], [
-    [{ text: 'Discente Estagiário(A)', style: 'tableHeader', alignment: 'center' as Alignment }],
-    [{
-      columns: [
-        cell('NOME', v(d.student_name), { width: '70%', border: [false, false, true, true] }),
-        cell('CPF', v(d.student_cpf), { width: '30%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [cell('NOME SOCIAL', v(d.student_social_name))],
-    [{
-      columns: [
-        cell('CURSO', v(d.student_course), { width: '70%', border: [false, false, true, true] }),
-        cell('MATRÍCULA', v(d.student_enrollment), { width: '30%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))],
-    [{
-      columns: [
-        cell('MUNICÍPIO-UF', v(d.student_city), { width: '40%', border: [false, false, true, true] }),
-        cell('CEP', v(d.student_cep), { width: '30%', border: [false, false, true, true] }),
-        cell('DDD + TELEFONE', v(d.student_phone), { width: '30%', border: [false, false, false, true] }),
-      ]
-    } as TableCell],
-    [{
-      columns: [
-        cell('E-MAIL INSTITUCIONAL', v(d.student_email), { width: '50%', border: [false, false, true, true] }),
-        cell('E-MAIL PESSOAL', '', { width: '50%', border: [false, false, false, true] }),
-      ]
-    } as TableCell]
-  ])
-
-  const termBox = dataTable(['33%', '33%', '34%'], [
-    [{ text: 'TERMO DE COMPROMISSO DE ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment, colSpan: 3 }, {}, {}],
+  const ifceTable = dataTable(
+    ['*'],
     [
-      { text: 'TIPO DE ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment },
-      { text: 'MODO DE ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment },
-      { text: 'DATA ORIGINAL', style: 'tableHeader', alignment: 'center' as Alignment },
-    ],
-    [
-      { text: `${cb(d.internship_type === 'nao_obrigatorio')} NÃO OBRIGATÓRIO  ${cb(d.internship_type === 'obrigatorio')} OBRIGATÓRIO`, fontSize: 7, alignment: 'center' as Alignment, margin: [0, 5, 0, 5] },
-      { text: `${cb(d.internship_mode === 'presencial')} PRESENCIAL  ${cb(d.internship_mode === 'virtual')} VIRTUAL`, fontSize: 7, alignment: 'center' as Alignment, margin: [0, 5, 0, 5] },
-      { text: fmtDate(d.original_term_date), alignment: 'center' as Alignment, fontSize: 8, margin: [0, 5, 0, 5] },
+      [
+        {
+          text: 'Instituição de Ensino – IFCE',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+        },
+      ],
+      [
+        {
+          columns: [
+            cell('CAMPUS', v(d.campus_name), { width: '50%', border: [false, false, true, true] }),
+            cell('CNPJ', v(d.campus_cnpj), { width: '50%', border: [false, false, false, true] }),
+          ],
+        } as TableCell,
+      ],
+      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.campus_address))],
+      [
+        {
+          columns: [
+            cell('BAIRRO', v(d.campus_neighborhood), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('MUNICÍPIO', v(d.campus_city), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('CEP', v(d.campus_cep), { width: '20%', border: [false, false, false, true] }),
+          ],
+        } as TableCell,
+      ],
+      [
+        {
+          columns: [
+            cell('DDD + TELEFONE', v(d.campus_phone), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('E-MAIL', v(d.campus_email), {
+              width: '60%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+      [cell('REPRESENTANTE PARA ESTE ESPECÍFICO FIM', v(d.campus_representative))],
+      [
+        {
+          columns: [
+            cell('CARGO/QUALIFICAÇÃO', v(d.campus_rep_role), {
+              width: '70%',
+              border: [false, false, true, true],
+            }),
+            cell('SIAPE', v(d.campus_rep_siape), {
+              width: '30%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+      [
+        {
+          columns: [
+            cell('E-MAIL', v(d.campus_rep_email), {
+              width: '60%',
+              border: [false, false, true, true],
+            }),
+            cell('DDD+TELEFONE', v(d.campus_rep_phone), {
+              width: '40%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
     ]
-  ])
+  )
+
+  const companyTable = dataTable(
+    ['*'],
+    [
+      [
+        {
+          text: 'Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+        },
+      ],
+      [cell('RAZÃO SOCIAL', v(d.company_name))],
+      [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
+      [
+        {
+          columns: [
+            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.company_cnpj), {
+              width: '50%',
+              border: [false, false, true, true],
+            }),
+            cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.company_address), {
+              width: '50%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+      [
+        {
+          columns: [
+            cell('BAIRRO', v(d.company_neighborhood), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('MUNICÍPIO', v(d.company_city), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('CEP', v(d.company_cep), { width: '20%', border: [false, false, false, true] }),
+          ],
+        } as TableCell,
+      ],
+      [
+        {
+          columns: [
+            cell('DDD + TELEFONE', v(d.company_phone), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('E-MAIL', v(d.company_email), {
+              width: '60%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+      [cell('REPRESENTANTE LEGAL PARA ASSINATURA DESTE TERMO', v(d.company_representative))],
+      [
+        {
+          columns: [
+            cell('CARGO/QUALIFICAÇÃO', v(d.company_rep_role), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('CPF', v(d.company_rep_cpf), { width: '30%', border: [false, false, true, true] }),
+            cell('DDD + TELEFONE', v(d.company_rep_phone), {
+              width: '30%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+    ]
+  )
+
+  const studentTable = dataTable(
+    ['*'],
+    [
+      [{ text: 'Discente Estagiário(A)', style: 'tableHeader', alignment: 'center' as Alignment }],
+      [
+        {
+          columns: [
+            cell('NOME', v(d.student_name), { width: '70%', border: [false, false, true, true] }),
+            cell('CPF', v(d.student_cpf), { width: '30%', border: [false, false, false, true] }),
+          ],
+        } as TableCell,
+      ],
+      [cell('NOME SOCIAL', v(d.student_social_name))],
+      [
+        {
+          columns: [
+            cell('CURSO', v(d.student_course), {
+              width: '70%',
+              border: [false, false, true, true],
+            }),
+            cell('MATRÍCULA', v(d.student_enrollment), {
+              width: '30%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))],
+      [
+        {
+          columns: [
+            cell('MUNICÍPIO-UF', v(d.student_city), {
+              width: '40%',
+              border: [false, false, true, true],
+            }),
+            cell('CEP', v(d.student_cep), { width: '30%', border: [false, false, true, true] }),
+            cell('DDD + TELEFONE', v(d.student_phone), {
+              width: '30%',
+              border: [false, false, false, true],
+            }),
+          ],
+        } as TableCell,
+      ],
+      [
+        {
+          columns: [
+            cell('E-MAIL INSTITUCIONAL', v(d.student_email), {
+              width: '50%',
+              border: [false, false, true, true],
+            }),
+            cell('E-MAIL PESSOAL', '', { width: '50%', border: [false, false, false, true] }),
+          ],
+        } as TableCell,
+      ],
+    ]
+  )
+
+  const termBox = dataTable(
+    ['33%', '33%', '34%'],
+    [
+      [
+        {
+          text: 'TERMO DE COMPROMISSO DE ESTÁGIO',
+          style: 'tableHeader',
+          alignment: 'center' as Alignment,
+          colSpan: 3,
+        },
+        {},
+        {},
+      ],
+      [
+        { text: 'TIPO DE ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment },
+        { text: 'MODO DE ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment },
+        { text: 'DATA ORIGINAL', style: 'tableHeader', alignment: 'center' as Alignment },
+      ],
+      [
+        {
+          text: `${cb(d.internship_type === 'nao_obrigatorio')} NÃO OBRIGATÓRIO  ${cb(d.internship_type === 'obrigatorio')} OBRIGATÓRIO`,
+          fontSize: 7,
+          alignment: 'center' as Alignment,
+          margin: [0, 5, 0, 5],
+        },
+        {
+          text: `${cb(d.internship_mode === 'presencial')} PRESENCIAL  ${cb(d.internship_mode === 'virtual')} VIRTUAL`,
+          fontSize: 7,
+          alignment: 'center' as Alignment,
+          margin: [0, 5, 0, 5],
+        },
+        {
+          text: fmtDate(d.original_term_date),
+          alignment: 'center' as Alignment,
+          fontSize: 8,
+          margin: [0, 5, 0, 5],
+        },
+      ],
+    ]
+  )
 
   const content: Content[] = [
     ...header,
     docTitle('TERMO DE RESCISÃO DE COMPROMISSO DE ESTÁGIO'),
     {
       text: 'Nos termos da Lei nº 11.788, de 25/09/2008 e do Regulamento de Estágio do IFCE, os entes abaixo qualificados RESCINDEM Termo de Compromisso de Estágio sub-referido, pelos motivos e na forma que seguem.',
-      fontSize: 10, alignment: 'justify' as Alignment, margin: [0, 5, 0, 10]
+      fontSize: 10,
+      alignment: 'justify' as Alignment,
+      margin: [0, 5, 0, 10],
     },
     ifceTable,
     { text: '\n' },
@@ -199,7 +353,12 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
 
     termBox,
     { text: '\n' },
-    { text: 'CLÁUSULA PRIMEIRA – DAS CONDIÇÕES DA RESCISÃO', bold: true, fontSize: 10, margin: [0, 10, 0, 5] },
+    {
+      text: 'CLÁUSULA PRIMEIRA – DAS CONDIÇÕES DA RESCISÃO',
+      bold: true,
+      fontSize: 10,
+      margin: [0, 10, 0, 5],
+    },
     {
       stack: [
         {
@@ -211,62 +370,176 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
                 { text: 'suprarreferido', decoration: 'underline' },
                 ' torna-se sem efeito jurídico a partir de ',
                 { text: fmtDate(d.rescission_date), decoration: 'underline' },
-                '.'
-              ]
-            }
-          ]
+                '.',
+              ],
+            },
+          ],
         },
-        { columns: [{ text: 'II -', width: 20 }, { text: 'A partir desta data é imediata a suspensão da cobertura do seguro de vida obrigatório.' }] },
-        { columns: [{ text: 'III -', width: 20 }, { text: `A carga horária referente a atividades realizadas até a data da rescisão é de ${v(d.total_hours_realized)} horas.` }] },
-        { columns: [{ text: 'IV -', width: 20 }, { text: 'O Supervisor do estágio emitirá Termo de Realização de Estágio referente à carga horária realizada constante do inciso III.' }] }
+        {
+          columns: [
+            { text: 'II -', width: 20 },
+            {
+              text: 'A partir desta data é imediata a suspensão da cobertura do seguro de vida obrigatório.',
+            },
+          ],
+        },
+        {
+          columns: [
+            { text: 'III -', width: 20 },
+            {
+              text: `A carga horária referente a atividades realizadas até a data da rescisão é de ${v(d.total_hours_realized)} horas.`,
+            },
+          ],
+        },
+        {
+          columns: [
+            { text: 'IV -', width: 20 },
+            {
+              text: 'O Supervisor do estágio emitirá Termo de Realização de Estágio referente à carga horária realizada constante do inciso III.',
+            },
+          ],
+        },
       ],
       fontSize: 10,
-      margin: [0, 0, 0, 15]
+      margin: [0, 0, 0, 15],
     },
 
-    { text: 'CLÁUSULA SEGUNDA – DAS MOTIVAÇÕES DA RESCISÃO', bold: true, fontSize: 10, margin: [0, 10, 0, 5] },
+    {
+      text: 'CLÁUSULA SEGUNDA – DAS MOTIVAÇÕES DA RESCISÃO',
+      bold: true,
+      fontSize: 10,
+      margin: [0, 10, 0, 5],
+    },
     {
       stack: [
         { text: 'I -    A motivação da rescisão inicia-se:', fontSize: 10, margin: [0, 5, 0, 5] },
         { text: `${cb(d.initiator === 'ifce')} a) Pelo IFCE`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.initiator === 'company')} b) Pela Concedente do Estágio`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.initiator === 'student')} c) Pelo Discente Estagiário`, fontSize: 10, margin: [20, 0, 0, 10] },
+        {
+          text: `${cb(d.initiator === 'company')} b) Pela Concedente do Estágio`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.initiator === 'student')} c) Pelo Discente Estagiário`,
+          fontSize: 10,
+          margin: [20, 0, 0, 10],
+        },
 
-        { text: 'II -   A justificativa apresentada pela parte motivadora foi:', fontSize: 10, margin: [0, 5, 0, 5] },
-        { text: `${cb(d.reason === 'breach')} a) Descumprimento de cláusula(s) estabelecida(s) no Termo de Compromisso de Estágio;`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.reason === 'completion')} b) Conclusão do curso`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.reason === 'abandonment_activities')} c) Abandono das atividades de estágio`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.reason === 'abandonment_course')} d) Abandono do semestre ou do curso`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.reason === 'cancellation')} e) Cancelamento de matrícula`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.reason === 'suspension')} f) Trancamento de matrícula`, fontSize: 10, margin: [20, 0, 0, 2] },
-        { text: `${cb(d.reason === 'other')} g) ( ) Outra: ${v(d.reason_other)}`, fontSize: 10, margin: [20, 0, 0, 15] },
-      ]
+        {
+          text: 'II -   A justificativa apresentada pela parte motivadora foi:',
+          fontSize: 10,
+          margin: [0, 5, 0, 5],
+        },
+        {
+          text: `${cb(d.reason === 'breach')} a) Descumprimento de cláusula(s) estabelecida(s) no Termo de Compromisso de Estágio;`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.reason === 'completion')} b) Conclusão do curso`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.reason === 'abandonment_activities')} c) Abandono das atividades de estágio`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.reason === 'abandonment_course')} d) Abandono do semestre ou do curso`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.reason === 'cancellation')} e) Cancelamento de matrícula`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.reason === 'suspension')} f) Trancamento de matrícula`,
+          fontSize: 10,
+          margin: [20, 0, 0, 2],
+        },
+        {
+          text: `${cb(d.reason === 'other')} g) ( ) Outra: ${v(d.reason_other)}`,
+          fontSize: 10,
+          margin: [20, 0, 0, 15],
+        },
+      ],
     },
 
-    { text: 'Estando de acordo com rescisão, vai o presente instrumento assinado pelas partes citadas, para que se cumpram os efeitos legais.', fontSize: 10, margin: [0, 10, 0, 10] },
-    { text: `${v(d.city) || 'Maracanaú'}-CE, ______ de ____________________ de 20____.`, alignment: 'center' as Alignment, margin: [0, 20, 0, 30] },
+    {
+      text: 'Estando de acordo com rescisão, vai o presente instrumento assinado pelas partes citadas, para que se cumpram os efeitos legais.',
+      fontSize: 10,
+      margin: [0, 10, 0, 10],
+    },
+    {
+      text: `${v(d.city) || 'Maracanaú'}-CE, ______ de ____________________ de 20____.`,
+      alignment: 'center' as Alignment,
+      margin: [0, 20, 0, 30],
+    },
 
-    { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }], alignment: 'center' as Alignment },
-    { text: 'Representante do IFCE', alignment: 'center' as Alignment, fontSize: 8, margin: [0, 2, 0, 20] },
+    {
+      canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }],
+      alignment: 'center' as Alignment,
+    },
+    {
+      text: 'Representante do IFCE',
+      alignment: 'center' as Alignment,
+      fontSize: 8,
+      margin: [0, 2, 0, 20],
+    },
 
-    { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }], alignment: 'center' as Alignment },
-    { text: 'Representante da CONCEDENTE DO ESTÁGIO', alignment: 'center' as Alignment, fontSize: 8, margin: [0, 2, 0, 20] },
+    {
+      canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }],
+      alignment: 'center' as Alignment,
+    },
+    {
+      text: 'Representante da CONCEDENTE DO ESTÁGIO',
+      alignment: 'center' as Alignment,
+      fontSize: 8,
+      margin: [0, 2, 0, 20],
+    },
 
-    { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }], alignment: 'center' as Alignment },
-    { text: 'Discente Estagiário', alignment: 'center' as Alignment, fontSize: 8, margin: [0, 2, 0, 20] },
+    {
+      canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }],
+      alignment: 'center' as Alignment,
+    },
+    {
+      text: 'Discente Estagiário',
+      alignment: 'center' as Alignment,
+      fontSize: 8,
+      margin: [0, 2, 0, 20],
+    },
 
-    { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }], alignment: 'center' as Alignment },
-    { text: 'Docente Orientador', alignment: 'center' as Alignment, fontSize: 8, margin: [0, 2, 0, 20] },
+    {
+      canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }],
+      alignment: 'center' as Alignment,
+    },
+    {
+      text: 'Docente Orientador',
+      alignment: 'center' as Alignment,
+      fontSize: 8,
+      margin: [0, 2, 0, 20],
+    },
 
-    { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }], alignment: 'center' as Alignment },
-    { text: 'Supervisor do estágio', alignment: 'center' as Alignment, fontSize: 8, margin: [0, 2, 0, 10] },
+    {
+      canvas: [{ type: 'line', x1: 0, y1: 0, x2: 250, y2: 0, lineWidth: 0.5 }],
+      alignment: 'center' as Alignment,
+    },
+    {
+      text: 'Supervisor do estágio',
+      alignment: 'center' as Alignment,
+      fontSize: 8,
+      margin: [0, 2, 0, 10],
+    },
   ]
 
   return {
     content,
     styles: {
       tableHeader: { fontSize: 8, bold: true, fillColor: '#f3f4f6' },
-      cellValue: { fontSize: 9 }
-    }
+      cellValue: { fontSize: 9 },
+    },
   }
 }

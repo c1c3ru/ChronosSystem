@@ -129,12 +129,10 @@ export default function UsersPage() {
     const search = searchTerm.trim().toLowerCase()
     const name = user.name || ''
     const email = user.email || ''
-    
+
     const matchesSearch =
-      search === '' ||
-      name.toLowerCase().includes(search) ||
-      email.toLowerCase().includes(search)
-      
+      search === '' || name.toLowerCase().includes(search) || email.toLowerCase().includes(search)
+
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
   })
@@ -170,7 +168,9 @@ export default function UsersPage() {
               </Button>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-white">Gerenciar Usuários</h1>
-                <p className="text-sm sm:text-base text-neutral-400">Administre usuários do sistema</p>
+                <p className="text-sm sm:text-base text-neutral-400">
+                  Administre usuários do sistema
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2 self-start sm:self-auto">
@@ -244,7 +244,9 @@ export default function UsersPage() {
                     </div>
                     <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-white break-words min-w-0">{user.name}</h3>
+                        <h3 className="font-semibold text-white break-words min-w-0">
+                          {user.name}
+                        </h3>
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                             user.role === 'ADMIN'
@@ -281,13 +283,17 @@ export default function UsersPage() {
                         {user.contractType && (
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">Contrato:</span>
-                            <p className="text-white font-medium break-words">{user.contractType}</p>
+                            <p className="text-white font-medium break-words">
+                              {user.contractType}
+                            </p>
                           </div>
                         )}
                         {user.weeklyHours && (
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">Carga Horária:</span>
-                            <p className="text-white font-medium truncate">{user.weeklyHours}h/semana</p>
+                            <p className="text-white font-medium truncate">
+                              {user.weeklyHours}h/semana
+                            </p>
                           </div>
                         )}
                         {user.shiftStartTime && user.shiftEndTime && (

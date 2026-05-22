@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user?.role)) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
       action?: string
       OR?: Array<{
         details?: { contains: string; mode: 'insensitive' }
-        user?: { name?: { contains: string; mode: 'insensitive' }; email?: { contains: string; mode: 'insensitive' } }
+        user?: {
+          name?: { contains: string; mode: 'insensitive' }
+          email?: { contains: string; mode: 'insensitive' }
+        }
       }>
     } = {}
 
@@ -37,25 +40,25 @@ export async function GET(request: NextRequest) {
         {
           details: {
             contains: searchTerm,
-            mode: 'insensitive'
-          }
+            mode: 'insensitive',
+          },
         },
         {
           user: {
             name: {
               contains: searchTerm,
-              mode: 'insensitive'
-            }
-          }
+              mode: 'insensitive',
+            },
+          },
         },
         {
           user: {
             email: {
               contains: searchTerm,
-              mode: 'insensitive'
-            }
-          }
-        }
+              mode: 'insensitive',
+            },
+          },
+        },
       ]
     }
 
@@ -69,35 +72,37 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             email: true,
-            role: true
-          }
-        }
+            role: true,
+          },
+        },
       },
       orderBy: { timestamp: 'desc' },
       skip,
-      take: limit
+      take: limit,
     })
 
     const totalPages = Math.ceil(total / limit)
 
     return NextResponse.json({
       success: true,
-      data: logs.map(log => ({
+      data: logs.map((log) => ({
         id: log.id,
         action: log.action,
         resource: log.resource,
         details: log.details,
         timestamp: log.timestamp.toISOString(),
         formattedDate: log.timestamp.toLocaleString('pt-BR'),
-        user: log.user ? {
-          name: log.user.name || 'Usuário Desconhecido',
-          email: log.user.email,
-          role: log.user.role
-        } : {
-          name: 'Sistema / Não Identificado',
-          email: 'N/A',
-          role: 'SYSTEM'
-        }
+        user: log.user
+          ? {
+              name: log.user.name || 'Usuário Desconhecido',
+              email: log.user.email,
+              role: log.user.role,
+            }
+          : {
+              name: 'Sistema / Não Identificado',
+              email: 'N/A',
+              role: 'SYSTEM',
+            },
       })),
       pagination: {
         page,
@@ -105,15 +110,11 @@ export async function GET(request: NextRequest) {
         total,
         totalPages,
         hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      }
+        hasPrevPage: page > 1,
+      },
     })
-
   } catch (error: unknown) {
     console.error('❌ [API] Erro ao buscar logs de auditoria:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar logs de auditoria' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar logs de auditoria' }, { status: 500 })
   }
 }

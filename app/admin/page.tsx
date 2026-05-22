@@ -85,7 +85,6 @@ const obterDiasTrabalhoTexto = (diasPorSemana: number): string => {
   }
 }
 
-
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -460,8 +459,12 @@ export default function AdminPage() {
                       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                         <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50 flex flex-col justify-between">
                           <div>
-                            <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Horário</p>
-                            <p className="text-white text-xs font-medium">{intern.shiftStartTime} - {intern.shiftEndTime}</p>
+                            <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">
+                              Horário
+                            </p>
+                            <p className="text-white text-xs font-medium">
+                              {intern.shiftStartTime} - {intern.shiftEndTime}
+                            </p>
                           </div>
                           <p className="text-[10px] text-neutral-400 mt-1 font-normal">
                             {obterDiasTrabalhoTexto(intern.workingDaysPerWeek)}
@@ -469,9 +472,14 @@ export default function AdminPage() {
                         </div>
                         <div className="bg-neutral-900/40 p-2 rounded-lg border border-neutral-800/50 flex flex-col justify-between">
                           <div>
-                            <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">Saldo Atual</p>
-                            <p className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}>
-                              {intern.hourBalance > 0 ? '+' : ''}{intern.hourBalance.toFixed(1)}h
+                            <p className="text-neutral-500 text-[10px] uppercase font-bold mb-0.5">
+                              Saldo Atual
+                            </p>
+                            <p
+                              className={`text-xs font-bold ${intern.hourBalance >= 0 ? 'text-success' : 'text-error'}`}
+                            >
+                              {intern.hourBalance > 0 ? '+' : ''}
+                              {intern.hourBalance.toFixed(1)}h
                             </p>
                           </div>
                         </div>
@@ -483,12 +491,20 @@ export default function AdminPage() {
                             intern.lastStatus.type === 'ENTRY' ? (
                               <span className="flex items-center gap-1.5 bg-success/15 text-success px-2.5 py-0.5 rounded-full font-medium">
                                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                                Entrou às {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                Entrou às{' '}
+                                {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
                               </span>
                             ) : (
                               <span className="flex items-center gap-1.5 bg-warning/15 text-warning px-2.5 py-0.5 rounded-full font-medium">
                                 <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-                                Saída às {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                Saída às{' '}
+                                {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
                               </span>
                             )
                           ) : (
@@ -599,7 +615,9 @@ export default function AdminPage() {
                               <span className="font-medium">{activity.user}</span>{' '}
                               <span className="inline text-neutral-300">{activity.action}</span>
                             </p>
-                            <p className="text-neutral-400 text-xs truncate mt-0.5">{activity.timestamp}</p>
+                            <p className="text-neutral-400 text-xs truncate mt-0.5">
+                              {activity.timestamp}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center justify-end sm:justify-start space-x-2 sm:space-x-3 sm:ml-4 flex-shrink-0 pt-2 sm:pt-0 border-t border-neutral-700/30 sm:border-0 mt-2 sm:mt-0">

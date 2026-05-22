@@ -69,29 +69,32 @@ export default function AttendanceHistoryPage() {
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
-  const loadRecords = useCallback(async (page: number) => {
-    try {
-      setLoading(true)
-      const params = new URLSearchParams()
-      params.append('page', page.toString())
-      params.append('limit', '20')
-      if (typeFilter !== 'ALL') params.append('type', typeFilter)
-      if (dateFrom) params.append('dateFrom', dateFrom)
-      if (dateTo) params.append('dateTo', dateTo)
+  const loadRecords = useCallback(
+    async (page: number) => {
+      try {
+        setLoading(true)
+        const params = new URLSearchParams()
+        params.append('page', page.toString())
+        params.append('limit', '20')
+        if (typeFilter !== 'ALL') params.append('type', typeFilter)
+        if (dateFrom) params.append('dateFrom', dateFrom)
+        if (dateTo) params.append('dateTo', dateTo)
 
-      const response = await fetch(`/api/attendance/history?${params}`)
+        const response = await fetch(`/api/attendance/history?${params}`)
 
-      if (response.ok) {
-        const data = await response.json()
-        setRecords(data.data)
-        setPagination(data.pagination)
+        if (response.ok) {
+          const data = await response.json()
+          setRecords(data.data)
+          setPagination(data.pagination)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [typeFilter, dateFrom, dateTo])
+    },
+    [typeFilter, dateFrom, dateTo]
+  )
 
   // Load records
   useEffect(() => {

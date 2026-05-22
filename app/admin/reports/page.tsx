@@ -263,7 +263,9 @@ export default function ReportsPage() {
                       <div className="w-full bg-neutral-700 rounded-full h-2">
                         <motion.div
                           initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((month.records / Math.max(...(reportData?.monthlyData?.map((m) => m.records) || [1]))) * 100, 100)}%` }}
+                          animate={{
+                            width: `${Math.min((month.records / Math.max(...(reportData?.monthlyData?.map((m) => m.records) || [1]))) * 100, 100)}%`,
+                          }}
                           transition={{ duration: 1, ease: 'easeOut' }}
                           className="bg-primary h-2 rounded-full transition-all duration-500"
                         />

@@ -3,15 +3,23 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
 import React, { useRef, useEffect, useState } from 'react'
-import { ArrowLeft, Save, FileText, Download, UserCheck, GraduationCap, ClipboardList, Calendar, MapPin } from 'lucide-react'
+import {
+  ArrowLeft,
+  Save,
+  FileText,
+  Download,
+  UserCheck,
+  GraduationCap,
+  ClipboardList,
+  Calendar,
+  MapPin,
+} from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import {
-  maskPhone,
-} from '@/lib/input-masks'
+import { maskPhone } from '@/lib/input-masks'
 
 import type { ExperienceDeclarationData } from '@/lib/pdf-templates/extension-declaration.pdf'
 
@@ -45,9 +53,9 @@ export default function ExperienceDeclarationPage() {
 
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
-      setFormData(prev => ({ ...prev, [name]: checked }))
+      setFormData((prev) => ({ ...prev, [name]: checked }))
     } else {
-      setFormData(prev => ({ ...prev, [name]: maskedValue }))
+      setFormData((prev) => ({ ...prev, [name]: maskedValue }))
     }
   }
 
@@ -61,7 +69,8 @@ export default function ExperienceDeclarationPage() {
   const handleGeneratePDF = async () => {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
-      const { buildExperienceDeclarationDoc } = await import('@/lib/pdf-templates/extension-declaration.pdf')
+      const { buildExperienceDeclarationDoc } =
+        await import('@/lib/pdf-templates/extension-declaration.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
       const doc = await buildExperienceDeclarationDoc(formData as ExperienceDeclarationData)
       await generatePDF(doc, { filename: 'declaracao-participacao-experiencia.pdf' })
@@ -77,7 +86,10 @@ export default function ExperienceDeclarationPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Actions */}
         <div className="flex items-center justify-between">
-          <Link href="/employee" className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group">
+          <Link
+            href="/employee"
+            className="flex items-center text-primary hover:text-primary/80 transition-colors font-medium group"
+          >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Voltar ao Dashboard
           </Link>
@@ -101,8 +113,12 @@ export default function ExperienceDeclarationPage() {
                 <FileText className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl uppercase">Declaração de Participação em Experiência</CardTitle>
-                <p className="text-neutral-400 text-sm mt-1">Extensão, Iniciação Científica ou Monitoria</p>
+                <CardTitle className="text-2xl uppercase">
+                  Declaração de Participação em Experiência
+                </CardTitle>
+                <p className="text-neutral-400 text-sm mt-1">
+                  Extensão, Iniciação Científica ou Monitoria
+                </p>
               </div>
             </div>
           </CardHeader>
@@ -118,16 +134,39 @@ export default function ExperienceDeclarationPage() {
             </CardHeader>
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="label text-[10px]">NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/COORDENADOR)</label>
-                <input name="declarant_name" className="input w-full" value={formData.declarant_name || ''} onChange={handleInputChange} placeholder="Nome Completo do Servidor" title="Nome do Declarante" />
+                <label className="label text-[10px]">
+                  NOME DO DECLARANTE (SERVIDOR/ORIENTADOR/COORDENADOR)
+                </label>
+                <input
+                  name="declarant_name"
+                  className="input w-full"
+                  value={formData.declarant_name || ''}
+                  onChange={handleInputChange}
+                  placeholder="Nome Completo do Servidor"
+                  title="Nome do Declarante"
+                />
               </div>
               <div>
                 <label className="label">DOCUMENTO TIPO</label>
-                <input name="doc_type" className="input w-full" value={formData.doc_type || ''} onChange={handleInputChange} placeholder="Ex: SIAPE, RG" title="Tipo de Documento" />
+                <input
+                  name="doc_type"
+                  className="input w-full"
+                  value={formData.doc_type || ''}
+                  onChange={handleInputChange}
+                  placeholder="Ex: SIAPE, RG"
+                  title="Tipo de Documento"
+                />
               </div>
               <div>
                 <label className="label">NÚMERO</label>
-                <input name="doc_number" className="input w-full" value={formData.doc_number || ''} onChange={handleInputChange} placeholder="Número do documento" title="Número do Documento" />
+                <input
+                  name="doc_number"
+                  className="input w-full"
+                  value={formData.doc_number || ''}
+                  onChange={handleInputChange}
+                  placeholder="Número do documento"
+                  title="Número do Documento"
+                />
               </div>
             </CardContent>
           </Card>
@@ -142,19 +181,47 @@ export default function ExperienceDeclarationPage() {
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-4">
                 <label className="label">NOME DO DISCENTE</label>
-                <input name="student_name" className="input w-full" value={formData.student_name || ''} onChange={handleInputChange} placeholder="Nome Completo do Aluno" title="Discente" />
+                <input
+                  name="student_name"
+                  className="input w-full"
+                  value={formData.student_name || ''}
+                  onChange={handleInputChange}
+                  placeholder="Nome Completo do Aluno"
+                  title="Discente"
+                />
               </div>
               <div className="md:col-span-3">
                 <label className="label">CURSO</label>
-                <input name="student_course" className="input w-full" value={formData.student_course || ''} onChange={handleInputChange} placeholder="Nome do Curso" title="Curso" />
+                <input
+                  name="student_course"
+                  className="input w-full"
+                  value={formData.student_course || ''}
+                  onChange={handleInputChange}
+                  placeholder="Nome do Curso"
+                  title="Curso"
+                />
               </div>
               <div className="md:col-span-1">
                 <label className="label">MATRÍCULA</label>
-                <input name="student_enrollment" className="input w-full" value={formData.student_enrollment || ''} onChange={handleInputChange} placeholder="Número da Matrícula" title="Matrícula" />
+                <input
+                  name="student_enrollment"
+                  className="input w-full"
+                  value={formData.student_enrollment || ''}
+                  onChange={handleInputChange}
+                  placeholder="Número da Matrícula"
+                  title="Matrícula"
+                />
               </div>
               <div className="md:col-span-4">
                 <label className="label">CAMPUS</label>
-                <input name="campus" className="input w-full" value={formData.campus || 'MARACANAÚ'} onChange={handleInputChange} placeholder="Campus de Origem" title="Campus" />
+                <input
+                  name="campus"
+                  className="input w-full"
+                  value={formData.campus || 'MARACANAÚ'}
+                  onChange={handleInputChange}
+                  placeholder="Campus de Origem"
+                  title="Campus"
+                />
               </div>
             </CardContent>
           </Card>
@@ -169,37 +236,93 @@ export default function ExperienceDeclarationPage() {
             <CardContent className="p-6 space-y-6">
               <div className="flex flex-wrap gap-6 p-4 rounded-xl bg-white/5 border border-white/5">
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" name="exp_type" value="extensao" checked={formData.exp_type === 'extensao'} onChange={handleInputChange} className="radio" />
-                  <span className="text-sm text-neutral-400 group-hover:text-primary transition-colors">EXTENSÃO</span>
+                  <input
+                    type="radio"
+                    name="exp_type"
+                    value="extensao"
+                    checked={formData.exp_type === 'extensao'}
+                    onChange={handleInputChange}
+                    className="radio"
+                  />
+                  <span className="text-sm text-neutral-400 group-hover:text-primary transition-colors">
+                    EXTENSÃO
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" name="exp_type" value="iniciacao" checked={formData.exp_type === 'iniciacao'} onChange={handleInputChange} className="radio" />
-                  <span className="text-sm text-neutral-400 group-hover:text-primary transition-colors">INICIAÇÃO CIENTÍFICA</span>
+                  <input
+                    type="radio"
+                    name="exp_type"
+                    value="iniciacao"
+                    checked={formData.exp_type === 'iniciacao'}
+                    onChange={handleInputChange}
+                    className="radio"
+                  />
+                  <span className="text-sm text-neutral-400 group-hover:text-primary transition-colors">
+                    INICIAÇÃO CIENTÍFICA
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" name="exp_type" value="monitoria" checked={formData.exp_type === 'monitoria'} onChange={handleInputChange} className="radio" />
-                  <span className="text-sm text-neutral-400 group-hover:text-primary transition-colors">MONITORIA</span>
+                  <input
+                    type="radio"
+                    name="exp_type"
+                    value="monitoria"
+                    checked={formData.exp_type === 'monitoria'}
+                    onChange={handleInputChange}
+                    className="radio"
+                  />
+                  <span className="text-sm text-neutral-400 group-hover:text-primary transition-colors">
+                    MONITORIA
+                  </span>
                 </label>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="label">TÍTULO</label>
-                  <input name="title" className="input w-full" value={formData.title || ''} onChange={handleInputChange} placeholder="Título da atividade" title="Título" />
+                  <input
+                    name="title"
+                    className="input w-full"
+                    value={formData.title || ''}
+                    onChange={handleInputChange}
+                    placeholder="Título da atividade"
+                    title="Título"
+                  />
                 </div>
                 <div>
                   <label className="label">PROJETO/PROGRAMA</label>
-                  <input name="project_program" className="input w-full" value={formData.project_program || ''} onChange={handleInputChange} placeholder="Nome do Projeto ou Programa" title="Projeto/Programa" />
+                  <input
+                    name="project_program"
+                    className="input w-full"
+                    value={formData.project_program || ''}
+                    onChange={handleInputChange}
+                    placeholder="Nome do Projeto ou Programa"
+                    title="Projeto/Programa"
+                  />
                 </div>
                 <div>
                   <label className="label">INSTITUIÇÃO</label>
-                  <input name="institution" className="input w-full" value={formData.institution || 'IFCE'} onChange={handleInputChange} placeholder="Nome da Instituição" title="Instituição" />
+                  <input
+                    name="institution"
+                    className="input w-full"
+                    value={formData.institution || 'IFCE'}
+                    onChange={handleInputChange}
+                    placeholder="Nome da Instituição"
+                    title="Instituição"
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="label">ATIVIDADES DESENVOLVIDAS</label>
-                <textarea name="activities" rows={8} className="input w-full" value={formData.activities || ''} onChange={handleInputChange} placeholder="Descreva as atividades realizadas pelo discente..." title="Atividades" />
+                <textarea
+                  name="activities"
+                  rows={8}
+                  className="input w-full"
+                  value={formData.activities || ''}
+                  onChange={handleInputChange}
+                  placeholder="Descreva as atividades realizadas pelo discente..."
+                  title="Atividades"
+                />
               </div>
             </CardContent>
           </Card>
@@ -214,11 +337,26 @@ export default function ExperienceDeclarationPage() {
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="label">DATA DE INÍCIO</label>
-                <input type="date" name="start_date" className="input w-full" value={formData.start_date || ''} onChange={handleInputChange} title="Início" />
+                <input
+                  type="date"
+                  name="start_date"
+                  className="input w-full"
+                  value={formData.start_date || ''}
+                  onChange={handleInputChange}
+                  title="Início"
+                />
               </div>
               <div>
                 <label className="label">CARGA HORÁRIA SEMANAL (HORAS)</label>
-                <input type="number" name="weekly_hours" className="input w-full" value={formData.weekly_hours || ''} onChange={handleInputChange} placeholder="Ex: 20" title="Carga Horária" />
+                <input
+                  type="number"
+                  name="weekly_hours"
+                  className="input w-full"
+                  value={formData.weekly_hours || ''}
+                  onChange={handleInputChange}
+                  placeholder="Ex: 20"
+                  title="Carga Horária"
+                />
               </div>
             </CardContent>
           </Card>
@@ -234,7 +372,14 @@ export default function ExperienceDeclarationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="label">CIDADE</label>
-                  <input name="city" className="input w-full" value={formData.city || 'Maracanaú'} onChange={handleInputChange} placeholder="Cidade de emissão" title="Cidade" />
+                  <input
+                    name="city"
+                    className="input w-full"
+                    value={formData.city || 'Maracanaú'}
+                    onChange={handleInputChange}
+                    placeholder="Cidade de emissão"
+                    title="Cidade"
+                  />
                 </div>
               </div>
             </CardContent>

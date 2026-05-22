@@ -53,7 +53,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(record)
   } catch (error: unknown) {
-    apiLogger.error('Error fetching attendance record', { error: error instanceof Error ? error.message : String(error) })
+    apiLogger.error('Error fetching attendance record', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -112,7 +114,9 @@ export async function DELETE(
     try {
       await updateHourBalance(record.userId)
     } catch (hourError: unknown) {
-      apiLogger.error('Error updating hour balance after deletion', { error: hourError instanceof Error ? hourError.message : String(hourError) })
+      apiLogger.error('Error updating hour balance after deletion', {
+        error: hourError instanceof Error ? hourError.message : String(hourError),
+      })
     }
 
     // Log de auditoria
@@ -143,7 +147,9 @@ export async function DELETE(
       },
     })
   } catch (error: unknown) {
-    apiLogger.error('Error deleting attendance record', { error: error instanceof Error ? error.message : String(error) })
+    apiLogger.error('Error deleting attendance record', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -216,7 +222,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     try {
       await updateHourBalance(record.userId)
     } catch (hourError: unknown) {
-      apiLogger.error('Error updating hour balance after update', { error: hourError instanceof Error ? hourError.message : String(hourError) })
+      apiLogger.error('Error updating hour balance after update', {
+        error: hourError instanceof Error ? hourError.message : String(hourError),
+      })
     }
 
     // Log de auditoria
@@ -240,7 +248,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updatedRecord,
     })
   } catch (error: unknown) {
-    apiLogger.error('Error updating attendance record', { error: error instanceof Error ? error.message : String(error) })
+    apiLogger.error('Error updating attendance record', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
     // Calcular total de horas hoje
     let todayHours = '0h 00min'
     if (todayRecords.length >= 2) {
-      const entries = (todayRecords as unknown as DashboardRecord[]).filter((r) => r.type === 'ENTRY')
+      const entries = (todayRecords as unknown as DashboardRecord[]).filter(
+        (r) => r.type === 'ENTRY'
+      )
       const exits = (todayRecords as unknown as DashboardRecord[]).filter((r) => r.type === 'EXIT')
 
       let totalMinutes = 0

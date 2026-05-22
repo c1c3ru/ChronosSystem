@@ -56,7 +56,9 @@ export async function getCache<T>(key: string): Promise<T | null> {
     logger.info(`[Cache] Hit: ${key}`)
     return parsed
   } catch (error: unknown) {
-    logger.error(`[Cache] Error getting key "${key}"`, { error: error instanceof Error ? error.message : String(error) })
+    logger.error(`[Cache] Error getting key "${key}"`, {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return null
   }
 }
@@ -77,7 +79,9 @@ export async function setCache<T>(key: string, value: T, ttlSeconds: number): Pr
     logger.info(`[Cache] Set: ${key} (TTL: ${ttlSeconds}s)`)
     return true
   } catch (error: unknown) {
-    logger.error(`[Cache] Error setting key "${key}"`, { error: error instanceof Error ? error.message : String(error) })
+    logger.error(`[Cache] Error setting key "${key}"`, {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return false
   }
 }
@@ -97,7 +101,9 @@ export async function deleteCache(key: string): Promise<boolean> {
     logger.info(`[Cache] Deleted: ${key}`)
     return true
   } catch (error: unknown) {
-    logger.error(`[Cache] Error deleting key "${key}"`, { error: error instanceof Error ? error.message : String(error) })
+    logger.error(`[Cache] Error deleting key "${key}"`, {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return false
   }
 }
@@ -120,7 +126,9 @@ export async function deleteCachePattern(pattern: string): Promise<boolean> {
     }
     return true
   } catch (error: unknown) {
-    logger.error(`[Cache] Error deleting pattern "${pattern}"`, { error: error instanceof Error ? error.message : String(error) })
+    logger.error(`[Cache] Error deleting pattern "${pattern}"`, {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return false
   }
 }

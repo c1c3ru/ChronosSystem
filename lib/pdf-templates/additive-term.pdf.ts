@@ -79,12 +79,16 @@ export async function buildAdditiveTermDoc(d: AdditiveTermData): Promise<TDocume
   const sectionBarAlt: Content = {
     table: {
       widths: ['*'],
-      body: [[{
-        text: 'ALTERAÇÕES CONTRATUAIS',
-        style: 'sectionBar',
-        margin: [4, 2, 4, 2],
-        border: [true, true, true, true],
-      }]],
+      body: [
+        [
+          {
+            text: 'ALTERAÇÕES CONTRATUAIS',
+            style: 'sectionBar',
+            margin: [4, 2, 4, 2],
+            border: [true, true, true, true],
+          },
+        ],
+      ],
     },
     layout: {
       hLineWidth: () => 0.5,
@@ -107,44 +111,52 @@ export async function buildAdditiveTermDoc(d: AdditiveTermData): Promise<TDocume
       // Linha 2: três colunas
       ...[
         // Usamos uma sub-tabela para ter 3 colunas dentro da célula única
-        [{
-          table: {
-            widths: ['34%', '33%', '33%'],
-            body: [[
-              cell('Nova Data de Término', novaDataFim),
-              cell('Nova C.H. Semanal', novaCH),
-              cell('Período Prorrogação', v(d.prazo_prorrogacao)),
-            ]],
-          },
-          layout: {
-            hLineWidth: () => 0,
-            vLineWidth: (i: number) => (i === 0 || i === 3 ? 0 : 0.5),
-            hLineColor: () => '#000000',
-            vLineColor: () => '#000000',
-          },
-          margin: [0, 0, 0, 0],
-          border: [true, false, true, true],
-        } as TableCell],
+        [
+          {
+            table: {
+              widths: ['34%', '33%', '33%'],
+              body: [
+                [
+                  cell('Nova Data de Término', novaDataFim),
+                  cell('Nova C.H. Semanal', novaCH),
+                  cell('Período Prorrogação', v(d.prazo_prorrogacao)),
+                ],
+              ],
+            },
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: (i: number) => (i === 0 || i === 3 ? 0 : 0.5),
+              hLineColor: () => '#000000',
+              vLineColor: () => '#000000',
+            },
+            margin: [0, 0, 0, 0],
+            border: [true, false, true, true],
+          } as TableCell,
+        ],
       ],
       // Linha 3: Bolsa + Transporte
       ...[
-        [{
-          table: {
-            widths: ['50%', '50%'],
-            body: [[
-              cell('Novo Valor Bolsa (R$)', v(d.novo_valor_bolsa)),
-              cell('Novo Aux. Transporte (R$)', v(d.novo_valor_transporte)),
-            ]],
-          },
-          layout: {
-            hLineWidth: () => 0,
-            vLineWidth: (i: number) => (i === 0 || i === 2 ? 0 : 0.5),
-            hLineColor: () => '#000000',
-            vLineColor: () => '#000000',
-          },
-          margin: [0, 0, 0, 0],
-          border: [true, false, true, true],
-        } as TableCell],
+        [
+          {
+            table: {
+              widths: ['50%', '50%'],
+              body: [
+                [
+                  cell('Novo Valor Bolsa (R$)', v(d.novo_valor_bolsa)),
+                  cell('Novo Aux. Transporte (R$)', v(d.novo_valor_transporte)),
+                ],
+              ],
+            },
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: (i: number) => (i === 0 || i === 2 ? 0 : 0.5),
+              hLineColor: () => '#000000',
+              vLineColor: () => '#000000',
+            },
+            margin: [0, 0, 0, 0],
+            border: [true, false, true, true],
+          } as TableCell,
+        ],
       ],
     ]
   )

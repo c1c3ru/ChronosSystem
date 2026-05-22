@@ -55,8 +55,9 @@ export function determinarTipoRegistro(contexto: Record<string, unknown>) {
     tipo?: string
     type?: string
   } | null
-  const horarioTrabalho =
-    (contexto.horarioTrabalho || contexto.workingHours || HORARIO_TRABALHO_PADRAO) as HorarioTrabalho
+  const horarioTrabalho = (contexto.horarioTrabalho ||
+    contexto.workingHours ||
+    HORARIO_TRABALHO_PADRAO) as HorarioTrabalho
 
   const minutosAtuais = horaAtual.getHours() * 60 + horaAtual.getMinutes()
   const inicioAlmoco = hParaMins(horarioTrabalho.inicioAlmoco)
@@ -107,7 +108,9 @@ export async function validarRegistro(contexto: Record<string, unknown>, tipoSol
     timestamp?: string | Date
     createdAt?: string | Date
   } | null
-  const possuiAutorizacao = (contexto.hasAuthorization || contexto.possuiAutorizacao || false) as boolean
+  const possuiAutorizacao = (contexto.hasAuthorization ||
+    contexto.possuiAutorizacao ||
+    false) as boolean
   const erros: string[] = []
   const avisos: string[] = []
 
@@ -208,11 +211,18 @@ export function analisarDiaParaJustificativa(
       requiresJustification = true
       justificationReason = 'Falta de registro de saída'
     } else {
-      const recordEntrada = entradaParams as { timestamp?: string | Date; createdAt?: string | Date }
+      const recordEntrada = entradaParams as {
+        timestamp?: string | Date
+        createdAt?: string | Date
+      }
       const recordSaida = saidaParams as { timestamp?: string | Date; createdAt?: string | Date }
 
-      const dEntrada = new Date(recordEntrada.timestamp || recordEntrada.createdAt || (entradaParams as string | Date))
-      const dSaida = new Date(recordSaida.timestamp || recordSaida.createdAt || (saidaParams as string | Date))
+      const dEntrada = new Date(
+        recordEntrada.timestamp || recordEntrada.createdAt || (entradaParams as string | Date)
+      )
+      const dSaida = new Date(
+        recordSaida.timestamp || recordSaida.createdAt || (saidaParams as string | Date)
+      )
 
       lateArrival = detectarAtraso(dEntrada, horario)
       earlyDeparture = detectarSaidaAntecipada(dEntrada, dSaida, horario)

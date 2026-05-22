@@ -112,7 +112,9 @@ describe('pdf-schemas/templates', () => {
       const tableSection = schema.sections.find((s) => s.type === 'table') as PDFTableSection
       const placeholders = tableSection.rows.map((row) => row[1])
 
-      expect(placeholders.some((p) => typeof p === 'string' && p.includes('horas_semestre'))).toBe(true)
+      expect(placeholders.some((p) => typeof p === 'string' && p.includes('horas_semestre'))).toBe(
+        true
+      )
     })
   })
 
@@ -344,7 +346,9 @@ describe('pdf-schemas/templates', () => {
       tableSection.rows.forEach((row) => {
         const value = row[1]
         // Deve ser placeholder vazio ou ter formato {campo}
-        expect(typeof value === 'string' && (value === '' || !!value.match(/\{[^}]+\}/))).toBeTruthy()
+        expect(
+          typeof value === 'string' && (value === '' || !!value.match(/\{[^}]+\}/))
+        ).toBeTruthy()
       })
     })
 

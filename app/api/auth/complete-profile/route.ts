@@ -153,7 +153,8 @@ export async function POST(request: NextRequest) {
     authLogger.error('Error completing profile', {
       userId: 'unknown',
       error: errorMessage,
-      stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined,
+      stack:
+        process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined,
     })
 
     return NextResponse.json(

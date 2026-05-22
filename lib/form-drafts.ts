@@ -113,7 +113,9 @@ export async function saveDraftToServer(
 /**
  * Recupera um rascunho do servidor
  */
-export async function getDraftFromServer(formType: FormType): Promise<Record<string, unknown> | null> {
+export async function getDraftFromServer(
+  formType: FormType
+): Promise<Record<string, unknown> | null> {
   try {
     const response = await fetch(`/api/forms/drafts?formType=${formType}`)
 
@@ -135,7 +137,10 @@ export async function getDraftFromServer(formType: FormType): Promise<Record<str
 /**
  * Salva rascunho localmente e no servidor
  */
-export async function saveDraft(formType: FormType, formData: Record<string, unknown>): Promise<void> {
+export async function saveDraft(
+  formType: FormType,
+  formData: Record<string, unknown>
+): Promise<void> {
   // Salva localmente primeiro (mais rápido)
   saveDraftLocally(formType, formData)
 

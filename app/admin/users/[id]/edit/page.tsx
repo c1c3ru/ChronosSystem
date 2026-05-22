@@ -329,7 +329,10 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                           value={role}
                           checked={updateData.role === role}
                           onChange={(e) =>
-                            setUpdateData((prev) => ({ ...prev, role: e.target.value as UpdateData['role'] }))
+                            setUpdateData((prev) => ({
+                              ...prev,
+                              role: e.target.value as UpdateData['role'],
+                            }))
                           }
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary mt-0.5"
                         />

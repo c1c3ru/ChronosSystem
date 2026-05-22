@@ -378,7 +378,10 @@ export default function NewUserPage() {
                           value={role}
                           checked={userData.role === role}
                           onChange={(e) =>
-                            setUserData((prev) => ({ ...prev, role: e.target.value as UserData['role'] }))
+                            setUserData((prev) => ({
+                              ...prev,
+                              role: e.target.value as UserData['role'],
+                            }))
                           }
                           className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 focus:ring-primary mt-0.5"
                         />

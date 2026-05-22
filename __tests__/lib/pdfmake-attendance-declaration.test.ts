@@ -1,4 +1,7 @@
-import { buildAttendanceDeclarationPdfMake, AttendanceDeclarationData } from '@/lib/pdf-schemas/pdfmake-attendance-declaration'
+import {
+  buildAttendanceDeclarationPdfMake,
+  AttendanceDeclarationData,
+} from '@/lib/pdf-schemas/pdfmake-attendance-declaration'
 
 describe('buildAttendanceDeclarationPdfMake', () => {
   const mockData: AttendanceDeclarationData = {

@@ -40,12 +40,15 @@ interface PdfFontsDynamicModule {
 interface PdfMakeInstance {
   vfs: Record<string, string>
   addVirtualFileSystem?: (vfs: Record<string, string>) => void
-  fonts?: Record<string, {
-    normal: string
-    bold: string
-    italics: string
-    bolditalics: string
-  }>
+  fonts?: Record<
+    string,
+    {
+      normal: string
+      bold: string
+      italics: string
+      bolditalics: string
+    }
+  >
   createPdf: (
     docDefinition: TDocumentDefinitions,
     tableLayouts?: unknown,
@@ -64,24 +67,34 @@ async function getPdfMake(): Promise<PdfMakeInstance> {
     import('pdfmake/build/pdfmake'),
     import('pdfmake/build/vfs_fonts'),
   ])
-  
+
   const pmModule = pdfMakeModule as unknown as PdfMakeDynamicModule
   const fontsModule = pdfFontsModule as unknown as PdfFontsDynamicModule
-  
+
   const pm = (pmModule.default || pdfMakeModule) as unknown as PdfMakeInstance
-  const vfs = fontsModule.pdfMake?.vfs || fontsModule.vfs || fontsModule.default || (fontsModule as unknown as Record<string, string>) || {}
-  
+  const vfs =
+    fontsModule.pdfMake?.vfs ||
+    fontsModule.vfs ||
+    fontsModule.default ||
+    (fontsModule as unknown as Record<string, string>) ||
+    {}
+
   if (pm.addVirtualFileSystem) {
     pm.addVirtualFileSystem(vfs)
   } else {
     pm.vfs = vfs
   }
-  
+
   // Garantir que todas as variantes do Roboto existam no VFS (fallback para Regular)
-  const variants = ['Roboto-Regular.ttf', 'Roboto-Medium.ttf', 'Roboto-Italic.ttf', 'Roboto-MediumItalic.ttf']
+  const variants = [
+    'Roboto-Regular.ttf',
+    'Roboto-Medium.ttf',
+    'Roboto-Italic.ttf',
+    'Roboto-MediumItalic.ttf',
+  ]
   const fallback = vfs['Roboto-Regular.ttf'] || Object.values(vfs)[0]
   if (fallback) {
-    variants.forEach(v => {
+    variants.forEach((v) => {
       if (!vfs[v]) vfs[v] = fallback
     })
   }
@@ -92,10 +105,10 @@ async function getPdfMake(): Promise<PdfMakeInstance> {
       normal: 'Roboto-Regular.ttf',
       bold: 'Roboto-Medium.ttf',
       italics: 'Roboto-Italic.ttf',
-      bolditalics: 'Roboto-MediumItalic.ttf'
-    }
+      bolditalics: 'Roboto-MediumItalic.ttf',
+    },
   }
-  
+
   _pdfMake = pm
   return pm
 }
@@ -232,12 +245,14 @@ export async function ifceHeader(): Promise<Content[]> {
 
   const header: ContentColumns = {
     columns: [
-      logo ? {
-        image: logo,
-        width: 54,
-        height: 54,
-        margin: [0, 0, 8, 0],
-      } : { text: '', width: 54 },
+      logo
+        ? {
+            image: logo,
+            width: 54,
+            height: 54,
+            margin: [0, 0, 8, 0],
+          }
+        : { text: '', width: 54 },
       {
         stack: [
           { text: 'PRÓ-REITORIA DE EXTENSÃO', style: 'headerInstitution' },
@@ -249,12 +264,14 @@ export async function ifceHeader(): Promise<Content[]> {
         alignment: 'center',
         width: '*',
       },
-      brasao ? {
-        image: brasao,
-        width: 54,
-        height: 54,
-        margin: [8, 0, 0, 0],
-      } : { text: '', width: 54 },
+      brasao
+        ? {
+            image: brasao,
+            width: 54,
+            height: 54,
+            margin: [8, 0, 0, 0],
+          }
+        : { text: '', width: 54 },
     ],
     columnGap: 0,
     margin: [0, 0, 0, 6],
@@ -302,12 +319,14 @@ export function sectionTitle(title: string): Content {
     table: {
       widths: ['*'],
       body: [
-        [{
-          text: title.toUpperCase(),
-          style: 'sectionBar',
-          margin: [4, 2, 4, 2],
-          border: [true, true, true, true],
-        }],
+        [
+          {
+            text: title.toUpperCase(),
+            style: 'sectionBar',
+            margin: [4, 2, 4, 2],
+            border: [true, true, true, true],
+          },
+        ],
       ],
     },
     layout: {
@@ -335,18 +354,22 @@ export function sectionBlock(title: string, content?: string): Content[] {
       table: {
         widths: ['*'],
         body: [
-          [{
-            text: title.toUpperCase(),
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2],
-            border: [true, true, true, false],
-          }],
-          [{
-            text: content,
-            style: 'sectionBody',
-            margin: [4, 4, 4, 8],
-            border: [true, false, true, true],
-          }],
+          [
+            {
+              text: title.toUpperCase(),
+              style: 'sectionBar',
+              margin: [4, 2, 4, 2],
+              border: [true, true, true, false],
+            },
+          ],
+          [
+            {
+              text: content,
+              style: 'sectionBody',
+              margin: [4, 4, 4, 8],
+              border: [true, false, true, true],
+            },
+          ],
         ],
       },
       layout: {
@@ -364,10 +387,7 @@ export function sectionBlock(title: string, content?: string): Content[] {
  * Tabela de dados IFCE com bordas em todas as células.
  * Passa as linhas já montadas com `cell()`.
  */
-export function dataTable(
-  widths: (string | number)[],
-  rows: TableCell[][]
-): ContentTable {
+export function dataTable(widths: (string | number)[], rows: TableCell[][]): ContentTable {
   return {
     table: {
       widths,
@@ -390,14 +410,35 @@ export function dataTable(
 /**
  * Bloco de datas (SOLICITAÇÃO / AUTORIZAÇÃO) + linhas de assinatura.
  */
-export function sigBlock(labels: string[], obs?: string, requestDate?: string, approvalDate?: string): Content[] {
+export function sigBlock(
+  labels: string[],
+  obs?: string,
+  requestDate?: string,
+  approvalDate?: string
+): Content[] {
   const dateRow: ContentTable = {
     table: {
       widths: ['*', '*'],
-      body: [[
-        { text: [{ text: 'SOLICITAÇÃO EM ', bold: true, fontSize: 7 }, { text: requestDate || '____/____/______', fontSize: 7 }], border: [true, true, false, true], margin: [4, 3, 4, 3] },
-        { text: [{ text: 'AUTORIZAÇÃO EM ', bold: true, fontSize: 7 }, { text: approvalDate || '____/____/______', fontSize: 7 }], border: [false, true, true, true], margin: [4, 3, 4, 3] },
-      ]],
+      body: [
+        [
+          {
+            text: [
+              { text: 'SOLICITAÇÃO EM ', bold: true, fontSize: 7 },
+              { text: requestDate || '____/____/______', fontSize: 7 },
+            ],
+            border: [true, true, false, true],
+            margin: [4, 3, 4, 3],
+          },
+          {
+            text: [
+              { text: 'AUTORIZAÇÃO EM ', bold: true, fontSize: 7 },
+              { text: approvalDate || '____/____/______', fontSize: 7 },
+            ],
+            border: [false, true, true, true],
+            margin: [4, 3, 4, 3],
+          },
+        ],
+      ],
     },
     layout: {
       hLineWidth: () => 0.5,
@@ -412,14 +453,16 @@ export function sigBlock(labels: string[], obs?: string, requestDate?: string, a
     stack: [
       { text: '', margin: [0, 22, 0, 0] as [number, number, number, number] },
       {
-        canvas: [{
-          type: 'line' as const,
-          x1: 2,
-          y1: 0,
-          x2: (515 / labels.length) - 6,
-          y2: 0,
-          lineWidth: 0.5,
-        }],
+        canvas: [
+          {
+            type: 'line' as const,
+            x1: 2,
+            y1: 0,
+            x2: 515 / labels.length - 6,
+            y2: 0,
+            lineWidth: 0.5,
+          },
+        ],
       },
       {
         text: label.toUpperCase(),
@@ -428,10 +471,10 @@ export function sigBlock(labels: string[], obs?: string, requestDate?: string, a
       },
     ],
     border: [
-      i === 0,                   // left
-      true,                       // top
-      i === labels.length - 1,   // right
-      true,                       // bottom
+      i === 0, // left
+      true, // top
+      i === labels.length - 1, // right
+      true, // bottom
     ] as [boolean, boolean, boolean, boolean],
     margin: [4, 4, 4, 6] as [number, number, number, number],
   }))
@@ -508,7 +551,8 @@ export async function generatePDF(
  * Gera o PDF como Blob (para preview ou envio à API).
  */
 export async function generatePDFBlob(
-  docDefinition: Omit<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'> & Partial<Pick<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'>>
+  docDefinition: Omit<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'> &
+    Partial<Pick<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'>>
 ): Promise<Blob> {
   const pdfMake = (await getPdfMake()) as unknown as PdfMakeInstance
 

@@ -113,7 +113,7 @@ export default function ProfessionalDeclarationPage() {
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
             </Button>
-            <PDFMakeExport 
+            <PDFMakeExport
               fileName="declaracao-profissional.pdf"
               buttonText="Gerar PDF"
               documentDefinitionGenerator={() => buildProfessionalDeclarationDoc(formData)}
@@ -137,10 +137,7 @@ export default function ProfessionalDeclarationPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           {/* Dados da Empresa */}
           <Card variant="elevated">
             <CardHeader>

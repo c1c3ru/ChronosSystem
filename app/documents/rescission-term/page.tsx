@@ -165,10 +165,7 @@ export default function RescissionTermPage() {
           </CardHeader>
         </Card>
 
-        <form
-          ref={formRef}
-          className="space-y-6"
-        >
+        <form ref={formRef} className="space-y-6">
           {/* Dados do Estagiário */}
           <Card variant="elevated">
             <CardHeader>

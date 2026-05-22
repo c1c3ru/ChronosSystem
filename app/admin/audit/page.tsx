@@ -4,16 +4,16 @@ import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { 
-  FileText, 
-  ArrowLeft, 
-  Search, 
-  Clock, 
-  User, 
-  ShieldAlert, 
+import {
+  FileText,
+  ArrowLeft,
+  Search,
+  Clock,
+  User,
+  ShieldAlert,
   AlertCircle,
   CheckCircle,
-  Filter
+  Filter,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -47,33 +47,37 @@ export default function AuditLogsPage() {
     total: 0,
     totalPages: 1,
     hasNextPage: false,
-    hasPrevPage: false
+    hasPrevPage: false,
   })
 
-  const usuarioPodeAcessar = session && ['ADMIN', 'SUPERVISOR'].includes((session.user as { role?: string })?.role ?? '')
+  const usuarioPodeAcessar =
+    session && ['ADMIN', 'SUPERVISOR'].includes((session.user as { role?: string })?.role ?? '')
 
-  const loadAuditLogs = useCallback(async (currentPage: number) => {
-    try {
-      setLoading(true)
-      const params = new URLSearchParams()
-      params.append('page', currentPage.toString())
-      params.append('limit', '50')
-      if (searchTerm) params.append('search', searchTerm)
-      if (actionFilter !== 'ALL') params.append('action', actionFilter)
+  const loadAuditLogs = useCallback(
+    async (currentPage: number) => {
+      try {
+        setLoading(true)
+        const params = new URLSearchParams()
+        params.append('page', currentPage.toString())
+        params.append('limit', '50')
+        if (searchTerm) params.append('search', searchTerm)
+        if (actionFilter !== 'ALL') params.append('action', actionFilter)
 
-      const response = await fetch(`/api/admin/audit?${params}`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        setLogs(data.data)
-        setPagination(data.pagination)
+        const response = await fetch(`/api/admin/audit?${params}`)
+
+        if (response.ok) {
+          const data = await response.json()
+          setLogs(data.data)
+          setPagination(data.pagination)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar logs de auditoria:', error)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Erro ao carregar logs de auditoria:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [searchTerm, actionFilter])
+    },
+    [searchTerm, actionFilter]
+  )
 
   useEffect(() => {
     if (usuarioPodeAcessar) {
@@ -108,10 +112,14 @@ export default function AuditLogsPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'text-red-400 bg-red-400/20 border border-red-500/30'
-      case 'SUPERVISOR': return 'text-yellow-400 bg-yellow-400/20 border border-yellow-500/30'
-      case 'EMPLOYEE': return 'text-blue-400 bg-blue-400/20 border border-blue-500/30'
-      default: return 'text-neutral-400 bg-neutral-400/20 border border-neutral-500/30'
+      case 'ADMIN':
+        return 'text-red-400 bg-red-400/20 border border-red-500/30'
+      case 'SUPERVISOR':
+        return 'text-yellow-400 bg-yellow-400/20 border border-yellow-500/30'
+      case 'EMPLOYEE':
+        return 'text-blue-400 bg-blue-400/20 border border-blue-500/30'
+      default:
+        return 'text-neutral-400 bg-neutral-400/20 border border-neutral-500/30'
     }
   }
 
@@ -127,7 +135,7 @@ export default function AuditLogsPage() {
           Você não tem permissão para acessar esta área ou sua sessão expirou.
         </p>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/employee'} variant="secondary">
+          <Button onClick={() => (window.location.href = '/employee')} variant="secondary">
             Ir para Área do Funcionário
           </Button>
           <Button onClick={() => signIn()} variant="primary">
@@ -157,7 +165,9 @@ export default function AuditLogsPage() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-white">Logs de Auditoria e Atividades</h1>
-                  <p className="text-neutral-400 text-sm">Histórico completo de eventos de sistema, acessos e tentativas bloqueadas</p>
+                  <p className="text-neutral-400 text-sm">
+                    Histórico completo de eventos de sistema, acessos e tentativas bloqueadas
+                  </p>
                 </div>
               </div>
             </div>
@@ -173,7 +183,10 @@ export default function AuditLogsPage() {
             <div className="grid gap-4 md:grid-cols-3">
               {/* Busca */}
               <div className="md:col-span-2">
-                <label htmlFor="audit-search" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="audit-search"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Buscar em Detalhes ou Usuário
                 </label>
                 <div className="relative flex gap-2">
@@ -197,7 +210,10 @@ export default function AuditLogsPage() {
 
               {/* Filtro de Ação */}
               <div>
-                <label htmlFor="audit-action" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label
+                  htmlFor="audit-action"
+                  className="block text-sm font-medium text-neutral-300 mb-2"
+                >
                   Filtrar por Tipo de Ação
                 </label>
                 <div className="relative">
@@ -243,11 +259,21 @@ export default function AuditLogsPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-neutral-700/50 bg-neutral-800/80">
-                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">Data/Hora</th>
-                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">Ação</th>
-                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">Usuário</th>
-                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">Nível/Role</th>
-                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">Detalhes / Motivo</th>
+                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                        Data/Hora
+                      </th>
+                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                        Ação
+                      </th>
+                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                        Usuário
+                      </th>
+                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                        Nível/Role
+                      </th>
+                      <th className="py-3.5 px-6 text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                        Detalhes / Motivo
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-700/50 text-sm">
@@ -267,7 +293,9 @@ export default function AuditLogsPage() {
                           </div>
                         </td>
                         <td className="py-4 px-6 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded text-xs font-semibold ${getRoleColor(log.user.role)}`}>
+                          <span
+                            className={`px-2.5 py-1 rounded text-xs font-semibold ${getRoleColor(log.user.role)}`}
+                          >
                             {log.user.role}
                           </span>
                         </td>
@@ -284,11 +312,21 @@ export default function AuditLogsPage() {
             ) : (
               <div className="text-center py-12">
                 <ShieldAlert className="h-12 w-12 text-neutral-500 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium text-white mb-2">Nenhum log de auditoria encontrado</h3>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  Nenhum log de auditoria encontrado
+                </h3>
                 <p className="text-neutral-400 text-sm max-w-sm mx-auto mb-6">
-                  Não foram encontrados registros para os filtros selecionados ou o sistema ainda não gerou eventos.
+                  Não foram encontrados registros para os filtros selecionados ou o sistema ainda
+                  não gerou eventos.
                 </p>
-                <Button onClick={() => { setSearchTerm(''); setActionFilter('ALL'); setPage(1); }} variant="secondary">
+                <Button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setActionFilter('ALL')
+                    setPage(1)
+                  }}
+                  variant="secondary"
+                >
                   Limpar Filtros
                 </Button>
               </div>
@@ -298,7 +336,7 @@ export default function AuditLogsPage() {
             {logs.length > 0 && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-700/50 bg-neutral-800/30">
                 <Button
-                  onClick={() => setPage(p => Math.max(p - 1, 1))}
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
                   disabled={!pagination.hasPrevPage}
                   variant="secondary"
                   size="sm"
@@ -309,7 +347,7 @@ export default function AuditLogsPage() {
                   Mostrando página {pagination.page} de {pagination.totalPages}
                 </span>
                 <Button
-                  onClick={() => setPage(p => Math.min(p + 1, pagination.totalPages))}
+                  onClick={() => setPage((p) => Math.min(p + 1, pagination.totalPages))}
                   disabled={!pagination.hasNextPage}
                   variant="secondary"
                   size="sm"

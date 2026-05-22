@@ -218,7 +218,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Erro interno do servidor',
-        message: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
+        message:
+          process.env.NODE_ENV === 'development' && error instanceof Error
+            ? error.message
+            : undefined,
         code: 'INTERNAL_ERROR',
       },
       { status: 500 }
@@ -367,7 +370,10 @@ function groupRecordsByDay(records: RecordWithMachine[]) {
   return Array.from(groups.values())
 }
 
-function analyzeDayRecords(dayRecords: RecordWithMachine[], workingHours: WorkingHours): AnalyzedDay | null {
+function analyzeDayRecords(
+  dayRecords: RecordWithMachine[],
+  workingHours: WorkingHours
+): AnalyzedDay | null {
   if (!dayRecords || dayRecords.length === 0) return null
 
   try {
@@ -385,7 +391,9 @@ function analyzeDayRecords(dayRecords: RecordWithMachine[], workingHours: Workin
         : new Date(firstRecord.timestamp)
 
     if (isNaN(date.getTime())) {
-      apiLogger.warn('Data inválida no primeiro registro', { timestampRecord: firstRecord.timestamp.toISOString() })
+      apiLogger.warn('Data inválida no primeiro registro', {
+        timestampRecord: firstRecord.timestamp.toISOString(),
+      })
       return null
     }
 
