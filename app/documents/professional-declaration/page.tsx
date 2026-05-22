@@ -11,7 +11,6 @@ import { buildProfessionalDeclarationDoc } from '@/lib/pdf-templates/professiona
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { ProfessionalDeclarationDocument } from '@/components/templates/ProfessionalDeclarationDocument'
 import {
   maskCPF,
   maskRG,

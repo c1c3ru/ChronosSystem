@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
-import { InternshipRegistrationDocument } from '@/components/templates/InternshipRegistrationDocument'
 import {
   maskCPF,
   maskRG,
