@@ -77,38 +77,75 @@ jobs:
         run: npm audit --audit-level=high
 
   deploy-production:
-    name: 🌍 Local Deploy (Production )
+    name: 🌍 Local Deploy (Production)
     runs-on: self-hosted
-    needs: [quality-gate, security-audit] # Ensure security audit also passes before deploy
+    needs: [quality-gate, security-audit]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
     steps:
-      - name: 🚀 Sync and Restart
+      - name: 🚀 Sincronizar e Reiniciar Produção
         run: |
-          # Ir para o diretório de produção definitivo
-          cd /home/nac/ChronosSystem
+          set -euo pipefail
+          PROD_DIR="/home/nac/ChronosSystem"
+          cd "$PROD_DIR"
 
-          echo "📥 Fetching latest changes..."
+          # --- Validação de variáveis obrigatórias ---
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "❌ ERRO: DATABASE_URL não configurada."
+            echo "   → Acesse: GitHub → Settings → Secrets → Actions"
+            echo "   → Adicione: DATABASE_URL=postgresql://user:pass@host:5432/db"
+            exit 1
+          fi
+
+          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
+            echo "❌ ERRO: DATABASE_URL deve começar com postgresql:// ou postgres://"
+            echo "   → Valor atual não suportado pelo Prisma."
+            exit 1
+          fi
+
+          echo "✅ DATABASE_URL validada (protocolo: $(echo $DATABASE_URL | cut -d: -f1))"
+
+          # --- Grava .env de produção ---
+          echo "📝 Atualizando .env de produção..."
+          cat > .env << EOF
+          DATABASE_URL=${DATABASE_URL}
+          NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+          NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:5000}
+          EOF
+
+          # --- Atualizar código ---
+          echo "📥 Buscando últimas alterações..."
           git fetch origin main
           git reset --hard origin/main
 
-          echo "📦 Installing production dependencies..."
-          npm install --production
+          # --- Dependências e Prisma ---
+          echo "📦 Instalando dependências de produção..."
+          npm install --omit=dev
 
-          # schema.prisma is already configured for sqlite in the repository
+          echo "🗄️ Gerando cliente Prisma e Sincronizando Schema..."
           npx prisma generate
+          npx prisma migrate deploy || npx prisma db push --accept-data-loss
 
-          echo "🚀 Restarting system..."
+          # --- Build e Restart ---
+          echo "🔨 Compilando aplicação..."
+          npm run build
+
+          echo "🚀 Reiniciando serviço..."
           chmod +x ./start-system.sh
           ./start-system.sh
 
-          echo "🧹 Clearing rate limit cache from Redis..."
-          if command -v redis-cli &> /dev/null; then
+          # --- Cache Redis ---
+          echo "🧹 Limpando cache de rate limit..."
+          if command -v redis-cli &>/dev/null; then
             redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL || true
-            echo "✅ Rate limit cache cleared"
+            echo "✅ Cache Redis limpo"
           else
-            echo "⚠️ Redis CLI not available, rate limits will expire naturally"
+            echo "⚠️ redis-cli não disponível — expiração natural"
           fi
 
-          echo "✅ Deployment completed successfully!"
+          echo "✅ Deploy concluído com sucesso!"
