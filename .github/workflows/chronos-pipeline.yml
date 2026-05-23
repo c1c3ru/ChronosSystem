@@ -83,11 +83,66 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+
     steps:
+      # ── STEP 1: Validar DATABASE_URL antes de qualquer coisa ──────────────
+      - name: 🔍 Validar DATABASE_URL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "❌ DATABASE_URL não configurada."
+            echo "   → GitHub → Settings → Secrets → Actions → New secret"
+            echo "   → Nome: DATABASE_URL"
+            echo "   → Valor: postgresql://usuario:senha@localhost:5432/nome_banco"
+            exit 1
+          fi
+
+          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
+            echo "❌ DATABASE_URL deve começar com postgresql:// ou postgres://"
+            exit 1
+          fi
+
+          # Extrai host:porta sem expor a senha
+          HOSTPORT=$(echo "${DATABASE_URL}" | sed 's|.*@||' | sed 's|/.*||')
+          PORTA=$(echo "${HOSTPORT}" | cut -s -d: -f2)
+          HOST=$(echo "${HOSTPORT}" | cut -d: -f1)
+
+          echo "🔍 Host detectado : ${HOST}"
+          echo "🔍 Porta detectada: ${PORTA:-'(sem porta — padrão 5432)'}"
+
+          # Validar que porta é numérica (se informada)
+          if [ -n "${PORTA}" ] && ! [[ "${PORTA}" =~ ^[0-9]+$ ]]; then
+            echo ""
+            echo "═══════════════════════════════════════════════════════════════"
+            echo "❌ PORTA INVÁLIDA: '${PORTA}'"
+            echo "═══════════════════════════════════════════════════════════════"
+            echo ""
+            echo "   CAUSA: a senha no secret DATABASE_URL contém caracteres"
+            echo "   especiais NÃO codificados que quebram o parser de URL."
+            echo "   O Prisma interpreta parte da senha como o número de porta."
+            echo ""
+            echo "   SOLUÇÃO: edite o secret e encode os caracteres especiais:"
+            echo "   ┌─────────────────────────────────────────┐"
+            echo "   │  Caracter  │  Substitua por             │"
+            echo "   │     @      │      %40                   │"
+            echo "   │     :      │      %3A                   │"
+            echo "   │     #      │      %23                   │"
+            echo "   │     !      │      %21                   │"
+            echo "   │    \$      │      %24                   │"
+            echo "   │     /      │      %2F                   │"
+            echo "   └─────────────────────────────────────────┘"
+            echo ""
+            echo "   Exemplo com senha 'minhaS@nha#1':"
+            echo "   postgresql://user:minhaS%40nha%231@localhost:5432/db"
+            echo ""
+            echo "   → GitHub → Settings → Secrets → DATABASE_URL → Update"
+            exit 1
+          fi
+
+          echo "✅ DATABASE_URL válida"
+
+      # ── STEP 2: Sincronizar código e reiniciar ────────────────────────────
       - name: 🚀 Sincronizar e Reiniciar Produção
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -95,63 +150,47 @@ jobs:
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
         run: |
           set -euo pipefail
-          PROD_DIR="/home/nac/ChronosSystem"
-          cd "$PROD_DIR"
+          cd /home/nac/ChronosSystem
 
-          # --- Validação de variáveis obrigatórias ---
-          if [ -z "${DATABASE_URL:-}" ]; then
-            echo "❌ ERRO: DATABASE_URL não configurada."
-            echo "   → Acesse: GitHub → Settings → Secrets → Actions"
-            echo "   → Adicione: DATABASE_URL=postgresql://user:pass@host:5432/db"
-            exit 1
-          fi
-
-          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
-            echo "❌ ERRO: DATABASE_URL deve começar com postgresql:// ou postgres://"
-            exit 1
-          fi
-
-          echo "✅ DATABASE_URL validada"
-
-          # --- Atualizar código PRIMEIRO (antes de gravar .env) ---
+          # Atualizar código PRIMEIRO
           echo "📥 Buscando últimas alterações..."
           git fetch origin main
           git reset --hard origin/main
 
-          # --- Grava .env de produção APÓS o git reset ---
-          # Usa printf '%s' para não interpretar caracteres especiais da senha
+          # Gravar .env APÓS git reset (evita sobrescrita)
+          # printf '%s' não interpreta caracteres especiais do valor
           echo "📝 Gravando .env de produção..."
           {
             printf 'DATABASE_URL=%s\n' "${DATABASE_URL}"
             printf 'NEXTAUTH_SECRET=%s\n' "${NEXTAUTH_SECRET}"
             printf 'NEXTAUTH_URL=%s\n' "${NEXTAUTH_URL:-http://localhost:5000}"
           } > .env
+          echo "✅ .env gravado"
 
-          echo "✅ .env gravado com sucesso"
-
-          # --- Dependências e Prisma ---
-          echo "📦 Instalando dependências de produção..."
+          # Dependências
+          echo "📦 Instalando dependências..."
           npm install --omit=dev
 
-          echo "🗄️ Gerando cliente Prisma e aplicando migrations..."
+          # Prisma
+          echo "🗄️ Gerando cliente Prisma..."
           npx prisma generate
+
+          echo "🗄️ Aplicando migrations..."
           npx prisma migrate deploy || npx prisma db push --accept-data-loss
 
-          # --- Build e Restart ---
-          echo "🔨 Compilando aplicação Next.js..."
+          # Build
+          echo "🔨 Compilando aplicação..."
           npm run build
 
+          # Restart
           echo "🚀 Reiniciando serviço..."
           chmod +x ./start-system.sh
           ./start-system.sh
 
-          # --- Cache Redis ---
-          echo "🧹 Limpando cache de rate limit..."
+          # Redis
           if command -v redis-cli &>/dev/null; then
             redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL || true
             echo "✅ Cache Redis limpo"
-          else
-            echo "⚠️ redis-cli não disponível — expiração natural"
           fi
 
           echo "✅ Deploy concluído com sucesso!"
