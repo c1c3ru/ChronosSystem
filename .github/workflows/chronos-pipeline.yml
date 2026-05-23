@@ -85,93 +85,79 @@ jobs:
       name: production
 
     steps:
-      # ── STEP 1: Validar DATABASE_URL antes de qualquer coisa ──────────────
-      - name: 🔍 Validar DATABASE_URL
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # ── STEP 1: Verificar .env pré-configurado no servidor ────────────────
+      # Para runners self-hosted, o .env deve existir no servidor.
+      # NUNCA sobrescrever via GitHub Secrets — evita corrupção de URL.
+      - name: 🔍 Verificar .env no Servidor
         run: |
-          if [ -z "${DATABASE_URL:-}" ]; then
-            echo "❌ DATABASE_URL não configurada."
-            echo "   → GitHub → Settings → Secrets → Actions → New secret"
-            echo "   → Nome: DATABASE_URL"
-            echo "   → Valor: postgresql://usuario:senha@localhost:5432/nome_banco"
+          ENV_FILE="/home/nac/ChronosSystem/.env"
+
+          if [ ! -f "${ENV_FILE}" ]; then
+            echo "❌ .env não encontrado em ${ENV_FILE}"
+            echo ""
+            echo "   Configure o .env UMA VEZ no servidor de produção:"
+            echo "   ─────────────────────────────────────────────────"
+            echo "   ssh nac@<servidor>"
+            echo "   nano /home/nac/ChronosSystem/.env"
+            echo ""
+            echo "   Conteúdo mínimo do .env:"
+            echo "   DATABASE_URL=postgresql://usuario:senha@localhost:5432/chronos_db"
+            echo "   NEXTAUTH_SECRET=chave_aleatoria_longa"
+            echo "   NEXTAUTH_URL=http://seu-ip-ou-dominio:5000"
             exit 1
           fi
 
-          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
+          # Ler DATABASE_URL do arquivo (sem expor na variável de ambiente do CI)
+          DB_URL=$(grep "^DATABASE_URL=" "${ENV_FILE}" | cut -d= -f2-)
+
+          if [ -z "${DB_URL}" ]; then
+            echo "❌ DATABASE_URL não encontrada no .env"
+            exit 1
+          fi
+
+          if [[ "${DB_URL}" == file:* ]]; then
+            echo "❌ DATABASE_URL aponta para SQLite. Configure PostgreSQL no .env"
+            exit 1
+          fi
+
+          if [[ "${DB_URL}" != postgresql://* ]] && [[ "${DB_URL}" != postgres://* ]]; then
             echo "❌ DATABASE_URL deve começar com postgresql:// ou postgres://"
+            echo "   Prefixo atual: $(echo "${DB_URL}" | cut -c1-20)..."
             exit 1
           fi
 
-          # Extrai host:porta sem expor a senha
-          HOSTPORT=$(echo "${DATABASE_URL}" | sed 's|.*@||' | sed 's|/.*||')
-          PORTA=$(echo "${HOSTPORT}" | cut -s -d: -f2)
-          HOST=$(echo "${HOSTPORT}" | cut -d: -f1)
-
-          echo "🔍 Host detectado : ${HOST}"
-          echo "🔍 Porta detectada: ${PORTA:-'(sem porta — padrão 5432)'}"
-
-          # Validar que porta é numérica (se informada)
-          if [ -n "${PORTA}" ] && ! [[ "${PORTA}" =~ ^[0-9]+$ ]]; then
-            echo ""
-            echo "═══════════════════════════════════════════════════════════════"
-            echo "❌ PORTA INVÁLIDA: '${PORTA}'"
-            echo "═══════════════════════════════════════════════════════════════"
-            echo ""
-            echo "   CAUSA: a senha no secret DATABASE_URL contém caracteres"
-            echo "   especiais NÃO codificados que quebram o parser de URL."
-            echo "   O Prisma interpreta parte da senha como o número de porta."
-            echo ""
-            echo "   SOLUÇÃO: edite o secret e encode os caracteres especiais:"
-            echo "   ┌─────────────────────────────────────────┐"
-            echo "   │  Caracter  │  Substitua por             │"
-            echo "   │     @      │      %40                   │"
-            echo "   │     :      │      %3A                   │"
-            echo "   │     #      │      %23                   │"
-            echo "   │     !      │      %21                   │"
-            echo "   │    \$      │      %24                   │"
-            echo "   │     /      │      %2F                   │"
-            echo "   └─────────────────────────────────────────┘"
-            echo ""
-            echo "   Exemplo com senha 'minhaS@nha#1':"
-            echo "   postgresql://user:minhaS%40nha%231@localhost:5432/db"
-            echo ""
-            echo "   → GitHub → Settings → Secrets → DATABASE_URL → Update"
-            exit 1
-          fi
-
-          echo "✅ DATABASE_URL válida"
+          # Mostrar host:porta sem expor senha
+          HOSTPORT=$(echo "${DB_URL}" | sed 's|.*@||' | sed 's|/.*||')
+          echo "✅ .env configurado | Destino PostgreSQL: ${HOSTPORT}"
 
       # ── STEP 2: Sincronizar código e reiniciar ────────────────────────────
       - name: 🚀 Sincronizar e Reiniciar Produção
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
         run: |
           set -euo pipefail
           cd /home/nac/ChronosSystem
 
-          # Atualizar código PRIMEIRO
+          # Proteger .env de git reset --hard (apenas marca, não commita)
+          git update-index --skip-worktree .env 2>/dev/null || true
+
+          # Atualizar código
           echo "📥 Buscando últimas alterações..."
           git fetch origin main
           git reset --hard origin/main
 
-          # Gravar .env APÓS git reset (evita sobrescrita)
-          # printf '%s' não interpreta caracteres especiais do valor
-          echo "📝 Gravando .env de produção..."
-          {
-            printf 'DATABASE_URL=%s\n' "${DATABASE_URL}"
-            printf 'NEXTAUTH_SECRET=%s\n' "${NEXTAUTH_SECRET}"
-            printf 'NEXTAUTH_URL=%s\n' "${NEXTAUTH_URL:-http://localhost:5000}"
-          } > .env
-          echo "✅ .env gravado"
+          # Confirmar que .env sobreviveu ao reset
+          if ! grep -q "^DATABASE_URL=postgresql" .env 2>/dev/null && \
+             ! grep -q "^DATABASE_URL=postgres" .env 2>/dev/null; then
+            echo "❌ .env perdido após git reset"
+            echo "   Execute no servidor: git update-index --skip-worktree .env"
+            exit 1
+          fi
+          echo "✅ .env preservado"
 
           # Dependências
           echo "📦 Instalando dependências..."
           npm install --omit=dev
 
-          # Prisma
+          # Prisma — usa DATABASE_URL do .env (lido automaticamente pelo Prisma)
           echo "🗄️ Gerando cliente Prisma..."
           npx prisma generate
 
