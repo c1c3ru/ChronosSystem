@@ -89,6 +89,10 @@ jobs:
       NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
     steps:
       - name: 🚀 Sincronizar e Reiniciar Produção
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
         run: |
           set -euo pipefail
           PROD_DIR="/home/nac/ChronosSystem"
@@ -104,35 +108,37 @@ jobs:
 
           if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
             echo "❌ ERRO: DATABASE_URL deve começar com postgresql:// ou postgres://"
-            echo "   → Valor atual não suportado pelo Prisma."
             exit 1
           fi
 
-          echo "✅ DATABASE_URL validada (protocolo: $(echo $DATABASE_URL | cut -d: -f1))"
+          echo "✅ DATABASE_URL validada"
 
-          # --- Grava .env de produção ---
-          echo "📝 Atualizando .env de produção..."
-          cat > .env << EOF
-          DATABASE_URL=${DATABASE_URL}
-          NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-          NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:5000}
-          EOF
-
-          # --- Atualizar código ---
+          # --- Atualizar código PRIMEIRO (antes de gravar .env) ---
           echo "📥 Buscando últimas alterações..."
           git fetch origin main
           git reset --hard origin/main
+
+          # --- Grava .env de produção APÓS o git reset ---
+          # Usa printf '%s' para não interpretar caracteres especiais da senha
+          echo "📝 Gravando .env de produção..."
+          {
+            printf 'DATABASE_URL=%s\n' "${DATABASE_URL}"
+            printf 'NEXTAUTH_SECRET=%s\n' "${NEXTAUTH_SECRET}"
+            printf 'NEXTAUTH_URL=%s\n' "${NEXTAUTH_URL:-http://localhost:5000}"
+          } > .env
+
+          echo "✅ .env gravado com sucesso"
 
           # --- Dependências e Prisma ---
           echo "📦 Instalando dependências de produção..."
           npm install --omit=dev
 
-          echo "🗄️ Gerando cliente Prisma e Sincronizando Schema..."
+          echo "🗄️ Gerando cliente Prisma e aplicando migrations..."
           npx prisma generate
           npx prisma migrate deploy || npx prisma db push --accept-data-loss
 
           # --- Build e Restart ---
-          echo "🔨 Compilando aplicação..."
+          echo "🔨 Compilando aplicação Next.js..."
           npm run build
 
           echo "🚀 Reiniciando serviço..."
