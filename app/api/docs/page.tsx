@@ -5,11 +5,12 @@ import dynamic from 'next/dynamic'
 // Importar SwaggerUI e seu CSS dinamicamente — evita que o Turbopack
 // processe swagger-client no servidor (módulos ESM incompatíveis)
 const SwaggerUI = dynamic(
-  () => import('swagger-ui-react').then((mod) => {
-    // CSS importado aqui para garantir execução apenas no cliente
-    require('swagger-ui-react/swagger-ui.css')
-    return mod
-  }),
+  () =>
+    import('swagger-ui-react').then((mod) => {
+      // CSS importado aqui para garantir execução apenas no cliente
+      require('swagger-ui-react/swagger-ui.css')
+      return mod
+    }),
   { ssr: false }
 )
 
