@@ -28,7 +28,13 @@ function buildCsp() {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['@prisma/client', 'bcryptjs', '@react-pdf/renderer'],
+  serverExternalPackages: [
+    '@prisma/client',
+    'bcryptjs',
+    '@react-pdf/renderer',
+    'swagger-ui-react',
+    'swagger-client',
+  ],
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
