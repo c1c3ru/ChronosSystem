@@ -83,69 +83,100 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+
     steps:
+      # ── STEP 1: Verificar .env pré-configurado no servidor ────────────────
+      # Para runners self-hosted, o .env deve existir no servidor.
+      # NUNCA sobrescrever via GitHub Secrets — evita corrupção de URL.
+      - name: 🔍 Verificar .env no Servidor
+        run: |
+          ENV_FILE="/home/nac/ChronosSystem/.env"
+
+          if [ ! -f "${ENV_FILE}" ]; then
+            echo "❌ .env não encontrado em ${ENV_FILE}"
+            echo ""
+            echo "   Configure o .env UMA VEZ no servidor de produção:"
+            echo "   ─────────────────────────────────────────────────"
+            echo "   ssh nac@<servidor>"
+            echo "   nano /home/nac/ChronosSystem/.env"
+            echo ""
+            echo "   Conteúdo mínimo do .env:"
+            echo "   DATABASE_URL=postgresql://usuario:senha@localhost:5432/chronos_db"
+            echo "   NEXTAUTH_SECRET=chave_aleatoria_longa"
+            echo "   NEXTAUTH_URL=http://seu-ip-ou-dominio:5000"
+            exit 1
+          fi
+
+          # Ler DATABASE_URL do arquivo (sem expor na variável de ambiente do CI)
+          DB_URL=$(grep "^DATABASE_URL=" "${ENV_FILE}" | cut -d= -f2- | tr -d '"')
+
+          if [ -z "${DB_URL}" ]; then
+            echo "❌ DATABASE_URL não encontrada no .env"
+            exit 1
+          fi
+
+          if [[ "${DB_URL}" == file:* ]]; then
+            echo "❌ DATABASE_URL aponta para SQLite. Configure PostgreSQL no .env"
+            exit 1
+          fi
+
+          if [[ "${DB_URL}" != postgresql://* ]] && [[ "${DB_URL}" != postgres://* ]]; then
+            echo "❌ DATABASE_URL deve começar com postgresql:// ou postgres://"
+            echo "   Prefixo atual: $(echo "${DB_URL}" | cut -c1-20)..."
+            exit 1
+          fi
+
+          # Mostrar host:porta sem expor senha
+          HOSTPORT=$(echo "${DB_URL}" | sed 's|.*@||' | sed 's|/.*||')
+          echo "✅ .env configurado | Destino PostgreSQL: ${HOSTPORT}"
+
+      # ── STEP 2: Sincronizar código e reiniciar ────────────────────────────
       - name: 🚀 Sincronizar e Reiniciar Produção
         run: |
           set -euo pipefail
-          PROD_DIR="/home/nac/ChronosSystem"
-          cd "$PROD_DIR"
+          cd /home/nac/ChronosSystem
 
-          # --- Validação de variáveis obrigatórias ---
-          if [ -z "${DATABASE_URL:-}" ]; then
-            echo "❌ ERRO: DATABASE_URL não configurada."
-            echo "   → Acesse: GitHub → Settings → Secrets → Actions"
-            echo "   → Adicione: DATABASE_URL=postgresql://user:pass@host:5432/db"
-            exit 1
-          fi
+          # Proteger .env de git reset --hard (apenas marca, não commita)
+          git update-index --skip-worktree .env 2>/dev/null || true
 
-          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
-            echo "❌ ERRO: DATABASE_URL deve começar com postgresql:// ou postgres://"
-            echo "   → Valor atual não suportado pelo Prisma."
-            exit 1
-          fi
-
-          echo "✅ DATABASE_URL validada (protocolo: $(echo $DATABASE_URL | cut -d: -f1))"
-
-          # --- Grava .env de produção ---
-          echo "📝 Atualizando .env de produção..."
-          cat > .env << EOF
-          DATABASE_URL=${DATABASE_URL}
-          NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-          NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:5000}
-          EOF
-
-          # --- Atualizar código ---
+          # Atualizar código
           echo "📥 Buscando últimas alterações..."
           git fetch origin main
           git reset --hard origin/main
 
-          # --- Dependências e Prisma ---
-          echo "📦 Instalando dependências de produção..."
+          # Confirmar que .env sobreviveu ao reset
+          SAVED_DB_URL=$(grep "^DATABASE_URL=" .env 2>/dev/null | cut -d= -f2- | tr -d '"')
+          if [[ "${SAVED_DB_URL}" != postgresql://* ]] && [[ "${SAVED_DB_URL}" != postgres://* ]]; then
+            echo "❌ .env perdido ou DATABASE_URL inválida após git reset"
+            echo "   Execute no servidor: git update-index --skip-worktree .env"
+            exit 1
+          fi
+          echo "✅ .env preservado"
+
+          # Dependências
+          echo "📦 Instalando dependências..."
           npm install --omit=dev
 
-          echo "🗄️ Gerando cliente Prisma e Sincronizando Schema..."
+          # Prisma — usa DATABASE_URL do .env (lido automaticamente pelo Prisma)
+          echo "🗄️ Gerando cliente Prisma..."
           npx prisma generate
+
+          echo "🗄️ Aplicando migrations..."
           npx prisma migrate deploy || npx prisma db push --accept-data-loss
 
-          # --- Build e Restart ---
+          # Build
           echo "🔨 Compilando aplicação..."
           npm run build
 
+          # Restart
           echo "🚀 Reiniciando serviço..."
           chmod +x ./start-system.sh
           ./start-system.sh
 
-          # --- Cache Redis ---
-          echo "🧹 Limpando cache de rate limit..."
+          # Redis
           if command -v redis-cli &>/dev/null; then
             redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL || true
             echo "✅ Cache Redis limpo"
-          else
-            echo "⚠️ redis-cli não disponível — expiração natural"
           fi
 
           echo "✅ Deploy concluído com sucesso!"

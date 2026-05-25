@@ -1,4 +1,0 @@
-
-> chronos-system@2.0.0 lint
-> eslint . --ext .ts,.tsx --config .eslintrc.json
-
