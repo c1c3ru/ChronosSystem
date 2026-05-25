@@ -183,8 +183,9 @@ jobs:
           echo "🗄️ Aplicando migrations..."
           npx prisma migrate deploy || npx prisma db push --accept-data-loss
 
-          # Build
-          echo "🔨 Compilando aplicação..."
+          # Build — limpa cache Turbopack para evitar chunks stale de builds anteriores
+          echo "🔨 Compilando aplicação (cache limpo)..."
+          rm -rf .next
           npm run build
 
           # Restart
