@@ -154,11 +154,11 @@ jobs:
           fi
           echo "✅ .env preservado"
 
-          # Dependências — limpa node_modules antes para garantir instalação sem corrupção
-          # (npm ci exige lock file exato por versão de npm/Node, incompatível entre ambientes)
+          # Dependências — instala tudo (dev incluído) pois o Next.js build
+          # precisa de typescript, @types/*, eslint-*, etc. em tempo de compilação
           echo "📦 Instalando dependências..."
           rm -rf node_modules
-          npm install --omit=dev
+          npm install
 
           # Prisma — lê DATABASE_URL explicitamente do .env para evitar ambiguidade
           # (variáveis de ambiente do CI têm prioridade sobre .env; exportamos manualmente)
