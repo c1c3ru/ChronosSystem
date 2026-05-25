@@ -154,9 +154,11 @@ jobs:
           fi
           echo "✅ .env preservado"
 
-          # Dependências — usa npm ci para garantir instalação limpa e reproduzível
+          # Dependências — limpa node_modules antes para garantir instalação sem corrupção
+          # (npm ci exige lock file exato por versão de npm/Node, incompatível entre ambientes)
           echo "📦 Instalando dependências..."
-          npm ci --omit=dev
+          rm -rf node_modules
+          npm install --omit=dev
 
           # Prisma — lê DATABASE_URL explicitamente do .env para evitar ambiguidade
           # (variáveis de ambiente do CI têm prioridade sobre .env; exportamos manualmente)
