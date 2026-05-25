@@ -2,17 +2,9 @@
 
 import dynamic from 'next/dynamic'
 
-// Importar SwaggerUI e seu CSS dinamicamente — evita que o Turbopack
-// processe swagger-client no servidor (módulos ESM incompatíveis)
-const SwaggerUI = dynamic(
-  () =>
-    import('swagger-ui-react').then((mod) => {
-      // CSS importado aqui para garantir execução apenas no cliente
-      require('swagger-ui-react/swagger-ui.css')
-      return mod
-    }),
-  { ssr: false }
-)
+// SwaggerUIClient importa swagger-ui-react e seu CSS com imports ESM normais.
+// O dynamic com ssr:false impede que o Turbopack processe esses módulos no servidor.
+const SwaggerUIClient = dynamic(() => import('./SwaggerUIClient'), { ssr: false })
 
 export default function ApiDocsPage() {
   return (
@@ -24,7 +16,7 @@ export default function ApiDocsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <SwaggerUI url="/api/docs/openapi.json" />
+          <SwaggerUIClient url="/api/docs/openapi.json" />
         </div>
       </div>
     </div>
