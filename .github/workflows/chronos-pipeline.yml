@@ -158,8 +158,25 @@ jobs:
           echo "📦 Instalando dependências..."
           npm install --omit=dev
 
-          # Prisma — garante que DATABASE_URL vem do .env e não de variável de ambiente do CI
+          # Prisma — lê DATABASE_URL explicitamente do .env para evitar ambiguidade
+          # (variáveis de ambiente do CI têm prioridade sobre .env; exportamos manualmente)
           unset DATABASE_URL
+          RAW_DB_URL=$(grep "^DATABASE_URL=" .env | head -1 | cut -d= -f2-)
+          # Remove aspas duplas, aspas simples e \r residual do Windows
+          CLEAN_DB_URL=$(echo "${RAW_DB_URL}" | tr -d '"' | tr -d "'" | tr -d '\r')
+          export DATABASE_URL="${CLEAN_DB_URL}"
+
+          # Diagnóstico: exibe URL sem expor a senha
+          SAFE_URL=$(echo "${DATABASE_URL}" | sed 's|://[^:]*:[^@]*@|://***:***@|')
+          echo "🔍 DATABASE_URL (sanitizado): ${SAFE_URL}"
+
+          # Valida formato final antes de chamar o Prisma
+          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
+            echo "❌ DATABASE_URL inválida após limpeza. Verifique o .env no servidor."
+            echo "   Formato esperado: postgresql://usuario:senha@host:porta/banco"
+            exit 1
+          fi
+
           echo "🗄️ Gerando cliente Prisma..."
           npx prisma generate
 
