@@ -13,14 +13,15 @@ concurrency:
 
 env:
   NODE_VERSION: "20"
-  DATABASE_URL: "file:./ci.db"
-  NEXTAUTH_SECRET: "ci-test-secret-key-123456789"
-  NEXTAUTH_URL: "http://localhost:5000"
 
 jobs:
   quality-gate:
     name: 🛡️ Quality Gate
     runs-on: self-hosted
+    env:
+      DATABASE_URL: "file:./ci.db"
+      NEXTAUTH_SECRET: "ci-test-secret-key-123456789"
+      NEXTAUTH_URL: "http://localhost:5000"
     steps:
       - name: ⬇️ Checkout
         uses: actions/checkout@v4
@@ -157,7 +158,8 @@ jobs:
           echo "📦 Instalando dependências..."
           npm install --omit=dev
 
-          # Prisma — usa DATABASE_URL do .env (lido automaticamente pelo Prisma)
+          # Prisma — garante que DATABASE_URL vem do .env e não de variável de ambiente do CI
+          unset DATABASE_URL
           echo "🗄️ Gerando cliente Prisma..."
           npx prisma generate
 
