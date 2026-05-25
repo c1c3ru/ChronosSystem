@@ -108,7 +108,7 @@ jobs:
           fi
 
           # Ler DATABASE_URL do arquivo (sem expor na variável de ambiente do CI)
-          DB_URL=$(grep "^DATABASE_URL=" "${ENV_FILE}" | cut -d= -f2-)
+          DB_URL=$(grep "^DATABASE_URL=" "${ENV_FILE}" | cut -d= -f2- | tr -d '"')
 
           if [ -z "${DB_URL}" ]; then
             echo "❌ DATABASE_URL não encontrada no .env"
@@ -145,9 +145,9 @@ jobs:
           git reset --hard origin/main
 
           # Confirmar que .env sobreviveu ao reset
-          if ! grep -q "^DATABASE_URL=postgresql" .env 2>/dev/null && \
-             ! grep -q "^DATABASE_URL=postgres" .env 2>/dev/null; then
-            echo "❌ .env perdido após git reset"
+          SAVED_DB_URL=$(grep "^DATABASE_URL=" .env 2>/dev/null | cut -d= -f2- | tr -d '"')
+          if [[ "${SAVED_DB_URL}" != postgresql://* ]] && [[ "${SAVED_DB_URL}" != postgres://* ]]; then
+            echo "❌ .env perdido ou DATABASE_URL inválida após git reset"
             echo "   Execute no servidor: git update-index --skip-worktree .env"
             exit 1
           fi
