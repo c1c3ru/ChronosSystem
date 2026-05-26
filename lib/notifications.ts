@@ -71,7 +71,12 @@ export async function checkAndNotifyAttendance() {
 
       // Só notifica se já passou mais de 30 min do início do turno
       if (minsAfterStart >= 30 && !alreadySentTypes.has('MISSED_ENTRY')) {
-        const delivered = await sendNotification(intern, 'MISSED_ENTRY', shiftStartTime, shiftEndTime)
+        const delivered = await sendNotification(
+          intern,
+          'MISSED_ENTRY',
+          shiftStartTime,
+          shiftEndTime
+        )
         if (delivered) sentNotifications.push({ user: intern.email, type: 'MISSED_ENTRY' })
       }
 
@@ -99,7 +104,12 @@ export async function checkAndNotifyAttendance() {
     }
 
     if (notificationType && !alreadySentTypes.has(notificationType)) {
-      const delivered = await sendNotification(intern, notificationType, shiftStartTime, shiftEndTime)
+      const delivered = await sendNotification(
+        intern,
+        notificationType,
+        shiftStartTime,
+        shiftEndTime
+      )
       if (delivered) sentNotifications.push({ user: intern.email, type: notificationType })
     }
   }

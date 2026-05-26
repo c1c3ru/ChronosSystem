@@ -1,4 +1,4 @@
-import { mailerTransport, MAIL_FROM } from './mailer'
+import { mailerTransport, MAIL_FROM, isSmtpConfigured } from './mailer'
 import { logger } from './logger'
 
 interface EmailOptions {
@@ -39,6 +39,11 @@ export class EmailService {
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
+    if (!isSmtpConfigured()) {
+      logger.warn('SMTP não configurado — email não enviado', { to: options.to })
+      return false
+    }
+
     try {
       logger.debug('Sending email via SMTP', {
         to: options.to,

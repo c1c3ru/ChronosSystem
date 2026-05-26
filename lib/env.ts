@@ -35,16 +35,13 @@ const envSchema = z.object({
 
   // ========================================
   // EMAIL - SMTP (nodemailer)
+  // Obrigatórias em produção, opcionais no CI/build
   // ========================================
-  SMTP_HOST: z.string().min(1, 'SMTP_HOST é obrigatório'),
-  SMTP_PORT: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(65535, 'SMTP_PORT deve estar entre 1 e 65535'),
-  SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
-  SMTP_PASSWORD: z.string().min(1, 'SMTP_PASSWORD é obrigatória'),
-  SMTP_FROM: z.string().min(1, 'SMTP_FROM é obrigatório'),
+  SMTP_HOST: z.string().optional().default(''),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional().default(587),
+  SMTP_USER: z.string().optional().default(''),
+  SMTP_PASSWORD: z.string().optional().default(''),
+  SMTP_FROM: z.string().optional().default(''),
 
   // ========================================
   // APLICAÇÃO
