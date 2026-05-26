@@ -600,7 +600,8 @@ export default function EquivalenceRequestPage() {
                 <Clock className="h-5 w-5 text-primary" /> Distribuição da Carga Horária
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 overflow-x-auto">
+            <CardContent className="overflow-x-auto p-0">
+              <div className="p-6">
               <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr>
@@ -666,6 +667,7 @@ export default function EquivalenceRequestPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </CardContent>
           </Card>
 

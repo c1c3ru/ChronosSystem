@@ -133,7 +133,7 @@ export default function AdditiveTermPage() {
         nova_data_fim: raw.new_end_date || '',
         nova_carga_horaria: raw.new_weekly_hours || '',
         prazo_prorrogacao: raw.extension_period || '',
-        novo_valor_bolsa: raw.new_scholarship_value || '',
+        novo_valor_bolsa: raw.new_allowance_value || '',
         novo_valor_transporte: raw.new_transport_aid || '',
       })
 
@@ -320,11 +320,63 @@ export default function AdditiveTermPage() {
                     type="text"
                     name="student_address"
                     className="input w-full"
+                    value={formData.student_address || ''}
                     onChange={handleInputChange}
                     title="Endereço do Aluno"
                     placeholder="Endereço Completo"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    DDD + Telefone
+                  </label>
+                  <input
+                    type="text"
+                    name="student_phone"
+                    className="input w-full"
+                    value={formData.student_phone || ''}
+                    onChange={handleInputChange}
+                    title="DDD + Telefone do Discente"
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Dados Gerais do Aditivo */}
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Dados Gerais do Aditivo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Motivo do Aditivo
+                </label>
+                <textarea
+                  name="additive_reason"
+                  rows={3}
+                  className="input w-full"
+                  value={formData.additive_reason || ''}
+                  onChange={handleInputChange}
+                  title="Motivo do Aditivo"
+                  placeholder="Descreva o motivo do aditivo"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Justificativa
+                </label>
+                <textarea
+                  name="justification"
+                  rows={3}
+                  className="input w-full"
+                  value={formData.justification || ''}
+                  onChange={handleInputChange}
+                  title="Justificativa"
+                  placeholder="Justifique as modificações solicitadas"
+                />
               </div>
             </CardContent>
           </Card>
@@ -351,17 +403,34 @@ export default function AdditiveTermPage() {
                   <span className="font-bold text-white">Prorrogação de Vigência</span>
                 </label>
                 {formData.additive_type_prorogation === 'true' && (
-                  <div className="ml-6 mt-2">
-                    <label className="block text-sm font-medium text-neutral-300 mb-1">
-                      Nova Data Final
-                    </label>
-                    <input
-                      type="date"
-                      name="new_end_date"
-                      className="input w-full md:w-1/2"
-                      onChange={handleInputChange}
-                      title="Nova Data Final"
-                    />
+                  <div className="ml-6 mt-2 space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-1">
+                        Nova Data Final
+                      </label>
+                      <input
+                        type="date"
+                        name="new_end_date"
+                        className="input w-full md:w-1/2"
+                        value={formData.new_end_date || ''}
+                        onChange={handleInputChange}
+                        title="Nova Data Final"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-1">
+                        Período de Prorrogação
+                      </label>
+                      <input
+                        type="text"
+                        name="extension_period"
+                        className="input w-full md:w-1/2"
+                        value={formData.extension_period || ''}
+                        onChange={handleInputChange}
+                        title="Período de Prorrogação"
+                        placeholder="Ex: 3 meses"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -379,18 +448,35 @@ export default function AdditiveTermPage() {
                   <span className="font-bold text-white">Alteração do Valor da Bolsa</span>
                 </label>
                 {formData.additive_type_allowance === 'true' && (
-                  <div className="ml-6 mt-2">
-                    <label className="block text-sm font-medium text-neutral-300 mb-1">
-                      Novo Valor (R$)
-                    </label>
-                    <input
-                      type="text"
-                      name="new_allowance_value"
-                      className="input w-full md:w-1/2"
-                      placeholder="0,00"
-                      onChange={handleInputChange}
-                      title="Novo Valor da Bolsa"
-                    />
+                  <div className="ml-6 mt-2 space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-1">
+                        Novo Valor da Bolsa (R$)
+                      </label>
+                      <input
+                        type="text"
+                        name="new_allowance_value"
+                        className="input w-full md:w-1/2"
+                        placeholder="0,00"
+                        value={formData.new_allowance_value || ''}
+                        onChange={handleInputChange}
+                        title="Novo Valor da Bolsa"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-1">
+                        Novo Auxílio Transporte (R$)
+                      </label>
+                      <input
+                        type="text"
+                        name="new_transport_aid"
+                        className="input w-full md:w-1/2"
+                        placeholder="0,00"
+                        value={formData.new_transport_aid || ''}
+                        onChange={handleInputChange}
+                        title="Novo Auxílio Transporte"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -417,6 +503,7 @@ export default function AdditiveTermPage() {
                         type="text"
                         name="new_supervisor_name"
                         className="input w-full"
+                        value={formData.new_supervisor_name || ''}
                         onChange={handleInputChange}
                         title="Novo Supervisor"
                         placeholder="Nome do Supervisor"
@@ -430,6 +517,7 @@ export default function AdditiveTermPage() {
                         type="text"
                         name="new_supervisor_role"
                         className="input w-full"
+                        value={formData.new_supervisor_role || ''}
                         onChange={handleInputChange}
                         title="Cargo"
                         placeholder="Cargo"
@@ -443,6 +531,7 @@ export default function AdditiveTermPage() {
                         type="text"
                         name="new_supervisor_council"
                         className="input w-full"
+                        value={formData.new_supervisor_council || ''}
                         onChange={handleInputChange}
                         title="Registro Profissional"
                         placeholder="Ex: CRM-CE 1234"
@@ -465,18 +554,35 @@ export default function AdditiveTermPage() {
                   <span className="font-bold text-white">Alteração de Horário</span>
                 </label>
                 {formData.additive_type_schedule === 'true' && (
-                  <div className="ml-6 mt-2">
-                    <label className="block text-sm font-medium text-neutral-300 mb-1">
-                      Novo Horário (Descrição)
-                    </label>
-                    <textarea
-                      name="new_schedule"
-                      rows={3}
-                      className="input w-full"
-                      placeholder="Ex: Segunda a Sexta, das 08:00 às 12:00"
-                      onChange={handleInputChange}
-                      title="Novo Horário"
-                    ></textarea>
+                  <div className="ml-6 mt-2 space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-1">
+                        Nova Carga Horária Semanal (h)
+                      </label>
+                      <input
+                        type="number"
+                        name="new_weekly_hours"
+                        className="input w-full md:w-1/2"
+                        placeholder="Ex: 30"
+                        value={formData.new_weekly_hours || ''}
+                        onChange={handleInputChange}
+                        title="Nova Carga Horária Semanal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-300 mb-1">
+                        Novo Horário (Descrição)
+                      </label>
+                      <textarea
+                        name="new_schedule"
+                        rows={3}
+                        className="input w-full"
+                        placeholder="Ex: Segunda a Sexta, das 08:00 às 12:00"
+                        value={formData.new_schedule || ''}
+                        onChange={handleInputChange}
+                        title="Novo Horário"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -502,10 +608,11 @@ export default function AdditiveTermPage() {
                       name="other_changes"
                       rows={3}
                       className="input w-full"
+                      value={formData.other_changes || ''}
                       onChange={handleInputChange}
                       title="Descrição das Alterações"
                       placeholder="Descreva as demais alterações"
-                    ></textarea>
+                    />
                   </div>
                 )}
               </div>
