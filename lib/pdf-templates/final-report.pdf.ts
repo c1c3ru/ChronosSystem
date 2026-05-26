@@ -128,38 +128,58 @@ export async function buildFinalReportDoc(d: FinalReportData): Promise<TDocument
       stack: [
         {
           columns: [
-            { text: 'Resumo', width: '*' },
-            { text: '........ pg', width: 'auto' },
+            { text: '1. Introdução', width: '*' },
+            { text: 'p. ____', width: 'auto' },
           ],
+          margin: [0, 4, 0, 4],
         },
         {
           columns: [
-            { text: 'Introdução', width: '*' },
-            { text: '........ pg', width: 'auto' },
+            { text: '2. Desenvolvimento', width: '*' },
+            { text: 'p. ____', width: 'auto' },
           ],
+          margin: [0, 4, 0, 4],
         },
         {
           columns: [
-            { text: 'Desenvolvimento', width: '*' },
-            { text: '........ pg', width: 'auto' },
+            { text: '3. Avaliações', width: '*' },
+            { text: 'p. ____', width: 'auto' },
           ],
+          margin: [0, 4, 0, 4],
         },
         {
           columns: [
-            { text: 'Avaliação', width: '*' },
-            { text: '........ pg', width: 'auto' },
+            { text: '4. Considerações Finais', width: '*' },
+            { text: 'p. ____', width: 'auto' },
           ],
+          margin: [0, 4, 0, 4],
         },
         {
           columns: [
-            { text: 'Considerações', width: '*' },
-            { text: '........ pg', width: 'auto' },
+            { text: 'Referências', width: '*' },
+            { text: 'p. ____', width: 'auto' },
           ],
+          margin: [0, 4, 0, 4],
+        },
+        {
+          columns: [
+            { text: 'Anexos', width: '*' },
+            { text: 'p. ____', width: 'auto' },
+          ],
+          margin: [0, 4, 0, 4],
         },
       ],
       fontSize: 11,
       margin: [0, 0, 0, 20],
       lineHeight: 1.5,
+    },
+    {
+      text: '(Preencha os números de página após a impressão.)',
+      fontSize: 9,
+      italics: true,
+      color: '#888',
+      alignment: 'center' as Alignment,
+      margin: [0, 0, 0, 10],
     },
     { text: '', pageBreak: 'after' },
   ]

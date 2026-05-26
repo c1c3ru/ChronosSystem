@@ -377,38 +377,40 @@ export async function buildEquivalenceRequestDoc(
       margin: [0, 2, 0, 0],
     },
     scheduleTable,
-    { text: '\n' },
+    { text: '\n\n' },
     {
       columns: [
         {
           stack: [
             {
-              canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 0.5 }],
-              margin: [0, 20, 0, 2],
+              canvas: [{ type: 'line', x1: 0, y1: 0, x2: 180, y2: 0, lineWidth: 0.5 }],
+              margin: [0, 30, 0, 2],
             },
             { text: 'ASSINATURA DO DISCENTE', fontSize: 7, alignment: 'center' as Alignment },
           ],
-          width: '50%',
+          width: '45%',
+          alignment: 'center' as Alignment,
         },
+        { width: '10%', text: '' },
         {
           stack: [
             {
-              text: `${v(d.city_uf || 'Maracanaú-CE')}, ${fmtDate(d.solicitation_date)}`,
-              fontSize: 9,
-              alignment: 'right' as Alignment,
-              margin: [0, 20, 0, 0],
+              canvas: [{ type: 'line', x1: 0, y1: 0, x2: 180, y2: 0, lineWidth: 0.5 }],
+              margin: [0, 30, 0, 2],
             },
+            { text: 'COORDENADOR DE ESTÁGIOS', fontSize: 7, alignment: 'center' as Alignment },
           ],
-          width: '50%',
+          width: '45%',
+          alignment: 'center' as Alignment,
         },
       ],
     },
-    { text: '\n\n' },
     {
-      canvas: [{ type: 'line', x1: 150, y1: 0, x2: 350, y2: 0, lineWidth: 0.5 }],
+      text: `${v(d.city_uf || 'Maracanáu-CE')}, ${fmtDate(d.solicitation_date)}`,
+      fontSize: 9,
       alignment: 'center' as Alignment,
+      margin: [0, 20, 0, 0],
     },
-    { text: 'COORDENADOR DE ESTÁGIOS', fontSize: 7, alignment: 'center' as Alignment },
   ]
 
   return { content }
