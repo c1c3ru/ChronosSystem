@@ -1,5 +1,4 @@
-// Utilitário para envio de emails usando Resend
-import { resend, RESEND_FROM } from './resend'
+import { mailerTransport, MAIL_FROM } from './mailer'
 import { logger } from './logger'
 
 interface EmailOptions {
@@ -41,34 +40,40 @@ export class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      const from = RESEND_FROM
-
-      logger.debug('Sending email via Resend', {
+      logger.debug('Sending email via SMTP', {
         to: options.to,
         subject: options.subject,
       })
 
-      const { data, error } = await resend.emails.send({
-        from,
+      const info = await mailerTransport.sendMail({
+        from: MAIL_FROM,
         to: options.to,
         subject: options.subject,
         html: options.html,
         text: options.text,
       })
 
-      if (error) {
-        logger.error('Failed to send email via Resend', { error: error.message })
-        return false
-      }
-
-      logger.info('Email sent successfully', { id: data?.id })
+      logger.info('Email sent successfully', { messageId: info.messageId })
       return true
     } catch (error: unknown) {
-      logger.error('Unexpected error sending email', {
+      logger.error('Failed to send email via SMTP', {
         error: error instanceof Error ? error.message : String(error),
       })
       return false
     }
+  }
+
+  /**
+   * Envia email de notificação de ponto (MISSED_ENTRY, EXIT_REMINDER, MISSED_EXIT).
+   * Ponto único de envio para notificações de frequência — evita chamadas
+   * diretas ao cliente Resend fora desta classe.
+   */
+  async sendAttendanceNotificationEmail(
+    to: string,
+    subject: string,
+    html: string
+  ): Promise<boolean> {
+    return this.sendEmail({ to, subject, html })
   }
 
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<boolean> {

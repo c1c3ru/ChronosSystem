@@ -46,12 +46,17 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    type CronDetail =
+      | { userId: string; email: string; status: 'sent'; pendingCount: number; oldestDate: string }
+      | { userId: string; email: string; status: 'skipped'; message: string }
+      | { userId: string; email: string; status: 'failed' | 'error'; message: string }
+
     const results = {
       total: employees.length,
       sent: 0,
       skipped: 0,
       failed: 0,
-      details: [] as Record<string, unknown>[],
+      details: new Array<CronDetail>(),
     }
 
     // Para cada funcionário, verificar pendências
@@ -92,7 +97,7 @@ export async function GET(request: NextRequest) {
         // Verificar justificativas pendentes (sem aprovação)
         const justificationMap = new Map(
           existingJustifications
-            .filter((j) => j.status !== 'APPROVED')
+            .filter((j) => j.status === 'PENDING')
             .map((j) => [j.date.toISOString().split('T')[0], j])
         )
 

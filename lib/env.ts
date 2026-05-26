@@ -34,13 +34,17 @@ const envSchema = z.object({
   REDIS_URL: z.string().url('REDIS_URL deve ser uma URL válida').optional(),
 
   // ========================================
-  // EMAIL - SMTP
+  // EMAIL - SMTP (nodemailer)
   // ========================================
   SMTP_HOST: z.string().min(1, 'SMTP_HOST é obrigatório'),
-  SMTP_PORT: z.coerce.number().int().min(1).max(65535, 'SMTP_PORT deve estar entre 1 e 65535'),
+  SMTP_PORT: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(65535, 'SMTP_PORT deve estar entre 1 e 65535'),
   SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
-  SMTP_PASSWORD: z.string().min(1, 'SMTP_PASSWORD é obrigatório'),
-  SMTP_FROM: z.string().email('SMTP_FROM deve ser um email válido'),
+  SMTP_PASSWORD: z.string().min(1, 'SMTP_PASSWORD é obrigatória'),
+  SMTP_FROM: z.string().min(1, 'SMTP_FROM é obrigatório'),
 
   // ========================================
   // APLICAÇÃO
@@ -88,11 +92,7 @@ export type Env = z.infer<typeof envSchema>
  */
 function validateEnv(): Env {
   try {
-    // Compatibilidade: alguns setups usam SMTP_PASS em vez de SMTP_PASSWORD
-    const parsed = envSchema.parse({
-      ...process.env,
-      SMTP_PASSWORD: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS,
-    })
+    const parsed = envSchema.parse(process.env)
 
     // Log de sucesso em desenvolvimento
     if (process.env.NODE_ENV === 'development') {

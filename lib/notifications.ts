@@ -1,81 +1,106 @@
 import { prisma } from './prisma'
-import { resend, RESEND_FROM } from './resend'
-import { getNowInFortaleza, formatDateFortaleza } from './timezone'
+import { emailService } from './email'
+import { getNowInFortaleza } from './timezone'
 
-export type NotificationType = 'EXIT_REMINDER' | 'MISSED_EXIT'
+export type NotificationType = 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
 
+interface UserWithAttendance {
+  id: string
+  name: string | null
+  email: string
+  shiftStartTime: string
+  shiftEndTime: string
+  attendanceRecords: Array<{ type: string; timestamp: Date }>
+  attendanceNotifications: Array<{ type: string }>
+}
+
+/**
+ * Verifica e notifica estagiários que esqueceram de bater o ponto
+ * (tanto entrada quanto saída).
+ *
+ * Critérios de notificação:
+ *  - MISSED_ENTRY:  Passou 30 min do início do turno e não há registro de entrada
+ *  - EXIT_REMINDER: Faltam até 15 min para o fim do turno e há ENTRY sem EXIT correspondente
+ *  - MISSED_EXIT:   Passou o horário de fim do turno e há ENTRY sem EXIT correspondente
+ */
 export async function checkAndNotifyAttendance() {
   const now = getNowInFortaleza()
-  const today = new Date(now)
-  today.setHours(0, 0, 0, 0)
 
-  // 1. Buscar estagiários ativos
+  // Início do dia em UTC para filtrar registros de hoje
+  const todayStart = new Date(now)
+  todayStart.setHours(0, 0, 0, 0)
+
   const interns = await prisma.user.findMany({
-    where: {
-      role: 'EMPLOYEE',
-    },
-    include: {
+    where: { role: 'EMPLOYEE' },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      shiftStartTime: true,
+      shiftEndTime: true,
       attendanceRecords: {
-        where: {
-          timestamp: {
-            gte: today,
-          },
-        },
-        orderBy: {
-          timestamp: 'desc',
-        },
+        where: { timestamp: { gte: todayStart } },
+        orderBy: { timestamp: 'desc' },
+        select: { type: true, timestamp: true },
       },
       attendanceNotifications: {
-        where: {
-          sentAt: {
-            gte: today,
-          },
-        },
+        where: { sentAt: { gte: todayStart } },
+        select: { type: true },
       },
     },
   })
 
-  const sentNotifications = []
+  const sentNotifications: Array<{ user: string; type: NotificationType }> = []
 
-  for (const intern of interns) {
-    // Se não tem records hoje, ignorar
-    if (intern.attendanceRecords.length === 0) continue
+  for (const intern of interns as UserWithAttendance[]) {
+    const { shiftStartTime, shiftEndTime, attendanceRecords, attendanceNotifications } = intern
 
-    const lastRecord = intern.attendanceRecords[0]
+    if (!shiftStartTime || !shiftEndTime) continue
 
-    // Se o último record foi EXIT, ele já saiu. Ignorar.
+    const alreadySentTypes = new Set(attendanceNotifications.map((n) => n.type))
+
+    // ── Verificação de ENTRADA ────────────────────────────────────────────────
+    const hasEntryToday = attendanceRecords.some((r) => r.type === 'ENTRY')
+
+    if (!hasEntryToday) {
+      const [startH, startM] = shiftStartTime.split(':').map(Number)
+      const shiftStart = new Date(now)
+      shiftStart.setHours(startH, startM, 0, 0)
+
+      const minsAfterStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
+
+      // Só notifica se já passou mais de 30 min do início do turno
+      if (minsAfterStart >= 30 && !alreadySentTypes.has('MISSED_ENTRY')) {
+        const delivered = await sendNotification(intern, 'MISSED_ENTRY', shiftStartTime, shiftEndTime)
+        if (delivered) sentNotifications.push({ user: intern.email, type: 'MISSED_ENTRY' })
+      }
+
+      // Se não tem entrada, não faz sentido verificar saída
+      continue
+    }
+
+    // ── Verificação de SAÍDA ──────────────────────────────────────────────────
+    // Pega o último registro do dia — se for EXIT, o funcionário já saiu
+    const lastRecord = attendanceRecords[0]
     if (lastRecord.type === 'EXIT') continue
 
-    // Se o último record foi ENTRY, ele ainda está "clocked in"
-    // Verificar se precisamos notificar
-    const shiftEndTime = intern.shiftEndTime // Formato HH:MM
-    if (!shiftEndTime) continue
-
-    const [endHours, endMinutes] = shiftEndTime.split(':').map(Number)
+    const [endH, endM] = shiftEndTime.split(':').map(Number)
     const shiftEnd = new Date(now)
-    shiftEnd.setHours(endHours, endMinutes, 0, 0)
+    shiftEnd.setHours(endH, endM, 0, 0)
 
     const diffMinutes = (shiftEnd.getTime() - now.getTime()) / (1000 * 60)
 
     let notificationType: NotificationType | null = null
 
-    // Critério 1: Faltam 15 minutos para o fim do expediente
     if (diffMinutes <= 15 && diffMinutes > 0) {
       notificationType = 'EXIT_REMINDER'
-    }
-    // Critério 2: Passou do horário de saída
-    else if (diffMinutes <= 0) {
+    } else if (diffMinutes <= 0) {
       notificationType = 'MISSED_EXIT'
     }
 
-    if (notificationType) {
-      // Verificar se já enviamos essa notificação hoje
-      const alreadySent = intern.attendanceNotifications.some((n) => n.type === notificationType)
-
-      if (!alreadySent) {
-        await sendNotification(intern, notificationType, shiftEndTime)
-        sentNotifications.push({ user: intern.email, type: notificationType })
-      }
+    if (notificationType && !alreadySentTypes.has(notificationType)) {
+      const delivered = await sendNotification(intern, notificationType, shiftStartTime, shiftEndTime)
+      if (delivered) sentNotifications.push({ user: intern.email, type: notificationType })
     }
   }
 
@@ -83,53 +108,76 @@ export async function checkAndNotifyAttendance() {
 }
 
 async function sendNotification(
-  user: { id: string; name: string | null; email: string },
+  user: UserWithAttendance,
   type: NotificationType,
+  shiftStartTime: string,
   shiftEndTime: string
-) {
-  const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + 3)
+): Promise<boolean> {
+  const { subject, content } = buildEmailContent(user.name, type, shiftStartTime, shiftEndTime)
 
-  // 1. Criar registro no banco
-  await prisma.attendanceNotification.create({
-    data: {
-      userId: user.id,
-      type,
-      expiresAt,
-    },
-  })
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+      <h2 style="color: #333;">🕐 Chronos System</h2>
+      ${content}
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
+        Este é um lembrete automático. Por favor, não responda a este email.
+      </div>
+    </div>
+  `
 
-  // 2. Enviar Email via Resend
-  const subject =
-    type === 'EXIT_REMINDER'
-      ? '⏰ Lembrete: Seu expediente termina em breve'
-      : '⚠️ Alerta: Você esqueceu de bater o ponto de saída?'
+  const delivered = await emailService.sendAttendanceNotificationEmail(user.email, subject, html)
 
-  const content =
-    type === 'EXIT_REMINDER'
-      ? `<p>Olá <strong>${user.name}</strong>,</p>
-       <p>Seu expediente termina às <strong>${shiftEndTime}</strong>. Não se esqueça de registrar sua saída!</p>`
-      : `<p>Olá <strong>${user.name}</strong>,</p>
-       <p>Seu expediente terminou às <strong>${shiftEndTime}</strong> e não detectamos seu registro de saída.</p>
-       <p>Por favor, registre sua saída o mais breve possível para evitar divergências no seu banco de horas.</p>`
-
-  try {
-    await resend.emails.send({
-      from: RESEND_FROM,
-      to: user.email,
-      subject,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #333;">Chronos System</h2>
-          ${content}
-          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
-            Este é um lembrete automático. Por favor, não responda a este email.
-          </div>
-        </div>
-      `,
+  if (delivered) {
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 3)
+    await prisma.attendanceNotification.create({
+      data: { userId: user.id, type, expiresAt },
     })
-    console.log(`✅ Email de ${type} enviado para ${user.email}`)
-  } catch (error) {
-    console.error(`❌ Erro ao enviar email para ${user.email}:`, error)
+  }
+
+  return delivered
+}
+
+function buildEmailContent(
+  name: string | null,
+  type: NotificationType,
+  shiftStartTime: string,
+  shiftEndTime: string
+): { subject: string; content: string } {
+  const displayName = name ?? 'Estagiário(a)'
+
+  switch (type) {
+    case 'MISSED_ENTRY':
+      return {
+        subject: '⚠️ Alerta: Você esqueceu de registrar sua entrada?',
+        content: `
+          <p>Olá <strong>${displayName}</strong>,</p>
+          <p>Seu turno começou às <strong>${shiftStartTime}</strong> e não detectamos seu registro de entrada.</p>
+          <p>Por favor, registre sua entrada o mais breve possível para evitar divergências no seu banco de horas.</p>
+          <p style="margin-top: 16px; background-color: #fef3c7; padding: 12px; border-radius: 6px; border-left: 4px solid #f59e0b;">
+            <strong>⏰ Ação necessária:</strong> Acesse o sistema e registre sua entrada.
+          </p>
+        `,
+      }
+    case 'EXIT_REMINDER':
+      return {
+        subject: '⏰ Lembrete: Seu expediente termina em breve',
+        content: `
+          <p>Olá <strong>${displayName}</strong>,</p>
+          <p>Seu expediente termina às <strong>${shiftEndTime}</strong>. Não se esqueça de registrar sua saída!</p>
+        `,
+      }
+    case 'MISSED_EXIT':
+      return {
+        subject: '⚠️ Alerta: Você esqueceu de registrar sua saída?',
+        content: `
+          <p>Olá <strong>${displayName}</strong>,</p>
+          <p>Seu expediente terminou às <strong>${shiftEndTime}</strong> e não detectamos seu registro de saída.</p>
+          <p>Por favor, registre sua saída o mais breve possível para evitar divergências no seu banco de horas.</p>
+          <p style="margin-top: 16px; background-color: #fef3c7; padding: 12px; border-radius: 6px; border-left: 4px solid #f59e0b;">
+            <strong>⏰ Ação necessária:</strong> Acesse o sistema e registre sua saída.
+          </p>
+        `,
+      }
   }
 }

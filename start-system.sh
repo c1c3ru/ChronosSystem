@@ -91,3 +91,34 @@ else
 fi
 
 echo "🔍 Use 'tail -f logs_app.txt' para ver os logs em tempo real."
+
+# 6. Configurar crontab para notificações automáticas de ponto
+echo "⏰ Configurando cron de notificações de ponto..."
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)/scripts"
+NOTIFY_SCRIPT="${SCRIPT_DIR}/cron-notify-attendance.sh"
+DAILY_SCRIPT="${SCRIPT_DIR}/cron-daily-check.sh"
+
+# Garantir que os scripts de cron são executáveis
+chmod +x "$NOTIFY_SCRIPT" "$DAILY_SCRIPT" 2>/dev/null || true
+
+if [ -f "$NOTIFY_SCRIPT" ] && [ -f "$DAILY_SCRIPT" ]; then
+  # Remove entradas antigas do Chronos antes de recriar
+  (crontab -l 2>/dev/null | grep -v "chronos-cron\|CRON_TZ" || true) > /tmp/chronos_crontab_tmp
+
+  # Adiciona as novas entradas (seg-sex, horário BRT via CRON_TZ)
+  # Os scripts leem .env em tempo de execução — sem segredos hardcoded aqui
+  echo "CRON_TZ=America/Fortaleza"                                                          >> /tmp/chronos_crontab_tmp
+  echo "0 9 * * 1-5  ${NOTIFY_SCRIPT} >> /tmp/chronos-notify.log 2>&1"  >> /tmp/chronos_crontab_tmp
+  echo "30 12 * * 1-5 ${NOTIFY_SCRIPT} >> /tmp/chronos-notify.log 2>&1" >> /tmp/chronos_crontab_tmp
+  echo "0 18 * * 1-5 ${NOTIFY_SCRIPT} >> /tmp/chronos-notify.log 2>&1"  >> /tmp/chronos_crontab_tmp
+  echo "0 9 * * 1-5  ${DAILY_SCRIPT}  >> /tmp/chronos-daily.log 2>&1"   >> /tmp/chronos_crontab_tmp
+
+  crontab /tmp/chronos_crontab_tmp
+  rm -f /tmp/chronos_crontab_tmp
+
+  echo "✅ Crontab configurado — notificações às 09h, 12h30 e 18h (seg-sex)"
+  echo "   Logs em: /tmp/chronos-notify.log e /tmp/chronos-daily.log"
+else
+  echo "⚠️ Scripts de cron não encontrados em ${SCRIPT_DIR} — crontab não configurado."
+fi
