@@ -78,6 +78,7 @@
   "devDependencies": {
     "@axe-core/react": "^4.11.0",
     "@playwright/test": "^1.56.1",
+    "@swc/helpers": "^0.5.23",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.6.1",
