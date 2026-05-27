@@ -261,6 +261,17 @@ export default function RealizationTermPage() {
                   title="Supervisor do Estágio"
                 />
               </div>
+              <div>
+                <label className="label">DDD + Telefone do Supervisor</label>
+                <input
+                  name="company_supervisor_phone"
+                  className="input w-full"
+                  value={formData.company_supervisor_phone || ''}
+                  onChange={handleInputChange}
+                  placeholder="(00) 00000-0000"
+                  title="Telefone do Supervisor"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -305,6 +316,88 @@ export default function RealizationTermPage() {
                   placeholder="Ex: 400"
                   title="Horas Realizadas"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Acompanhamento */}
+          <Card variant="elevated">
+            <CardHeader className="border-b border-white/5">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-primary" /> Acompanhamento do Estágio
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Avaliação de desempenho do discente */}
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-neutral-300 mb-3">
+                    Avaliação de Desempenho do Discente realizada através de:
+                  </p>
+                  {([
+                    ['meetings', 'Reunião(ões)'],
+                    ['reports', 'Relatório(s)'],
+                    ['observation', 'Observação(ões)'],
+                    ['other', 'Outro(s) meio(s)'],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name={`tracking_student.${key}`}
+                        checked={formData.tracking_student?.[key] || false}
+                        onChange={handleInputChange}
+                        className="checkbox"
+                      />
+                      <span className="text-sm text-neutral-300">{label}</span>
+                    </label>
+                  ))}
+                  {formData.tracking_student?.other && (
+                    <input
+                      type="text"
+                      name="tracking_student.other_text"
+                      className="input w-full mt-1"
+                      value={formData.tracking_student?.other_text || ''}
+                      onChange={handleInputChange}
+                      placeholder="Especifique o meio"
+                      title="Outro meio de acompanhamento"
+                    />
+                  )}
+                </div>
+
+                {/* Comunicação supervisor–orientador */}
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-neutral-300 mb-3">
+                    Comunicação entre Supervisor e Docente Orientador realizada através de:
+                  </p>
+                  {([
+                    ['meetings', 'Reunião(ões)'],
+                    ['phone', 'Telefone'],
+                    ['visit', 'Visita(s)'],
+                    ['other', 'Outro(s) meio(s)'],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name={`tracking_supervisor_advisor.${key}`}
+                        checked={formData.tracking_supervisor_advisor?.[key] || false}
+                        onChange={handleInputChange}
+                        className="checkbox"
+                      />
+                      <span className="text-sm text-neutral-300">{label}</span>
+                    </label>
+                  ))}
+                  {formData.tracking_supervisor_advisor?.other && (
+                    <input
+                      type="text"
+                      name="tracking_supervisor_advisor.other_text"
+                      className="input w-full mt-1"
+                      value={formData.tracking_supervisor_advisor?.other_text || ''}
+                      onChange={handleInputChange}
+                      placeholder="Especifique o meio"
+                      title="Outro meio de comunicação"
+                    />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

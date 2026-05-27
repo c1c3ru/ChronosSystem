@@ -147,7 +147,17 @@ export default function InternshipRegistrationRequestPage() {
     const loadDraft = async () => {
       const draft = await getDraft('internship-registration-request')
       if (draft) {
-        setFormData((prev) => ({ ...prev, ...(draft as Record<string, string>) }))
+        const typedDraft = draft as Partial<typeof formData>
+        setFormData((prev) => ({
+          ...prev,
+          ...typedDraft,
+          horarios: { ...prev.horarios, ...(typedDraft.horarios ?? {}) },
+          turnos: {
+            primeira: { ...prev.turnos.primeira, ...(typedDraft.turnos?.primeira ?? {}) },
+            segunda:  { ...prev.turnos.segunda,  ...(typedDraft.turnos?.segunda  ?? {}) },
+            terceira: { ...prev.turnos.terceira, ...(typedDraft.turnos?.terceira ?? {}) },
+          },
+        }))
         toast.success('Rascunho carregado!')
       }
     }
@@ -696,10 +706,11 @@ export default function InternshipRegistrationRequestPage() {
                     title="Nome do Responsável Legal"
                   />
                   <input
+                    type="text"
                     name="cargo_qualificacao"
                     value={formData.cargo_qualificacao}
                     onChange={handleInputChange}
-                    placeholder="Cargo / Qualificação"
+                    placeholder="Cargo / Qualificação (somente texto)"
                     className="input"
                     title="Cargo do Responsável"
                   />
@@ -736,10 +747,11 @@ export default function InternshipRegistrationRequestPage() {
                     title="Nome do Supervisor"
                   />
                   <input
+                    type="text"
                     name="supervisor_cargo"
                     value={formData.supervisor_cargo}
                     onChange={handleInputChange}
-                    placeholder="Cargo"
+                    placeholder="Cargo (somente texto)"
                     className="input"
                     title="Cargo do Supervisor"
                   />

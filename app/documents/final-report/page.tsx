@@ -169,105 +169,130 @@ export default function FinalReportPage() {
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="label">Nome Completo do Discente</label>
-                <input
-                  name="student_name"
-                  className="input w-full"
-                  value={formData.student_name || ''}
-                  onChange={handleInputChange}
-                  placeholder="Nome do Discente"
-                  title="Nome Completo do Discente"
-                />
+                <input name="student_name" className="input w-full" value={formData.student_name || ''} onChange={handleInputChange} placeholder="Nome do Discente" title="Nome Completo do Discente" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="label">Nome Social (opcional)</label>
+                <input name="student_social_name" className="input w-full" value={formData.student_social_name || ''} onChange={handleInputChange} placeholder="Nome Social" title="Nome Social" />
               </div>
               <div>
                 <label className="label">Campus</label>
-                <input
-                  name="campus"
-                  className="input w-full"
-                  value={formData.campus || ''}
-                  onChange={handleInputChange}
-                  placeholder="Ex: Maracanaú"
-                  title="Campus"
-                />
+                <input name="campus" className="input w-full" value={formData.campus || ''} onChange={handleInputChange} placeholder="Ex: Maracanaú" title="Campus" />
               </div>
               <div>
                 <label className="label">Curso</label>
-                <input
-                  name="course"
-                  className="input w-full"
-                  value={formData.course || ''}
-                  onChange={handleInputChange}
-                  placeholder="Nome do Curso"
-                  title="Curso"
-                />
+                <input name="course" className="input w-full" value={formData.course || ''} onChange={handleInputChange} placeholder="Nome do Curso" title="Curso" />
+              </div>
+              <div>
+                <label className="label">Matrícula</label>
+                <input name="enrollment" className="input w-full" value={formData.enrollment || ''} onChange={handleInputChange} placeholder="Número da Matrícula" title="Matrícula" />
               </div>
               <div>
                 <label className="label">Docente Orientador</label>
-                <input
-                  name="advisor_name"
-                  className="input w-full"
-                  value={formData.advisor_name || ''}
-                  onChange={handleInputChange}
-                  placeholder="Nome do Docente Orientador"
-                  title="Docente Orientador"
-                />
+                <input name="advisor_name" className="input w-full" value={formData.advisor_name || ''} onChange={handleInputChange} placeholder="Nome do Docente Orientador" title="Docente Orientador" />
               </div>
               <div>
                 <label className="label">Local (Cidade)</label>
-                <input
-                  name="local"
-                  className="input w-full"
-                  value={formData.local || ''}
-                  onChange={handleInputChange}
-                  placeholder="Ex: Maracanaú"
-                  title="Local (Cidade)"
-                />
+                <input name="local" className="input w-full" value={formData.local || ''} onChange={handleInputChange} placeholder="Ex: Maracanaú" title="Local (Cidade)" />
               </div>
               <div>
                 <label className="label">Ano</label>
-                <input
-                  name="ano"
-                  className="input w-full"
-                  value={formData.ano || ''}
-                  onChange={handleInputChange}
-                  placeholder="2024"
-                  title="Ano"
-                />
+                <input name="ano" className="input w-full" value={formData.ano || ''} onChange={handleInputChange} placeholder="2024" title="Ano" />
               </div>
+
               <div className="md:col-span-2 mt-4 pt-4 border-t border-white/5">
                 <h4 className="text-sm font-bold text-neutral-400 mb-4">DADOS DA CONCEDENTE</h4>
               </div>
               <div className="md:col-span-2">
                 <label className="label">Razão Social</label>
-                <input
-                  name="company_name"
-                  className="input w-full"
-                  value={formData.company_name || ''}
-                  onChange={handleInputChange}
-                  placeholder="Razão Social da Concedente"
-                  title="Razão Social"
-                />
+                <input name="company_name" className="input w-full" value={formData.company_name || ''} onChange={handleInputChange} placeholder="Razão Social da Concedente" title="Razão Social" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="label">Nome Fantasia / Pessoa Física</label>
+                <input name="company_fantasy_name" className="input w-full" value={formData.company_fantasy_name || ''} onChange={handleInputChange} placeholder="Nome Fantasia" title="Nome Fantasia" />
+              </div>
+              <div>
+                <label className="label">CNPJ ou Registro no Conselho</label>
+                <input name="company_cnpj" className="input w-full" value={formData.company_cnpj || ''} onChange={handleInputChange} placeholder="00.000.000/0000-00" title="CNPJ" />
+              </div>
+              <div>
+                <label className="label">Ramo de Atividade</label>
+                <input name="company_industry" className="input w-full" value={formData.company_industry || ''} onChange={handleInputChange} placeholder="Ex: Tecnologia da Informação" title="Ramo de Atividade" />
+              </div>
+              <div>
+                <label className="label">Área/Setor de Realização do Estágio</label>
+                <input name="internship_sector" className="input w-full" value={formData.internship_sector || ''} onChange={handleInputChange} placeholder="Setor de Realização" title="Setor de Realização" />
               </div>
               <div>
                 <label className="label">Supervisor do Estágio</label>
-                <input
-                  name="supervisor_name"
-                  className="input w-full"
-                  value={formData.supervisor_name || ''}
-                  onChange={handleInputChange}
-                  placeholder="Nome do Supervisor"
-                  title="Supervisor do Estágio"
-                />
+                <input name="supervisor_name" className="input w-full" value={formData.supervisor_name || ''} onChange={handleInputChange} placeholder="Nome do Supervisor" title="Supervisor do Estágio" />
               </div>
               <div>
-                <label className="label">Setor de Realização</label>
-                <input
-                  name="internship_sector"
-                  className="input w-full"
-                  value={formData.internship_sector || ''}
-                  onChange={handleInputChange}
-                  placeholder="Setor de Realização"
-                  title="Setor de Realização"
-                />
+                <label className="label">Formação/Experiência Profissional do Supervisor</label>
+                <input name="supervisor_education" className="input w-full" value={formData.supervisor_education || ''} onChange={handleInputChange} placeholder="Ex: Bacharel em Engenharia" title="Formação do Supervisor" />
+              </div>
+              <div>
+                <label className="label">Cargo/Função do Supervisor na Concedente</label>
+                <input name="supervisor_role" className="input w-full" value={formData.supervisor_role || ''} onChange={handleInputChange} placeholder="Ex: Analista de Sistemas" title="Cargo do Supervisor" />
+              </div>
+
+              <div className="md:col-span-2 mt-4 pt-4 border-t border-white/5">
+                <h4 className="text-sm font-bold text-neutral-400 mb-4">DADOS DO ESTÁGIO</h4>
+              </div>
+              <div>
+                <label className="label">Tipo de Estágio</label>
+                <select name="internship_type" className="input w-full" value={formData.internship_type || ''} onChange={handleInputChange} title="Tipo de Estágio">
+                  <option value="">Selecione</option>
+                  <option value="obrigatorio">Obrigatório</option>
+                  <option value="nao_obrigatorio">Não Obrigatório</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Modo de Estágio</label>
+                <select name="internship_mode" className="input w-full" value={formData.internship_mode || ''} onChange={handleInputChange} title="Modo de Estágio">
+                  <option value="">Selecione</option>
+                  <option value="presencial">Presencial</option>
+                  <option value="virtual">Virtual</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Data Inicial</label>
+                <input type="date" name="start_date" className="input w-full" value={formData.start_date || ''} onChange={handleInputChange} title="Data Inicial" />
+              </div>
+              <div>
+                <label className="label">Data Final</label>
+                <input type="date" name="end_date" className="input w-full" value={formData.end_date || ''} onChange={handleInputChange} title="Data Final" />
+              </div>
+              <div>
+                <label className="label">Carga Horária Total (h)</label>
+                <input type="number" name="total_hours" className="input w-full" value={formData.total_hours || ''} onChange={handleInputChange} placeholder="Ex: 300" title="Carga Horária Total" />
+              </div>
+
+              <div className="md:col-span-2 mt-4 pt-4 border-t border-white/5">
+                <h4 className="text-sm font-bold text-neutral-400 mb-3">ATIVIDADES APROVEITADAS</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {[
+                    ['extensao', 'Extensão'],
+                    ['ic', 'Iniciação Científica'],
+                    ['monitoria', 'Monitoria'],
+                    ['terceiro_setor', 'Membro de Inst. do 3º Setor'],
+                    ['trabalho_clt', 'Trabalho Formal Celetista'],
+                    ['trabalho_estatutario', 'Trabalho Formal Estatutário'],
+                    ['nao_se_aplica', 'Não Se Aplica'],
+                  ].map(([val, lbl]) => (
+                    <label key={val} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="activities_leveraged"
+                        value={val}
+                        checked={formData.activities_leveraged === val}
+                        onChange={handleInputChange}
+                        className="radio"
+                      />
+                      <span className="text-sm text-neutral-300">{lbl}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -77,4 +77,5 @@ prisma/migrations/migration_lock.toml
 # Agent files
 .agent/
 .agents/
+.qwen
 .*
