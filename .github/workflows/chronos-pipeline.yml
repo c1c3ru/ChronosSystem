@@ -38,7 +38,7 @@ jobs:
           cache: "npm" # Re-enable cache for npm dependencies
 
       - name: 📦 Install Dependencies
-        run: npm install # Use default install, resolve peer-deps if necessary
+        run: npm ci
 
       - name: 🏗️ Prisma Generate
         run: npx prisma generate
