@@ -39,7 +39,9 @@ export default function RescissionTermPage() {
     loadDraft()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target
     let maskedValue = value
 
@@ -146,7 +148,15 @@ export default function RescissionTermPage() {
         total_hours_realized: formData.total_hours_realized,
         // Rescisão
         initiator: formData.initiator as 'ifce' | 'company' | 'student' | undefined,
-        reason: formData.reason as 'breach' | 'completion' | 'abandonment_activities' | 'abandonment_course' | 'cancellation' | 'suspension' | 'other' | undefined,
+        reason: formData.reason as
+          | 'breach'
+          | 'completion'
+          | 'abandonment_activities'
+          | 'abandonment_course'
+          | 'cancellation'
+          | 'suspension'
+          | 'other'
+          | undefined,
         reason_other: formData.reason_other,
         rescission_date: formData.rescission_date,
         rescission_reason: formData.rescission_reason,
@@ -381,47 +391,134 @@ export default function RescissionTermPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Campus</label>
-                  <input type="text" name="campus_name" className="input w-full" onChange={handleInputChange} title="Campus" placeholder="Ex: Maracanaú" />
+                  <input
+                    type="text"
+                    name="campus_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Campus"
+                    placeholder="Ex: Maracanaú"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ</label>
-                  <input type="text" name="campus_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
+                  <input
+                    type="text"
+                    name="campus_cnpj"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="CNPJ"
+                    placeholder="00.000.000/0000-00"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                  <input type="text" name="campus_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Logradouro, Número e Complemento" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Endereço
+                  </label>
+                  <input
+                    type="text"
+                    name="campus_address"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Endereço"
+                    placeholder="Logradouro, Número e Complemento"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
-                  <input type="text" name="campus_neighborhood" className="input w-full" onChange={handleInputChange} title="Bairro" placeholder="Bairro" />
+                  <input
+                    type="text"
+                    name="campus_neighborhood"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Bairro"
+                    placeholder="Bairro"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Município</label>
-                  <input type="text" name="campus_city" className="input w-full" onChange={handleInputChange} title="Município" placeholder="Município" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Município
+                  </label>
+                  <input
+                    type="text"
+                    name="campus_city"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Município"
+                    placeholder="Município"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
-                  <input type="text" name="campus_cep" className="input w-full" onChange={handleInputChange} title="CEP" placeholder="00000-000" />
+                  <input
+                    type="text"
+                    name="campus_cep"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="CEP"
+                    placeholder="00000-000"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">DDD + Telefone</label>
-                  <input type="text" name="campus_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="(00) 0000-0000" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    DDD + Telefone
+                  </label>
+                  <input
+                    type="text"
+                    name="campus_phone"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Telefone"
+                    placeholder="(00) 0000-0000"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">E-mail</label>
-                  <input type="email" name="campus_email" className="input w-full" onChange={handleInputChange} title="E-mail" placeholder="campus@ifce.edu.br" />
+                  <input
+                    type="email"
+                    name="campus_email"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="E-mail"
+                    placeholder="campus@ifce.edu.br"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Representante (para este fim específico)</label>
-                  <input type="text" name="campus_representative" className="input w-full" onChange={handleInputChange} title="Representante" placeholder="Nome Completo" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Representante (para este fim específico)
+                  </label>
+                  <input
+                    type="text"
+                    name="campus_representative"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Representante"
+                    placeholder="Nome Completo"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo/Qualificação</label>
-                  <input type="text" name="campus_rep_role" className="input w-full" onChange={handleInputChange} title="Cargo/Qualificação" placeholder="Cargo (somente texto)" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Cargo/Qualificação
+                  </label>
+                  <input
+                    type="text"
+                    name="campus_rep_role"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Cargo/Qualificação"
+                    placeholder="Cargo (somente texto)"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">SIAPE</label>
-                  <input type="text" name="campus_rep_siape" className="input w-full" onChange={handleInputChange} title="SIAPE" placeholder="SIAPE" />
+                  <input
+                    type="text"
+                    name="campus_rep_siape"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="SIAPE"
+                    placeholder="SIAPE"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -435,56 +532,167 @@ export default function RescissionTermPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Razão Social</label>
-                  <input type="text" name="company_name" className="input w-full" onChange={handleInputChange} title="Razão Social" placeholder="Razão Social da Empresa" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Razão Social
+                  </label>
+                  <input
+                    type="text"
+                    name="company_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Razão Social"
+                    placeholder="Razão Social da Empresa"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Nome Fantasia / Pessoa Física</label>
-                  <input type="text" name="company_fantasy_name" className="input w-full" onChange={handleInputChange} title="Nome Fantasia" placeholder="Nome Fantasia" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Nome Fantasia / Pessoa Física
+                  </label>
+                  <input
+                    type="text"
+                    name="company_fantasy_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Nome Fantasia"
+                    placeholder="Nome Fantasia"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">CNPJ ou Registro</label>
-                  <input type="text" name="company_cnpj" className="input w-full" onChange={handleInputChange} title="CNPJ" placeholder="00.000.000/0000-00" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    CNPJ ou Registro
+                  </label>
+                  <input
+                    type="text"
+                    name="company_cnpj"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="CNPJ"
+                    placeholder="00.000.000/0000-00"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">DDD + Telefone</label>
-                  <input type="text" name="company_phone" className="input w-full" onChange={handleInputChange} title="Telefone" placeholder="Ex: (85) 3333-3333" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    DDD + Telefone
+                  </label>
+                  <input
+                    type="text"
+                    name="company_phone"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Telefone"
+                    placeholder="Ex: (85) 3333-3333"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Endereço</label>
-                  <input type="text" name="company_address" className="input w-full" onChange={handleInputChange} title="Endereço" placeholder="Endereço Completo da Empresa" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Endereço
+                  </label>
+                  <input
+                    type="text"
+                    name="company_address"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Endereço"
+                    placeholder="Endereço Completo da Empresa"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Bairro</label>
-                  <input type="text" name="company_neighborhood" className="input w-full" onChange={handleInputChange} title="Bairro" placeholder="Bairro" />
+                  <input
+                    type="text"
+                    name="company_neighborhood"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Bairro"
+                    placeholder="Bairro"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Município</label>
-                  <input type="text" name="company_city" className="input w-full" onChange={handleInputChange} title="Município" placeholder="Município" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Município
+                  </label>
+                  <input
+                    type="text"
+                    name="company_city"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Município"
+                    placeholder="Município"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">CEP</label>
-                  <input type="text" name="company_cep" className="input w-full" onChange={handleInputChange} title="CEP" placeholder="00000-000" />
+                  <input
+                    type="text"
+                    name="company_cep"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="CEP"
+                    placeholder="00000-000"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">E-mail</label>
-                  <input type="email" name="company_email" className="input w-full" onChange={handleInputChange} title="E-mail" placeholder="empresa@email.com" />
+                  <input
+                    type="email"
+                    name="company_email"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="E-mail"
+                    placeholder="empresa@email.com"
+                  />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Representante Legal</label>
-                  <input type="text" name="company_representative" className="input w-full" onChange={handleInputChange} title="Representante Legal" placeholder="Nome do Representante Legal" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Representante Legal
+                  </label>
+                  <input
+                    type="text"
+                    name="company_representative"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Representante Legal"
+                    placeholder="Nome do Representante Legal"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Cargo/Qualificação</label>
-                  <input type="text" name="company_rep_role" className="input w-full" onChange={handleInputChange} title="Cargo/Qualificação" placeholder="Cargo (somente texto)" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Cargo/Qualificação
+                  </label>
+                  <input
+                    type="text"
+                    name="company_rep_role"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Cargo/Qualificação"
+                    placeholder="Cargo (somente texto)"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">CPF do Representante</label>
-                  <input type="text" name="company_representative_cpf" className="input w-full" onChange={handleInputChange} title="CPF do Representante" placeholder="000.000.000-00" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    CPF do Representante
+                  </label>
+                  <input
+                    type="text"
+                    name="company_representative_cpf"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="CPF do Representante"
+                    placeholder="000.000.000-00"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">DDD + Telefone do Representante</label>
-                  <input type="text" name="company_rep_phone" className="input w-full" onChange={handleInputChange} title="Telefone do Representante" placeholder="(00) 00000-0000" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    DDD + Telefone do Representante
+                  </label>
+                  <input
+                    type="text"
+                    name="company_rep_phone"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Telefone do Representante"
+                    placeholder="(00) 00000-0000"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -498,81 +706,184 @@ export default function RescissionTermPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Tipo de Estágio</label>
-                  <select name="internship_type" className="input w-full" onChange={handleInputChange} title="Tipo de Estágio">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Tipo de Estágio
+                  </label>
+                  <select
+                    name="internship_type"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Tipo de Estágio"
+                  >
                     <option value="">Selecione</option>
                     <option value="obrigatorio">Obrigatório</option>
                     <option value="nao_obrigatorio">Não Obrigatório</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Modo de Estágio</label>
-                  <select name="internship_mode" className="input w-full" onChange={handleInputChange} title="Modo de Estágio">
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Modo de Estágio
+                  </label>
+                  <select
+                    name="internship_mode"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Modo de Estágio"
+                  >
                     <option value="">Selecione</option>
                     <option value="presencial">Presencial</option>
                     <option value="virtual">Virtual</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data de Início do Estágio</label>
-                  <input type="date" name="internship_start_date" className="input w-full" onChange={handleInputChange} title="Data de Início do Estágio" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data de Início do Estágio
+                  </label>
+                  <input
+                    type="date"
+                    name="internship_start_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data de Início do Estágio"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data Prevista de Término</label>
-                  <input type="date" name="internship_end_date" className="input w-full" onChange={handleInputChange} title="Data Prevista de Término" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data Prevista de Término
+                  </label>
+                  <input
+                    type="date"
+                    name="internship_end_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data Prevista de Término"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Data do Termo Original</label>
-                  <input type="date" name="original_term_date" className="input w-full" onChange={handleInputChange} title="Data do Termo Original" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Data do Termo Original
+                  </label>
+                  <input
+                    type="date"
+                    name="original_term_date"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Data do Termo Original"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">Horas Realizadas até a Rescisão</label>
-                  <input type="number" name="total_hours_realized" className="input w-full" onChange={handleInputChange} title="Horas Realizadas" placeholder="Ex: 200" />
+                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                    Horas Realizadas até a Rescisão
+                  </label>
+                  <input
+                    type="number"
+                    name="total_hours_realized"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    title="Horas Realizadas"
+                    placeholder="Ex: 200"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary font-bold mb-1">Data da Rescisão</label>
-                  <input type="date" name="rescission_date" className="input w-full border-primary" onChange={handleInputChange} title="Data da Rescisão" />
+                  <label className="block text-sm font-medium text-primary font-bold mb-1">
+                    Data da Rescisão
+                  </label>
+                  <input
+                    type="date"
+                    name="rescission_date"
+                    className="input w-full border-primary"
+                    onChange={handleInputChange}
+                    title="Data da Rescisão"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-1">Cidade</label>
-                  <input type="text" name="city" className="input w-full" defaultValue="Fortaleza" onChange={handleInputChange} title="Cidade" placeholder="Fortaleza" />
+                  <input
+                    type="text"
+                    name="city"
+                    className="input w-full"
+                    defaultValue="Fortaleza"
+                    onChange={handleInputChange}
+                    title="Cidade"
+                    placeholder="Fortaleza"
+                  />
                 </div>
               </div>
 
               <div className="space-y-3 border-t border-neutral-800 pt-4">
-                <label className="block text-sm font-semibold text-neutral-300">Iniciativa da Rescisão</label>
-                {([['ifce', 'Pelo IFCE'], ['company', 'Pela Concedente'], ['student', 'Pelo Discente Estagiário']] as const).map(([val, label]) => (
+                <label className="block text-sm font-semibold text-neutral-300">
+                  Iniciativa da Rescisão
+                </label>
+                {(
+                  [
+                    ['ifce', 'Pelo IFCE'],
+                    ['company', 'Pela Concedente'],
+                    ['student', 'Pelo Discente Estagiário'],
+                  ] as const
+                ).map(([val, label]) => (
                   <label key={val} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="initiator" value={val} onChange={handleInputChange} className="radio" />
+                    <input
+                      type="radio"
+                      name="initiator"
+                      value={val}
+                      onChange={handleInputChange}
+                      className="radio"
+                    />
                     <span className="text-sm text-neutral-300">{label}</span>
                   </label>
                 ))}
               </div>
 
               <div className="space-y-3 border-t border-neutral-800 pt-4">
-                <label className="block text-sm font-semibold text-neutral-300">Tipo de Rescisão</label>
-                {([
-                  ['breach', 'a) Descumprimento de cláusula(s) do Termo de Compromisso'],
-                  ['completion', 'b) Conclusão do curso'],
-                  ['abandonment_activities', 'c) Abandono das atividades de estágio'],
-                  ['abandonment_course', 'd) Abandono do semestre ou do curso'],
-                  ['cancellation', 'e) Cancelamento de matrícula'],
-                  ['suspension', 'f) Trancamento de matrícula'],
-                  ['other', 'g) Outra'],
-                ] as const).map(([val, label]) => (
+                <label className="block text-sm font-semibold text-neutral-300">
+                  Tipo de Rescisão
+                </label>
+                {(
+                  [
+                    ['breach', 'a) Descumprimento de cláusula(s) do Termo de Compromisso'],
+                    ['completion', 'b) Conclusão do curso'],
+                    ['abandonment_activities', 'c) Abandono das atividades de estágio'],
+                    ['abandonment_course', 'd) Abandono do semestre ou do curso'],
+                    ['cancellation', 'e) Cancelamento de matrícula'],
+                    ['suspension', 'f) Trancamento de matrícula'],
+                    ['other', 'g) Outra'],
+                  ] as const
+                ).map(([val, label]) => (
                   <label key={val} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="reason" value={val} onChange={handleInputChange} className="radio" />
+                    <input
+                      type="radio"
+                      name="reason"
+                      value={val}
+                      onChange={handleInputChange}
+                      className="radio"
+                    />
                     <span className="text-sm text-neutral-300">{label}</span>
                   </label>
                 ))}
                 {formData.reason === 'other' && (
-                  <input type="text" name="reason_other" className="input w-full ml-6" onChange={handleInputChange} title="Especifique o motivo" placeholder="Especifique o motivo" />
+                  <input
+                    type="text"
+                    name="reason_other"
+                    className="input w-full ml-6"
+                    onChange={handleInputChange}
+                    title="Especifique o motivo"
+                    placeholder="Especifique o motivo"
+                  />
                 )}
               </div>
 
               <div className="border-t border-neutral-800 pt-4">
-                <label className="block text-sm font-medium text-neutral-300 mb-1">Justificativa / Descrição do Motivo</label>
-                <textarea name="rescission_reason" rows={4} className="input w-full" onChange={handleInputChange} title="Justificativa" placeholder="Descreva o motivo da rescisão do estágio" />
+                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  Justificativa / Descrição do Motivo
+                </label>
+                <textarea
+                  name="rescission_reason"
+                  rows={4}
+                  className="input w-full"
+                  onChange={handleInputChange}
+                  title="Justificativa"
+                  placeholder="Descreva o motivo da rescisão do estágio"
+                />
               </div>
             </CardContent>
           </Card>

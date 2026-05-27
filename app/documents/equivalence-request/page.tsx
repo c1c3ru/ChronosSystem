@@ -602,71 +602,71 @@ export default function EquivalenceRequestPage() {
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
               <div className="p-6">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead>
-                  <tr>
-                    <th className="p-2 border border-white/10 text-xs font-bold text-primary bg-white/5">
-                      TURNO
-                    </th>
-                    {days.map((day) => (
-                      <th
-                        key={day.id}
-                        colSpan={2}
-                        className="p-2 border border-white/10 text-xs font-bold text-center bg-white/5"
-                      >
-                        {day.label.toUpperCase()}
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead>
+                    <tr>
+                      <th className="p-2 border border-white/10 text-xs font-bold text-primary bg-white/5">
+                        TURNO
                       </th>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th className="border border-white/10"></th>
-                    {days.map((day) => (
-                      <React.Fragment key={`${day.id}-sub`}>
-                        <th className="p-1 border border-white/10 text-[10px] text-center text-neutral-500">
-                          INÍCIO
+                      {days.map((day) => (
+                        <th
+                          key={day.id}
+                          colSpan={2}
+                          className="p-2 border border-white/10 text-xs font-bold text-center bg-white/5"
+                        >
+                          {day.label.toUpperCase()}
                         </th>
-                        <th className="p-1 border border-white/10 text-[10px] text-center text-neutral-500">
-                          FIM
-                        </th>
-                      </React.Fragment>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {turns.map((turn) => (
-                    <tr key={turn}>
-                      <td className="p-2 border border-white/10 text-xs font-bold text-center">
-                        {turn}º
-                      </td>
-                      {days.map((day) => {
-                        const key = `${day.id}_${turn}`
-                        return (
-                          <React.Fragment key={`${key}-inputs`}>
-                            <td className="p-1 border border-white/10">
-                              <input
-                                name={`schedule.${key}.start`}
-                                className="w-full bg-transparent border-none text-[11px] text-center focus:ring-1 focus:ring-primary p-1"
-                                value={formData.schedule?.[key]?.start || ''}
-                                onChange={handleInputChange}
-                                placeholder="00:00"
-                              />
-                            </td>
-                            <td className="p-1 border border-white/10">
-                              <input
-                                name={`schedule.${key}.end`}
-                                className="w-full bg-transparent border-none text-[11px] text-center focus:ring-1 focus:ring-primary p-1"
-                                value={formData.schedule?.[key]?.end || ''}
-                                onChange={handleInputChange}
-                                placeholder="00:00"
-                              />
-                            </td>
-                          </React.Fragment>
-                        )
-                      })}
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                    <tr>
+                      <th className="border border-white/10"></th>
+                      {days.map((day) => (
+                        <React.Fragment key={`${day.id}-sub`}>
+                          <th className="p-1 border border-white/10 text-[10px] text-center text-neutral-500">
+                            INÍCIO
+                          </th>
+                          <th className="p-1 border border-white/10 text-[10px] text-center text-neutral-500">
+                            FIM
+                          </th>
+                        </React.Fragment>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {turns.map((turn) => (
+                      <tr key={turn}>
+                        <td className="p-2 border border-white/10 text-xs font-bold text-center">
+                          {turn}º
+                        </td>
+                        {days.map((day) => {
+                          const key = `${day.id}_${turn}`
+                          return (
+                            <React.Fragment key={`${key}-inputs`}>
+                              <td className="p-1 border border-white/10">
+                                <input
+                                  name={`schedule.${key}.start`}
+                                  className="w-full bg-transparent border-none text-[11px] text-center focus:ring-1 focus:ring-primary p-1"
+                                  value={formData.schedule?.[key]?.start || ''}
+                                  onChange={handleInputChange}
+                                  placeholder="00:00"
+                                />
+                              </td>
+                              <td className="p-1 border border-white/10">
+                                <input
+                                  name={`schedule.${key}.end`}
+                                  className="w-full bg-transparent border-none text-[11px] text-center focus:ring-1 focus:ring-primary p-1"
+                                  value={formData.schedule?.[key]?.end || ''}
+                                  onChange={handleInputChange}
+                                  placeholder="00:00"
+                                />
+                              </td>
+                            </React.Fragment>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>

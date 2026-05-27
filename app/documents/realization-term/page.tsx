@@ -334,12 +334,14 @@ export default function RealizationTermPage() {
                   <p className="text-sm font-semibold text-neutral-300 mb-3">
                     Avaliação de Desempenho do Discente realizada através de:
                   </p>
-                  {([
-                    ['meetings', 'Reunião(ões)'],
-                    ['reports', 'Relatório(s)'],
-                    ['observation', 'Observação(ões)'],
-                    ['other', 'Outro(s) meio(s)'],
-                  ] as const).map(([key, label]) => (
+                  {(
+                    [
+                      ['meetings', 'Reunião(ões)'],
+                      ['reports', 'Relatório(s)'],
+                      ['observation', 'Observação(ões)'],
+                      ['other', 'Outro(s) meio(s)'],
+                    ] as const
+                  ).map(([key, label]) => (
                     <label key={key} className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -369,12 +371,14 @@ export default function RealizationTermPage() {
                   <p className="text-sm font-semibold text-neutral-300 mb-3">
                     Comunicação entre Supervisor e Docente Orientador realizada através de:
                   </p>
-                  {([
-                    ['meetings', 'Reunião(ões)'],
-                    ['phone', 'Telefone'],
-                    ['visit', 'Visita(s)'],
-                    ['other', 'Outro(s) meio(s)'],
-                  ] as const).map(([key, label]) => (
+                  {(
+                    [
+                      ['meetings', 'Reunião(ões)'],
+                      ['phone', 'Telefone'],
+                      ['visit', 'Visita(s)'],
+                      ['other', 'Outro(s) meio(s)'],
+                    ] as const
+                  ).map(([key, label]) => (
                     <label key={key} className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"

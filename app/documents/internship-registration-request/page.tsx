@@ -154,7 +154,7 @@ export default function InternshipRegistrationRequestPage() {
           horarios: { ...prev.horarios, ...(typedDraft.horarios ?? {}) },
           turnos: {
             primeira: { ...prev.turnos.primeira, ...(typedDraft.turnos?.primeira ?? {}) },
-            segunda:  { ...prev.turnos.segunda,  ...(typedDraft.turnos?.segunda  ?? {}) },
+            segunda: { ...prev.turnos.segunda, ...(typedDraft.turnos?.segunda ?? {}) },
             terceira: { ...prev.turnos.terceira, ...(typedDraft.turnos?.terceira ?? {}) },
           },
         }))
