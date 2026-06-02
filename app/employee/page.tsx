@@ -44,6 +44,7 @@ import QRScanner from '@/components/QRScanner'
 import InternshipTimeline from '@/components/InternshipTimeline'
 import { HolidayNotification } from '@/components/HolidayNotification'
 import { NotificationCenter } from '@/components/NotificationCenter'
+import { PushNotificationSetup } from '@/components/PushNotificationSetup'
 
 interface WorkStatus {
   isWorking: boolean
@@ -584,6 +585,7 @@ export default function EmployeePage() {
             </div>
 
             <div className="flex items-center gap-3 sm:gap-6">
+              <PushNotificationSetup />
               <NotificationCenter />
               <div className="h-8 w-px bg-white/10 hidden sm:block" />
               <div className="flex items-center gap-4 pl-2">

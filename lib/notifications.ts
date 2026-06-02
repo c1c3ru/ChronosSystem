@@ -1,8 +1,13 @@
 import { prisma } from './prisma'
 import { emailService } from './email'
 import { getNowInFortaleza } from './timezone'
+import { sendPushToUser } from './push'
 
-export type NotificationType = 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
+export type NotificationType =
+  | 'ENTRY_REMINDER'
+  | 'EXIT_REMINDER'
+  | 'MISSED_EXIT'
+  | 'MISSED_ENTRY'
 
 interface UserWithAttendance {
   id: string
@@ -15,18 +20,18 @@ interface UserWithAttendance {
 }
 
 /**
- * Verifica e notifica estagiários que esqueceram de bater o ponto
- * (tanto entrada quanto saída).
+ * Verifica e notifica funcionários sobre pontos de entrada/saída.
  *
  * Critérios de notificação:
- *  - MISSED_ENTRY:  Passou 30 min do início do turno e não há registro de entrada
- *  - EXIT_REMINDER: Faltam até 15 min para o fim do turno e há ENTRY sem EXIT correspondente
- *  - MISSED_EXIT:   Passou o horário de fim do turno e há ENTRY sem EXIT correspondente
+ *  - ENTRY_REMINDER : Faltam até 10 min para o início do turno e não há registro de entrada
+ *  - MISSED_ENTRY   : Passou 1 min do início do turno e não há registro de entrada
+ *  - EXIT_REMINDER  : Faltam até 15 min para o fim do turno e há ENTRY sem EXIT correspondente
+ *  - MISSED_EXIT    : Passou o horário de fim do turno e há ENTRY sem EXIT correspondente
  */
 export async function checkAndNotifyAttendance() {
   const now = getNowInFortaleza()
 
-  // Início do dia em UTC para filtrar registros de hoje
+  // Início do dia para filtrar registros de hoje
   const todayStart = new Date(now)
   todayStart.setHours(0, 0, 0, 0)
 
@@ -67,20 +72,21 @@ export async function checkAndNotifyAttendance() {
       const shiftStart = new Date(now)
       shiftStart.setHours(startH, startM, 0, 0)
 
-      const minsAfterStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
+      const minsFromStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
 
-      // Só notifica se já passou mais de 30 min do início do turno
-      if (minsAfterStart >= 30 && !alreadySentTypes.has('MISSED_ENTRY')) {
-        const delivered = await sendNotification(
-          intern,
-          'MISSED_ENTRY',
-          shiftStartTime,
-          shiftEndTime
-        )
+      // 10 min ANTES do turno → lembrete preventivo
+      if (minsFromStart >= -10 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
+        const delivered = await sendNotification(intern, 'ENTRY_REMINDER', shiftStartTime, shiftEndTime)
+        if (delivered) sentNotifications.push({ user: intern.email, type: 'ENTRY_REMINDER' })
+      }
+
+      // 1 min DEPOIS do turno → alerta de entrada esquecida
+      if (minsFromStart >= 1 && !alreadySentTypes.has('MISSED_ENTRY')) {
+        const delivered = await sendNotification(intern, 'MISSED_ENTRY', shiftStartTime, shiftEndTime)
         if (delivered) sentNotifications.push({ user: intern.email, type: 'MISSED_ENTRY' })
       }
 
-      // Se não tem entrada, não faz sentido verificar saída
+      // Se não tem entrada, não verificar saída
       continue
     }
 
@@ -104,12 +110,7 @@ export async function checkAndNotifyAttendance() {
     }
 
     if (notificationType && !alreadySentTypes.has(notificationType)) {
-      const delivered = await sendNotification(
-        intern,
-        notificationType,
-        shiftStartTime,
-        shiftEndTime
-      )
+      const delivered = await sendNotification(intern, notificationType, shiftStartTime, shiftEndTime)
       if (delivered) sentNotifications.push({ user: intern.email, type: notificationType })
     }
   }
@@ -123,7 +124,12 @@ async function sendNotification(
   shiftStartTime: string,
   shiftEndTime: string
 ): Promise<boolean> {
-  const { subject, content } = buildEmailContent(user.name, type, shiftStartTime, shiftEndTime)
+  const { subject, content, pushPayload } = buildNotificationContent(
+    user.name,
+    type,
+    shiftStartTime,
+    shiftEndTime
+  )
 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -135,9 +141,12 @@ async function sendNotification(
     </div>
   `
 
-  const delivered = await emailService.sendAttendanceNotificationEmail(user.email, subject, html)
+  const emailDelivered = await emailService.sendAttendanceNotificationEmail(user.email, subject, html)
 
-  if (delivered) {
+  // Enviar push em paralelo (falha silenciosa se não configurado)
+  void sendPushToUser(user.id, pushPayload)
+
+  if (emailDelivered) {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 3)
     await prisma.attendanceNotification.create({
@@ -145,18 +154,42 @@ async function sendNotification(
     })
   }
 
-  return delivered
+  return emailDelivered
 }
 
-function buildEmailContent(
+interface NotificationContent {
+  subject: string
+  content: string
+  pushPayload: import('./push').PushPayload
+}
+
+function buildNotificationContent(
   name: string | null,
   type: NotificationType,
   shiftStartTime: string,
   shiftEndTime: string
-): { subject: string; content: string } {
-  const displayName = name ?? 'Estagiário(a)'
+): NotificationContent {
+  const displayName = name ?? 'Funcionário(a)'
 
   switch (type) {
+    case 'ENTRY_REMINDER':
+      return {
+        subject: '⏰ Lembrete: Seu turno começa em breve',
+        content: `
+          <p>Olá <strong>${displayName}</strong>,</p>
+          <p>Seu turno começa às <strong>${shiftStartTime}</strong>. Lembre-se de registrar sua entrada ao chegar!</p>
+          <p style="margin-top: 16px; background-color: #e0f2fe; padding: 12px; border-radius: 6px; border-left: 4px solid #0284c7;">
+            <strong>⏰ Ação recomendada:</strong> Acesse o sistema e registre sua entrada no horário correto.
+          </p>
+        `,
+        pushPayload: {
+          title: '⏰ Turno começa em breve',
+          body: `Seu turno inicia às ${shiftStartTime}. Não esqueça de bater o ponto!`,
+          tag: 'entry-reminder',
+          url: '/employee',
+        },
+      }
+
     case 'MISSED_ENTRY':
       return {
         subject: '⚠️ Alerta: Você esqueceu de registrar sua entrada?',
@@ -168,7 +201,14 @@ function buildEmailContent(
             <strong>⏰ Ação necessária:</strong> Acesse o sistema e registre sua entrada.
           </p>
         `,
+        pushPayload: {
+          title: '⚠️ Entrada não registrada',
+          body: `Seu turno começou às ${shiftStartTime}. Registre sua entrada agora!`,
+          tag: 'missed-entry',
+          url: '/employee',
+        },
       }
+
     case 'EXIT_REMINDER':
       return {
         subject: '⏰ Lembrete: Seu expediente termina em breve',
@@ -176,7 +216,14 @@ function buildEmailContent(
           <p>Olá <strong>${displayName}</strong>,</p>
           <p>Seu expediente termina às <strong>${shiftEndTime}</strong>. Não se esqueça de registrar sua saída!</p>
         `,
+        pushPayload: {
+          title: '⏰ Saída em breve',
+          body: `Seu expediente termina às ${shiftEndTime}. Não esqueça de bater o ponto de saída!`,
+          tag: 'exit-reminder',
+          url: '/employee',
+        },
       }
+
     case 'MISSED_EXIT':
       return {
         subject: '⚠️ Alerta: Você esqueceu de registrar sua saída?',
@@ -188,6 +235,12 @@ function buildEmailContent(
             <strong>⏰ Ação necessária:</strong> Acesse o sistema e registre sua saída.
           </p>
         `,
+        pushPayload: {
+          title: '⚠️ Saída não registrada',
+          body: `Seu expediente terminou às ${shiftEndTime}. Registre sua saída agora!`,
+          tag: 'missed-exit',
+          url: '/employee',
+        },
       }
   }
 }

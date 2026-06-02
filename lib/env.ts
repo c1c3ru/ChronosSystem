@@ -78,6 +78,14 @@ const envSchema = z.object({
     .transform((val: string) => val === 'true')
     .optional()
     .default('true'),
+
+  // ========================================
+  // WEB PUSH / VAPID (Opcional)
+  // Gere as chaves com: npx web-push generate-vapid-keys
+  // ========================================
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().url().optional(),
 })
 
 // Tipo TypeScript inferido do schema

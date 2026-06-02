@@ -113,34 +113,76 @@ self.addEventListener('sync', (event) => {
   }
 })
 
-// Notificações push (futuro)
+// Notificações push — aceita payload JSON estruturado ou texto simples
 self.addEventListener('push', (event) => {
   console.log('📱 Service Worker: Notificação push recebida')
 
+  let title = 'Chronos System'
+  let body = 'Nova notificação de ponto'
+  let tag = 'chronos-attendance'
+  let url = '/employee'
+
+  if (event.data) {
+    try {
+      const data = event.data.json()
+      title = data.title ?? title
+      body = data.body ?? body
+      tag = data.tag ?? tag
+      url = data.url ?? url
+    } catch {
+      body = event.data.text()
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'Nova notificação do Chronos',
+    body,
     icon: '/icon-192x192.png',
     badge: '/icon-192x192.png',
     vibrate: [200, 100, 200],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1,
-    },
+    tag,
+    data: { url },
     actions: [
       {
-        action: 'explore',
-        title: 'Abrir App',
+        action: 'open',
+        title: 'Bater Ponto',
         icon: '/icon-192x192.png',
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/icon-192x192.png',
       },
     ],
   }
 
-  event.waitUntil(self.registration.showNotification('Chronos System', options))
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+// Ao clicar na notificação, abrir ou focar a aba da aplicação
+self.addEventListener('notificationclick', (event) => {
+  console.log('👆 Service Worker: Notificação clicada', event.action)
+
+  event.notification.close()
+
+  if (event.action === 'close') return
+
+  const targetUrl = event.notification.data?.url ?? '/employee'
+
+  event.waitUntil(
+    clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // Focar aba já aberta com a URL alvo
+        for (const client of clientList) {
+          if (client.url.includes(targetUrl) && 'focus' in client) {
+            return client.focus()
+          }
+        }
+        // Se não houver aba aberta, abrir nova
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl)
+        }
+      })
+  )
 })
 
 // Função para sincronizar dados offline (placeholder)
