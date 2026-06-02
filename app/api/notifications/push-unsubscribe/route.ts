@@ -23,7 +23,10 @@ export async function DELETE(request: NextRequest) {
   const parsed = unsubscribeSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.errors }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Dados inválidos', details: parsed.error.errors },
+      { status: 400 }
+    )
   }
 
   await prisma.pushSubscription.deleteMany({

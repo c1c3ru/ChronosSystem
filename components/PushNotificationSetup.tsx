@@ -45,11 +45,7 @@ export function PushNotificationSetup() {
       ) : (
         <BellOff size={14} />
       )}
-      {isLoading
-        ? 'Aguarde...'
-        : isSubscribed
-          ? 'Push ativado'
-          : 'Ativar push'}
+      {isLoading ? 'Aguarde...' : isSubscribed ? 'Push ativado' : 'Ativar push'}
     </button>
   )
 }

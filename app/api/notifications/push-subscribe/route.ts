@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
   const parsed = subscribeSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.errors }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Dados inválidos', details: parsed.error.errors },
+      { status: 400 }
+    )
   }
 
   const { endpoint, keys } = parsed.data

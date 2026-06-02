@@ -3,11 +3,7 @@ import { emailService } from './email'
 import { getNowInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
 
-export type NotificationType =
-  | 'ENTRY_REMINDER'
-  | 'EXIT_REMINDER'
-  | 'MISSED_EXIT'
-  | 'MISSED_ENTRY'
+export type NotificationType = 'ENTRY_REMINDER' | 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
 
 interface UserWithAttendance {
   id: string
@@ -76,13 +72,23 @@ export async function checkAndNotifyAttendance() {
 
       // 10 min ANTES do turno → lembrete preventivo
       if (minsFromStart >= -10 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
-        const delivered = await sendNotification(intern, 'ENTRY_REMINDER', shiftStartTime, shiftEndTime)
+        const delivered = await sendNotification(
+          intern,
+          'ENTRY_REMINDER',
+          shiftStartTime,
+          shiftEndTime
+        )
         if (delivered) sentNotifications.push({ user: intern.email, type: 'ENTRY_REMINDER' })
       }
 
       // 1 min DEPOIS do turno → alerta de entrada esquecida
       if (minsFromStart >= 1 && !alreadySentTypes.has('MISSED_ENTRY')) {
-        const delivered = await sendNotification(intern, 'MISSED_ENTRY', shiftStartTime, shiftEndTime)
+        const delivered = await sendNotification(
+          intern,
+          'MISSED_ENTRY',
+          shiftStartTime,
+          shiftEndTime
+        )
         if (delivered) sentNotifications.push({ user: intern.email, type: 'MISSED_ENTRY' })
       }
 
@@ -110,7 +116,12 @@ export async function checkAndNotifyAttendance() {
     }
 
     if (notificationType && !alreadySentTypes.has(notificationType)) {
-      const delivered = await sendNotification(intern, notificationType, shiftStartTime, shiftEndTime)
+      const delivered = await sendNotification(
+        intern,
+        notificationType,
+        shiftStartTime,
+        shiftEndTime
+      )
       if (delivered) sentNotifications.push({ user: intern.email, type: notificationType })
     }
   }
@@ -141,7 +152,11 @@ async function sendNotification(
     </div>
   `
 
-  const emailDelivered = await emailService.sendAttendanceNotificationEmail(user.email, subject, html)
+  const emailDelivered = await emailService.sendAttendanceNotificationEmail(
+    user.email,
+    subject,
+    html
+  )
 
   // Enviar push em paralelo (falha silenciosa se não configurado)
   void sendPushToUser(user.id, pushPayload)

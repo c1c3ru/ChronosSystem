@@ -55,7 +55,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       const keyRes = await fetch('/api/notifications/vapid-public-key')
       if (!keyRes.ok) throw new Error('Push não configurado no servidor')
 
-      const { publicKey } = await keyRes.json() as { publicKey: string }
+      const { publicKey } = (await keyRes.json()) as { publicKey: string }
 
       // Solicitar permissão
       const perm = await Notification.requestPermission()

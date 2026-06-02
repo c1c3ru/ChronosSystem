@@ -30,7 +30,8 @@ const NOTIFICATION_CONFIG: Record<
     icon: LogIn,
     colorClass: 'bg-red-500/10 border-red-500/30 text-red-400',
     title: 'Entrada não registrada!',
-    description: 'Seu turno já começou e não detectamos seu registro de entrada. Bata o ponto agora!',
+    description:
+      'Seu turno já começou e não detectamos seu registro de entrada. Bata o ponto agora!',
   },
   EXIT_REMINDER: {
     icon: Clock,
@@ -54,7 +55,7 @@ export function NotificationCenter() {
     try {
       const response = await fetch('/api/notifications')
       if (response.ok) {
-        const data = await response.json() as AttendanceNotification[]
+        const data = (await response.json()) as AttendanceNotification[]
         setNotifications(data)
       }
     } catch (error) {
@@ -139,7 +140,9 @@ export function NotificationCenter() {
               </button>
             </div>
             {/* Barra de progresso decorativa */}
-            <div className={`absolute bottom-0 left-0 h-0.5 w-full opacity-30 bg-current ${textClass}`} />
+            <div
+              className={`absolute bottom-0 left-0 h-0.5 w-full opacity-30 bg-current ${textClass}`}
+            />
           </div>
         )
       })}

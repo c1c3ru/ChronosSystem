@@ -168,20 +168,18 @@ self.addEventListener('notificationclick', (event) => {
   const targetUrl = event.notification.data?.url ?? '/employee'
 
   event.waitUntil(
-    clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // Focar aba já aberta com a URL alvo
-        for (const client of clientList) {
-          if (client.url.includes(targetUrl) && 'focus' in client) {
-            return client.focus()
-          }
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Focar aba já aberta com a URL alvo
+      for (const client of clientList) {
+        if (client.url.includes(targetUrl) && 'focus' in client) {
+          return client.focus()
         }
-        // Se não houver aba aberta, abrir nova
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl)
-        }
-      })
+      }
+      // Se não houver aba aberta, abrir nova
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl)
+      }
+    })
   )
 })
 
