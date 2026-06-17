@@ -18,6 +18,8 @@ export const PUBLIC_PREFIXES = [
   '/api/auth',
   '/api/kiosk',
   '/api/reset-password',
+  '/api/notifications/cron',
+  '/api/cron',
   '/_next',
   '/favicon.ico',
   '/assets',
