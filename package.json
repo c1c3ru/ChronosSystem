@@ -58,7 +58,7 @@
     "next": "^16.2.3",
     "next-auth": "^4.24.13",
     "next-intl": "^4.6.1",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^9.0.1",
     "pdfmake": "^0.3.7",
     "postcss": "^8.5.15",
     "qrcode": "^1.5.4",
