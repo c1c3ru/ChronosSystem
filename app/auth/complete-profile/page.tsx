@@ -174,6 +174,17 @@ export default function CompleteProfilePage() {
           newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
         }
       }
+
+      // Validar configurações de turno
+      if (!profileData.shift) {
+        newErrors.shift = 'Turno é obrigatório'
+      }
+      if (!profileData.shiftStartTime) {
+        newErrors.shiftStartTime = 'Horário de início é obrigatório'
+      }
+      if (!profileData.shiftEndTime) {
+        newErrors.shiftEndTime = 'Horário de fim é obrigatório'
+      }
     }
 
     console.log('🎯 [VALIDAÇÃO] Role efetivo:', effectiveRole)
@@ -193,6 +204,9 @@ export default function CompleteProfilePage() {
           effectiveRole === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
         contractEndDate:
           effectiveRole === 'EMPLOYEE' ? !!profileData.contractEndDate : 'N/A (ADMIN)',
+        shift: effectiveRole === 'EMPLOYEE' ? !!profileData.shift : 'N/A (ADMIN)',
+        shiftStartTime: effectiveRole === 'EMPLOYEE' ? !!profileData.shiftStartTime : 'N/A (ADMIN)',
+        shiftEndTime: effectiveRole === 'EMPLOYEE' ? !!profileData.shiftEndTime : 'N/A (ADMIN)',
       })
     } else {
       console.log('✅ [VALIDAÇÃO] Todos os campos OK para', effectiveRole)

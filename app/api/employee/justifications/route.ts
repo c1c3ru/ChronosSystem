@@ -197,3 +197,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
+
+// DELETE /api/employee/justifications - Excluir todas justificativas PENDENTES do usuário
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    }
+
+    // Excluir apenas as justificativas com status PENDING
+    const result = await prisma.justification.deleteMany({
+      where: {
+        userId: session.user.id,
+        status: 'PENDING',
+      },
+    })
+
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: 'JUSTIFICATION_DELETED_BULK',
+        resource: 'JUSTIFICATION',
+        details: `Excluídas ${result.count} justificativas pendentes em massa.`,
+      },
+    })
+
+    return NextResponse.json({
+      success: true,
+      count: result.count,
+      message: `Foram excluídas ${result.count} justificativas pendentes.`,
+    })
+  } catch (error: unknown) {
+    console.error('Erro ao excluir justificativas em massa:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+  }
+}

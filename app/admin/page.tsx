@@ -21,6 +21,7 @@ import {
   Trash2,
   Filter,
   LogIn,
+  CalendarDays,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -228,7 +229,8 @@ export default function AdminPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-2 sm:space-x-4">
               <Link
-                href="/"
+                href="/admin"
+                aria-label="Ir para o Painel Administrativo"
                 className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               >
                 <Home className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -353,7 +355,7 @@ export default function AdminPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Link href="/admin/users/new">
                 <Card
                   variant="glass"
@@ -412,6 +414,21 @@ export default function AdminPage() {
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">Relatórios</h3>
                     <p className="text-neutral-400 text-sm">Visualizar relatórios e estatísticas</p>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/admin/schedule">
+                <Card
+                  variant="glass"
+                  className="group hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-primary/20 hover:border-primary/40"
+                >
+                  <CardContent className="p-6 text-center">
+                    <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
+                      <CalendarDays className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Quadro de Horários</h3>
+                    <p className="text-neutral-400 text-sm">Visualizar turnos dos estagiários</p>
                   </CardContent>
                 </Card>
               </Link>

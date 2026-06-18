@@ -5,7 +5,16 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { AlertTriangle, Clock, Calendar, ArrowLeft, Plus, FileText, Send } from 'lucide-react'
+import {
+  AlertTriangle,
+  Clock,
+  Calendar,
+  ArrowLeft,
+  Plus,
+  FileText,
+  Send,
+  Trash2,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -38,6 +47,7 @@ export default function JustificationsPage() {
   const [selectedIssue, setSelectedIssue] = useState<PendingIssue | null>(null)
   const [justificationText, setJustificationText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
@@ -118,6 +128,57 @@ export default function JustificationsPage() {
       alert('Erro ao enviar justificativa')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const deleteJustification = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta justificativa?')) return
+
+    try {
+      setIsDeleting(true)
+      const res = await fetch(`/api/employee/justifications/${id}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        alert('Justificativa excluída.')
+        loadJustifications()
+        loadPendingIssues()
+      } else {
+        alert(data.error || 'Erro ao excluir.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Erro interno ao excluir.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const deleteAllPending = async () => {
+    if (
+      !confirm('Tem certeza que deseja excluir TODAS as suas justificativas pendentes de uma vez?')
+    )
+      return
+
+    try {
+      setIsDeleting(true)
+      const res = await fetch('/api/employee/justifications', {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        alert(`Foram excluídas ${data.count} justificativas.`)
+        loadJustifications()
+        loadPendingIssues()
+      } else {
+        alert(data.error || 'Erro ao excluir justificativas.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Erro interno ao excluir em massa.')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -382,15 +443,41 @@ export default function JustificationsPage() {
 
         {/* Justifications History */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Histórico de Justificativas</CardTitle>
+            {justifications.some((j) => j.status === 'PENDING') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={deleteAllPending}
+                disabled={isDeleting}
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Todas Pendentes
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {justifications.length > 0 ? (
               <div className="space-y-4">
                 {justifications.map((justification) => (
-                  <div key={justification.id} className="p-4 border border-neutral-700 rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
+                  <div
+                    key={justification.id}
+                    className="p-4 border border-neutral-700 rounded-lg group relative"
+                  >
+                    {justification.status === 'PENDING' && (
+                      <button
+                        onClick={() => deleteJustification(justification.id)}
+                        disabled={isDeleting}
+                        className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        title="Excluir justificativa pendente"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+
+                    <div className="flex items-start justify-between mb-3 pr-10">
                       <div className="flex items-center space-x-3">
                         <div
                           className={`p-2 rounded-full ${
