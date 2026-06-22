@@ -15,10 +15,7 @@ export async function PATCH(request: NextRequest) {
     const { justificationIds, action } = body
 
     if (!Array.isArray(justificationIds) || justificationIds.length === 0) {
-      return NextResponse.json(
-        { error: 'Nenhuma justificativa selecionada' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Nenhuma justificativa selecionada' }, { status: 400 })
     }
 
     if (!['APPROVED', 'REJECTED'].includes(action)) {
@@ -32,8 +29,8 @@ export async function PATCH(request: NextRequest) {
     const justifications = await prisma.justification.findMany({
       where: {
         id: { in: justificationIds },
-        status: 'PENDING'
-      }
+        status: 'PENDING',
+      },
     })
 
     if (justifications.length !== justificationIds.length) {
@@ -47,13 +44,13 @@ export async function PATCH(request: NextRequest) {
     await prisma.justification.updateMany({
       where: {
         id: { in: justificationIds },
-        status: 'PENDING'
+        status: 'PENDING',
       },
       data: {
         status: action,
         reviewedAt: new Date(),
-        reviewedBy: session.user.id
-      }
+        reviewedBy: session.user.id,
+      },
     })
 
     // Log the action
@@ -62,15 +59,14 @@ export async function PATCH(request: NextRequest) {
         action: 'BULK_REVIEW_JUSTIFICATIONS',
         resource: 'Justification',
         details: `Bulk ${action} for ${justifications.length} justifications. IDs: ${justificationIds.join(', ')}`,
-        userId: session.user.id
-      }
+        userId: session.user.id,
+      },
     })
 
-    // (Optional) Here we could create attendance records if action === 'APPROVED' and it was an ABSENCE, 
+    // (Optional) Here we could create attendance records if action === 'APPROVED' and it was an ABSENCE,
     // but the system probably handles this elsewhere or expects the admin to do it.
 
     return NextResponse.json({ success: true, updatedCount: justifications.length })
-
   } catch (error) {
     console.error('Erro no bulk update de justificativas:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

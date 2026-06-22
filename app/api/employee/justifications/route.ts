@@ -81,7 +81,10 @@ export async function POST(request: NextRequest) {
     const { type, date, reason, category } = await request.json()
 
     if (!type || !date || !reason || !category) {
-      return NextResponse.json({ error: 'Tipo, categoria, data e motivo são obrigatórios' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Tipo, categoria, data e motivo são obrigatórios' },
+        { status: 400 }
+      )
     }
 
     if (!['LATE', 'ABSENCE', 'EARLY_DEPARTURE'].includes(type)) {

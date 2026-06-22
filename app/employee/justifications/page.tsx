@@ -36,7 +36,7 @@ const CATEGORIES = [
   'Prova / Evento Acadêmico',
   'Clima / Força Maior',
   'Problemas Familiares',
-  'Outros'
+  'Outros',
 ]
 
 interface PendingIssue {
@@ -414,7 +414,10 @@ export default function JustificationsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="issue-category" className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label
+                    htmlFor="issue-category"
+                    className="block text-sm font-medium text-neutral-300 mb-2"
+                  >
                     Categoria *
                   </label>
                   <select
@@ -423,8 +426,10 @@ export default function JustificationsPage() {
                     value={justificationCategory}
                     onChange={(e) => setJustificationCategory(e.target.value)}
                   >
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -474,16 +479,16 @@ export default function JustificationsPage() {
         <Card>
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Histórico de Justificativas</CardTitle>
-            
+
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex bg-neutral-800 p-1 rounded-lg">
-                {(['PENDING', 'APPROVED', 'REJECTED'] as const).map(tab => (
+                {(['PENDING', 'APPROVED', 'REJECTED'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      activeTab === tab 
-                        ? 'bg-primary text-white shadow-sm' 
+                      activeTab === tab
+                        ? 'bg-primary text-white shadow-sm'
                         : 'text-neutral-400 hover:text-white hover:bg-neutral-700/50'
                     }`}
                   >
@@ -507,77 +512,79 @@ export default function JustificationsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {justifications.filter(j => j.status === activeTab).length > 0 ? (
+            {justifications.filter((j) => j.status === activeTab).length > 0 ? (
               <div className="space-y-4">
-                {justifications.filter(j => j.status === activeTab).map((justification) => (
-                  <div
-                    key={justification.id}
-                    className="p-4 border border-neutral-700 rounded-lg group relative"
-                  >
-                    {justification.status === 'PENDING' && (
-                      <button
-                        onClick={() => deleteJustification(justification.id)}
-                        disabled={isDeleting}
-                        className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
-                        title="Excluir justificativa pendente"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-
-                    <div className="flex items-start justify-between mb-3 pr-10">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`p-2 rounded-full ${
-                            justification.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
-                          }`}
+                {justifications
+                  .filter((j) => j.status === activeTab)
+                  .map((justification) => (
+                    <div
+                      key={justification.id}
+                      className="p-4 border border-neutral-700 rounded-lg group relative"
+                    >
+                      {justification.status === 'PENDING' && (
+                        <button
+                          onClick={() => deleteJustification(justification.id)}
+                          disabled={isDeleting}
+                          className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                          title="Excluir justificativa pendente"
                         >
-                          {justification.type === 'LATE' ? (
-                            <Clock className="h-4 w-4 text-warning" />
-                          ) : (
-                            <Calendar className="h-4 w-4 text-error" />
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-white">
-                            {getTypeText(justification.type)}
-                            {justification.category && (
-                              <span className="ml-2 text-xs font-normal text-neutral-400 bg-neutral-800 px-2 py-0.5 rounded-full">
-                                {justification.category}
-                              </span>
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+
+                      <div className="flex items-start justify-between mb-3 pr-10">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`p-2 rounded-full ${
+                              justification.type === 'LATE' ? 'bg-warning/20' : 'bg-error/20'
+                            }`}
+                          >
+                            {justification.type === 'LATE' ? (
+                              <Clock className="h-4 w-4 text-warning" />
+                            ) : (
+                              <Calendar className="h-4 w-4 text-error" />
                             )}
-                          </h3>
-                          <p className="text-sm text-neutral-400">
-                            {formatDate(justification.date)}
-                          </p>
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-white">
+                              {getTypeText(justification.type)}
+                              {justification.category && (
+                                <span className="ml-2 text-xs font-normal text-neutral-400 bg-neutral-800 px-2 py-0.5 rounded-full">
+                                  {justification.category}
+                                </span>
+                              )}
+                            </h3>
+                            <p className="text-sm text-neutral-400">
+                              {formatDate(justification.date)}
+                            </p>
+                          </div>
                         </div>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(justification.status)}`}
+                        >
+                          {getStatusText(justification.status)}
+                        </span>
                       </div>
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(justification.status)}`}
-                      >
-                        {getStatusText(justification.status)}
-                      </span>
-                    </div>
 
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-neutral-300 mb-1">Justificativa:</p>
-                      <p className="text-sm text-neutral-400">{justification.reason}</p>
-                    </div>
-
-                    {justification.adminResponse && (
-                      <div className="border-t border-neutral-700 pt-3">
-                        <p className="text-sm font-medium text-neutral-300 mb-1">
-                          Resposta do Admin:
-                        </p>
-                        <p className="text-sm text-neutral-400">{justification.adminResponse}</p>
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-neutral-300 mb-1">Justificativa:</p>
+                        <p className="text-sm text-neutral-400">{justification.reason}</p>
                       </div>
-                    )}
 
-                    <p className="text-xs text-neutral-500 mt-2">
-                      Enviado em {formatDate(justification.createdAt)}
-                    </p>
-                  </div>
-                ))}
+                      {justification.adminResponse && (
+                        <div className="border-t border-neutral-700 pt-3">
+                          <p className="text-sm font-medium text-neutral-300 mb-1">
+                            Resposta do Admin:
+                          </p>
+                          <p className="text-sm text-neutral-400">{justification.adminResponse}</p>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-neutral-500 mt-2">
+                        Enviado em {formatDate(justification.createdAt)}
+                      </p>
+                    </div>
+                  ))}
               </div>
             ) : (
               <div className="text-center py-8">

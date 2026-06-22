@@ -22,7 +22,7 @@ import {
   ChevronUp,
   CheckSquare,
   Square,
-  ListChecks
+  ListChecks,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -633,7 +633,6 @@ export default function JustificationsPage() {
         ) : (
           /* Justifications List */
           <div className="space-y-4 relative">
-            
             {/* Bulk Action Bar */}
             {activeTab === 'LIST' && selectedIds.length > 0 && (
               <div className="sticky top-4 z-docked bg-primary/20 backdrop-blur-md border border-primary/50 p-4 rounded-xl shadow-2xl flex items-center justify-between mb-6 animate-in slide-in-from-bottom-4">
@@ -664,13 +663,15 @@ export default function JustificationsPage() {
               </div>
             )}
 
-            {currentJustifications.filter(j => j.status === 'PENDING').length > 0 && (
+            {currentJustifications.filter((j) => j.status === 'PENDING').length > 0 && (
               <div className="flex items-center px-4 mb-2">
                 <button
                   onClick={toggleSelectAll}
                   className="flex items-center text-sm text-neutral-400 hover:text-white transition-colors"
                 >
-                  {currentJustifications.filter((j) => j.status === 'PENDING').every((j) => selectedIds.includes(j.id)) ? (
+                  {currentJustifications
+                    .filter((j) => j.status === 'PENDING')
+                    .every((j) => selectedIds.includes(j.id)) ? (
                     <CheckSquare className="h-4 w-4 mr-2 text-primary" />
                   ) : (
                     <Square className="h-4 w-4 mr-2" />
@@ -681,7 +682,10 @@ export default function JustificationsPage() {
             )}
 
             {currentJustifications.map((justification) => (
-              <Card key={justification.id} className={`transition-all ${selectedIds.includes(justification.id) ? 'border-primary ring-1 ring-primary/50' : 'hover:border-primary/20'}`}>
+              <Card
+                key={justification.id}
+                className={`transition-all ${selectedIds.includes(justification.id) ? 'border-primary ring-1 ring-primary/50' : 'hover:border-primary/20'}`}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0 pr-4">
