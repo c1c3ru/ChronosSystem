@@ -287,9 +287,10 @@ export default function SchedulePage() {
               const isExpanded = expandedDepts[dept] !== false
               return (
                 <div key={dept}>
-                  <div 
-                    className="flex items-center px-4 py-2 bg-neutral-800/50 border-b border-neutral-700 cursor-pointer hover:bg-neutral-800/70 transition-colors"
+                  <button 
+                    className="w-full flex items-center px-4 py-2 bg-neutral-800/50 border-b border-neutral-700 cursor-pointer hover:bg-neutral-800/70 transition-colors text-left"
                     onClick={() => setExpandedDepts(prev => ({...prev, [dept]: !isExpanded}))}
+                    aria-expanded={isExpanded}
                   >
                     <div className="w-4 flex justify-center mr-2">
                       <ChevronRight className={`h-4 w-4 text-neutral-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
@@ -298,7 +299,7 @@ export default function SchedulePage() {
                     <span className="ml-2 px-2 py-0.5 bg-neutral-700/50 rounded-full text-xs text-neutral-400 font-medium">
                       {emps.length}
                     </span>
-                  </div>
+                  </button>
                   
                   {isExpanded && emps.map((emp, idx) => {
                     const initials = getInitials(emp.name, emp.email)
