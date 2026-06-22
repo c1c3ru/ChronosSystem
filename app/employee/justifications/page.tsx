@@ -23,11 +23,21 @@ interface Justification {
   id: string
   date: string
   type: 'LATE' | 'ABSENCE' | 'EARLY_DEPARTURE'
+  category: string | null
   reason: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   createdAt: string
   adminResponse?: string
 }
+
+const CATEGORIES = [
+  'Saúde / Atestado Médico',
+  'Problema de Transporte',
+  'Prova / Evento Acadêmico',
+  'Clima / Força Maior',
+  'Problemas Familiares',
+  'Outros'
+]
 
 interface PendingIssue {
   id: string
@@ -46,6 +56,8 @@ export default function JustificationsPage() {
   const [showNewForm, setShowNewForm] = useState(false)
   const [selectedIssue, setSelectedIssue] = useState<PendingIssue | null>(null)
   const [justificationText, setJustificationText] = useState('')
+  const [justificationCategory, setJustificationCategory] = useState(CATEGORIES[0])
+  const [activeTab, setActiveTab] = useState<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING')
   const [submitting, setSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
@@ -106,6 +118,7 @@ export default function JustificationsPage() {
           type: selectedIssue.type,
           date: selectedIssue.date,
           reason: justificationText,
+          category: justificationCategory,
         }),
       })
 
@@ -401,11 +414,27 @@ export default function JustificationsPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="issue-category" className="block text-sm font-medium text-neutral-300 mb-2">
+                    Categoria *
+                  </label>
+                  <select
+                    id="issue-category"
+                    className="input w-full bg-neutral-700"
+                    value={justificationCategory}
+                    onChange={(e) => setJustificationCategory(e.target.value)}
+                  >
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label
                     htmlFor="issue-justification"
                     className="block text-sm font-medium text-neutral-300 mb-2"
                   >
-                    Justificativa *
+                    Detalhes da Justificativa *
                   </label>
                   <textarea
                     id="issue-justification"
@@ -443,25 +472,44 @@ export default function JustificationsPage() {
 
         {/* Justifications History */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Histórico de Justificativas</CardTitle>
-            {justifications.some((j) => j.status === 'PENDING') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={deleteAllPending}
-                disabled={isDeleting}
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Excluir Todas Pendentes
-              </Button>
-            )}
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex bg-neutral-800 p-1 rounded-lg">
+                {(['PENDING', 'APPROVED', 'REJECTED'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === tab 
+                        ? 'bg-primary text-white shadow-sm' 
+                        : 'text-neutral-400 hover:text-white hover:bg-neutral-700/50'
+                    }`}
+                  >
+                    {getStatusText(tab)}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === 'PENDING' && justifications.some((j) => j.status === 'PENDING') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={deleteAllPending}
+                  disabled={isDeleting}
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Pendentes
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            {justifications.length > 0 ? (
+            {justifications.filter(j => j.status === activeTab).length > 0 ? (
               <div className="space-y-4">
-                {justifications.map((justification) => (
+                {justifications.filter(j => j.status === activeTab).map((justification) => (
                   <div
                     key={justification.id}
                     className="p-4 border border-neutral-700 rounded-lg group relative"
@@ -493,6 +541,11 @@ export default function JustificationsPage() {
                         <div>
                           <h3 className="font-medium text-white">
                             {getTypeText(justification.type)}
+                            {justification.category && (
+                              <span className="ml-2 text-xs font-normal text-neutral-400 bg-neutral-800 px-2 py-0.5 rounded-full">
+                                {justification.category}
+                              </span>
+                            )}
                           </h3>
                           <p className="text-sm text-neutral-400">
                             {formatDate(justification.date)}

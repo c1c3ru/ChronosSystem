@@ -206,6 +206,7 @@ model Justification {
   id            String    @id @default(cuid())
   userId        String
   type          String
+  category      String?
   date          DateTime
   reason        String
   status        String    @default("PENDING")

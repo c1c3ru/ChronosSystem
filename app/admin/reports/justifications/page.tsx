@@ -20,6 +20,9 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  CheckSquare,
+  Square,
+  ListChecks
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -31,6 +34,7 @@ interface Justification {
   date: string
   reason: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  category?: string | null
   adminResponse?: string
   createdAt: string
   user: {
@@ -65,6 +69,7 @@ export default function JustificationsPage() {
   const [activeTab, setActiveTab] = useState<'LIST' | 'OVERVIEW'>('LIST')
   const [currentPage, setCurrentPage] = useState(1)
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({})
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const itemsPerPage = 10
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
@@ -128,6 +133,56 @@ export default function JustificationsPage() {
       }
     } catch (error) {
       console.error('Erro ao processar justificativa:', error)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+  }
+
+  const toggleSelectAll = () => {
+    const pendingIds = currentJustifications.filter((j) => j.status === 'PENDING').map((j) => j.id)
+    if (pendingIds.length === 0) return
+
+    const allSelected = pendingIds.every((id) => selectedIds.includes(id))
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !pendingIds.includes(id)))
+    } else {
+      const newIds = new Set([...selectedIds, ...pendingIds])
+      setSelectedIds(Array.from(newIds))
+    }
+  }
+
+  const handleBulkAction = async (action: 'APPROVED' | 'REJECTED') => {
+    if (selectedIds.length === 0) return
+    if (
+      !confirm(
+        `Deseja realmente ${action === 'APPROVED' ? 'APROVAR' : 'REJEITAR'} ${selectedIds.length} justificativas?`
+      )
+    )
+      return
+
+    try {
+      setActionLoading(true)
+      const response = await fetch('/api/admin/justifications/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ justificationIds: selectedIds, action }),
+      })
+
+      if (response.ok) {
+        setSelectedIds([])
+        loadJustifications()
+        alert(`Sucesso! ${selectedIds.length} justificativas foram analisadas.`)
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Erro ao processar lote.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Erro interno.')
     } finally {
       setActionLoading(false)
     }
@@ -577,13 +632,72 @@ export default function JustificationsPage() {
           </div>
         ) : (
           /* Justifications List */
-          <div className="space-y-4">
+          <div className="space-y-4 relative">
+            
+            {/* Bulk Action Bar */}
+            {activeTab === 'LIST' && selectedIds.length > 0 && (
+              <div className="sticky top-4 z-docked bg-primary/20 backdrop-blur-md border border-primary/50 p-4 rounded-xl shadow-2xl flex items-center justify-between mb-6 animate-in slide-in-from-bottom-4">
+                <div className="flex items-center text-white">
+                  <ListChecks className="h-5 w-5 mr-2 text-primary" />
+                  <span className="font-bold">{selectedIds.length} selecionadas</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleBulkAction('REJECTED')}
+                    disabled={actionLoading}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Rejeitar Lote
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleBulkAction('APPROVED')}
+                    disabled={actionLoading}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Aprovar Lote
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {currentJustifications.filter(j => j.status === 'PENDING').length > 0 && (
+              <div className="flex items-center px-4 mb-2">
+                <button
+                  onClick={toggleSelectAll}
+                  className="flex items-center text-sm text-neutral-400 hover:text-white transition-colors"
+                >
+                  {currentJustifications.filter((j) => j.status === 'PENDING').every((j) => selectedIds.includes(j.id)) ? (
+                    <CheckSquare className="h-4 w-4 mr-2 text-primary" />
+                  ) : (
+                    <Square className="h-4 w-4 mr-2" />
+                  )}
+                  Selecionar todas pendentes da página
+                </button>
+              </div>
+            )}
+
             {currentJustifications.map((justification) => (
-              <Card key={justification.id} className="hover:border-primary/20 transition-colors">
+              <Card key={justification.id} className={`transition-all ${selectedIds.includes(justification.id) ? 'border-primary ring-1 ring-primary/50' : 'hover:border-primary/20'}`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex flex-wrap items-center gap-3 mb-3">
+                        {justification.status === 'PENDING' && (
+                          <button
+                            onClick={() => toggleSelect(justification.id)}
+                            className="mr-2 shrink-0 text-neutral-400 hover:text-white transition-colors"
+                          >
+                            {selectedIds.includes(justification.id) ? (
+                              <CheckSquare className="h-5 w-5 text-primary" />
+                            ) : (
+                              <Square className="h-5 w-5" />
+                            )}
+                          </button>
+                        )}
                         <div className="flex items-center space-x-2">
                           <div className="bg-neutral-800 p-1.5 rounded-lg">
                             <User className="h-4 w-4 text-primary" />
@@ -601,6 +715,11 @@ export default function JustificationsPage() {
                           >
                             {getTypeText(justification.type)}
                           </span>
+                          {justification.category && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-800 text-neutral-300">
+                              {justification.category}
+                            </span>
+                          )}
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusColor(justification.status)}`}
                           >

@@ -7,6 +7,18 @@ module.exports = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
+  safelist: [
+    'bg-emerald-500/80',
+    'border-emerald-400',
+    'bg-sky-500/70',
+    'border-sky-400',
+    'bg-amber-500/70',
+    'border-amber-400',
+    'bg-violet-500/70',
+    'border-violet-400',
+    'bg-teal-500/70',
+    'border-teal-400',
+  ],
   theme: {
     // === DESIGN TOKENS INTEGRATION ===
     colors: {

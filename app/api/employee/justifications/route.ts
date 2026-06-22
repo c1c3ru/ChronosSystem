@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     interface JustificationWithReviewer {
       id: string
       type: string
+      category: string | null
       date: Date
       reason: string
       status: string
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
       justifications: (justifications as unknown as JustificationWithReviewer[]).map((j) => ({
         id: j.id,
         type: j.type,
+        category: j.category,
         date: j.date.toISOString(),
         reason: j.reason,
         status: j.status,
@@ -76,10 +78,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { type, date, reason } = await request.json()
+    const { type, date, reason, category } = await request.json()
 
-    if (!type || !date || !reason) {
-      return NextResponse.json({ error: 'Tipo, data e motivo são obrigatórios' }, { status: 400 })
+    if (!type || !date || !reason || !category) {
+      return NextResponse.json({ error: 'Tipo, categoria, data e motivo são obrigatórios' }, { status: 400 })
     }
 
     if (!['LATE', 'ABSENCE', 'EARLY_DEPARTURE'].includes(type)) {
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         type,
+        category,
         date: new Date(date),
         reason,
         status: 'PENDING',

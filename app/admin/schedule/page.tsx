@@ -91,8 +91,18 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [weekOffset, setWeekOffset] = useState(0) // 0 = current week
+  const [expandedDepts, setExpandedDepts] = useState<Record<string, boolean>>({})
 
   const todayIndex = getDayIndex(new Date())
+
+  // Current time logic for "Now" indicator
+  const [currentTime, setCurrentTime] = useState(new Date())
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+    return () => clearInterval(timer)
+  }, [])
+  
+  const nowPercent = timeToPercent(`${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`)
 
   const loadSchedule = useCallback(async () => {
     try {
@@ -121,6 +131,14 @@ export default function SchedulePage() {
       emp.email.toLowerCase().includes(q)
     )
   })
+
+  // Group by department
+  const groupedEmployees = filtered.reduce((acc, emp) => {
+    const dept = emp.department || 'Sem Departamento'
+    if (!acc[dept]) acc[dept] = []
+    acc[dept].push(emp)
+    return acc
+  }, {} as Record<string, ScheduleEmployee[]>)
 
   // Build week label
   const today = new Date()
@@ -240,7 +258,7 @@ export default function SchedulePage() {
                 {DAYS.map((day, i) => (
                   <div
                     key={day}
-                    className={`flex-1 text-center text-xs py-3 font-semibold border-l border-neutral-800/60 transition-colors ${
+                    className={`flex-1 relative text-center text-xs py-3 font-semibold border-l border-neutral-800/60 transition-colors ${
                       i === todayIndex && weekOffset === 0
                         ? 'text-primary bg-primary/5'
                         : 'text-neutral-400'
@@ -265,75 +283,103 @@ export default function SchedulePage() {
               <p>Nenhum estagiário encontrado</p>
             </div>
           ) : (
-            filtered.map((emp, idx) => {
-              const initials = getInitials(emp.name, emp.email)
-              const activeDays = Math.min(emp.workingDaysPerWeek, 7)
-              const startPct = timeToPercent(emp.shiftStartTime)
-              const endPct = timeToPercent(emp.shiftEndTime)
-              const barWidth = Math.max(0, endPct - startPct)
-              const color = shiftColor(emp.shift, emp.isPresent)
-
+            Object.entries(groupedEmployees).map(([dept, emps]) => {
+              const isExpanded = expandedDepts[dept] !== false
               return (
-                <div
-                  key={emp.id}
-                  className={`flex border-b border-neutral-800/40 hover:bg-white/[0.02] transition-colors group ${
-                    idx % 2 === 0 ? '' : 'bg-neutral-800/10'
-                  }`}
-                >
-                  {/* Employee info */}
-                  <div className="w-52 flex-shrink-0 px-4 py-3 flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        emp.isPresent
-                          ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
-                          : 'bg-neutral-700/60 text-neutral-300'
-                      }`}
-                    >
-                      {initials}
+                <div key={dept}>
+                  <div 
+                    className="flex items-center px-4 py-2 bg-neutral-800/50 border-b border-neutral-700 cursor-pointer hover:bg-neutral-800/70 transition-colors"
+                    onClick={() => setExpandedDepts(prev => ({...prev, [dept]: !isExpanded}))}
+                  >
+                    <div className="w-4 flex justify-center mr-2">
+                      <ChevronRight className={`h-4 w-4 text-neutral-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-white truncate leading-none mb-0.5">
-                        {emp.name ?? 'Sem nome'}
-                      </p>
-                      <p className="text-[10px] text-neutral-500 truncate">
-                        {emp.department ?? emp.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Day bars */}
-                  <div className="flex-1 min-w-[420px] flex items-center">
-                    {DAYS.map((day, dayIdx) => {
-                      const isWorkday = dayIdx < activeDays
-                      return (
-                        <div
-                          key={day}
-                          className={`flex-1 relative h-10 border-l border-neutral-800/40 ${
-                            dayIdx === todayIndex && weekOffset === 0 ? 'bg-primary/5' : ''
-                          }`}
-                        >
-                          {isWorkday && (
-                            <div
-                              className={`absolute top-1/2 -translate-y-1/2 h-6 rounded border ${color} transition-all duration-200 group-hover:h-7`}
-                              style={{
-                                left: `${startPct}%`,
-                                width: `${barWidth}%`,
-                              }}
-                              title={`${emp.shiftStartTime}–${emp.shiftEndTime} (${shiftLabel(emp.shift)})`}
-                            />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* Time label */}
-                  <div className="w-20 flex-shrink-0 px-2 flex items-center justify-end">
-                    <span className="text-[10px] text-neutral-500 font-mono whitespace-nowrap">
-                      <Clock className="h-2.5 w-2.5 inline mr-0.5 opacity-60" />
-                      {emp.shiftStartTime}–{emp.shiftEndTime}
+                    <span className="text-sm font-bold text-neutral-300">{dept}</span>
+                    <span className="ml-2 px-2 py-0.5 bg-neutral-700/50 rounded-full text-xs text-neutral-400 font-medium">
+                      {emps.length}
                     </span>
                   </div>
+                  
+                  {isExpanded && emps.map((emp, idx) => {
+                    const initials = getInitials(emp.name, emp.email)
+                    const activeDays = Math.min(emp.workingDaysPerWeek, 7)
+                    const startPct = timeToPercent(emp.shiftStartTime)
+                    const endPct = timeToPercent(emp.shiftEndTime)
+                    const barWidth = Math.max(0, endPct - startPct)
+                    const color = shiftColor(emp.shift, emp.isPresent)
+
+                    return (
+                      <div
+                        key={emp.id}
+                        className={`flex border-b border-neutral-800/40 hover:bg-white/[0.02] transition-colors group ${
+                          idx % 2 === 0 ? '' : 'bg-neutral-800/10'
+                        }`}
+                      >
+                        {/* Employee info */}
+                        <div className="w-52 flex-shrink-0 px-4 py-3 flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                              emp.isPresent
+                                ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                                : 'bg-neutral-700/60 text-neutral-300'
+                            }`}
+                          >
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-white truncate leading-none mb-0.5">
+                              {emp.name ?? 'Sem nome'}
+                            </p>
+                            <p className="text-[10px] text-neutral-500 truncate">
+                              {emp.lastRecord ? `Último registro: ${new Date(emp.lastRecord.timestamp).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}` : emp.email}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Day bars */}
+                        <div className="flex-1 min-w-[420px] flex items-center">
+                          {DAYS.map((day, dayIdx) => {
+                            const isWorkday = dayIdx < activeDays
+                            const isToday = dayIdx === todayIndex && weekOffset === 0
+                            return (
+                              <div
+                                key={day}
+                                className={`flex-1 relative h-10 border-l border-neutral-800/40 ${
+                                  isToday ? 'bg-primary/5' : ''
+                                }`}
+                              >
+                                {isToday && (
+                                  <div 
+                                    className="absolute top-0 bottom-0 w-px bg-red-500/50 z-0" 
+                                    style={{ left: `${nowPercent}%` }}
+                                    title={`Agora: ${currentTime.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`}
+                                  />
+                                )}
+                                {isWorkday && (
+                                  <div
+                                    className={`absolute top-1/2 -translate-y-1/2 h-6 rounded border ${color} transition-all duration-200 group-hover:h-7 z-10 hover:brightness-125 hover:shadow-lg`}
+                                    style={{
+                                      left: `${startPct}%`,
+                                      width: `${barWidth}%`,
+                                    }}
+                                    title={`${emp.shiftStartTime}–${emp.shiftEndTime} (${shiftLabel(emp.shift)})`}
+                                  />
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        {/* Time label */}
+                        <div className="w-20 flex-shrink-0 px-2 flex items-center justify-end">
+                          <span className="text-[10px] text-neutral-500 font-mono whitespace-nowrap">
+                            <Clock className="h-2.5 w-2.5 inline mr-0.5 opacity-60" />
+                            {emp.shiftStartTime}–{emp.shiftEndTime}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )
             })
