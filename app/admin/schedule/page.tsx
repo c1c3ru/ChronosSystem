@@ -93,6 +93,11 @@ export default function SchedulePage() {
   const [weekOffset, setWeekOffset] = useState(0) // 0 = current week
   const [expandedDepts, setExpandedDepts] = useState<Record<string, boolean>>({})
 
+  // Filtros Avançados (SPDD)
+  const [departmentFilter, setDepartmentFilter] = useState('ALL')
+  const [shiftFilter, setShiftFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+
   const todayIndex = getDayIndex(new Date())
 
   // Current time logic for "Now" indicator
@@ -125,13 +130,26 @@ export default function SchedulePage() {
     if (session) loadSchedule()
   }, [session, loadSchedule])
 
+  const departments = Array.from(
+    new Set(employees.map((e) => e.department || 'Sem Departamento'))
+  ).sort()
+
   const filtered = employees.filter((emp) => {
     const q = search.toLowerCase()
-    return (
+    const matchSearch =
       (emp.name ?? '').toLowerCase().includes(q) ||
       (emp.department ?? '').toLowerCase().includes(q) ||
       emp.email.toLowerCase().includes(q)
-    )
+
+    const empDept = emp.department || 'Sem Departamento'
+    const matchDept = departmentFilter === 'ALL' || empDept === departmentFilter
+    const matchShift = shiftFilter === 'ALL' || emp.shift === shiftFilter
+    const matchStatus =
+      statusFilter === 'ALL' ||
+      (statusFilter === 'PRESENT' && emp.isPresent) ||
+      (statusFilter === 'ABSENT' && !emp.isPresent)
+
+    return matchSearch && matchDept && matchShift && matchStatus
   })
 
   // Group by department
@@ -238,15 +256,54 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        {/* Summary bar */}
-        <div className="flex items-center gap-4 mb-4 text-sm text-neutral-400">
-          <span className="flex items-center gap-1.5">
-            <Users className="h-4 w-4" /> {filtered.length} estagiário(s)
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            {filtered.filter((e) => e.isPresent).length} presente(s) agora
-          </span>
+        {/* Summary bar + Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-4 text-sm text-neutral-400">
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4" /> {filtered.length} estagiário(s)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              {filtered.filter((e) => e.isPresent).length} presente(s) agora
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none cursor-pointer hover:bg-neutral-800/80 transition-colors"
+            >
+              <option value="ALL">Todos Departamentos</option>
+              {departments.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={shiftFilter}
+              onChange={(e) => setShiftFilter(e.target.value)}
+              className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none cursor-pointer hover:bg-neutral-800/80 transition-colors"
+            >
+              <option value="ALL">Todos Turnos</option>
+              <option value="MORNING">Manhã</option>
+              <option value="AFTERNOON">Tarde</option>
+              <option value="NIGHT">Noite</option>
+              <option value="HYBRID">Híbrido</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none cursor-pointer hover:bg-neutral-800/80 transition-colors"
+            >
+              <option value="ALL">Qualquer Status</option>
+              <option value="PRESENT">Presente</option>
+              <option value="ABSENT">Ausente</option>
+            </select>
+          </div>
         </div>
 
         {/* Grid */}
