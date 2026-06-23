@@ -272,6 +272,7 @@ export default function SchedulePage() {
             <select
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
+              aria-label="Filtrar por departamento"
               className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none cursor-pointer hover:bg-neutral-800/80 transition-colors"
             >
               <option value="ALL">Todos Departamentos</option>
@@ -285,6 +286,7 @@ export default function SchedulePage() {
             <select
               value={shiftFilter}
               onChange={(e) => setShiftFilter(e.target.value)}
+              aria-label="Filtrar por turno"
               className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none cursor-pointer hover:bg-neutral-800/80 transition-colors"
             >
               <option value="ALL">Todos Turnos</option>
@@ -297,6 +299,7 @@ export default function SchedulePage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="Filtrar por status"
               className="bg-neutral-800/60 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none cursor-pointer hover:bg-neutral-800/80 transition-colors"
             >
               <option value="ALL">Qualquer Status</option>
