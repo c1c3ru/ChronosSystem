@@ -59,8 +59,8 @@ export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
       if (!context) return
 
       // Otimização: Downsampling
-      // Para QR codes, 400px de largura é mais que suficiente e economiza muita CPU
-      const maxDimension = 400
+      // Para QR codes, aumentamos para 800px para garantir leitura em iPhones (lentes wide/alta res)
+      const maxDimension = 800
       let scanWidth = video.videoWidth
       let scanHeight = video.videoHeight
 
@@ -113,7 +113,7 @@ export function useQRScanner({ onScan, enabled }: UseQRScannerProps) {
             context.drawImage(video, 0, 0, canvas.width, canvas.height)
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
             const code = jsQRRef.current(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: 'dontInvert',
+              inversionAttempts: 'attemptBoth',
             })
             if (code) qrData = code.data
           }
