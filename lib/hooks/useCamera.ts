@@ -91,9 +91,9 @@ export function useCamera({ onStreamStarted, onStreamStopped, onError }: UseCame
         }
 
         const constraints = [
-          {
-            video: { facingMode: { exact: mode }, width: { ideal: 1280 }, height: { ideal: 720 } },
-          },
+          // Removemos o 'exact: mode' como primeira opção pois em iPhones Pro (iOS 15+)
+          // isso força a lente ultra-angular que não consegue focar de perto.
+          // 'ideal: mode' permite ao Safari escolher a lente principal corretamente.
           {
             video: { facingMode: { ideal: mode }, width: { ideal: 1280 }, height: { ideal: 720 } },
           },
