@@ -15,8 +15,9 @@ export interface ClientSecureQRData {
 }
 
 // Converte string para array buffer
-function textToArrayBuffer(text: string): Uint8Array {
-  return new TextEncoder().encode(text)
+function textToArrayBuffer(text: string): ArrayBuffer {
+  const encoded = new TextEncoder().encode(text)
+  return encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength)
 }
 
 // Converte array buffer para base64url
