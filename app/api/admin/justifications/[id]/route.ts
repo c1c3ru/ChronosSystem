@@ -4,9 +4,11 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 // PATCH /api/admin/justifications/[id] - Aprovar/Rejeitar justificativa
+// DELETE /api/admin/justifications/[id] - Excluir justificativa individual
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
+
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: justificationId } = await params
@@ -23,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Atualizar justificativa no banco de dados
-    const justification = await prisma.justification.update({
+    await prisma.justification.update({
       where: { id: justificationId },
       data: {
         status,
@@ -49,6 +51,35 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     })
   } catch (error) {
     console.error('Erro ao atualizar justificativa:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id: justificationId } = await params
+    const session = await getServerSession(authOptions)
+
+    if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    await prisma.justification.delete({
+      where: { id: justificationId },
+    })
+
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: 'DELETE_JUSTIFICATION',
+        resource: 'JUSTIFICATION',
+        details: `Justificativa ${justificationId} excluída por ${session.user.name}`,
+      },
+    })
+
+    return NextResponse.json({ success: true, message: 'Justificativa excluída com sucesso' })
+  } catch (error) {
+    console.error('Erro ao excluir justificativa:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

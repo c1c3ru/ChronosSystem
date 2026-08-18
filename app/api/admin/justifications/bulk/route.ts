@@ -72,3 +72,59 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
+
+// DELETE /api/admin/justifications/bulk - Excluir justificativas em lote (selecionadas ou todas)
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { justificationIds, deleteAll } = body
+
+    let deletedCount = 0
+
+    if (deleteAll === true) {
+      // Excluir TODAS as justificativas
+      const result = await prisma.justification.deleteMany({})
+      deletedCount = result.count
+
+      await prisma.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'DELETE_ALL_JUSTIFICATIONS',
+          resource: 'JUSTIFICATION',
+          details: `Todas as justificativas excluídas por ${session.user.name} (${deletedCount} registros)`,
+        },
+      })
+    } else if (Array.isArray(justificationIds) && justificationIds.length > 0) {
+      // Excluir justificativas selecionadas
+      const result = await prisma.justification.deleteMany({
+        where: { id: { in: justificationIds } },
+      })
+      deletedCount = result.count
+
+      await prisma.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'DELETE_BULK_JUSTIFICATIONS',
+          resource: 'JUSTIFICATION',
+          details: `${deletedCount} justificativas excluídas por ${session.user.name}. IDs: ${justificationIds.join(', ')}`,
+        },
+      })
+    } else {
+      return NextResponse.json(
+        { error: 'Informe justificationIds ou deleteAll=true' },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json({ success: true, deletedCount })
+  } catch (error) {
+    console.error('Erro ao excluir justificativas em lote:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+  }
+}

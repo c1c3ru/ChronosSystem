@@ -23,6 +23,7 @@ import {
   CheckSquare,
   Square,
   ListChecks,
+  Trash2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -198,6 +199,80 @@ export default function JustificationsPage() {
     }
   }
 
+  const handleDeleteOne = async (id: string) => {
+    if (!confirm('Excluir esta justificativa permanentemente?')) return
+    try {
+      setActionLoading(true)
+      const res = await fetch(`/api/admin/justifications/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        loadJustifications()
+        setSelectedIds((prev) => prev.filter((i) => i !== id))
+        if (selectedJustification?.id === id) setSelectedJustification(null)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Erro ao excluir.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Erro interno.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return
+    if (!confirm(`Excluir permanentemente ${selectedIds.length} justificativas selecionadas?`)) return
+    try {
+      setActionLoading(true)
+      const res = await fetch('/api/admin/justifications/bulk', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ justificationIds: selectedIds }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedIds([])
+        loadJustifications()
+        alert(`${data.deletedCount} justificativas excluídas com sucesso.`)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Erro ao excluir.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Erro interno.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDeleteAll = async () => {
+    if (!confirm(`⚠️ ATENÇÃO: Isso excluirá TODOS os ${justifications.length} registros de justificativa permanentemente. Esta ação não pode ser desfeita!\n\nConfirmar exclusão total?`)) return
+    try {
+      setActionLoading(true)
+      const res = await fetch('/api/admin/justifications/bulk', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deleteAll: true }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedIds([])
+        loadJustifications()
+        alert(`${data.deletedCount} justificativas excluídas com sucesso.`)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Erro ao excluir tudo.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Erro interno.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const filteredJustifications = justifications.filter((justification) => {
     const matchesSearch =
       justification.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -305,6 +380,17 @@ export default function JustificationsPage() {
                 <p className="text-neutral-400">Gerenciar justificativas de atrasos e faltas</p>
               </div>
             </div>
+            {/* Excluir Todos — botão destrutivo no canto direito do header */}
+            <button
+              id="delete-all-justifications-btn"
+              onClick={handleDeleteAll}
+              disabled={actionLoading || justifications.length === 0}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-700/50 bg-red-900/20 hover:bg-red-700/30 hover:border-red-600/70 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Excluir todos os registros permanentemente"
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir Todos ({justifications.length})
+            </button>
           </div>
         </div>
       </div>
@@ -687,6 +773,15 @@ export default function JustificationsPage() {
                     <Check className="h-4 w-4 mr-2" />
                     Aprovar Lote
                   </Button>
+                  <button
+                    onClick={handleDeleteSelected}
+                    disabled={actionLoading}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-700/60 bg-red-900/30 hover:bg-red-700/40 text-red-400 hover:text-red-300 text-xs font-medium transition-all duration-200 disabled:opacity-40"
+                    title="Excluir selecionadas permanentemente"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Excluir Selecionadas
+                  </button>
                 </div>
               </div>
             )}
@@ -801,7 +896,7 @@ export default function JustificationsPage() {
                     </div>
 
                     {justification.status === 'PENDING' && (
-                      <div className="flex shrink-0">
+                      <div className="flex flex-col shrink-0 gap-2">
                         <Button
                           size="sm"
                           onClick={() => setSelectedJustification(justification)}
@@ -810,7 +905,27 @@ export default function JustificationsPage() {
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Analisar
                         </Button>
+                        <button
+                          onClick={() => handleDeleteOne(justification.id)}
+                          disabled={actionLoading}
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-700/40 bg-red-900/20 hover:bg-red-700/30 text-red-400 hover:text-red-300 text-xs font-medium transition-all duration-200 disabled:opacity-40"
+                          title="Excluir justificativa"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Excluir
+                        </button>
                       </div>
+                    )}
+                    {justification.status !== 'PENDING' && (
+                      <button
+                        onClick={() => handleDeleteOne(justification.id)}
+                        disabled={actionLoading}
+                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-700/40 bg-red-900/20 hover:bg-red-700/30 text-red-400 hover:text-red-300 text-xs font-medium transition-all duration-200 disabled:opacity-40 shrink-0"
+                        title="Excluir justificativa"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Excluir
+                      </button>
                     )}
                   </div>
                 </CardContent>
