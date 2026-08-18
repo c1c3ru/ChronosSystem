@@ -72,6 +72,16 @@ export default function JustificationsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const itemsPerPage = 10
 
+  // Limpar todos os filtros de uma vez
+  const clearFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('ALL')
+    setTypeFilter('ALL')
+    setCurrentPage(1)
+  }
+
+  const hasActiveFilters = searchTerm !== '' || statusFilter !== 'ALL' || typeFilter !== 'ALL'
+
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
 
@@ -377,6 +387,21 @@ export default function JustificationsPage() {
                   <option value="ABSENCE">Falta</option>
                 </select>
               </div>
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <div className="flex items-end">
+                  <button
+                    id="clear-filters-btn"
+                    onClick={clearFilters}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-700/50 hover:bg-red-500/20 border border-neutral-600 hover:border-red-500/50 text-neutral-400 hover:text-red-400 text-sm font-medium transition-all duration-200"
+                    title="Limpar todos os filtros"
+                  >
+                    <X className="h-4 w-4" />
+                    Limpar Filtros
+                  </button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

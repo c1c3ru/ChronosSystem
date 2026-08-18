@@ -356,12 +356,12 @@ export default function AdminPage() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <Link href="/admin/users/new">
+              <Link href="/admin/users/new" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-success/30 hover:border-success/50"
+                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-success/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-success/30 transition-colors">
                       <UserPlus className="h-8 w-8 text-success group-hover:scale-110 transition-transform" />
                     </div>
@@ -373,12 +373,12 @@ export default function AdminPage() {
                 </Card>
               </Link>
 
-              <Link href="/admin/users">
+              <Link href="/admin/users" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group hover:scale-105 transition-all duration-200 cursor-pointer"
+                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
                       <Users className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>
@@ -388,12 +388,12 @@ export default function AdminPage() {
                 </Card>
               </Link>
 
-              <Link href="/admin/machines">
+              <Link href="/admin/machines" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group hover:scale-105 transition-all duration-200 cursor-pointer"
+                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary-500/30 transition-colors">
                       <Monitor className="h-8 w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
                     </div>
@@ -403,12 +403,12 @@ export default function AdminPage() {
                 </Card>
               </Link>
 
-              <Link href="/admin/reports">
+              <Link href="/admin/reports" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group hover:scale-105 transition-all duration-200 cursor-pointer"
+                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-warning/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-warning/30 transition-colors">
                       <BarChart3 className="h-8 w-8 text-warning group-hover:scale-110 transition-transform" />
                     </div>
@@ -418,12 +418,12 @@ export default function AdminPage() {
                 </Card>
               </Link>
 
-              <Link href="/admin/schedule">
+              <Link href="/admin/schedule" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-primary/20 hover:border-primary/40"
+                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
                       <CalendarDays className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>

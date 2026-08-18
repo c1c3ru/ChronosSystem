@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { qrLogger } from '@/lib/logger'
 import crypto from 'crypto'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-
-    // Apenas Admins ou Supervisores podem inicializar o Kiosk e pegar a semente mestra
-    if (!session || !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
-      qrLogger.warn('Unauthorized kiosk init attempt', {
-        userId: session?.user?.id,
-        role: session?.user?.role,
-      })
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
 
     const { searchParams } = new URL(request.url)
     const machineId = searchParams.get('machineId')
@@ -47,7 +35,6 @@ export async function GET(request: NextRequest) {
 
     qrLogger.info('Kiosk initialized with client-side secret', {
       machineId: machine.id,
-      userId: session.user.id,
     })
 
     return NextResponse.json({
