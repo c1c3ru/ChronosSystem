@@ -233,11 +233,11 @@ export default function KioskPage() {
     }
   }, [machineInfo.id])
 
-  // Buscar atividade inicial e configurar polling a cada 5 minutos
+  // Buscar atividade inicial e configurar polling a cada 5 segundos
   useEffect(() => {
     fetchRecentActivity()
 
-    const activityTimer = setInterval(fetchRecentActivity, 5 * 60 * 1000) // 5 minutos
+    const activityTimer = setInterval(fetchRecentActivity, 5 * 1000) // 5 segundos
 
     return () => clearInterval(activityTimer)
   }, [fetchRecentActivity])
