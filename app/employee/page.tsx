@@ -412,6 +412,7 @@ export default function EmployeePage() {
             const date = new Date(result.record.timestamp)
             if (Number.isNaN(date.getTime())) return '--:--'
             return date.toLocaleTimeString('pt-BR', {
+              timeZone: 'UTC',
               hour: '2-digit',
               minute: '2-digit',
             })
@@ -745,6 +746,7 @@ export default function EmployeePage() {
                             const date = new Date(workStatus.lastRecord.timestamp)
                             if (Number.isNaN(date.getTime())) return '--:--'
                             return date.toLocaleTimeString('pt-BR', {
+                              timeZone: 'UTC',
                               hour: '2-digit',
                               minute: '2-digit',
                             })
@@ -1468,6 +1470,7 @@ export default function EmployeePage() {
                                         const date = new Date(record.entry)
                                         if (Number.isNaN(date.getTime())) return '--:--'
                                         return date.toLocaleTimeString('pt-BR', {
+                                          timeZone: 'UTC',
                                           hour: '2-digit',
                                           minute: '2-digit',
                                         })
@@ -1488,6 +1491,7 @@ export default function EmployeePage() {
                                         const date = new Date(record.exit)
                                         if (Number.isNaN(date.getTime())) return '--:--'
                                         return date.toLocaleTimeString('pt-BR', {
+                                          timeZone: 'UTC',
                                           hour: '2-digit',
                                           minute: '2-digit',
                                         })

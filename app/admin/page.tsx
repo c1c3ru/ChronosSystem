@@ -510,6 +510,7 @@ export default function AdminPage() {
                                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                                 Entrou às{' '}
                                 {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', {
+                                  timeZone: 'UTC',
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}
@@ -519,6 +520,7 @@ export default function AdminPage() {
                                 <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                                 Saída às{' '}
                                 {new Date(intern.lastStatus.timestamp).toLocaleTimeString('pt-BR', {
+                                  timeZone: 'UTC',
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}

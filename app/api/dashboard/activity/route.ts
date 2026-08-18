@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 // GET /api/dashboard/activity - Atividade recente
 
@@ -73,8 +74,8 @@ export async function GET(request: NextRequest) {
 
 // Função auxiliar para formatar tempo relativo
 function formatTimeAgo(date: Date): string {
-  const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  const now = getNowInFortaleza()
+  const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000))
 
   if (diffInSeconds < 60) {
     return 'há poucos segundos'

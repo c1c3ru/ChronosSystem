@@ -230,6 +230,7 @@ export default function KioskPage() {
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('pt-BR', {
+      timeZone: 'UTC',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -428,6 +429,7 @@ export default function KioskPage() {
                           const date = new Date(scan.timestamp)
                           if (Number.isNaN(date.getTime())) return '--:--'
                           return date.toLocaleTimeString('pt-BR', {
+                            timeZone: 'UTC',
                             hour: '2-digit',
                             minute: '2-digit',
                           })

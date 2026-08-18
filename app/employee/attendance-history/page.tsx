@@ -365,6 +365,7 @@ export default function AttendanceHistoryPage() {
                                           const date = new Date(entry.timestamp)
                                           if (Number.isNaN(date.getTime())) return '--:--'
                                           return date.toLocaleTimeString('pt-BR', {
+                                            timeZone: 'UTC',
                                             hour: '2-digit',
                                             minute: '2-digit',
                                           })
@@ -411,6 +412,7 @@ export default function AttendanceHistoryPage() {
                                           const date = new Date(exit.timestamp)
                                           if (Number.isNaN(date.getTime())) return '--:--'
                                           return date.toLocaleTimeString('pt-BR', {
+                                            timeZone: 'UTC',
                                             hour: '2-digit',
                                             minute: '2-digit',
                                           })

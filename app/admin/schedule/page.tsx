@@ -400,7 +400,7 @@ export default function SchedulePage() {
                               </p>
                               <p className="text-[10px] text-neutral-500 truncate">
                                 {emp.lastRecord
-                                  ? `Último registro: ${new Date(emp.lastRecord.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                                  ? `Último registro: ${new Date(emp.lastRecord.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit' })}`
                                   : emp.email}
                               </p>
                             </div>
