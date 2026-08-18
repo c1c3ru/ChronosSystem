@@ -34,13 +34,13 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET
 
 if (!GOOGLE_CLIENT_ID) {
-  throw new Error('GOOGLE_CLIENT_ID environment variable is required')
+  console.warn('⚠️ GOOGLE_CLIENT_ID environment variable is missing. Google Login will not work.')
 }
 if (!GOOGLE_CLIENT_SECRET) {
-  throw new Error('GOOGLE_CLIENT_SECRET environment variable is required')
+  console.warn('⚠️ GOOGLE_CLIENT_SECRET environment variable is missing. Google Login will not work.')
 }
 if (!NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET environment variable is required')
+  console.warn('⚠️ NEXTAUTH_SECRET environment variable is missing. Sessions may fail in production.')
 }
 
 export const authOptions: NextAuthOptions = {
@@ -88,8 +88,8 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     GoogleProvider({
-      clientId: GOOGLE_CLIENT_ID!,
-      clientSecret: GOOGLE_CLIENT_SECRET!,
+      clientId: GOOGLE_CLIENT_ID || '',
+      clientSecret: GOOGLE_CLIENT_SECRET || '',
       // Permite vincular conta Google ao email já cadastrado via credenciais
       // Seguro para emails institucionais IFCE (@ifce.edu.br)
       allowDangerousEmailAccountLinking: true,
