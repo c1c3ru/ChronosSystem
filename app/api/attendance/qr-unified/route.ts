@@ -375,7 +375,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         machineId: machineId,
         type: recordType,
-        timestamp: currentTime,
+        timestamp: getNowInFortaleza(),
         qrData: qrData,
         hash: recordHash,
         prevHash: lastRecord?.hash,

@@ -208,21 +208,7 @@ export default function KioskPage() {
           })
         )
 
-        const today = new Date()
-        const todayRecords = normalized.filter((scan: { timestamp: string }) => {
-          try {
-            const scanDate = new Date(scan.timestamp)
-            return (
-              scanDate.getDate() === today.getDate() &&
-              scanDate.getMonth() === today.getMonth() &&
-              scanDate.getFullYear() === today.getFullYear()
-            )
-          } catch {
-            return false
-          }
-        })
-
-        setRecentScans(todayRecords)
+        setRecentScans(normalized)
       } else {
         console.error('Erro ao buscar atividade:', data.error)
         setRecentScans([])
