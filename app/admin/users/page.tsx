@@ -252,7 +252,9 @@ export default function UsersPage() {
                     <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="font-semibold text-white break-words min-w-0">
-                          {user.name}
+                          <Link href={`/admin/users/${user.id}`} className="hover:text-primary transition-colors hover:underline">
+                            {user.name}
+                          </Link>
                         </h3>
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
