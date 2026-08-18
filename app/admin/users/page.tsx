@@ -61,7 +61,8 @@ export default function UsersPage() {
   const loadUsers = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/users')
+      // limit=500 garante que todos os usuários sejam retornados sem paginação
+      const response = await fetch('/api/users?limit=500&page=1')
 
       if (response.ok) {
         const data = await response.json()
@@ -127,11 +128,17 @@ export default function UsersPage() {
 
   const filteredUsers = (users || []).filter((user) => {
     const search = searchTerm.trim().toLowerCase()
-    const name = user.name || ''
-    const email = user.email || ''
+    const name = (user.name || '').toLowerCase()
+    const email = (user.email || '').toLowerCase()
+    const department = (user.department || '').toLowerCase()
+    const siape = (user.siapeNumber || '').toLowerCase()
 
     const matchesSearch =
-      search === '' || name.toLowerCase().includes(search) || email.toLowerCase().includes(search)
+      search === '' ||
+      name.includes(search) ||
+      email.includes(search) ||
+      department.includes(search) ||
+      siape.includes(search)
 
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
