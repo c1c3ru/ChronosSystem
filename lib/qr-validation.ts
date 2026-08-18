@@ -61,7 +61,12 @@ export function validateQRFormat(qrData: string): QRValidationResult {
         const payloadJson = decodificarBase64Url(partes[0])
         const cargaUtil = JSON.parse(payloadJson)
 
-        if (cargaUtil.machineId && cargaUtil.nonce && cargaUtil.timestamp) {
+        // O novo formato seguro (v1.1-client) usa window e version em vez de nonce
+        if (
+          cargaUtil.machineId &&
+          cargaUtil.timestamp &&
+          (cargaUtil.nonce || (cargaUtil.window && cargaUtil.version))
+        ) {
           const avisos: string[] = []
 
           // Verificar expiração no payload
