@@ -388,20 +388,23 @@ export default function JustificationsPage() {
                 </select>
               </div>
 
-              {/* Clear Filters Button */}
-              {hasActiveFilters && (
-                <div className="flex items-end">
-                  <button
-                    id="clear-filters-btn"
-                    onClick={clearFilters}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-700/50 hover:bg-red-500/20 border border-neutral-600 hover:border-red-500/50 text-neutral-400 hover:text-red-400 text-sm font-medium transition-all duration-200"
-                    title="Limpar todos os filtros"
-                  >
-                    <X className="h-4 w-4" />
-                    Limpar Filtros
-                  </button>
-                </div>
-              )}
+              {/* Clear Filters Button — sempre visível, desabilitado quando sem filtro */}
+              <div className="flex items-end">
+                <button
+                  id="clear-filters-btn"
+                  onClick={clearFilters}
+                  disabled={!hasActiveFilters}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                    hasActiveFilters
+                      ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/50 hover:border-red-500/70 text-red-400 hover:text-red-300 cursor-pointer'
+                      : 'bg-neutral-800/30 border-neutral-700/50 text-neutral-600 cursor-not-allowed opacity-50'
+                  }`}
+                  title={hasActiveFilters ? 'Limpar todos os filtros' : 'Nenhum filtro ativo'}
+                >
+                  <X className="h-4 w-4" />
+                  Limpar Filtros
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>
