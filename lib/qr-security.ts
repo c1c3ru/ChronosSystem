@@ -126,6 +126,71 @@ export function validateSecureQR(qrData: string): {
 }
 
 /**
+ * Valida um QR code gerado no Client-Side via TOTP
+ */
+export function validateClientSecureQR(qrData: string): {
+  isValid: boolean
+  payload?: QRPayload & { window?: number }
+  error?: string
+} {
+  try {
+    const secret = getSecret()
+
+    const parts = qrData.split('.')
+    if (parts.length !== 2) {
+      return { isValid: false, error: 'Formato de QR inválido' }
+    }
+
+    const [payloadBase64, receivedSignature] = parts
+
+    const payloadJson = Buffer.from(payloadBase64, 'base64url').toString('utf8')
+    const payload = JSON.parse(payloadJson)
+
+    if (!payload.machineId || !payload.window) {
+      return { isValid: false, error: 'Payload incompleto' }
+    }
+
+    // Derivar o machineSecret igual fizemos no endpoint /api/kiosk/init
+    const machineSecretHex = crypto
+      .createHmac('sha256', secret)
+      .update(payload.machineId)
+      .digest('hex')
+
+    const machineSecretBuffer = Buffer.from(machineSecretHex, 'hex')
+
+    // Recalcular assinatura com o machineSecret
+    const expectedSignature = crypto
+      .createHmac('sha256', machineSecretBuffer)
+      .update(payloadBase64)
+      .digest('base64url')
+
+    const expectedBuffer = Buffer.from(expectedSignature, 'base64url')
+    const receivedBuffer = Buffer.from(receivedSignature, 'base64url')
+
+    if (
+      expectedBuffer.length !== receivedBuffer.length ||
+      !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+    ) {
+      return { isValid: false, error: 'Assinatura inválida' }
+    }
+
+    // Validar a janela de tempo (window)
+    const now = Date.now()
+    const expiresIn = payload.expiresIn || 60
+    const currentWindow = Math.floor(now / (expiresIn * 1000))
+
+    // Aceitamos a janela atual ou a janela imediatamente anterior (para tolerância de rede/delay)
+    if (payload.window !== currentWindow && payload.window !== currentWindow - 1) {
+      return { isValid: false, error: 'QR code expirado ou com relógio dessincronizado' }
+    }
+
+    return { isValid: true, payload }
+  } catch (error) {
+    return { isValid: false, error: 'Erro interno ao validar QR TOTP' }
+  }
+}
+
+/**
  * Gera um nonce único para anti-replay
  */
 export function generateNonce(): string {

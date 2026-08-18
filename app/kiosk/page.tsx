@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import QRCode from 'qrcode'
 import Image from 'next/image'
+import { generateClientSecureQR } from '@/lib/client-crypto'
 
 interface QRData {
   qrData: string
@@ -47,6 +48,7 @@ export default function KioskPage() {
   const [recentScans, setRecentScans] = useState<RecentScan[]>([])
   const [machines, setMachines] = useState<Machine[]>([])
   const [selectedMachineId, setSelectedMachineId] = useState<string>('')
+  const [machineSecret, setMachineSecret] = useState<string | null>(null)
   const [machineInfo, setMachineInfo] = useState({
     name: 'Carregando...',
     location: 'Aguarde...',
@@ -63,12 +65,7 @@ export default function KioskPage() {
           const machinesList = data.machines || []
           setMachines(machinesList)
           if (machinesList.length > 0) {
-            setSelectedMachineId(machinesList[0].id)
-            setMachineInfo({
-              id: machinesList[0].id,
-              name: machinesList[0].name,
-              location: machinesList[0].location,
-            })
+            handleMachineChange(machinesList[0].id, machinesList)
           }
         }
       } catch (error) {
@@ -91,65 +88,39 @@ export default function KioskPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Gerar QR code dinâmico
+  // Gerar QR code dinâmico usando Web Crypto API Client-Side
   const generateQRCode = useCallback(async () => {
+    if (!machineInfo.id || !machineSecret) return
+
     setQrError(null)
     try {
-      const url = new URL('/api/kiosk/qr', window.location.origin)
-      if (machineInfo.id) {
-        url.searchParams.append('machineId', machineInfo.id)
-      }
+      // Geração 100% Client-Side TOTP! Nenhuma requisição de rede aqui!
+      const data = await generateClientSecureQR(machineInfo.id, machineSecret, 60)
 
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      // Gerar imagem do QR code
+      const qrUrl = await QRCode.toDataURL(data.fullQR, {
+        width: 320,
+        margin: 2,
+        color: {
+          dark: '#22c55e',
+          light: '#ffffff',
         },
+        errorCorrectionLevel: 'M',
       })
 
-      if (response.ok) {
-        const text = await response.text()
-
-        try {
-          const data: QRData = JSON.parse(text)
-          setQrData(data)
-
-          // Gerar imagem do QR code
-          const qrUrl = await QRCode.toDataURL(data.qrData, {
-            width: 320,
-            margin: 2,
-            color: {
-              dark: '#22c55e',
-              light: '#ffffff',
-            },
-            errorCorrectionLevel: 'M',
-          })
-
-          setQrCodeUrl(qrUrl)
-          setQrError(null)
-          setTimeLeft(data.validFor)
-        } catch (parseError) {
-          console.error('Erro ao fazer parse do JSON:', parseError)
-          setQrCodeUrl('')
-          setQrError('Erro ao processar resposta do servidor. Contate o administrador.')
-        }
-      } else {
-        const errData = await response.json().catch(() => ({}))
-        const msg = errData?.error || `Erro do servidor (${response.status})`
-        console.error('Erro ao gerar QR code:', msg)
-        setQrCodeUrl('')
-        setQrError(msg)
-      }
+      setQrCodeUrl(qrUrl)
+      setQrError(null)
+      setTimeLeft(60) // Expira em 60s
     } catch (error) {
-      console.error('Erro ao gerar QR code:', error)
+      console.error('Erro ao gerar QR code localmente:', error)
       setQrCodeUrl('')
-      setQrError('Falha de conexão ao gerar QR code. Verifique a rede.')
+      setQrError('Falha de segurança ao gerar QR code. Verifique as credenciais.')
     }
-  }, [machineInfo.id])
+  }, [machineInfo.id, machineSecret])
 
-  // Função para mudar de máquina
-  const handleMachineChange = (machineId: string) => {
-    const selected = machines.find((m) => m.id === machineId)
+  // Função para mudar de máquina e obter a semente mestra
+  const handleMachineChange = async (machineId: string, currentMachines = machines) => {
+    const selected = currentMachines.find((m) => m.id === machineId)
     if (selected) {
       setSelectedMachineId(machineId)
       setMachineInfo({
@@ -157,6 +128,20 @@ export default function KioskPage() {
         name: selected.name,
         location: selected.location,
       })
+
+      try {
+        const initResponse = await fetch(`/api/kiosk/init?machineId=${machineId}`)
+        if (initResponse.ok) {
+          const initData = await initResponse.json()
+          setMachineSecret(initData.machineSecret)
+        } else {
+          setQrError('Erro ao inicializar Kiosk. Não autorizado ou máquina inativa.')
+          setMachineSecret(null)
+        }
+      } catch (e) {
+        setQrError('Falha ao inicializar o terminal com o servidor.')
+        setMachineSecret(null)
+      }
     }
   }
 
@@ -248,11 +233,11 @@ export default function KioskPage() {
     }
   }, [machineInfo.id])
 
-  // Buscar atividade inicial e configurar polling a cada 30 segundos
+  // Buscar atividade inicial e configurar polling a cada 5 minutos
   useEffect(() => {
     fetchRecentActivity()
 
-    const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
+    const activityTimer = setInterval(fetchRecentActivity, 5 * 60 * 1000) // 5 minutos
 
     return () => clearInterval(activityTimer)
   }, [fetchRecentActivity])

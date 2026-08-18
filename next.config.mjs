@@ -1,12 +1,12 @@
-import createNextIntlPlugin from 'next-intl/plugin';
+import createNextIntlPlugin from 'next-intl/plugin'
 
-const withNextIntl = createNextIntlPlugin('./i18n.ts');
+const withNextIntl = createNextIntlPlugin('./i18n.ts')
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === 'production'
 
 function buildCsp() {
   // 'unsafe-eval' é necessário para o WebAssembly do @react-pdf/renderer
-  const scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'wasm-unsafe-eval'"];
+  const scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'wasm-unsafe-eval'"]
 
   return [
     `default-src 'self'`,
@@ -23,7 +23,7 @@ function buildCsp() {
     `connect-src 'self' https: data: blob:`,
     `frame-src 'self' blob: data:`,
     `upgrade-insecure-requests`,
-  ].join('; ');
+  ].join('; ')
 }
 
 /** @type {import('next').NextConfig} */
@@ -88,20 +88,20 @@ const nextConfig = {
           },
           {
             key: 'X-Content-Type-Options',
-            value: 'nosniff'
+            value: 'nosniff',
           },
           {
             key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin',
           },
           {
             key: 'Strict-Transport-Security',
             value: isProd ? 'max-age=31536000; includeSubDomains; preload' : 'max-age=0',
-          }
+          },
         ],
       },
     ]
   },
 }
 
-export default withNextIntl(nextConfig);
+export default withNextIntl(nextConfig)

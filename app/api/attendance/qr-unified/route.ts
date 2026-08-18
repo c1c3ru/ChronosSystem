@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
-import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
+import { validateClientSecureQR, generateRecordHash } from '@/lib/qr-security'
 import { rateLimiters } from '@/lib/rate-limit'
 import { apiLogger } from '@/lib/logger'
 import {
@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
     let isSecureQR = false
     let qrEvent: Prisma.QrEventGetPayload<{ include: { machine: true } }> | null = null
 
-    // ESTRATÉGIA ÚNICA E SEGURA: Validar como QR seguro (HMAC-SHA256)
-    const secureValidation = validateSecureQR(qrData)
+    // ESTRATÉGIA ÚNICA E SEGURA: Validar como QR seguro TOTP Client-Side (HMAC-SHA256)
+    const secureValidation = validateClientSecureQR(qrData)
 
     if (!secureValidation.isValid || !secureValidation.payload) {
       apiLogger.security('Insecure or invalid QR format attempted', {
@@ -132,69 +132,8 @@ export async function POST(request: NextRequest) {
 
     isSecureQR = true
     const machineId = secureValidation.payload.machineId
-    const { nonce } = secureValidation.payload
-
-    // VERIFICAÇÃO ATÔMICA: Marcar como usado E verificar se já estava usado em um único passo
-    // Isso evita race conditions (ataques de replay simultâneos)
-    try {
-      qrEvent = await prisma.qrEvent.update({
-        where: {
-          nonce: nonce,
-          used: false, // Só permite atualizar se não foi usado
-        },
-        data: {
-          used: true,
-          usedAt: new Date(),
-          usedBy: session.user.id,
-        },
-        include: { machine: true },
-      })
-    } catch (error: unknown) {
-      // Se falhar, é porque o nonce não existe ou já foi usado (P2025 no Prisma)
-      apiLogger.warn('Replay attack or invalid nonce detected', {
-        userId: session.user.id,
-        nonce,
-      })
-
-      return NextResponse.json(
-        {
-          error: 'Este QR code já foi utilizado ou é inválido. Gere um novo QR na tela da máquina.',
-          code: 'QR_REPLAY_DETECTED',
-        },
-        { status: 400 }
-      )
-    }
-
-    // Validações adicionais de negócio no QR recuperado
-    if (qrEvent.machineId !== machineId) {
-      return NextResponse.json(
-        {
-          error: 'QR code inválido para esta máquina',
-          code: 'INVALID_MACHINE',
-        },
-        { status: 400 }
-      )
-    }
-
-    if (new Date() > qrEvent.expiresAt) {
-      return NextResponse.json(
-        {
-          error: 'QR code expirado. Gere um novo.',
-          code: 'QR_EXPIRED',
-        },
-        { status: 400 }
-      )
-    }
-
-    if (!qrEvent.machine.isActive) {
-      return NextResponse.json(
-        {
-          error: 'Máquina não está ativa',
-          code: 'MACHINE_INACTIVE',
-        },
-        { status: 400 }
-      )
-    }
+    const parts = qrData.split('.')
+    const signatureNonce = parts[1]
 
     // Verificar se a máquina existe e está ativa
     const machine = await prisma.machine.findFirst({
@@ -229,6 +168,35 @@ export async function POST(request: NextRequest) {
           code: 'MACHINE_NOT_FOUND',
         },
         { status: 404 }
+      )
+    }
+
+    // VERIFICAÇÃO ATÔMICA: Criar QrEvent para garantir que essa assinatura (nonce) não seja usada de novo
+    // Como 'nonce' é único (@unique) no banco, se houver replay attack a tentativa de create falhará (P2002)
+    try {
+      await prisma.qrEvent.create({
+        data: {
+          machineId: machine.id,
+          qrData: qrData,
+          nonce: signatureNonce,
+          expiresAt: new Date(Date.now() + 60 * 1000), // Mantido apenas por conformidade do schema
+          used: true,
+          usedAt: new Date(),
+          usedBy: session.user.id,
+        },
+      })
+    } catch (error: unknown) {
+      apiLogger.warn('Replay attack detected or duplicate QR scan', {
+        userId: session.user.id,
+        nonce: signatureNonce,
+      })
+
+      return NextResponse.json(
+        {
+          error: 'Este QR code já foi utilizado. Aguarde a tela gerar um novo código.',
+          code: 'QR_REPLAY_DETECTED',
+        },
+        { status: 400 }
       )
     }
 

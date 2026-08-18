@@ -12,7 +12,7 @@
     /* Primary brand colors - Royal Green/Emerald */
     --primary: 16 185 129; /* Emerald-500 */
     --primary-foreground: 255 255 255;
-    
+
     /* Secondary - deep midnight */
     --secondary: 15 23 42; /* Slate-900 */
     --secondary-foreground: 241 245 249;
@@ -57,8 +57,10 @@
     --radius: 0.5rem;
     --shadow-color: 0 0 0;
     --shadow-elevation-low: 0 1px 2px 0 rgb(var(--shadow-color) / 0.05);
-    --shadow-elevation-medium: 0 4px 6px -1px rgb(var(--shadow-color) / 0.1), 0 2px 4px -2px rgb(var(--shadow-color) / 0.1);
-    --shadow-elevation-high: 0 10px 15px -3px rgb(var(--shadow-color) / 0.1), 0 4px 6px -4px rgb(var(--shadow-color) / 0.1);
+    --shadow-elevation-medium:
+      0 4px 6px -1px rgb(var(--shadow-color) / 0.1), 0 2px 4px -2px rgb(var(--shadow-color) / 0.1);
+    --shadow-elevation-high:
+      0 10px 15px -3px rgb(var(--shadow-color) / 0.1), 0 4px 6px -4px rgb(var(--shadow-color) / 0.1);
   }
 
   /* Light theme (if needed in future) */
@@ -93,7 +95,9 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 
   /* Typography improvements */
@@ -143,7 +147,6 @@
 
 /* === COMPONENT STYLES === */
 @layer components {
-
   /* Button variants */
   .btn {
     @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
@@ -184,7 +187,7 @@
   }
 
   /* File input specific styles */
-  .input[type="file"] {
+  .input[type='file'] {
     border: 0;
     background: transparent;
     font-size: 0.875rem;
@@ -215,9 +218,9 @@
   }
 
   .gradient-mesh {
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(160, 84%, 39%, 0.15) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(200, 100%, 50%, 0.1) 0, transparent 50%), 
+    background-image:
+      radial-gradient(at 0% 0%, hsla(160, 84%, 39%, 0.15) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(200, 100%, 50%, 0.1) 0, transparent 50%),
       radial-gradient(at 100% 0%, hsla(160, 84%, 39%, 0.15) 0, transparent 50%);
   }
 
@@ -383,10 +386,12 @@
 
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(to right,
-      hsl(var(--muted)) 0%,
-      hsl(var(--muted-foreground) / 0.1) 50%,
-      hsl(var(--muted)) 100%);
+  background: linear-gradient(
+    to right,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
   background-size: 1000px 100%;
 }
 
@@ -399,7 +404,6 @@
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -464,7 +468,7 @@
   display: none !important;
 }
 
-#qr-reader input[type="file"] {
+#qr-reader input[type='file'] {
   display: none !important;
 }
 
@@ -532,11 +536,11 @@
 }
 
 /* Hide only very specific technical text elements */
-#qr-reader span[title*="Powered by"] {
+#qr-reader span[title*='Powered by'] {
   display: none !important;
 }
 
-#qr-reader div[style*="text-align: center"]>span:last-child {
+#qr-reader div[style*='text-align: center'] > span:last-child {
   display: none !important;
 }
 
@@ -591,7 +595,6 @@
 
 /* Pulse border animation for form highlight */
 @keyframes pulse-border {
-
   0%,
   100% {
     border-color: rgba(34, 197, 94, 0.5);

@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
@@ -23,13 +23,13 @@ module.exports = {
     // === DESIGN TOKENS INTEGRATION ===
     colors: {
       // Semantic colors using CSS variables for theme switching
-      background: "rgb(var(--background) / <alpha-value>)",
-      foreground: "rgb(var(--foreground) / <alpha-value>)",
-      
+      background: 'rgb(var(--background) / <alpha-value>)',
+      foreground: 'rgb(var(--foreground) / <alpha-value>)',
+
       // Primary palette
       primary: {
         50: '#f0fdf4',
-        100: '#dcfce7', 
+        100: '#dcfce7',
         200: '#bbf7d0',
         300: '#86efac',
         400: '#4ade80',
@@ -40,10 +40,10 @@ module.exports = {
         900: '#14532d',
         950: '#052e16',
         DEFAULT: '#22c55e',
-        foreground: '#ffffff'
+        foreground: '#ffffff',
       },
 
-      // Secondary palette  
+      // Secondary palette
       secondary: {
         50: '#eff6ff',
         100: '#dbeafe',
@@ -57,7 +57,7 @@ module.exports = {
         900: '#1e3a8a',
         950: '#172554',
         DEFAULT: '#1e293b',
-        foreground: '#f1f5f9'
+        foreground: '#f1f5f9',
       },
 
       // Neutral/Gray scale
@@ -73,7 +73,7 @@ module.exports = {
         700: '#334155',
         800: '#1e293b',
         900: '#0f172a',
-        950: '#020617'
+        950: '#020617',
       },
 
       // Semantic colors
@@ -82,28 +82,28 @@ module.exports = {
         500: '#22c55e',
         600: '#16a34a',
         700: '#15803d',
-        DEFAULT: '#22c55e'
+        DEFAULT: '#22c55e',
       },
       warning: {
         50: '#fffbeb',
         500: '#f59e0b',
         600: '#d97706',
         700: '#b45309',
-        DEFAULT: '#f59e0b'
+        DEFAULT: '#f59e0b',
       },
       error: {
         50: '#fef2f2',
         500: '#ef4444',
         600: '#dc2626',
         700: '#b91c1c',
-        DEFAULT: '#ef4444'
+        DEFAULT: '#ef4444',
       },
       info: {
         50: '#eff6ff',
         500: '#3b82f6',
         600: '#2563eb',
         700: '#1d4ed8',
-        DEFAULT: '#3b82f6'
+        DEFAULT: '#3b82f6',
       },
 
       // Component-specific colors
@@ -112,34 +112,34 @@ module.exports = {
       ring: '#22c55e',
       muted: {
         DEFAULT: '#1e293b',
-        foreground: '#94a3b8'
+        foreground: '#94a3b8',
       },
       accent: {
         DEFAULT: '#1e293b',
-        foreground: '#f1f5f9'
+        foreground: '#f1f5f9',
       },
       popover: {
         DEFAULT: '#0f172a',
-        foreground: '#f1f5f9'
+        foreground: '#f1f5f9',
       },
       card: {
         DEFAULT: '#1e293b',
-        foreground: '#f1f5f9'
+        foreground: '#f1f5f9',
       },
       destructive: {
         DEFAULT: '#ef4444',
-        foreground: '#ffffff'
+        foreground: '#ffffff',
       },
       transparent: 'transparent',
       white: '#ffffff',
-      black: '#000000'
+      black: '#000000',
     },
 
     // Typography with design tokens
     fontFamily: {
       sans: ['Inter', 'system-ui', 'sans-serif'],
       mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
-      display: ['Cal Sans', 'Inter', 'sans-serif']
+      display: ['Cal Sans', 'Inter', 'sans-serif'],
     },
 
     fontSize: {
@@ -152,7 +152,7 @@ module.exports = {
       '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
       '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
       '5xl': ['3rem', { lineHeight: '1' }],
-      '6xl': ['3.75rem', { lineHeight: '1' }]
+      '6xl': ['3.75rem', { lineHeight: '1' }],
     },
 
     // Spacing system
@@ -174,7 +174,7 @@ module.exports = {
       40: '10rem',
       48: '12rem',
       56: '14rem',
-      64: '16rem'
+      64: '16rem',
     },
 
     // Border radius
@@ -187,7 +187,7 @@ module.exports = {
       xl: '0.75rem',
       '2xl': '1rem',
       '3xl': '1.5rem',
-      full: '9999px'
+      full: '9999px',
     },
 
     // Box shadows
@@ -200,7 +200,7 @@ module.exports = {
       '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
       inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
       glow: '0 0 20px rgb(34 197 94 / 0.3)',
-      none: 'none'
+      none: 'none',
     },
 
     // Container
@@ -219,70 +219,72 @@ module.exports = {
         lg: '1024px',
         xl: '1280px',
         '2xl': '1400px',
-      }
+      },
     },
 
     extend: {
       // Animation keyframes
       keyframes: {
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" }
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        "slide-in": {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(0)" }
+        'slide-in': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
         },
-        "scale-in": {
-          "0%": { transform: "scale(0.95)", opacity: "0" },
-          "100%": { transform: "scale(1)", opacity: "1" }
+        'scale-in': {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
-        "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px rgb(34 197 94 / 0.3)" },
-          "50%": { boxShadow: "0 0 30px rgb(34 197 94 / 0.5)" }
-        }
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 20px rgb(34 197 94 / 0.3)' },
+          '50%': { boxShadow: '0 0 30px rgb(34 197 94 / 0.5)' },
+        },
       },
 
       // Animations
       animation: {
-        "fade-in": "fade-in 0.3s ease-out",
-        "slide-in": "slide-in 0.3s ease-out",
-        "scale-in": "scale-in 0.2s ease-out",
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite"
+        'fade-in': 'fade-in 0.3s ease-out',
+        'slide-in': 'slide-in 0.3s ease-out',
+        'scale-in': 'scale-in 0.2s ease-out',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
       },
 
       // Z-index scale
       zIndex: {
-        'hide': '-1',
-        'auto': 'auto',
-        'base': '0',
-        'docked': '10',
-        'dropdown': '1000',
-        'sticky': '1100',
-        'banner': '1200',
-        'overlay': '1300',
-        'modal': '1400',
-        'popover': '1500',
-        'skipLink': '1600',
-        'toast': '1700',
-        'tooltip': '1800'
-      }
-    }
+        hide: '-1',
+        auto: 'auto',
+        base: '0',
+        docked: '10',
+        dropdown: '1000',
+        sticky: '1100',
+        banner: '1200',
+        overlay: '1300',
+        modal: '1400',
+        popover: '1500',
+        skipLink: '1600',
+        toast: '1700',
+        tooltip: '1800',
+      },
+    },
   },
   plugins: [
-    require("tailwindcss-animate"), 
-    require("@tailwindcss/forms"),
+    require('tailwindcss-animate'),
+    require('@tailwindcss/forms'),
     // Component classes using design tokens
-    function({ addComponents, theme }) {
+    function ({ addComponents, theme }) {
       const buttons = {
         '.btn': {
-          '@apply inline-flex items-center justify-center rounded-lg font-semibold transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed': {},
+          '@apply inline-flex items-center justify-center rounded-lg font-semibold transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed':
+            {},
         },
         '.btn-primary': {
           '@apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700': {},
         },
         '.btn-secondary': {
-          '@apply bg-neutral-800 text-neutral-100 border border-neutral-600 hover:bg-neutral-700 active:bg-neutral-600': {},
+          '@apply bg-neutral-800 text-neutral-100 border border-neutral-600 hover:bg-neutral-700 active:bg-neutral-600':
+            {},
         },
         '.btn-ghost': {
           '@apply bg-transparent text-neutral-300 hover:bg-neutral-800 active:bg-neutral-700': {},
@@ -309,7 +311,8 @@ module.exports = {
           '@apply rounded-lg border border-neutral-700 bg-neutral-800 shadow-xl': {},
         },
         '.card-glass': {
-          '@apply rounded-lg border border-neutral-700 border-opacity-30 bg-neutral-900 bg-opacity-20 backdrop-blur-md shadow-lg': {},
+          '@apply rounded-lg border border-neutral-700 border-opacity-30 bg-neutral-900 bg-opacity-20 backdrop-blur-md shadow-lg':
+            {},
         },
       }
 
@@ -336,11 +339,12 @@ module.exports = {
 
       const inputs = {
         '.input': {
-          '@apply rounded-lg border border-neutral-600 bg-neutral-900 bg-opacity-50 px-4 py-2 text-neutral-100 placeholder-neutral-400 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500': {},
+          '@apply rounded-lg border border-neutral-600 bg-neutral-900 bg-opacity-50 px-4 py-2 text-neutral-100 placeholder-neutral-400 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500':
+            {},
         },
       }
 
       addComponents({ ...buttons, ...cards, ...badges, ...inputs })
-    }
+    },
   ],
 }
