@@ -229,8 +229,8 @@ export default function AdminPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-2 sm:space-x-4">
               <Link
-                href="/admin"
-                aria-label="Ir para o Painel Administrativo"
+                href="/"
+                aria-label="Ir para a Tela Inicial"
                 className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               >
                 <Home className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
