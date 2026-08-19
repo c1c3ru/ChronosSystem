@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const machineId = searchParams.get('machineId')
 
-    // Buscar os últimos 10 registros de ponto das últimas 24 horas
-    const twentyFourHoursAgo = new Date()
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
+    // Buscar os últimos 10 registros de ponto do dia atual (desde as 00h)
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
 
     const whereClause: Prisma.AttendanceRecordWhereInput = {
       timestamp: {
-        gte: twentyFourHoursAgo,
+        gte: startOfDay,
       },
     }
 

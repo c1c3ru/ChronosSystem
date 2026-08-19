@@ -19,8 +19,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
 
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+
     // Buscar registros recentes com dados do usuário e máquina
     const recentRecords = await prisma.attendanceRecord.findMany({
+      where: {
+        timestamp: {
+          gte: startOfDay,
+        },
+      },
       take: limit,
       orderBy: { timestamp: 'desc' },
       include: {
