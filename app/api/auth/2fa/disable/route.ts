@@ -5,6 +5,12 @@ import { prisma } from '@/lib/prisma'
 import { prisma2FA } from '@/lib/prisma-helpers'
 import { verifyTwoFactorToken } from '@/lib/two-factor'
 import { authLogger } from '@/lib/logger'
+import { z } from 'zod'
+
+const disable2FASchema = z.object({
+  token: z.string().min(1, 'Token 2FA é obrigatório'),
+  confirmPassword: z.string().optional(),
+})
 
 // POST /api/auth/2fa/disable - Desabilitar 2FA
 
@@ -18,11 +24,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { token, confirmPassword } = await request.json()
-
-    if (!token) {
+    const body = await request.json().catch(() => null)
+    const parsed = disable2FASchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Token 2FA é obrigatório' }, { status: 400 })
     }
+    const { token, confirmPassword } = parsed.data
 
     authLogger.info('Disabling 2FA', { userId: session.user.id })
 

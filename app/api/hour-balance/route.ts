@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+const recalculateBalanceSchema = z.object({
+  userId: z.string().min(1).optional(),
+  date: z
+    .string()
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida')
+    .optional(),
+})
 
 // Configurações de contrato conforme Lei 11.788/2008
 
@@ -149,7 +158,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { userId, date } = await request.json()
+    const rawBody = await request.json().catch(() => ({}))
+    const parsed = recalculateBalanceSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
+    }
+    const { userId, date } = parsed.data
     const targetUserId = userId || session.user.id
 
     // Verificar permissões

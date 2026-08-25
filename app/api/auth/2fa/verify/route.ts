@@ -6,6 +6,11 @@ import { prisma2FA } from '@/lib/prisma-helpers'
 import { verifyTwoFactorToken } from '@/lib/two-factor'
 import { rateLimiters } from '@/lib/rate-limit'
 import { logger, authLogger } from '@/lib/logger'
+import { z } from 'zod'
+
+const verify2FASchema = z.object({
+  token: z.string().min(1, 'Token é obrigatório'),
+})
 
 // POST /api/auth/2fa/verify - Verificar e ativar 2FA
 
@@ -48,11 +53,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { token } = await request.json()
-
-    if (!token) {
+    const body = await request.json().catch(() => null)
+    const parsed = verify2FASchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Token é obrigatório' }, { status: 400 })
     }
+    const { token } = parsed.data
 
     authLogger.debug('Verifying 2FA token', { userId: session.user.id })
 

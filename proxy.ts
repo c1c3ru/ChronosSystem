@@ -1,6 +1,5 @@
 import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
-import { getSecurityHeaders } from '@/lib/security-headers'
 import { logger } from '@/lib/logger'
 import {
   isAdminApiPath,
@@ -134,14 +133,10 @@ export default withAuth(
       }
     }
 
-    // HEADERS DE SEGURANÇA
-    const response = NextResponse.next()
-    const securityHeaders = getSecurityHeaders()
-    Object.entries(securityHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value)
-    })
-
-    return response
+    // Headers de segurança (CSP, HSTS, X-Frame-Options, etc.) já são aplicados
+    // globalmente via `headers()` em next.config.mjs — fonte única, evita
+    // políticas divergentes entre o middleware e a config do Next.js.
+    return NextResponse.next()
   },
   {
     callbacks: {

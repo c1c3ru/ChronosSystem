@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 
 // Configurações de contrato conforme Lei 11.788/2008
 
@@ -29,6 +30,24 @@ const CONTRACT_CONFIGS = {
     description: 'Personalizado - Definido manualmente',
   },
 }
+
+const contractTypeEnum = z.enum(
+  Object.keys(CONTRACT_CONFIGS) as [keyof typeof CONTRACT_CONFIGS, ...(keyof typeof CONTRACT_CONFIGS)[]]
+)
+
+const updateContractSchema = z.object({
+  userId: z.string().min(1, 'userId é obrigatório'),
+  contractType: contractTypeEnum,
+  customDailyHours: z.number().positive().optional(),
+  customWeeklyHours: z.number().positive().optional(),
+})
+
+const validateContractSchema = z.object({
+  contractType: z.string().min(1, 'Tipo de contrato é obrigatório'),
+  dailyHours: z.number().optional(),
+  weeklyHours: z.number().optional(),
+  studentLevel: z.string().optional(),
+})
 
 // GET /api/users/contract - Buscar configurações de contrato
 export async function GET(request: NextRequest) {
@@ -94,16 +113,15 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Sem permissão para alterar contratos' }, { status: 403 })
     }
 
-    const { userId, contractType, customDailyHours, customWeeklyHours } = await request.json()
-
-    if (!userId || !contractType) {
-      return NextResponse.json({ error: 'userId e contractType são obrigatórios' }, { status: 400 })
+    const rawBody = await request.json().catch(() => null)
+    const parsed = updateContractSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0]?.message || 'Dados inválidos' },
+        { status: 400 }
+      )
     }
-
-    // Validar tipo de contrato
-    if (!Object.keys(CONTRACT_CONFIGS).includes(contractType)) {
-      return NextResponse.json({ error: 'Tipo de contrato inválido' }, { status: 400 })
-    }
+    const { userId, contractType, customDailyHours, customWeeklyHours } = parsed.data
 
     // Buscar usuário
     const user = await prisma.user.findUnique({
@@ -193,11 +211,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { contractType, dailyHours, weeklyHours, studentLevel } = await request.json()
-
-    if (!contractType) {
-      return NextResponse.json({ error: 'Tipo de contrato é obrigatório' }, { status: 400 })
+    const rawBody = await request.json().catch(() => null)
+    const parsed = validateContractSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0]?.message || 'Tipo de contrato é obrigatório' },
+        { status: 400 }
+      )
     }
+    const { contractType, dailyHours = 0, weeklyHours = 0, studentLevel } = parsed.data
 
     const validation = {
       isValid: true,

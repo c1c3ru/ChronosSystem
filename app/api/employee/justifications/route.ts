@@ -3,6 +3,18 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/email'
+import { z } from 'zod'
+
+const createEmployeeJustificationSchema = z.object({
+  type: z.enum(['LATE', 'ABSENCE', 'EARLY_DEPARTURE'], {
+    errorMap: () => ({ message: 'Tipo inválido' }),
+  }),
+  category: z.string().min(1, 'Tipo, categoria, data e motivo são obrigatórios'),
+  date: z
+    .string()
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
+  reason: z.string().min(1, 'Tipo, categoria, data e motivo são obrigatórios'),
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -78,18 +90,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { type, date, reason, category } = await request.json()
-
-    if (!type || !date || !reason || !category) {
+    const rawBody = await request.json().catch(() => null)
+    const parsed = createEmployeeJustificationSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Tipo, categoria, data e motivo são obrigatórios' },
+        { error: parsed.error.errors[0]?.message || 'Dados inválidos' },
         { status: 400 }
       )
     }
-
-    if (!['LATE', 'ABSENCE', 'EARLY_DEPARTURE'].includes(type)) {
-      return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 })
-    }
+    const { type, date, reason, category } = parsed.data
 
     // Verificar se já existe justificativa para esta data
     const existingJustification = await prisma.justification.findFirst({

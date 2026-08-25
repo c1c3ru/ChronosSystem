@@ -5,13 +5,16 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
+import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 const createUserSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  password: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`),
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']),
   phone: z.string().min(1, 'Telefone é obrigatório'),
   address: z.string().min(1, 'Endereço é obrigatório'),
@@ -186,7 +189,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash da senha
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10)
+    const hashedPassword = await bcrypt.hash(validatedData.password, BCRYPT_SALT_ROUNDS)
 
     const user = await prisma.user.create({
       data: {

@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import * as bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { authLogger } from '@/lib/logger'
+import { rateLimitByIdentifier } from '@/lib/rate-limit'
 
 declare module 'next-auth' {
   interface Session {
@@ -43,6 +44,13 @@ if (!NEXTAUTH_SECRET) {
   console.warn('⚠️ NEXTAUTH_SECRET environment variable is missing. Sessions may fail in production.')
 }
 
+// Domínios de email institucionais autorizados a logar via Google OAuth.
+// Configurável via GOOGLE_ALLOWED_EMAIL_DOMAINS (lista separada por vírgula).
+const ALLOWED_GOOGLE_EMAIL_DOMAINS = (process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS || 'ifce.edu.br')
+  .split(',')
+  .map((domain) => domain.trim().toLowerCase())
+  .filter(Boolean)
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   debug: process.env.NODE_ENV === 'development',
@@ -55,6 +63,17 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        // Rate limit por email: evita força bruta/credential stuffing contra
+        // uma conta específica (5 tentativas por minuto, igual ao rateLimiters.login).
+        const rateLimitResult = await rateLimitByIdentifier(
+          `login:${credentials.email.toLowerCase()}`,
+          { windowMs: 60 * 1000, maxRequests: 5 }
+        )
+        if (!rateLimitResult.success) {
+          authLogger.security('Login rate limit exceeded', { email: credentials.email })
           return null
         }
 
@@ -191,12 +210,15 @@ export const authOptions: NextAuthOptions = {
             return false
           }
 
-          // Opcional: Validar domínio permitido
-          // if (!user.email?.endsWith('@empresa.com')) {
-          //   console.log('❌ [SIGNIN] Domínio não autorizado')
-          //   console.error('Google login blocked - unauthorized domain', { email: user.email }) // Replaced logger.security
-          //   return false
-          // }
+          // Validar domínio institucional permitido
+          const emailDomain = user.email?.split('@')[1]?.toLowerCase()
+          if (!emailDomain || !ALLOWED_GOOGLE_EMAIL_DOMAINS.includes(emailDomain)) {
+            authLogger.security('Google login blocked - unauthorized domain', {
+              email: user.email,
+              allowedDomains: ALLOWED_GOOGLE_EMAIL_DOMAINS,
+            })
+            return false
+          }
 
           authLogger.info('Google login authorized', { email: user.email })
 

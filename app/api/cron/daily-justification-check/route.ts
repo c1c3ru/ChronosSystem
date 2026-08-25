@@ -59,30 +59,46 @@ export async function GET(request: NextRequest) {
       details: new Array<CronDetail>(),
     }
 
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const employeeIds = employees.map((employee) => employee.id)
+
+    // Buscar registros de ponto e justificativas de TODOS os funcionários de uma vez
+    // (evita N+1: antes eram 2 queries por funcionário dentro do loop)
+    const [allAttendanceRecords, allJustifications] = await Promise.all([
+      prisma.attendanceRecord.findMany({
+        where: { userId: { in: employeeIds }, timestamp: { gte: thirtyDaysAgo } },
+      }),
+      prisma.justification.findMany({
+        where: { userId: { in: employeeIds }, date: { gte: thirtyDaysAgo } },
+      }),
+    ])
+
+    const attendanceByUser = new Map<string, AttendanceRecord[]>()
+    for (const record of allAttendanceRecords) {
+      const existing = attendanceByUser.get(record.userId)
+      if (existing) {
+        existing.push(record)
+      } else {
+        attendanceByUser.set(record.userId, [record])
+      }
+    }
+
+    const justificationsByUser = new Map<string, (typeof allJustifications)[number][]>()
+    for (const justification of allJustifications) {
+      const existing = justificationsByUser.get(justification.userId)
+      if (existing) {
+        existing.push(justification)
+      } else {
+        justificationsByUser.set(justification.userId, [justification])
+      }
+    }
+
     // Para cada funcionário, verificar pendências
     for (const employee of employees) {
       try {
-        // Buscar pendências usando a API interna
-        const thirtyDaysAgo = new Date()
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-        const attendanceRecords = await prisma.attendanceRecord.findMany({
-          where: {
-            userId: employee.id,
-            timestamp: {
-              gte: thirtyDaysAgo,
-            },
-          },
-        })
-
-        const existingJustifications = await prisma.justification.findMany({
-          where: {
-            userId: employee.id,
-            date: {
-              gte: thirtyDaysAgo,
-            },
-          },
-        })
+        const attendanceRecords = attendanceByUser.get(employee.id) || []
+        const existingJustifications = justificationsByUser.get(employee.id) || []
 
         // Agrupar registros por dia
         const dayRecords = new Map<string, AttendanceRecord[]>()

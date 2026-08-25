@@ -4,10 +4,13 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
-  newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+  newPassword: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Nova senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`),
 })
 
 export async function POST(request: NextRequest) {
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Senha atual incorreta' }, { status: 400 })
     }
 
-    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10)
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, BCRYPT_SALT_ROUNDS)
 
     await prisma.user.update({
       where: { id: user.id },

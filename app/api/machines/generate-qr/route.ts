@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateSecureQR } from '@/lib/qr-security'
+import { z } from 'zod'
+
+const batchGenerateQrSchema = z.object({
+  machineIds: z.array(z.string().min(1)).min(1, 'Lista de machineIds é obrigatória'),
+})
 
 /** TTL do payload HMAC e do QrEvent.expiresAt (segundos) — deve ser o mesmo valor em todo o fluxo */
 const ADMIN_QR_TTL_SECONDS = 300
@@ -101,11 +106,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
-    const { machineIds } = await request.json()
-
-    if (!Array.isArray(machineIds) || machineIds.length === 0) {
+    const rawBody = await request.json().catch(() => null)
+    const parsed = batchGenerateQrSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Lista de machineIds é obrigatória' }, { status: 400 })
     }
+    const { machineIds } = parsed.data
 
     // Buscar máquinas
     const machines = await prisma.machine.findMany({

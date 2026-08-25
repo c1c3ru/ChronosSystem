@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+const preAuthorizeUserSchema = z.object({
+  email: z.string().email('Email inválido'),
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']),
+  department: z.string().optional().nullable(),
+})
 
 // GET /api/admin/pending-users - Listar tentativas de login não autorizadas
 export async function GET(request: NextRequest) {
@@ -84,15 +92,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { email, name, role, department } = await request.json()
-
-    if (!email || !name || !role) {
-      return NextResponse.json({ error: 'Email, nome e role são obrigatórios' }, { status: 400 })
+    const rawBody = await request.json().catch(() => null)
+    const parsed = preAuthorizeUserSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0]?.message || 'Dados inválidos' },
+        { status: 400 }
+      )
     }
-
-    if (!['ADMIN', 'SUPERVISOR', 'EMPLOYEE'].includes(role)) {
-      return NextResponse.json({ error: 'Role inválido' }, { status: 400 })
-    }
+    const { email, name, role, department } = parsed.data
 
     // Verificar se usuário já existe
     const existingUser = await prisma.user.findUnique({

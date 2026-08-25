@@ -14,6 +14,18 @@ import {
 } from '@/lib/attendance-logic'
 import { getNowInFortaleza } from '@/lib/timezone'
 import { updateHourBalance } from '@/lib/hour-calculator'
+import { z } from 'zod'
+
+const qrUnifiedSchema = z.object({
+  qrData: z.string().min(1, 'QR code é obrigatório'),
+  location: z
+    .object({
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+    })
+    .optional(),
+  justification: z.string().optional(),
+})
 
 /**
  * API UNIFICADA PARA QR CODES
@@ -85,9 +97,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { qrData, location, justification } = await request.json()
-
-    if (!qrData) {
+    const rawBody = await request.json().catch(() => null)
+    const parsedBody = qrUnifiedSchema.safeParse(rawBody)
+    if (!parsedBody.success) {
       return NextResponse.json(
         {
           error: 'QR code é obrigatório',
@@ -96,6 +108,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    const { qrData, location, justification } = parsedBody.data
 
     apiLogger.debug('Processing QR code', {
       userId: session.user.id,

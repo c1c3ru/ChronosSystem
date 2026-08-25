@@ -6,6 +6,28 @@ import { determineRoleFromSiape } from '@/lib/admin-siape'
 import { getContractTypeConfig } from '@/lib/contract-types'
 import { getShiftStartTime } from '@/lib/shift-validation'
 import { authLogger } from '@/lib/logger'
+import { z } from 'zod'
+
+const isoDateString = z
+  .string()
+  .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida')
+
+const completeProfileSchema = z.object({
+  phone: z.string().min(1, 'Telefone é obrigatório'),
+  address: z.string().min(1, 'Endereço é obrigatório'),
+  birthDate: isoDateString,
+  emergencyContact: z.string().min(1, 'Contato de emergência é obrigatório'),
+  emergencyPhone: z.string().min(1, 'Telefone de emergência é obrigatório'),
+  department: z.string().optional().nullable(),
+  startDate: isoDateString.optional().nullable(),
+  contractStartDate: isoDateString.optional().nullable(),
+  contractEndDate: isoDateString.optional().nullable(),
+  siapeNumber: z.string().optional().nullable(),
+  contractType: z.string().optional(),
+  shift: z.enum(['MORNING', 'AFTERNOON', 'NIGHT', 'HYBRID']).optional(),
+  workingDaysPerWeek: z.number().int().positive().optional(),
+  allowFlexibleHours: z.boolean().optional(),
+})
 
 // POST /api/auth/complete-profile - Completar perfil após login com Google
 
@@ -17,6 +39,15 @@ export async function POST(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    }
+
+    const rawBody = await request.json().catch(() => null)
+    const parsedBody = completeProfileSchema.safeParse(rawBody)
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: parsedBody.error.errors[0]?.message || 'Todos os campos básicos são obrigatórios' },
+        { status: 400 }
+      )
     }
 
     const {
@@ -34,15 +65,7 @@ export async function POST(request: NextRequest) {
       shift,
       workingDaysPerWeek,
       allowFlexibleHours,
-    } = await request.json()
-
-    // Validações básicas
-    if (!phone || !address || !birthDate || !emergencyContact || !emergencyPhone) {
-      return NextResponse.json(
-        { error: 'Todos os campos básicos são obrigatórios' },
-        { status: 400 }
-      )
-    }
+    } = parsedBody.data
 
     // Determinar role baseado na matrícula SIAPE (se fornecida)
     const newRole = siapeNumber ? determineRoleFromSiape(siapeNumber) : 'EMPLOYEE'

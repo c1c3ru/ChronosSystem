@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+const bulkReviewSchema = z.object({
+  justificationIds: z.array(z.string().min(1)).min(1, 'Nenhuma justificativa selecionada'),
+  action: z.enum(['APPROVED', 'REJECTED']),
+})
+
+const bulkDeleteSchema = z.union([
+  z.object({ deleteAll: z.literal(true) }),
+  z.object({ justificationIds: z.array(z.string().min(1)).min(1) }),
+])
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -11,19 +22,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { justificationIds, action } = body
-
-    if (!Array.isArray(justificationIds) || justificationIds.length === 0) {
-      return NextResponse.json({ error: 'Nenhuma justificativa selecionada' }, { status: 400 })
-    }
-
-    if (!['APPROVED', 'REJECTED'].includes(action)) {
+    const rawBody = await request.json().catch(() => null)
+    const parsed = bulkReviewSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Ação inválida. Use APPROVED ou REJECTED' },
+        { error: parsed.error.errors[0]?.message || 'Dados inválidos' },
         { status: 400 }
       )
     }
+    const { justificationIds, action } = parsed.data
 
     // Verify if all selected justifications are PENDING
     const justifications = await prisma.justification.findMany({
@@ -82,8 +89,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { justificationIds, deleteAll } = body
+    const rawBody = await request.json().catch(() => null)
+    const parsedDelete = bulkDeleteSchema.safeParse(rawBody)
+    if (!parsedDelete.success) {
+      return NextResponse.json(
+        { error: 'Informe justificationIds ou deleteAll=true' },
+        { status: 400 }
+      )
+    }
+    const deleteAll = 'deleteAll' in parsedDelete.data ? parsedDelete.data.deleteAll : false
+    const justificationIds =
+      'justificationIds' in parsedDelete.data ? parsedDelete.data.justificationIds : undefined
 
     let deletedCount = 0
 

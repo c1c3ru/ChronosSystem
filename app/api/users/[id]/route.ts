@@ -5,13 +5,14 @@ import { prisma } from '@/lib/prisma'
 import * as bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
+import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 const updateUserSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email().optional(),
-  password: z.string().min(6).optional(),
+  password: z.string().min(MIN_PASSWORD_LENGTH).optional(),
   role: z.enum(['ADMIN', 'SUPERVISOR', 'EMPLOYEE']).optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -127,7 +128,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     // Hash da senha se fornecida
     if (validatedData.password) {
-      updateData.password = await bcrypt.hash(validatedData.password, 10)
+      updateData.password = await bcrypt.hash(validatedData.password, BCRYPT_SALT_ROUNDS)
     }
 
     const user = await prisma.user.update({

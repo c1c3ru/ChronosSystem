@@ -65,6 +65,31 @@ async function runRateLimit(
 }
 
 /**
+ * Rate limit por identificador arbitrário (sem depender de um NextRequest),
+ * útil em contextos onde não temos acesso a um objeto Request completo —
+ * ex.: o callback `authorize()` do NextAuth Credentials Provider.
+ */
+export async function rateLimitByIdentifier(
+  identifier: string,
+  config: RateLimitConfig
+): Promise<RateLimitResult> {
+  const isProd = process.env.NODE_ENV === 'production'
+  const requireRedisInProduction = config.requireRedisInProduction ?? true
+
+  if (isRedisConnected()) {
+    return await redisRateLimit(identifier, config)
+  }
+
+  if (isProd && requireRedisInProduction) {
+    const reset = Date.now() + Math.min(config.windowMs, 60_000)
+    logger.error('Rate limiting sem Redis em produção (fail-closed)', { identifier })
+    return { success: false, limit: config.maxRequests, remaining: 0, reset }
+  }
+
+  return inMemoryRateLimit(identifier, config)
+}
+
+/**
  * Rate limiter com Redis (sliding window) e fallback em memória
  * Identificador: apenas IP + path (compartilhado por todos atrás do mesmo NAT)
  */

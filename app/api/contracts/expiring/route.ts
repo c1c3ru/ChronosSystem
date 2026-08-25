@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+const renewContractSchema = z.object({
+  userId: z.string().min(1, 'userId e newEndDate são obrigatórios'),
+  newEndDate: z
+    .string()
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
+  notes: z.string().optional(),
+})
 
 // GET /api/contracts/expiring - Verificar contratos próximos do fim
 export async function GET(request: NextRequest) {
@@ -165,11 +174,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { userId, newEndDate, notes } = await request.json()
-
-    if (!userId || !newEndDate) {
-      return NextResponse.json({ error: 'userId e newEndDate são obrigatórios' }, { status: 400 })
+    const rawBody = await request.json().catch(() => null)
+    const parsed = renewContractSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0]?.message || 'userId e newEndDate são obrigatórios' },
+        { status: 400 }
+      )
     }
+    const { userId, newEndDate, notes } = parsed.data
 
     // Atualizar data de fim do contrato
     const updatedUser = await prisma.user.update({
