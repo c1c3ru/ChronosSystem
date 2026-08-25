@@ -340,9 +340,17 @@ export default function AdminPage() {
                         <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                           {stats?.alerts}
                         </p>
-                        <p className="text-xs text-error mt-1 flex items-center">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Justificativas pendentes
+                        <p
+                          className={`text-xs mt-1 flex items-center ${
+                            (stats?.alerts ?? 0) > 0 ? 'text-error' : 'text-neutral-500'
+                          }`}
+                        >
+                          {(stats?.alerts ?? 0) > 0 && (
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                          )}
+                          {(stats?.alerts ?? 0) > 0
+                            ? 'Justificativas pendentes'
+                            : 'Nenhuma pendência'}
                         </p>
                       </div>
                       <div className="bg-error/20 rounded-2xl p-2 sm:p-3">
@@ -355,18 +363,18 @@ export default function AdminPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
               <Link href="/admin/users/new" className="h-full flex">
                 <Card
                   variant="glass"
                   className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
-                    <div className="bg-success/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-success/30 transition-colors">
-                      <UserPlus className="h-8 w-8 text-success group-hover:scale-110 transition-transform" />
+                  <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div className="bg-success/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-success/30 transition-colors">
+                      <UserPlus className="h-6 w-6 sm:h-8 sm:w-8 text-success group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Cadastrar Usuário</h3>
-                    <p className="text-neutral-400 text-sm">
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Cadastrar Usuário</h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
                       Adicionar novo estagiário ou supervisor
                     </p>
                   </CardContent>
@@ -378,12 +386,12 @@ export default function AdminPage() {
                   variant="glass"
                   className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
-                    <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
-                      <Users className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                  <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div className="bg-primary/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/30 transition-colors">
+                      <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Gerenciar Usuários</h3>
-                    <p className="text-neutral-400 text-sm">Visualizar e editar usuários</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Gerenciar Usuários</h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Visualizar e editar usuários</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -393,12 +401,12 @@ export default function AdminPage() {
                   variant="glass"
                   className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
-                    <div className="bg-secondary-500/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary-500/30 transition-colors">
-                      <Monitor className="h-8 w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
+                  <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div className="bg-secondary-500/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-secondary-500/30 transition-colors">
+                      <Monitor className="h-6 w-6 sm:h-8 sm:w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Gerenciar Máquinas</h3>
-                    <p className="text-neutral-400 text-sm">Adicionar e configurar pontos</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Gerenciar Máquinas</h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Adicionar e configurar pontos</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -408,27 +416,28 @@ export default function AdminPage() {
                   variant="glass"
                   className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
-                    <div className="bg-warning/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-warning/30 transition-colors">
-                      <BarChart3 className="h-8 w-8 text-warning group-hover:scale-110 transition-transform" />
+                  <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div className="bg-warning/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-warning/30 transition-colors">
+                      <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-warning group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Relatórios</h3>
-                    <p className="text-neutral-400 text-sm">Visualizar relatórios e estatísticas</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Relatórios</h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Visualizar relatórios e estatísticas</p>
                   </CardContent>
                 </Card>
               </Link>
 
-              <Link href="/admin/schedule" className="h-full flex">
+              {/* Quadro de Horários — span 2 colunas no mobile para não ficar sozinho */}
+              <Link href="/admin/schedule" className="col-span-2 lg:col-span-1 h-full flex">
                 <Card
                   variant="glass"
-                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                  className="group h-full w-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
-                  <CardContent className="p-6 text-center h-full flex flex-col items-center justify-center">
-                    <div className="bg-primary/20 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
-                      <CalendarDays className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                  <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div className="bg-primary/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/30 transition-colors">
+                      <CalendarDays className="h-6 w-6 sm:h-8 sm:w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Quadro de Horários</h3>
-                    <p className="text-neutral-400 text-sm">Visualizar turnos dos estagiários</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Quadro de Horários</h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Visualizar turnos dos estagiários</p>
                   </CardContent>
                 </Card>
               </Link>

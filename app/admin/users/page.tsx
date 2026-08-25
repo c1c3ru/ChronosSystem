@@ -39,6 +39,7 @@ interface User {
   shiftStartTime?: string
   shiftEndTime?: string
   profileComplete: boolean
+  isActive: boolean
   createdAt: string
   updatedAt: string
   _count: {
@@ -242,7 +243,7 @@ export default function UsersPage() {
         {/* Users List */}
         <div className="grid gap-4 w-full">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className="w-full overflow-hidden">
+            <Card key={user.id} className={`w-full overflow-hidden transition-opacity ${!user.isActive ? 'opacity-60' : ''}`}>
               <CardContent className="p-4 sm:p-6 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                   <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 flex-1 w-full">
@@ -271,6 +272,11 @@ export default function UsersPage() {
                           <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
                         ) : (
                           <AlertTriangle className="h-4 w-4 text-yellow-400 shrink-0" />
+                        )}
+                        {!user.isActive && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-error/20 text-error border border-error/40 whitespace-nowrap">
+                            Inativo
+                          </span>
                         )}
                       </div>
 

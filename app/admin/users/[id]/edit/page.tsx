@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { User, ArrowLeft, Save, Mail, Lock, Shield } from 'lucide-react'
+import { User, ArrowLeft, Save, Mail, Lock, Shield, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -18,6 +18,7 @@ interface UserData {
   phone?: string
   address?: string
   department?: string
+  isActive: boolean
 }
 
 interface UpdateData {
@@ -28,6 +29,7 @@ interface UpdateData {
   phone?: string
   address?: string
   department?: string
+  isActive?: boolean
 }
 
 export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
@@ -74,6 +76,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             phone: data.phone || '',
             address: data.address || '',
             department: data.department || '',
+            isActive: data.isActive ?? true,
           })
         } else {
           router.push('/admin/users')
@@ -128,6 +131,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
       if (updateData.department !== userData?.department)
         changedData.department = updateData.department
       if (updateData.password) changedData.password = updateData.password
+      if (updateData.isActive !== userData?.isActive) changedData.isActive = updateData.isActive
 
       const response = await fetch(`/api/users/${id}`, {
         method: 'PUT',
@@ -355,6 +359,57 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                     ))}
                   </div>
                 </fieldset>
+
+                {/* Status do Perfil — apenas ADMIN */}
+                {session.user.role === 'ADMIN' && (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-white">Status do Perfil</h3>
+
+                    <div
+                      className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                        updateData.isActive
+                          ? 'border-success/40 bg-success/5'
+                          : 'border-error/40 bg-error/5'
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <p className="text-white font-medium text-sm">
+                          {updateData.isActive ? 'Perfil Ativo' : 'Perfil Desativado'}
+                        </p>
+                        <p className="text-neutral-400 text-xs mt-0.5">
+                          {updateData.isActive
+                            ? 'Estagiário pode registrar ponto normalmente'
+                            : 'Carga horária de estágio concluída — acesso desabilitado'}
+                        </p>
+                      </div>
+                      <button
+                        id="edit-user-isActive-toggle"
+                        type="button"
+                        onClick={() =>
+                          setUpdateData((prev) => ({ ...prev, isActive: !prev.isActive }))
+                        }
+                        className="ml-4 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
+                        aria-label={updateData.isActive ? 'Desativar perfil' : 'Ativar perfil'}
+                      >
+                        {updateData.isActive ? (
+                          <ToggleRight className="h-9 w-9 text-success" />
+                        ) : (
+                          <ToggleLeft className="h-9 w-9 text-error" />
+                        )}
+                      </button>
+                    </div>
+
+                    {!updateData.isActive && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-error/10 border border-error/30 text-error text-xs">
+                        <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                        <span>
+                          Ao salvar, este estagiário não poderá fazer login ou registrar ponto.
+                          O histórico de registros será preservado.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Informações Opcionais */}
                 <div className="space-y-4">

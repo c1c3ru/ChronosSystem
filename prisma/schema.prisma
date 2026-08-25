@@ -64,6 +64,7 @@ model User {
   shiftEndTime            String                   @default("12:00")
   workingDaysPerWeek      Int                      @default(5)
   allowFlexibleHours      Boolean                  @default(false)
+  isActive                Boolean                  @default(true)
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   accounts                Account[]

@@ -16,6 +16,7 @@ const updateUserSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   department: z.string().optional(),
+  isActive: z.boolean().optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         weeklyHours: true,
         dailyHours: true,
         profileComplete: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -110,6 +112,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       if (emailExists) {
         return NextResponse.json({ error: 'Email já está em uso' }, { status: 400 })
       }
+    }
+
+    // Apenas ADMIN pode alterar isActive
+    if ('isActive' in validatedData && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem ativar/desativar perfis' },
+        { status: 403 }
+      )
     }
 
     // Preparar dados para atualização

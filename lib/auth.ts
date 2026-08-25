@@ -67,6 +67,11 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
+          // Bloquear login de usuários inativos (estágio concluído)
+          if (user.isActive === false) {
+            return null
+          }
+
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
           if (!isPasswordValid) {

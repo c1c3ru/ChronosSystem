@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
           shiftStartTime: true,
           shiftEndTime: true,
           profileComplete: true,
+          isActive: true,
           createdAt: true,
           updatedAt: true,
           _count: {

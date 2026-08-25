@@ -45,34 +45,10 @@ export async function GET(request: NextRequest) {
         // Total de máquinas
         prisma.machine.count(),
 
-        // Alertas pendentes - lógica real implementada
-        (async () => {
-          const [pendingJustifications, recentAbsences] = await Promise.all([
-            // Justificativas pendentes
-            prisma.justification.count({
-              where: { status: 'PENDING' },
-            }),
-            // Usuários com ausências recentes sem justificativa (últimos 7 dias)
-            prisma.attendanceRecord.groupBy({
-              by: ['userId'],
-              where: {
-                timestamp: {
-                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                },
-              },
-              _count: true,
-              having: {
-                userId: {
-                  _count: {
-                    lt: 5, // Menos de 5 registros em 7 dias pode indicar problema
-                  },
-                },
-              },
-            }),
-          ])
-
-          return pendingJustifications + recentAbsences.length
-        })(),
+        // Alertas pendentes — apenas justificativas com status PENDING
+        prisma.justification.count({
+          where: { status: 'PENDING' },
+        }),
       ])
 
     // Calcular estatísticas adicionais
