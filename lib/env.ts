@@ -92,41 +92,47 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>
 
 /**
- * Valida e exporta as variáveis de ambiente
- * Lança erro se alguma variável obrigatória estiver faltando ou inválida
+ * Valida as variáveis de ambiente.
+ *
+ * IMPORTANTE: nunca lança erro aqui. Este módulo é importado transitivamente
+ * por várias rotas (ex.: lib/mailer.ts -> lib/email -> várias API routes), e
+ * o Next.js avalia esses módulos durante o build (fase de "collecting page
+ * data"). Lançar uma exceção neste ponto derruba o build INTEIRO — todas as
+ * rotas, não só a que efetivamente precisa da variável em falta — mesmo que
+ * o problema seja uma única variável opcional-na-prática (ex.: SMTP) mal
+ * configurada. A validação real de "isso é obrigatório para esta feature"
+ * deve acontecer em runtime, no ponto de uso (ex.: lib/mailer.ts já faz
+ * isso para as variáveis SMTP).
  */
 function validateEnv(): Env {
-  try {
-    const parsed = envSchema.parse(process.env)
+  const result = envSchema.safeParse(process.env)
 
-    // Log de sucesso em desenvolvimento
+  if (result.success) {
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ Variáveis de ambiente validadas com sucesso')
     }
-
-    return parsed
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('❌ Erro na validação de variáveis de ambiente:')
-      console.error('')
-
-      error.errors.forEach((err: z.ZodIssue) => {
-        const path = err.path.join('.')
-        console.error(`  • ${path}: ${err.message}`)
-      })
-
-      console.error('')
-      console.error('Verifique o arquivo .env e corrija as variáveis acima.')
-      console.error('')
-
-      // Em produção, falhar imediatamente
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('Configuração de ambiente inválida')
-      }
-    }
-
-    throw error
+    return result.data
   }
+
+  console.error('❌ Erro na validação de variáveis de ambiente:')
+  console.error('')
+
+  result.error.errors.forEach((err: z.ZodIssue) => {
+    const path = err.path.join('.')
+    console.error(`  • ${path}: ${err.message}`)
+  })
+
+  console.error('')
+  console.error(
+    'Configure essas variáveis no ambiente (.env local, ou nas env vars do Vercel/servidor).'
+  )
+  console.error('')
+
+  // Fallback: usa os valores brutos de process.env (mesmo que não validados)
+  // em vez de derrubar o build/deploy inteiro. Rotas que realmente precisam
+  // de uma variável específica vão falhar em runtime, apenas quando forem
+  // chamadas — não no import do módulo.
+  return process.env as unknown as Env
 }
 
 // Validar e exportar
