@@ -51,6 +51,17 @@ const ALLOWED_GOOGLE_EMAIL_DOMAINS = (process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS |
   .map((domain) => domain.trim().toLowerCase())
   .filter(Boolean)
 
+// Emails específicos autorizados mesmo fora dos domínios institucionais
+// (ex.: conta pessoal do administrador/proprietário do sistema).
+// Configurável via GOOGLE_ALLOWED_EMAILS (lista separada por vírgula).
+// Evita abrir todo o domínio gmail.com/etc. só para liberar uma conta.
+const ALLOWED_GOOGLE_EMAILS = (
+  process.env.GOOGLE_ALLOWED_EMAILS || 'cicerosilva.ifce@gmail.com'
+)
+  .split(',')
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean)
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   debug: process.env.NODE_ENV === 'development',
@@ -68,9 +79,12 @@ export const authOptions: NextAuthOptions = {
 
         // Rate limit por email: evita força bruta/credential stuffing contra
         // uma conta específica (5 tentativas por minuto, igual ao rateLimiters.login).
+        // requireRedisInProduction: false -> sem Redis configurado, degrada para
+        // limite em memória em vez de bloquear TODOS os logins (fail-closed seria
+        // pior que a própria força bruta que isso tenta mitigar).
         const rateLimitResult = await rateLimitByIdentifier(
           `login:${credentials.email.toLowerCase()}`,
-          { windowMs: 60 * 1000, maxRequests: 5 }
+          { windowMs: 60 * 1000, maxRequests: 5, requireRedisInProduction: false }
         )
         if (!rateLimitResult.success) {
           authLogger.security('Login rate limit exceeded', { email: credentials.email })
@@ -210,9 +224,13 @@ export const authOptions: NextAuthOptions = {
             return false
           }
 
-          // Validar domínio institucional permitido
-          const emailDomain = user.email?.split('@')[1]?.toLowerCase()
-          if (!emailDomain || !ALLOWED_GOOGLE_EMAIL_DOMAINS.includes(emailDomain)) {
+          // Validar domínio institucional permitido (ou email na allowlist explícita)
+          const normalizedEmail = user.email?.toLowerCase()
+          const emailDomain = normalizedEmail?.split('@')[1]
+          const isAllowedDomain = !!emailDomain && ALLOWED_GOOGLE_EMAIL_DOMAINS.includes(emailDomain)
+          const isAllowedEmail = !!normalizedEmail && ALLOWED_GOOGLE_EMAILS.includes(normalizedEmail)
+
+          if (!isAllowedDomain && !isAllowedEmail) {
             authLogger.security('Google login blocked - unauthorized domain', {
               email: user.email,
               allowedDomains: ALLOWED_GOOGLE_EMAIL_DOMAINS,

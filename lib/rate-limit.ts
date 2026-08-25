@@ -310,9 +310,13 @@ export const rateLimiters = {
   }),
 
   // Password Reset: 3 tentativas por hora
+  // requireRedisInProduction: false -> sem Redis, degrada para limite em memória
+  // em vez de bloquear TODOS os resets de senha (fail-closed indisponibilizaria
+  // a recuperação de conta para todo mundo, não só quem está abusando).
   passwordReset: rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hora
     maxRequests: 3,
+    requireRedisInProduction: false,
   }),
 }
 
