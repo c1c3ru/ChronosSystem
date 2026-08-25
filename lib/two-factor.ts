@@ -1,5 +1,6 @@
 import * as speakeasy from 'speakeasy'
 import * as QRCode from 'qrcode'
+import crypto from 'crypto'
 
 export interface TwoFactorSetup {
   secret: string
@@ -102,11 +103,15 @@ export function isTwoFactorEnabled(user: {
  * Gera códigos de backup para 2FA (opcional)
  */
 export function generateBackupCodes(count: number = 8): string[] {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // sem caracteres ambíguos (0/O, 1/I/L)
+  const codeLength = 8
   const codes: string[] = []
 
   for (let i = 0; i < count; i++) {
-    // Gerar código de 8 caracteres alfanuméricos
-    const code = Math.random().toString(36).substring(2, 10).toUpperCase()
+    let code = ''
+    for (let j = 0; j < codeLength; j++) {
+      code += alphabet[crypto.randomInt(alphabet.length)]
+    }
     codes.push(code)
   }
 

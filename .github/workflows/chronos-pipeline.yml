@@ -80,7 +80,7 @@ jobs:
         run: npm install
 
       - name: 📋 Audit Dependencies
-        run: npm audit --audit-level=critical
+        run: npm audit --audit-level=high
 
   deploy-production:
     name: 🌍 Local Deploy (Production)
@@ -161,9 +161,10 @@ jobs:
 
           # Dependências — instala tudo (dev incluído) pois o Next.js build
           # precisa de typescript, @types/*, eslint-*, etc. em tempo de compilação
+          # npm ci: instalação reprodutível, exatamente a partir do package-lock.json
           echo "📦 Instalando dependências..."
           rm -rf node_modules
-          npm install
+          npm ci
 
           # Prisma — lê DATABASE_URL explicitamente do .env para evitar ambiguidade
           # (variáveis de ambiente do CI têm prioridade sobre .env; exportamos manualmente)
@@ -187,8 +188,11 @@ jobs:
           echo "🗄️ Gerando cliente Prisma..."
           npx prisma generate
 
+          # Aplica apenas migrations versionadas (prisma/migrations/**). Sem fallback
+          # automático para `db push --accept-data-loss`: se a migration falhar, o
+          # deploy para aqui e exige revisão manual (evita perda de dados silenciosa).
           echo "🗄️ Aplicando migrations..."
-          npx prisma migrate deploy || npx prisma db push --accept-data-loss
+          npx prisma migrate deploy
 
           # Build — limpa cache Turbopack para evitar chunks stale de builds anteriores
           echo "🔨 Compilando aplicação (cache limpo)..."

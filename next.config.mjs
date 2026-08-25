@@ -76,6 +76,9 @@ const nextConfig = {
               'geolocation=(self)',
               'payment=()',
               'usb=()',
+              'magnetometer=()',
+              'accelerometer=()',
+              'gyroscope=()',
             ].join(', '),
           },
           {
@@ -93,6 +96,10 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
           {
             key: 'Strict-Transport-Security',

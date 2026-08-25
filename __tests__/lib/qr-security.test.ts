@@ -3,6 +3,9 @@ import {
   validateSecureQR,
   generateRecordHash,
   generateNonce,
+  verifyRecordHash,
+  verifyHashChain,
+  type HashChainRecord,
 } from '@/lib/qr-security'
 
 describe('qr-security', () => {
@@ -300,6 +303,94 @@ describe('qr-security', () => {
         hash1
       )
       expect(hash3).not.toBe(hash3WithWrongPrev)
+    })
+  })
+
+  describe('verifyRecordHash', () => {
+    it('deve validar um registro íntegro', () => {
+      const timestamp = Date.now()
+      const hash = generateRecordHash('user-123', 'machine-456', 'ENTRY', timestamp)
+
+      expect(
+        verifyRecordHash({
+          userId: 'user-123',
+          machineId: 'machine-456',
+          type: 'ENTRY',
+          timestamp,
+          hash,
+        })
+      ).toBe(true)
+    })
+
+    it('deve rejeitar um registro adulterado', () => {
+      const timestamp = Date.now()
+      const hash = generateRecordHash('user-123', 'machine-456', 'ENTRY', timestamp)
+
+      expect(
+        verifyRecordHash({
+          userId: 'user-123',
+          machineId: 'machine-456',
+          type: 'EXIT', // tipo adulterado após o hash ter sido calculado
+          timestamp,
+          hash,
+        })
+      ).toBe(false)
+    })
+  })
+
+  describe('verifyHashChain', () => {
+    const buildChain = (userId: string, machineId: string): HashChainRecord[] => {
+      const t1 = Date.now()
+      const t2 = t1 + 1000
+      const t3 = t2 + 1000
+
+      const hash1 = generateRecordHash(userId, machineId, 'ENTRY', t1)
+      const hash2 = generateRecordHash(userId, machineId, 'EXIT', t2, hash1)
+      const hash3 = generateRecordHash(userId, machineId, 'ENTRY', t3, hash2)
+
+      return [
+        { id: 'r1', userId, machineId, type: 'ENTRY', timestamp: new Date(t1), hash: hash1 },
+        {
+          id: 'r2',
+          userId,
+          machineId,
+          type: 'EXIT',
+          timestamp: new Date(t2),
+          prevHash: hash1,
+          hash: hash2,
+        },
+        {
+          id: 'r3',
+          userId,
+          machineId,
+          type: 'ENTRY',
+          timestamp: new Date(t3),
+          prevHash: hash2,
+          hash: hash3,
+        },
+      ]
+    }
+
+    it('não deve reportar violações em uma cadeia íntegra', () => {
+      const chain = buildChain('user-123', 'machine-456')
+      expect(verifyHashChain(chain)).toEqual([])
+    })
+
+    it('deve detectar um hash adulterado', () => {
+      const chain = buildChain('user-123', 'machine-456')
+      chain[1].hash = 'a'.repeat(64) // adultera o segundo registro
+
+      const violations = verifyHashChain(chain)
+      expect(violations).toContainEqual({ recordId: 'r2', reason: 'hash_mismatch' })
+    })
+
+    it('deve detectar um elo quebrado (prevHash inconsistente)', () => {
+      const chain = buildChain('user-123', 'machine-456')
+      // Remove o registro do meio, quebrando o elo entre r1 e r3
+      const brokenChain = [chain[0], chain[2]]
+
+      const violations = verifyHashChain(brokenChain)
+      expect(violations).toContainEqual({ recordId: 'r3', reason: 'broken_link' })
     })
   })
 

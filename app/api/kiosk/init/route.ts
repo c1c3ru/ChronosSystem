@@ -3,8 +3,30 @@ import { prisma } from '@/lib/prisma'
 import { qrLogger } from '@/lib/logger'
 import crypto from 'crypto'
 
+function isProvisionSecretValid(request: NextRequest): boolean {
+  const provisionSecret = process.env.KIOSK_PROVISION_SECRET
+  if (!provisionSecret) {
+    throw new Error('KIOSK_PROVISION_SECRET environment variable is required')
+  }
+
+  const providedSecret = request.headers.get('x-kiosk-secret') || ''
+  const expectedBuffer = Buffer.from(provisionSecret)
+  const providedBuffer = Buffer.from(providedSecret)
+
+  return (
+    expectedBuffer.length === providedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, providedBuffer)
+  )
+}
+
 export async function GET(request: NextRequest) {
   try {
+    if (!isProvisionSecretValid(request)) {
+      qrLogger.security('Rejected unauthenticated kiosk init attempt', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+      })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
 
     const { searchParams } = new URL(request.url)
     const machineId = searchParams.get('machineId')

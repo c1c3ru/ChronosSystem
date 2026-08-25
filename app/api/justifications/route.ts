@@ -3,6 +3,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { apiLogger } from '@/lib/logger'
+import { z } from 'zod'
+
+const createJustificationSchema = z.object({
+  type: z.string().min(1, 'Todos os campos são obrigatórios'),
+  date: z
+    .string()
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
+  reason: z.string().min(10, 'Justificativa deve ter pelo menos 10 caracteres'),
+})
 
 // GET /api/justifications - Buscar justificativas do usuário
 
@@ -43,18 +52,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { type, date, reason } = await request.json()
-
-    if (!type || !date || !reason) {
-      return NextResponse.json({ error: 'Todos os campos são obrigatórios' }, { status: 400 })
-    }
-
-    if (reason.length < 10) {
+    const rawBody = await request.json().catch(() => null)
+    const parsed = createJustificationSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Justificativa deve ter pelo menos 10 caracteres' },
+        { error: parsed.error.errors[0]?.message || 'Todos os campos são obrigatórios' },
         { status: 400 }
       )
     }
+    const { type, date, reason } = parsed.data
 
     apiLogger.debug('Creating justification', { userId: session.user.id, type, date })
 

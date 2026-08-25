@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { rateLimiters, withRateLimit } from '@/lib/rate-limit'
+import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
 
 // Schema para validação
 const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token é obrigatório'),
-  newPassword: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  newPassword: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`),
 })
 
 const validateTokenSchema = z.object({
@@ -15,6 +19,9 @@ const validateTokenSchema = z.object({
 
 // POST /api/auth/reset-password - Processar reset de senha
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = await withRateLimit(rateLimiters.passwordReset)(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const body = await request.json()
     const validatedData = resetPasswordSchema.parse(body)
@@ -38,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash da nova senha
-    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10)
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, BCRYPT_SALT_ROUNDS)
 
     // Atualizar senha do usuário
     await prisma.user.update({
@@ -94,6 +101,9 @@ export async function POST(request: NextRequest) {
 
 // GET /api/auth/reset-password?token=xxx - Validar token
 export async function GET(request: NextRequest) {
+  const rateLimitResponse = await withRateLimit(rateLimiters.general)(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const { searchParams } = new URL(request.url)
     const token = searchParams.get('token')

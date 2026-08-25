@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+const updateJustificationSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+  adminResponse: z.string().optional().nullable(),
+})
 
 // PATCH /api/admin/justifications/[id] - Aprovar/Rejeitar justificativa
 // DELETE /api/admin/justifications/[id] - Excluir justificativa individual
@@ -18,11 +24,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { status, adminResponse } = await request.json()
-
-    if (!['APPROVED', 'REJECTED'].includes(status)) {
+    const body = await request.json().catch(() => null)
+    const parsed = updateJustificationSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Status inválido' }, { status: 400 })
     }
+    const { status, adminResponse } = parsed.data
 
     // Atualizar justificativa no banco de dados
     await prisma.justification.update({

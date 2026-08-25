@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/email'
+import { z } from 'zod'
+
+const sendJustificationAlertsSchema = z.object({
+  userId: z.string().min(1).optional(),
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +27,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
 
-    const { userId } = await request.json()
+    const rawBody = await request.json().catch(() => ({}))
+    const parsed = sendJustificationAlertsSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
+    }
+    const { userId } = parsed.data
 
     // Se userId for fornecido, envia apenas para esse usuário
     // Caso contrário, envia para todos os usuários com pendências

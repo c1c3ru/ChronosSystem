@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
+import { z } from 'zod'
+
+const generateQrSchema = z.object({
+  machineId: z.string().min(1, 'ID da máquina é obrigatório'),
+})
 
 // POST /api/qr/generate - Gerar QR code para máquina
 
@@ -16,11 +21,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { machineId } = await request.json()
-
-    if (!machineId) {
+    const rawBody = await request.json().catch(() => null)
+    const parsed = generateQrSchema.safeParse(rawBody)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'ID da máquina é obrigatório' }, { status: 400 })
     }
+    const { machineId } = parsed.data
 
     // Verificar se a máquina existe
     const machine = await prisma.machine.findUnique({

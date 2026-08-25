@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { rateLimiters, withRateLimit } from '@/lib/rate-limit'
 
 // GET /api/auth/check-user?email=user@example.com
 export async function GET(request: NextRequest) {
+  const rateLimitResponse = await withRateLimit(rateLimiters.general)(request)
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const { searchParams } = new URL(request.url)
     const email = searchParams.get('email')

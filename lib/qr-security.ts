@@ -221,7 +221,9 @@ export function markNonceAsUsed(nonce: string): void {
 }
 
 /**
- * Gera hash para integridade de registros (hash chain)
+ * Gera hash HMAC-SHA256 para integridade de registros (hash chain).
+ * Usa QR_SECRET como chave para que a cadeia não possa ser recalculada
+ * por quem tiver apenas acesso de escrita ao banco de dados.
  */
 export function generateRecordHash(
   userId: string,
@@ -231,5 +233,80 @@ export function generateRecordHash(
   prevHash?: string
 ): string {
   const data = `${userId}:${machineId}:${type}:${timestamp}:${prevHash || ''}`
-  return crypto.createHash('sha256').update(data).digest('hex')
+  return crypto.createHmac('sha256', getSecret()).update(data).digest('hex')
+}
+
+/**
+ * Verifica se o hash de um único registro é consistente com seus dados
+ * e com o elo anterior da cadeia (prevHash), usando comparação timing-safe.
+ */
+export function verifyRecordHash(record: {
+  userId: string
+  machineId: string
+  type: string
+  timestamp: number
+  prevHash?: string | null
+  hash: string
+}): boolean {
+  const expectedHash = generateRecordHash(
+    record.userId,
+    record.machineId,
+    record.type,
+    record.timestamp,
+    record.prevHash || undefined
+  )
+
+  const expectedBuffer = Buffer.from(expectedHash, 'hex')
+  const receivedBuffer = Buffer.from(record.hash, 'hex')
+
+  return (
+    expectedBuffer.length === receivedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+  )
+}
+
+export interface HashChainRecord {
+  id: string
+  userId: string
+  machineId: string
+  type: string
+  timestamp: Date
+  prevHash?: string | null
+  hash: string
+}
+
+export interface HashChainViolation {
+  recordId: string
+  reason: 'hash_mismatch' | 'broken_link'
+}
+
+/**
+ * Verifica a integridade de uma cadeia de registros de um único usuário.
+ * Os registros DEVEM estar ordenados por timestamp crescente (ordem de criação).
+ * Retorna as violações encontradas (lista vazia = cadeia íntegra).
+ */
+export function verifyHashChain(records: HashChainRecord[]): HashChainViolation[] {
+  const violations: HashChainViolation[] = []
+  let previousHash: string | undefined
+
+  for (const record of records) {
+    const isValid = verifyRecordHash({
+      userId: record.userId,
+      machineId: record.machineId,
+      type: record.type,
+      timestamp: record.timestamp.getTime(),
+      prevHash: record.prevHash,
+      hash: record.hash,
+    })
+
+    if (!isValid) {
+      violations.push({ recordId: record.id, reason: 'hash_mismatch' })
+    } else if ((record.prevHash || undefined) !== previousHash) {
+      violations.push({ recordId: record.id, reason: 'broken_link' })
+    }
+
+    previousHash = record.hash
+  }
+
+  return violations
 }

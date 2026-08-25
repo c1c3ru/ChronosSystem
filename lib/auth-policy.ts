@@ -29,7 +29,12 @@ export const PUBLIC_PREFIXES = [
 export const ADMIN_ONLY_PREFIXES = ['/admin', '/dashboard'] as const
 export const EMPLOYEE_ONLY_PREFIXES = ['/employee'] as const
 
-export const ADMIN_API_PREFIXES = ['/api/users', '/api/machines', '/api/dashboard'] as const
+export const ADMIN_API_PREFIXES = [
+  '/api/users',
+  '/api/machines',
+  '/api/dashboard',
+  '/api/admin',
+] as const
 
 export function isValidRole(role: unknown): role is Role {
   return typeof role === 'string' && (VALID_ROLES as readonly string[]).includes(role)

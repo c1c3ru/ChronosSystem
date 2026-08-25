@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type FormEvent } from 'react'
 import {
   Clock,
   Wifi,
@@ -55,8 +55,52 @@ export default function KioskPage() {
     id: '',
   })
 
+  // Segredo de provisionamento do terminal físico. É digitado uma única vez
+  // por quem instala o kiosk e persistido apenas neste navegador/dispositivo.
+  const KIOSK_SECRET_STORAGE_KEY = 'chronos_kiosk_secret'
+  const [kioskSecret, setKioskSecret] = useState<string | null>(null)
+  const [kioskSecretLoaded, setKioskSecretLoaded] = useState(false)
+  const [secretInput, setSecretInput] = useState('')
+  const [secretError, setSecretError] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(KIOSK_SECRET_STORAGE_KEY)
+      setKioskSecret(stored)
+    } catch {
+      setKioskSecret(null)
+    } finally {
+      setKioskSecretLoaded(true)
+    }
+  }, [])
+
+  const handleSetupSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    if (!secretInput.trim()) return
+    try {
+      window.localStorage.setItem(KIOSK_SECRET_STORAGE_KEY, secretInput.trim())
+    } catch {
+      // localStorage indisponível (modo privado, etc.) — segue em memória
+    }
+    setSecretError(null)
+    setKioskSecret(secretInput.trim())
+    setSecretInput('')
+  }
+
+  const handleResetSecret = () => {
+    try {
+      window.localStorage.removeItem(KIOSK_SECRET_STORAGE_KEY)
+    } catch {
+      // ignore
+    }
+    setKioskSecret(null)
+    setMachineSecret(null)
+  }
+
   // Carregar máquinas disponíveis
   useEffect(() => {
+    if (!kioskSecret) return
+
     const fetchMachines = async () => {
       try {
         const response = await fetch('/api/kiosk/machines')
@@ -74,7 +118,8 @@ export default function KioskPage() {
     }
 
     fetchMachines()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kioskSecret])
 
   // Atualizar relógio a cada segundo (apenas no cliente)
   useEffect(() => {
@@ -120,6 +165,7 @@ export default function KioskPage() {
 
   // Função para mudar de máquina e obter a semente mestra
   const handleMachineChange = async (machineId: string, currentMachines = machines) => {
+    if (!kioskSecret) return
     const selected = currentMachines.find((m) => m.id === machineId)
     if (selected) {
       setSelectedMachineId(machineId)
@@ -130,10 +176,17 @@ export default function KioskPage() {
       })
 
       try {
-        const initResponse = await fetch(`/api/kiosk/init?machineId=${machineId}`)
+        const initResponse = await fetch(`/api/kiosk/init?machineId=${machineId}`, {
+          headers: { 'x-kiosk-secret': kioskSecret },
+        })
         if (initResponse.ok) {
           const initData = await initResponse.json()
           setMachineSecret(initData.machineSecret)
+        } else if (initResponse.status === 401) {
+          // Segredo de provisionamento inválido/expirado: pede reconfiguração
+          setQrError('Segredo do terminal inválido. Reconfigure este dispositivo.')
+          setMachineSecret(null)
+          handleResetSecret()
         } else {
           setQrError('Erro ao inicializar Kiosk. Não autorizado ou máquina inativa.')
           setMachineSecret(null)
@@ -250,6 +303,58 @@ export default function KioskPage() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  // Aguardando leitura do localStorage: evita "piscar" a tela de setup
+  if (!kioskSecretLoaded) {
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <RotateCw className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    )
+  }
+
+  // Terminal ainda não provisionado: exige o segredo do dispositivo antes de
+  // liberar o QR code (evita que qualquer visitante extraia o machineSecret).
+  if (!kioskSecret) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center p-4">
+        <form
+          onSubmit={handleSetupSubmit}
+          className="glass w-full max-w-sm rounded-xl p-6 space-y-4 border border-neutral-700/50"
+        >
+          <div className="text-center space-y-1">
+            <Clock className="h-8 w-8 text-primary mx-auto" />
+            <h1 className="text-lg font-bold text-white">Configurar Terminal</h1>
+            <p className="text-sm text-neutral-400">
+              Insira o segredo de provisionamento deste dispositivo. Ele é solicitado apenas uma
+              vez por terminal.
+            </p>
+          </div>
+          <div>
+            <label htmlFor="kiosk-secret" className="sr-only">
+              Segredo do terminal
+            </label>
+            <input
+              id="kiosk-secret"
+              type="password"
+              autoComplete="off"
+              value={secretInput}
+              onChange={(e) => setSecretInput(e.target.value)}
+              className="w-full px-3 py-2 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="Segredo do terminal"
+            />
+          </div>
+          {secretError && <p className="text-sm text-red-400">{secretError}</p>}
+          <button
+            type="submit"
+            className="w-full py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+          >
+            Confirmar
+          </button>
+        </form>
+      </div>
+    )
   }
 
   return (

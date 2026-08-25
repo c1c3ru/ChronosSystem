@@ -5,6 +5,11 @@ import { prisma } from '@/lib/prisma'
 import { validateSecureQR, generateRecordHash } from '@/lib/qr-security'
 import { getNowInFortaleza } from '@/lib/timezone'
 import { apiLogger } from '@/lib/logger'
+import { z } from 'zod'
+
+const qrScanSchema = z.object({
+  qrData: z.string().min(1, 'QR code é obrigatório').max(500, 'QR code inválido'),
+})
 
 // POST /api/attendance/qr-scan - Registrar ponto via QR code
 
@@ -30,16 +35,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { qrData } = await request.json()
-
-    if (!qrData) {
+    const rawBody = await request.json().catch(() => null)
+    const parsedBody = qrScanSchema.safeParse(rawBody)
+    if (!parsedBody.success) {
       return NextResponse.json({ error: 'QR code é obrigatório' }, { status: 400 })
     }
-
-    if (qrData.length > 500) {
-      apiLogger.warn('QR data exceeds maximum length', { length: qrData.length })
-      return NextResponse.json({ error: 'QR code inválido', code: 'INVALID_QR' }, { status: 400 })
-    }
+    const { qrData } = parsedBody.data
 
     apiLogger.debug('Validating secure QR code')
 

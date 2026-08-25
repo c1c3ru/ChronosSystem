@@ -4,6 +4,15 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { updateHourBalance } from '@/lib/hour-calculator'
 import { apiLogger } from '@/lib/logger'
+import { z } from 'zod'
+
+const updateAttendanceRecordSchema = z.object({
+  timestamp: z
+    .string()
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida')
+    .optional(),
+  type: z.enum(['ENTRY', 'EXIT']).optional(),
+})
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -172,7 +181,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const { id: recordId } = await params
-    const body = await request.json()
+    const rawBody = await request.json().catch(() => null)
+    const parsedBody = updateAttendanceRecordSchema.safeParse(rawBody)
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
+    }
+    const body = parsedBody.data
 
     // Verificar se o registro existe
     const record = await prisma.attendanceRecord.findUnique({
@@ -190,7 +204,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updateData.timestamp = new Date(body.timestamp)
     }
 
-    if (body.type && ['ENTRY', 'EXIT'].includes(body.type)) {
+    if (body.type) {
       updateData.type = body.type
     }
 
