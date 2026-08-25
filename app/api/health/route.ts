@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getNowInFortaleza } from '@/lib/timezone'
 import { redisHealthCheck } from '@/lib/redis'
+import { isSmtpConfigured } from '@/lib/mailer'
 import { logger } from '@/lib/logger'
 
 export async function GET() {
@@ -18,6 +19,8 @@ export async function GET() {
       prisma.machine.count(),
     ])
 
+    const smtpConfigured = isSmtpConfigured()
+
     return NextResponse.json(
       {
         status: 'healthy',
@@ -32,6 +35,14 @@ export async function GET() {
         redis: {
           status: redisHealth.healthy ? 'connected' : 'disconnected',
           message: redisHealth.message,
+        },
+        email: {
+          // Não expõe valores, apenas se SMTP_HOST/USER/PASSWORD/FROM estão
+          // todos configurados. Sem isso, e-mails falham silenciosamente.
+          status: smtpConfigured ? 'configured' : 'not_configured',
+          message: smtpConfigured
+            ? 'SMTP configurado'
+            : 'SMTP não configurado — e-mails (reset de senha, lembretes, justificativas) não estão sendo enviados',
         },
         uptime: process.uptime(),
         memory: {
