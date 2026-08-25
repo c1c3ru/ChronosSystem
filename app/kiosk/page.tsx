@@ -11,9 +11,13 @@ import {
   CheckCircle,
   ArrowDownLeft,
   ArrowUpRight,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from 'lucide-react'
 import QRCode from 'qrcode'
 import Image from 'next/image'
+import Link from 'next/link'
 import { generateClientSecureQR } from '@/lib/client-crypto'
 
 interface QRData {
@@ -62,6 +66,7 @@ export default function KioskPage() {
   const [kioskSecretLoaded, setKioskSecretLoaded] = useState(false)
   const [secretInput, setSecretInput] = useState('')
   const [secretError, setSecretError] = useState<string | null>(null)
+  const [showSecretInput, setShowSecretInput] = useState(false)
 
   useEffect(() => {
     try {
@@ -184,8 +189,10 @@ export default function KioskPage() {
           setMachineSecret(initData.machineSecret)
         } else if (initResponse.status === 401) {
           // Segredo de provisionamento inválido/expirado: pede reconfiguração
-          setQrError('Segredo do terminal inválido. Reconfigure este dispositivo.')
           setMachineSecret(null)
+          setSecretError(
+            'Segredo do terminal inválido ou desatualizado. Peça o valor atual a um administrador e digite novamente.'
+          )
           handleResetSecret()
         } else {
           setQrError('Erro ao inicializar Kiosk. Não autorizado ou máquina inativa.')
@@ -324,26 +331,49 @@ export default function KioskPage() {
           className="glass w-full max-w-sm rounded-xl p-6 space-y-4 border border-neutral-700/50"
         >
           <div className="text-center space-y-1">
-            <Clock className="h-8 w-8 text-primary mx-auto" />
+            <KeyRound className="h-8 w-8 text-primary mx-auto" />
             <h1 className="text-lg font-bold text-white">Configurar Terminal</h1>
             <p className="text-sm text-neutral-400">
               Insira o segredo de provisionamento deste dispositivo. Ele é solicitado apenas uma
-              vez por terminal.
+              vez por terminal — o navegador vai lembrar dele depois.
             </p>
           </div>
+
+          <div className="bg-neutral-900/50 border border-neutral-700/50 rounded-lg p-3 text-xs text-neutral-400 leading-relaxed">
+            Não sabe qual é esse valor? Ele não é gerado automaticamente aqui — é um segredo
+            único, configurado por um administrador do sistema em{' '}
+            <span className="text-neutral-300">Painel Admin → Gerenciar Máquinas</span>. Peça
+            esse valor a um administrador, ou{' '}
+            <Link href="/admin/machines" className="text-primary hover:underline">
+              acesse o painel de máquinas
+            </Link>{' '}
+            se você tiver acesso de administrador.
+          </div>
+
           <div>
             <label htmlFor="kiosk-secret" className="sr-only">
               Segredo do terminal
             </label>
-            <input
-              id="kiosk-secret"
-              type="password"
-              autoComplete="off"
-              value={secretInput}
-              onChange={(e) => setSecretInput(e.target.value)}
-              className="w-full px-3 py-2 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="Segredo do terminal"
-            />
+            <div className="relative">
+              <input
+                id="kiosk-secret"
+                type={showSecretInput ? 'text' : 'password'}
+                autoComplete="off"
+                value={secretInput}
+                onChange={(e) => setSecretInput(e.target.value)}
+                className="w-full px-3 py-2 pr-10 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="Segredo do terminal"
+              />
+              <button
+                type="button"
+                onClick={() => setShowSecretInput((prev) => !prev)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 transition-colors"
+                aria-label={showSecretInput ? 'Ocultar segredo' : 'Mostrar segredo'}
+                title={showSecretInput ? 'Ocultar segredo' : 'Mostrar segredo'}
+              >
+                {showSecretInput ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           {secretError && <p className="text-sm text-red-400">{secretError}</p>}
           <button

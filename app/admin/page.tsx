@@ -367,7 +367,7 @@ export default function AdminPage() {
               <Link href="/admin/users/new" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                  className="group h-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
                   <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-success/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-success/30 transition-colors">
@@ -384,7 +384,7 @@ export default function AdminPage() {
               <Link href="/admin/users" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                  className="group h-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
                   <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-primary/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/30 transition-colors">
@@ -399,7 +399,7 @@ export default function AdminPage() {
               <Link href="/admin/machines" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                  className="group h-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
                   <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-secondary-500/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-secondary-500/30 transition-colors">
@@ -414,7 +414,7 @@ export default function AdminPage() {
               <Link href="/admin/reports" className="h-full flex">
                 <Card
                   variant="glass"
-                  className="group h-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                  className="group h-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
                   <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-warning/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-warning/30 transition-colors">
@@ -430,7 +430,7 @@ export default function AdminPage() {
               <Link href="/admin/schedule" className="col-span-2 lg:col-span-1 h-full flex">
                 <Card
                   variant="glass"
-                  className="group h-full w-full hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                  className="group h-full w-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
                 >
                   <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
                     <div className="bg-primary/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/30 transition-colors">
