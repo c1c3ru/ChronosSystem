@@ -1,0 +1,40 @@
+name: 🔔 Lembrete de Entrada/Saída
+
+# Dispara /api/notifications/cron perto dos horários de turno, para avisar
+# estagiários sobre entrada/saída de ponto não registrada.
+#
+# Roda em runner do GitHub (gratuito, ubuntu-latest) — não depende de
+# nenhuma infraestrutura própria. A aplicação em si roda na Vercel; este
+# workflow só faz uma chamada HTTP autenticada (CRON_SECRET) para acordar
+# o cron job, já que o plano gratuito da Vercel não permite Cron Jobs
+# nativos com essa frequência (múltiplas vezes ao dia).
+on:
+  workflow_dispatch:
+  schedule:
+    # Horários em UTC. Fortaleza/BRT = UTC-3 (sem horário de verão).
+    - cron: '0 12 * * 1-5' # 09:00 BRT — checar entrada não registrada
+    - cron: '30 15 * * 1-5' # 12:30 BRT — lembrete de saída (turno manhã)
+    - cron: '0 21 * * 1-5' # 18:00 BRT — checar saída não registrada (turno tarde)
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  trigger-reminder:
+    name: Disparar lembrete de ponto
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/notifications/cron
+        run: |
+          RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://chronos-system.vercel.app/api/notifications/cron")
+
+          echo "Status HTTP: $RESPONSE"
+          cat /tmp/response.json || true
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "::error::Endpoint retornou status $RESPONSE (esperado 200)"
+            exit 1
+          fi

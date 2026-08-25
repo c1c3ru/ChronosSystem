@@ -1,0 +1,36 @@
+name: 📋 Lembrete Diário de Justificativas Pendentes
+
+# Dispara /api/cron/daily-justification-check uma vez por dia, para avisar
+# estagiários com justificativas pendentes por e-mail.
+#
+# Roda em runner do GitHub (gratuito, ubuntu-latest) — mesma lógica do
+# attendance-reminder-cron.yml: a Vercel (plano gratuito) não permite Cron
+# Jobs nativos suficientes para tudo, então o GitHub Actions assume esse
+# papel via chamada HTTP autenticada (CRON_SECRET).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '5 12 * * 1-5' # 09:05 BRT (UTC-3), dias úteis
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  trigger-reminder:
+    name: Disparar lembrete de justificativas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/cron/daily-justification-check
+        run: |
+          RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://chronos-system.vercel.app/api/cron/daily-justification-check")
+
+          echo "Status HTTP: $RESPONSE"
+          cat /tmp/response.json || true
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "::error::Endpoint retornou status $RESPONSE (esperado 200)"
+            exit 1
+          fi
