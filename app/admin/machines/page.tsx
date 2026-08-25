@@ -16,6 +16,11 @@ import {
   PowerOff,
   AlertCircle,
   CheckCircle,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -39,6 +44,44 @@ export default function MachinesPage() {
   const [machines, setMachines] = useState<Machine[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Segredo de provisionamento do kiosk (KIOSK_PROVISION_SECRET)
+  const [kioskSecret, setKioskSecret] = useState<string | null>(null)
+  const [kioskSecretConfigured, setKioskSecretConfigured] = useState<boolean | null>(null)
+  const [kioskSecretLoading, setKioskSecretLoading] = useState(false)
+  const [showKioskSecret, setShowKioskSecret] = useState(false)
+  const [kioskSecretCopied, setKioskSecretCopied] = useState(false)
+
+  const loadKioskSecret = useCallback(async () => {
+    setKioskSecretLoading(true)
+    try {
+      const response = await fetch('/api/admin/kiosk-secret')
+      const data = await response.json()
+      if (response.ok) {
+        setKioskSecretConfigured(data.configured)
+        setKioskSecret(data.secret ?? null)
+      } else {
+        toast.error(data.error || 'Erro ao carregar segredo do kiosk')
+      }
+    } catch (error) {
+      console.error('Erro ao carregar segredo do kiosk:', error)
+      toast.error('Erro ao carregar segredo do kiosk')
+    } finally {
+      setKioskSecretLoading(false)
+    }
+  }, [])
+
+  const handleCopyKioskSecret = async () => {
+    if (!kioskSecret) return
+    try {
+      await navigator.clipboard.writeText(kioskSecret)
+      setKioskSecretCopied(true)
+      toast.success('Segredo copiado para a área de transferência')
+      setTimeout(() => setKioskSecretCopied(false), 2000)
+    } catch (error) {
+      toast.error('Não foi possível copiar automaticamente. Selecione e copie manualmente.')
+    }
+  }
 
   const loadMachines = useCallback(async () => {
     try {
@@ -190,6 +233,71 @@ export default function MachinesPage() {
 
       {/* Content */}
       <div className="container mx-auto px-6 py-8">
+        {/* Segredo de provisionamento do kiosk */}
+        <Card className="mb-6" variant="glass">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              <span>Segredo de Provisionamento do Terminal (Kiosk)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-neutral-400 text-sm">
+              Ao abrir a tela <code className="text-neutral-300">/kiosk</code> em um terminal
+              físico pela primeira vez, ele pede um &quot;segredo do terminal&quot;. Esse valor{' '}
+              <strong className="text-white">não é gerado por dispositivo</strong> — é um único
+              segredo compartilhado, definido nas variáveis de ambiente do servidor
+              (<code className="text-neutral-300">KIOSK_PROVISION_SECRET</code>). Digite o mesmo
+              valor abaixo em cada terminal, uma única vez; o navegador do terminal lembra dele
+              depois disso.
+            </p>
+
+            {kioskSecretConfigured === false && (
+              <div className="flex items-start space-x-2 bg-error/10 border border-error/30 rounded-lg p-3">
+                <AlertCircle className="h-4 w-4 text-error mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-error">
+                  KIOSK_PROVISION_SECRET não está configurado no servidor. Configure essa
+                  variável de ambiente (ex.: gere um valor com{' '}
+                  <code>openssl rand -base64 32</code>) antes de provisionar terminais.
+                </p>
+              </div>
+            )}
+
+            {!showKioskSecret ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  if (kioskSecret === null) await loadKioskSecret()
+                  setShowKioskSecret(true)
+                }}
+                disabled={kioskSecretLoading}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                {kioskSecretLoading ? 'Carregando...' : 'Revelar segredo'}
+              </Button>
+            ) : (
+              kioskSecret && (
+                <div className="flex items-center space-x-2">
+                  <code className="flex-1 bg-neutral-900/60 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 break-all">
+                    {kioskSecret}
+                  </code>
+                  <Button variant="secondary" size="sm" onClick={handleCopyKioskSecret}>
+                    {kioskSecretCopied ? (
+                      <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => setShowKioskSecret(false)}>
+                    <EyeOff className="h-4 w-4" />
+                  </Button>
+                </div>
+              )
+            )}
+          </CardContent>
+        </Card>
+
         {/* Search */}
         <Card className="mb-6">
           <CardContent className="p-6">
