@@ -46,7 +46,12 @@ if (!NEXTAUTH_SECRET) {
 
 // Domínios de email institucionais autorizados a logar via Google OAuth.
 // Configurável via GOOGLE_ALLOWED_EMAIL_DOMAINS (lista separada por vírgula).
-const ALLOWED_GOOGLE_EMAIL_DOMAINS = (process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS || 'ifce.edu.br')
+// IFCE Maracanaú usa dois domínios institucionais distintos:
+//   - ifce.edu.br        -> servidores/professores
+//   - aluno.ifce.edu.br  -> exclusivo para alunos
+const ALLOWED_GOOGLE_EMAIL_DOMAINS = (
+  process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS || 'ifce.edu.br,aluno.ifce.edu.br'
+)
   .split(',')
   .map((domain) => domain.trim().toLowerCase())
   .filter(Boolean)
