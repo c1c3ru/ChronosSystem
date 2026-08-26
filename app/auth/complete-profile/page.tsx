@@ -40,6 +40,25 @@ interface ProfileData {
   allowFlexibleHours?: boolean
 }
 
+// Rótulos legíveis dos campos, para listar no toast/banner de erro exatamente
+// quais campos precisam ser corrigidos (em vez de uma mensagem genérica).
+const FIELD_LABELS: Record<string, string> = {
+  phone: 'Telefone',
+  address: 'Endereço',
+  birthDate: 'Data de nascimento',
+  emergencyContact: 'Contato de emergência',
+  emergencyPhone: 'Telefone de emergência',
+  department: 'Departamento',
+  siapeNumber: 'Matrícula SIAPE',
+  contractType: 'Tipo de contrato',
+  startDate: 'Data de início',
+  contractStartDate: 'Data de início do contrato',
+  contractEndDate: 'Data de fim do contrato',
+  shift: 'Turno',
+  shiftStartTime: 'Horário de início do turno',
+  shiftEndTime: 'Horário de fim do turno',
+}
+
 export default function CompleteProfilePage() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
@@ -49,7 +68,6 @@ export default function CompleteProfilePage() {
   const [success, setSuccess] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
   const [existingUserData, setExistingUserData] = useState<Record<string, unknown> | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -98,13 +116,6 @@ export default function CompleteProfilePage() {
     }
   }, [session, status, router, hasRedirected])
 
-  // Detectar hidratação
-  useEffect(() => {
-    console.log('🔄 Componente hidratado')
-    setIsHydrated(true)
-  }, [])
-
-  // Anexar event listener após hidratação e quando formulário estiver disponível
   const validateForm = useCallback(() => {
     console.log('🔍 [VALIDAÇÃO] Iniciando validação do formulário...')
     console.log('📝 [VALIDAÇÃO] Dados atuais:', profileData)
@@ -213,7 +224,7 @@ export default function CompleteProfilePage() {
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return newErrors
   }, [profileData, effectiveRole])
 
   const handleSubmit = useCallback(
@@ -223,18 +234,34 @@ export default function CompleteProfilePage() {
 
       console.log('📝 Dados do formulário:', profileData)
 
-      if (!validateForm()) {
-        console.log('❌ Validação falhou')
+      const validationErrors = validateForm()
+      const invalidFields = Object.keys(validationErrors)
+
+      if (invalidFields.length > 0) {
+        console.log('❌ Validação falhou', validationErrors)
 
         // Feedback visual: sem isso, clicar em Salvar com um campo obrigatório
         // vazio não mostrava nada além de um texto pequeno abaixo do campo
-        // (fácil de não notar, especialmente se estiver fora da tela).
-        toast.error('Preencha todos os campos obrigatórios destacados em vermelho.')
+        // (fácil de não notar, especialmente se estiver fora da tela). Agora
+        // nomeia exatamente quais campos precisam ser corrigidos.
+        const fieldNames = invalidFields.map((key) => FIELD_LABELS[key] || key).join(', ')
+        toast.error(`Corrija os seguintes campos: ${fieldNames}`)
         setErrors((prev) => ({
           ...prev,
-          general: 'Há campos obrigatórios não preenchidos ou inválidos. Revise o formulário abaixo.',
+          general: `Campos pendentes: ${fieldNames}.`,
         }))
-        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+        // Foca e rola até o primeiro campo inválido que existe no DOM (a
+        // maioria dos campos tem id igual à chave); senão, rola até o topo
+        // do formulário para o banner de erro ficar visível.
+        const firstFieldWithId = invalidFields.find((key) => document.getElementById(key))
+        const target = firstFieldWithId ? document.getElementById(firstFieldWithId) : null
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          target.focus()
+        } else {
+          formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
 
         return
       }
@@ -313,38 +340,6 @@ export default function CompleteProfilePage() {
     },
     [profileData, update, validateForm]
   )
-
-  // Anexar event listener após hidratação e quando formulário estiver disponível
-  useEffect(() => {
-    if (!isHydrated) return
-
-    // Aguardar um tick para garantir que o DOM está pronto
-    const timer = setTimeout(() => {
-      const form = formRef.current
-      if (form) {
-        console.log('📋 Anexando event listener manual ao formulário')
-
-        const handleFormSubmit = async (e: Event) => {
-          console.log('🚀 Event listener manual chamado!')
-          await handleSubmit(e)
-        }
-
-        // Anexar listener manual
-        form.addEventListener('submit', handleFormSubmit)
-        console.log('✅ Event listener manual anexado')
-
-        // Cleanup
-        return () => {
-          console.log('🧹 Removendo event listener manual')
-          form.removeEventListener('submit', handleFormSubmit)
-        }
-      } else {
-        console.log('❌ Formulário ainda não está disponível no DOM')
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isHydrated, profileData, handleSubmit])
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '')
