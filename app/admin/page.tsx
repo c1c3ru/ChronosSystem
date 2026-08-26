@@ -22,6 +22,7 @@ import {
   Filter,
   LogIn,
   CalendarDays,
+  Mail,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -99,6 +100,16 @@ export default function AdminPage() {
   const [interns, setInterns] = useState<InternOverview[]>([])
   const [internPage, setInternPage] = useState(1)
   const internsPerPage = 6
+
+  // Status de e-mail (SMTP) — visibilidade rápida sem precisar checar logs
+  const [emailConfigured, setEmailConfigured] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((res) => res.json())
+      .then((data) => setEmailConfigured(data?.email?.status === 'configured'))
+      .catch(() => setEmailConfigured(null))
+  }, [])
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -272,6 +283,22 @@ export default function AdminPage() {
           <Loading size="lg" text="Carregando dashboard..." />
         ) : (
           <>
+            {/* Aviso de SMTP não configurado — e-mails (reset de senha, lembretes,
+                justificativas) falham silenciosamente sem isso */}
+            {emailConfigured === false && (
+              <div className="flex items-start space-x-3 bg-error/10 border border-error/30 rounded-xl p-4 mb-6">
+                <Mail className="h-5 w-5 text-error mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-error">E-mail (SMTP) não configurado</p>
+                  <p className="text-sm text-neutral-400 mt-0.5">
+                    Reset de senha, lembretes de ponto e avisos de justificativa não estão sendo
+                    enviados por e-mail. Configure SMTP_HOST, SMTP_USER, SMTP_PASSWORD e SMTP_FROM
+                    nas variáveis de ambiente do servidor.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Card variant="glass" className="hover:scale-105 transition-transform duration-200">
