@@ -225,6 +225,17 @@ export default function CompleteProfilePage() {
 
       if (!validateForm()) {
         console.log('❌ Validação falhou')
+
+        // Feedback visual: sem isso, clicar em Salvar com um campo obrigatório
+        // vazio não mostrava nada além de um texto pequeno abaixo do campo
+        // (fácil de não notar, especialmente se estiver fora da tela).
+        toast.error('Preencha todos os campos obrigatórios destacados em vermelho.')
+        setErrors((prev) => ({
+          ...prev,
+          general: 'Há campos obrigatórios não preenchidos ou inválidos. Revise o formulário abaixo.',
+        }))
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
         return
       }
 
