@@ -14,9 +14,9 @@ function ErrorContent() {
       case 'AccessDenied':
         return {
           title: 'Acesso Negado - IFCE Maracanaú',
-          message: 'Seu email não está cadastrado no sistema Chronos.',
+          message: 'Não foi possível entrar com essa conta Google.',
           description:
-            'Apenas funcionários, professores e estudantes pré-cadastrados pelo IFCE campus Maracanaú podem acessar o sistema. Entre em contato com a administração para solicitar seu cadastro.',
+            'O Chronos System só aceita contas Google institucionais (@ifce.edu.br). Verifique se você selecionou a conta certa ao fazer login — não é necessário nenhum cadastro prévio, sua conta é criada automaticamente no primeiro acesso com o email institucional.',
           icon: Shield,
         }
       case 'Configuration':
@@ -87,19 +87,15 @@ function ErrorContent() {
           {/* Contact Info */}
           {error === 'AccessDenied' && (
             <div className="mt-8 p-4 bg-slate-900/50 rounded-lg border border-slate-600">
-              <h3 className="text-sm font-medium text-slate-300 mb-2">Como solicitar acesso?</h3>
+              <h3 className="text-sm font-medium text-slate-300 mb-2">O que fazer?</h3>
               <div className="text-xs text-slate-400 space-y-2">
                 <p>
-                  • <strong>Funcionários/Professores:</strong> Procure o setor de RH ou TI
-                </p>
-                <p>
-                  • <strong>Estudantes:</strong> Procure o Registro Acadêmico
-                </p>
-                <p>
-                  • <strong>Terceirizados:</strong> Procure a Administração
+                  Ao clicar em &quot;Entrar com Google&quot;, escolha sua conta institucional
+                  (email terminado em <strong>@ifce.edu.br</strong>), não uma conta pessoal.
                 </p>
                 <p className="mt-2 text-slate-500">
-                  Informe seu email Google institucional para cadastro no sistema.
+                  Se sua conta é institucional e o erro persiste, entre em contato com o suporte
+                  técnico (TI).
                 </p>
               </div>
             </div>
