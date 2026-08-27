@@ -318,9 +318,13 @@ model LabVisit {
   contactEmail String
   contactPhone String
 
-  status    String   @default("CONFIRMED") // CONFIRMED | CANCELLED
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Toda visita nasce PENDING. Só um usuário autenticado pode aprová-la
+  // (ver POST /api/lab-visits/[id]/approve), o que dispara a criação do
+  // evento no Google Calendar.
+  status                String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED
+  googleCalendarEventId String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   @@index([labId, visitDate, shift])
   @@index([status])

@@ -3,10 +3,16 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
-import { FlaskConical, CheckCircle2, XCircle, CalendarDays } from 'lucide-react'
+import { FlaskConical, CheckCircle2, XCircle, CalendarDays, PlusCircle, ClipboardCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { VISIT_SHIFTS, type VisitShift, type PublicLaboratory, type PublicLabVisit } from '@/lib/lab-visits'
+import {
+  VISIT_SHIFTS,
+  type VisitShift,
+  type PublicLaboratory,
+  type PublicLabVisit,
+  type StaffLabVisit,
+} from '@/lib/lab-visits'
 
 const SHIFT_LABELS: Record<VisitShift, string> = {
   MORNING: 'Manhã',
@@ -32,6 +38,14 @@ const EMPTY_FORM: VisitFormState = {
   contactPhone: '',
 }
 
+interface NewLabFormState {
+  sigla: string
+  nome: string
+  descricao: string
+}
+
+const EMPTY_NEW_LAB: NewLabFormState = { sigla: '', nome: '', descricao: '' }
+
 export default function LabVisitsPage() {
   const { data: session, status } = useSession()
   const isAuthenticated = status === 'authenticated' && !!session
@@ -52,6 +66,16 @@ export default function LabVisitsPage() {
   // Lista pública de visitas já confirmadas (LGPD: só os 5 campos permitidos)
   const [confirmedVisits, setConfirmedVisits] = useState<PublicLabVisit[]>([])
   const [loadingVisits, setLoadingVisits] = useState(false)
+
+  // Visitas pendentes de aprovação (tela autenticada / interna)
+  const [pendingVisits, setPendingVisits] = useState<StaffLabVisit[]>([])
+  const [loadingPending, setLoadingPending] = useState(false)
+  const [approvingId, setApprovingId] = useState<string | null>(null)
+
+  // Cadastro de novos laboratórios (tela autenticada / interna)
+  const [showAddLabForm, setShowAddLabForm] = useState(false)
+  const [newLab, setNewLab] = useState<NewLabFormState>(EMPTY_NEW_LAB)
+  const [addingLab, setAddingLab] = useState(false)
 
   const loadLaboratories = useCallback(async () => {
     setLoadingLabs(true)
@@ -99,6 +123,28 @@ export default function LabVisitsPage() {
     }
   }, [isAuthenticated, loadConfirmedVisits])
 
+  const loadPendingVisits = useCallback(async () => {
+    setLoadingPending(true)
+    try {
+      const response = await fetch('/api/lab-visits/pending')
+      const data = await response.json()
+      if (response.ok) {
+        setPendingVisits(data.visits || [])
+      }
+    } catch (error) {
+      console.error('Erro ao carregar visitas pendentes:', error)
+    } finally {
+      setLoadingPending(false)
+    }
+  }, [])
+
+  // O painel de aprovação só existe para quem está logado.
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadPendingVisits()
+    }
+  }, [isAuthenticated, loadPendingVisits])
+
   const toggleLabSelection = (labId: string) => {
     setSelectedLabIds((prev) =>
       prev.includes(labId) ? prev.filter((id) => id !== labId) : [...prev, labId]
@@ -125,9 +171,12 @@ export default function LabVisitsPage() {
       const data = await response.json()
 
       if (response.ok) {
-        toast.success(`${data.confirmedCount} laboratório(s) confirmado(s) com sucesso!`)
+        toast.success(
+          `${data.requestedCount} laboratório(s) solicitado(s)! Aguardando aprovação.`
+        )
         setSelectedLabIds([])
         loadLaboratories()
+        loadPendingVisits()
       } else {
         toast.error(data.error || 'Erro ao confirmar visitas')
       }
@@ -136,6 +185,60 @@ export default function LabVisitsPage() {
       toast.error('Erro ao confirmar visitas')
     } finally {
       setConfirming(false)
+    }
+  }
+
+  const handleApprove = async (visitId: string) => {
+    setApprovingId(visitId)
+    try {
+      const response = await fetch(`/api/lab-visits/${visitId}/approve`, { method: 'POST' })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Visita aprovada! Evento enviado ao Google Calendar.')
+        setPendingVisits((prev) => prev.filter((visit) => visit.id !== visitId))
+        loadLaboratories()
+      } else {
+        toast.error(data.error || 'Erro ao aprovar visita')
+      }
+    } catch (error) {
+      console.error('Erro ao aprovar visita:', error)
+      toast.error('Erro ao aprovar visita')
+    } finally {
+      setApprovingId(null)
+    }
+  }
+
+  const handleAddLaboratory = async (e: FormEvent) => {
+    e.preventDefault()
+
+    if (!newLab.sigla || !newLab.nome || !newLab.descricao) {
+      toast.error('Preencha sigla, nome e descrição do laboratório.')
+      return
+    }
+
+    setAddingLab(true)
+    try {
+      const response = await fetch('/api/lab-visits/laboratories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLab),
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Laboratório adicionado com sucesso!')
+        setNewLab(EMPTY_NEW_LAB)
+        setShowAddLabForm(false)
+        loadLaboratories()
+      } else {
+        toast.error(data.error || 'Erro ao adicionar laboratório')
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar laboratório:', error)
+      toast.error('Erro ao adicionar laboratório')
+    } finally {
+      setAddingLab(false)
     }
   }
 
@@ -239,10 +342,88 @@ export default function LabVisitsPage() {
 
         {/* Cards dos laboratórios — sigla, nome, descrição e disponibilidade */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <FlaskConical className="h-5 w-5 text-primary" />
-            Laboratórios
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <FlaskConical className="h-5 w-5 text-primary" />
+              Laboratórios
+            </h2>
+
+            {/* Adicionar laboratório: opção exclusiva de quem está logado */}
+            {isAuthenticated && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddLabForm((prev) => !prev)}
+              >
+                <PlusCircle className="h-4 w-4 mr-1" />
+                Adicionar Laboratório
+              </Button>
+            )}
+          </div>
+
+          {isAuthenticated && showAddLabForm && (
+            <Card variant="glass" className="mb-4">
+              <CardContent className="p-4 sm:p-6">
+                <form
+                  onSubmit={handleAddLaboratory}
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                  aria-label="Adicionar Laboratório"
+                >
+                  <div>
+                    <label htmlFor="newLabSigla" className="block text-sm text-neutral-300 mb-1">
+                      Sigla
+                    </label>
+                    <input
+                      id="newLabSigla"
+                      type="text"
+                      required
+                      value={newLab.sigla}
+                      onChange={(e) => setNewLab((prev) => ({ ...prev, sigla: e.target.value }))}
+                      className="input w-full"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="newLabNome" className="block text-sm text-neutral-300 mb-1">
+                      Nome do laboratório
+                    </label>
+                    <input
+                      id="newLabNome"
+                      type="text"
+                      required
+                      value={newLab.nome}
+                      onChange={(e) => setNewLab((prev) => ({ ...prev, nome: e.target.value }))}
+                      className="input w-full"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="newLabDescricao"
+                      className="block text-sm text-neutral-300 mb-1"
+                    >
+                      Descrição
+                    </label>
+                    <input
+                      id="newLabDescricao"
+                      type="text"
+                      required
+                      value={newLab.descricao}
+                      onChange={(e) =>
+                        setNewLab((prev) => ({ ...prev, descricao: e.target.value }))
+                      }
+                      className="input w-full"
+                    />
+                  </div>
+                  <div className="sm:col-span-3 flex justify-end">
+                    <Button type="submit" disabled={addingLab} loading={addingLab}>
+                      Salvar laboratório
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
           {loadingLabs ? (
             <p className="text-neutral-400 text-sm">Carregando laboratórios...</p>
           ) : (
@@ -327,6 +508,53 @@ export default function LabVisitsPage() {
             <Button onClick={handleConfirmVisits} disabled={confirming} loading={confirming}>
               Confirmar as visitas
             </Button>
+          </div>
+        )}
+
+        {/* Painel de aprovação — só existe para quem está logado. Aprovar
+            move a visita de PENDING para CONFIRMED e dispara o evento no
+            Google Calendar (ver POST /api/lab-visits/[id]/approve). */}
+        {isAuthenticated && (
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-primary" />
+              Visitas pendentes de aprovação
+            </h2>
+            {loadingPending ? (
+              <p className="text-neutral-400 text-sm">Carregando...</p>
+            ) : pendingVisits.length === 0 ? (
+              <p className="text-neutral-400 text-sm">Nenhuma visita aguardando aprovação.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {pendingVisits.map((visit) => (
+                  <Card key={visit.id} variant="glass">
+                    <CardContent className="p-4 text-sm text-neutral-300 space-y-1">
+                      <p className="text-white font-medium">
+                        {visit.lab.sigla} — {visit.schoolName}
+                      </p>
+                      <p>Responsável: {visit.responsibleName}</p>
+                      <p>Contato: {visit.contactEmail}</p>
+                      <p>Alunos: {visit.studentCount}</p>
+                      <p>
+                        {new Date(visit.visitDate).toLocaleDateString('pt-BR')} —{' '}
+                        {SHIFT_LABELS[visit.shift as VisitShift] || visit.shift}
+                      </p>
+                      <div className="pt-2">
+                        <Button
+                          size="sm"
+                          data-testid={`approve-visit-${visit.id}`}
+                          onClick={() => handleApprove(visit.id)}
+                          disabled={approvingId === visit.id}
+                          loading={approvingId === visit.id}
+                        >
+                          Aprovar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

@@ -86,6 +86,16 @@ const envSchema = z.object({
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_SUBJECT: z.string().url().optional(),
+
+  // ========================================
+  // GOOGLE CALENDAR (Opcional)
+  // Credenciais de uma Service Account com acesso de escrita ao calendário
+  // usado para as visitas aos laboratórios. Sem essas variáveis, a
+  // integração degrada graciosamente (não cria evento, apenas loga).
+  // ========================================
+  GOOGLE_CALENDAR_CLIENT_EMAIL: z.string().optional(),
+  GOOGLE_CALENDAR_PRIVATE_KEY: z.string().optional(),
+  GOOGLE_CALENDAR_ID: z.string().optional(),
 })
 
 // Tipo TypeScript inferido do schema

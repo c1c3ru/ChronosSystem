@@ -14,9 +14,12 @@ const confirmVisitsSchema = z.object({
 })
 
 // POST /api/lab-visits/confirm
-// Rota autenticada: usada pela tela interna para confirmar diretamente a
-// reserva de um ou mais laboratórios num turno, sem precisar dos dados de
-// uma escola visitante (usa o próprio usuário logado como responsável).
+// Rota autenticada: usada pela tela interna para SOLICITAR a reserva de um
+// ou mais laboratórios num turno, sem precisar dos dados de uma escola
+// visitante (usa o próprio usuário logado como responsável). A visita nasce
+// PENDING como qualquer outra — precisa passar por
+// POST /api/lab-visits/[id]/approve para virar CONFIRMED e gerar o evento
+// no Google Calendar.
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
@@ -72,22 +75,22 @@ export async function POST(request: NextRequest) {
         shift,
         contactEmail: session.user.email,
         contactPhone: '',
-        status: 'CONFIRMED',
+        status: 'PENDING',
       })),
     })
 
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
-        action: 'LAB_VISIT_CONFIRMED',
+        action: 'LAB_VISIT_REQUESTED',
         resource: 'LAB_VISIT',
-        details: `${created.count} laboratório(s) confirmado(s) por ${session.user.email} para ${visitDate} (${shift})`,
+        details: `${created.count} laboratório(s) solicitado(s) por ${session.user.email} para ${visitDate} (${shift}) — aguardando aprovação`,
       },
     })
 
     return NextResponse.json({
       success: true,
-      confirmedCount: created.count,
+      requestedCount: created.count,
       skipped: labIds.length - availableLabs.length,
     })
   } catch (error: unknown) {

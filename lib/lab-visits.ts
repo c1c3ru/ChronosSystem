@@ -44,6 +44,46 @@ export type PublicLaboratory = Prisma.LaboratoryGetPayload<{ select: typeof labo
   available: boolean
 }
 
+// ---------------------------------------------------------------------------
+// Fluxo de aprovação: toda visita nasce PENDING. Só um usuário autenticado
+// pode movê-la para CONFIRMED (ver POST /api/lab-visits/[id]/approve).
+// ---------------------------------------------------------------------------
+export const VISIT_STATUSES = ['PENDING', 'CONFIRMED', 'CANCELLED'] as const
+export type VisitStatus = (typeof VISIT_STATUSES)[number]
+
+// Seleção completa (exceto relação `lab` bruta) usada na área restrita, onde
+// a equipe precisa ver os dados de contato para poder analisar o pedido —
+// diferente do PUBLIC_VISIT_SELECT, que é LGPD-filtrado.
+export const staffVisitSelect = {
+  id: true,
+  labId: true,
+  responsibleName: true,
+  schoolName: true,
+  studentCount: true,
+  visitDate: true,
+  shift: true,
+  contactEmail: true,
+  contactPhone: true,
+  status: true,
+  googleCalendarEventId: true,
+  createdAt: true,
+  lab: { select: laboratorySelect },
+} as const satisfies Prisma.LabVisitSelect
+
+export type StaffLabVisit = Prisma.LabVisitGetPayload<{ select: typeof staffVisitSelect }>
+
+export const createLaboratorySchema = z.object({
+  sigla: z
+    .string()
+    .trim()
+    .min(2, 'Sigla deve ter ao menos 2 caracteres')
+    .max(20, 'Sigla deve ter no máximo 20 caracteres'),
+  nome: z.string().trim().min(2, 'Nome é obrigatório'),
+  descricao: z.string().trim().min(2, 'Descrição é obrigatória'),
+})
+
+export type CreateLaboratoryInput = z.infer<typeof createLaboratorySchema>
+
 // Schema de criação de visita (usado tanto pelo formulário público quanto
 // pela confirmação interna, que preenche responsibleName/schoolName com
 // dados do próprio servidor).

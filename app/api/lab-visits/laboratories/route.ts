@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { rateLimiters, withRateLimit } from '@/lib/rate-limit'
-import { laboratorySelect, VISIT_SHIFTS, type PublicLaboratory } from '@/lib/lab-visits'
+import {
+  laboratorySelect,
+  createLaboratorySchema,
+  VISIT_SHIFTS,
+  type PublicLaboratory,
+} from '@/lib/lab-visits'
 
 // GET /api/lab-visits/laboratories?date=YYYY-MM-DD&shift=MORNING
 // Rota pública: lista os laboratórios (sigla, nome, descrição) e, quando
@@ -60,6 +67,50 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
       { error: 'Erro ao carregar laboratórios', details: errorMessage },
+      { status: 500 }
+    )
+  }
+}
+
+// POST /api/lab-visits/laboratories
+// Rota autenticada (401 sem sessão): cadastra um novo laboratório. Usada
+// pela interface restrita para adicionar mais laboratórios/cards à tela.
+export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  }
+
+  try {
+    const rawBody = await request.json().catch(() => null)
+    const parsed = createLaboratorySchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0]?.message || 'Dados inválidos' },
+        { status: 400 }
+      )
+    }
+
+    const existing = await prisma.laboratory.findUnique({
+      where: { sigla: parsed.data.sigla },
+    })
+    if (existing) {
+      return NextResponse.json(
+        { error: 'Já existe um laboratório cadastrado com essa sigla' },
+        { status: 409 }
+      )
+    }
+
+    const lab = await prisma.laboratory.create({
+      data: parsed.data,
+      select: laboratorySelect,
+    })
+
+    return NextResponse.json({ success: true, laboratory: { ...lab, available: true } }, { status: 201 })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    return NextResponse.json(
+      { error: 'Erro ao cadastrar laboratório', details: errorMessage },
       { status: 500 }
     )
   }

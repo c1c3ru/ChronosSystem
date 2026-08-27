@@ -5,8 +5,10 @@ import { createLabVisitSchema } from '@/lib/lab-visits'
 
 // POST /api/lab-visits
 // Rota pública: formulário de solicitação de visita preenchido por uma
-// escola visitante (não exige autenticação). Cria a visita já como
-// CONFIRMED — não há fluxo de aprovação nesta versão.
+// escola visitante (não exige autenticação). Toda visita nasce como
+// PENDING — só é CONFIRMED depois que um usuário autenticado a aprova via
+// POST /api/lab-visits/[id]/approve (o que também dispara o evento no
+// Google Calendar).
 export async function POST(request: NextRequest) {
   const rateLimitResponse = await withRateLimit(rateLimiters.general)(request)
   if (rateLimitResponse) return rateLimitResponse
@@ -58,9 +60,9 @@ export async function POST(request: NextRequest) {
         shift: data.shift,
         contactEmail: data.contactEmail,
         contactPhone: data.contactPhone,
-        status: 'CONFIRMED',
+        status: 'PENDING',
       },
-      select: { id: true, visitDate: true, shift: true },
+      select: { id: true, visitDate: true, shift: true, status: true },
     })
 
     return NextResponse.json({ success: true, visit })

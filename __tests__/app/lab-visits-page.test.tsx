@@ -99,6 +99,14 @@ describe('LabVisitsPage - renderização condicional', () => {
       const confirmButton = await screen.findByRole('button', { name: /confirmar as visitas/i })
       expect(confirmButton).toBeEnabled()
     })
+
+    it('a opção de adicionar mais laboratórios existe no DOM', async () => {
+      render(<LabVisitsPage />)
+
+      const addLabButton = await screen.findByRole('button', { name: /adicionar laboratório/i })
+      expect(addLabButton).toBeInTheDocument()
+      expect(addLabButton).toBeEnabled()
+    })
   })
 
   describe('Estado não autenticado (visitante)', () => {
@@ -150,6 +158,18 @@ describe('LabVisitsPage - renderização condicional', () => {
 
       expect(
         screen.queryByRole('button', { name: /confirmar as visitas/i })
+      ).not.toBeInTheDocument()
+    })
+
+    it('não renderiza a opção de adicionar laboratório (ação exclusiva de quem está logado)', async () => {
+      render(<LabVisitsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('LAB-IA')).toBeInTheDocument()
+      })
+
+      expect(
+        screen.queryByRole('button', { name: /adicionar laboratório/i })
       ).not.toBeInTheDocument()
     })
   })

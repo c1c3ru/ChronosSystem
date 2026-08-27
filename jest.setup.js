@@ -120,20 +120,25 @@ global.ResizeObserver = jest.fn(() => ({
   unobserve: jest.fn(),
 }))
 
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-})
+// Mock matchMedia — só existe `window` sob o ambiente jsdom (padrão). Testes
+// de API routes usam `@jest-environment node` (Next.js precisa do fetch API
+// nativo do Node, incompatível com o polyfill de Headers/Response do
+// jsdom), e nesse ambiente `window` não existe.
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  })
+}
 
 // Polyfill for TextEncoder/TextDecoder (needed for QR code generation in tests)
 const { TextEncoder, TextDecoder } = require('util')

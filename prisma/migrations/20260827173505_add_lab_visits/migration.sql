@@ -22,7 +22,8 @@ CREATE TABLE "LabVisit" (
     "shift" TEXT NOT NULL,
     "contactEmail" TEXT NOT NULL,
     "contactPhone" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'CONFIRMED',
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "googleCalendarEventId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
