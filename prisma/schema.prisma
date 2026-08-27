@@ -287,3 +287,41 @@ model Holiday {
 
   @@index([date])
 }
+
+// Agendamento de visitas de escolas aos laboratórios
+model Laboratory {
+  id          String     @id @default(cuid())
+  sigla       String     @unique
+  nome        String
+  descricao   String
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  visits      LabVisit[]
+
+  @@index([isActive])
+}
+
+model LabVisit {
+  id     String     @id @default(cuid())
+  labId  String
+  lab    Laboratory @relation(fields: [labId], references: [id], onDelete: Cascade)
+
+  // Campos públicos (LGPD: únicos expostos por /api/lab-visits/public)
+  responsibleName String
+  schoolName      String
+  studentCount    Int
+  visitDate       DateTime
+  shift           String // MORNING | AFTERNOON | NIGHT
+
+  // Dados de contato — NUNCA retornados pelo endpoint público
+  contactEmail String
+  contactPhone String
+
+  status    String   @default("CONFIRMED") // CONFIRMED | CANCELLED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([labId, visitDate, shift])
+  @@index([status])
+}
