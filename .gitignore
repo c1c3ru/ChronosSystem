@@ -83,3 +83,4 @@ vercel_dump_backup.sql
 docs/security-audit/.venv/
 docs/security-audit/_charts/
 docs/security-audit/__pycache__/
+.env*

@@ -1,4 +1,4 @@
-name: 🚀 Chronos Unified Pipeline (Self-Hosted Runner)
+name: 🚀 Chronos CI Pipeline
 
 on:
   push:
@@ -9,8 +9,13 @@ on:
   # Os crons de notificação (lembrete de ponto e de justificativas) foram
   # extraídos para workflows dedicados: attendance-reminder-cron.yml e
   # daily-justification-cron.yml. Isso evita que um push cancele um disparo
-  # de cron em andamento (mesmo concurrency group) e roda em runner do
-  # GitHub em vez de depender do runner self-hosted usado no deploy.
+  # de cron em andamento (mesmo concurrency group).
+  #
+  # Deploy: não há mais job de deploy neste pipeline. Produção roda na
+  # Vercel, conectada via integração nativa Git -> Vercel (repositório
+  # c1c3ru/ChronosSystem, projeto "chronos-system") — todo push em `main`
+  # já dispara build e deploy automaticamente na Vercel, sem precisar de
+  # nenhum passo aqui. Este workflow cuida só de qualidade/segurança do CI.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,7 +27,7 @@ env:
 jobs:
   quality-gate:
     name: 🛡️ Quality Gate
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       DATABASE_URL: "file:./ci.db"
       NEXTAUTH_SECRET: "ci-test-secret-key-123456789"
@@ -65,7 +70,7 @@ jobs:
 
   security-audit:
     name: 🔒 Security Audit
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout
         uses: actions/checkout@v4
@@ -81,166 +86,3 @@ jobs:
 
       - name: 📋 Audit Dependencies
         run: npm audit --audit-level=high
-
-  deploy-production:
-    name: 🌍 Local Deploy (Production)
-    runs-on: self-hosted
-    needs: [quality-gate, security-audit]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment:
-      name: production
-
-    steps:
-      # ── STEP 1: Verificar .env pré-configurado no servidor ────────────────
-      # Para runners self-hosted, o .env deve existir no servidor.
-      # NUNCA sobrescrever via GitHub Secrets — evita corrupção de URL.
-      - name: 🔍 Verificar .env no Servidor
-        run: |
-          ENV_FILE="/home/nac/ChronosSystem/.env"
-
-          if [ ! -f "${ENV_FILE}" ]; then
-            echo "❌ .env não encontrado em ${ENV_FILE}"
-            echo ""
-            echo "   Configure o .env UMA VEZ no servidor de produção:"
-            echo "   ─────────────────────────────────────────────────"
-            echo "   ssh nac@<servidor>"
-            echo "   nano /home/nac/ChronosSystem/.env"
-            echo ""
-            echo "   Conteúdo mínimo do .env:"
-            echo "   DATABASE_URL=postgresql://usuario:senha@localhost:5432/chronos_db"
-            echo "   NEXTAUTH_SECRET=chave_aleatoria_longa"
-            echo "   NEXTAUTH_URL=http://seu-ip-ou-dominio:5000"
-            exit 1
-          fi
-
-          # Ler DATABASE_URL do arquivo (sem expor na variável de ambiente do CI)
-          DB_URL=$(grep "^DATABASE_URL=" "${ENV_FILE}" | cut -d= -f2- | tr -d '"')
-
-          if [ -z "${DB_URL}" ]; then
-            echo "❌ DATABASE_URL não encontrada no .env"
-            exit 1
-          fi
-
-          if [[ "${DB_URL}" == file:* ]]; then
-            echo "❌ DATABASE_URL aponta para SQLite. Configure PostgreSQL no .env"
-            exit 1
-          fi
-
-          if [[ "${DB_URL}" != postgresql://* ]] && [[ "${DB_URL}" != postgres://* ]]; then
-            echo "❌ DATABASE_URL deve começar com postgresql:// ou postgres://"
-            echo "   Prefixo atual: $(echo "${DB_URL}" | cut -c1-20)..."
-            exit 1
-          fi
-
-          # Mostrar host:porta sem expor senha
-          HOSTPORT=$(echo "${DB_URL}" | sed 's|.*@||' | sed 's|/.*||')
-          echo "✅ .env configurado | Destino PostgreSQL: ${HOSTPORT}"
-
-      # ── STEP 2: Sincronizar código e reiniciar ────────────────────────────
-      - name: 🚀 Sincronizar e Reiniciar Produção
-        run: |
-          set -euo pipefail
-          cd /home/nac/ChronosSystem
-
-          # Proteger .env de git reset --hard (apenas marca, não commita)
-          git update-index --skip-worktree .env 2>/dev/null || true
-
-          # Atualizar código
-          echo "📥 Buscando últimas alterações..."
-          git fetch origin main
-          git reset --hard origin/main
-
-          # Confirmar que .env sobreviveu ao reset
-          SAVED_DB_URL=$(grep "^DATABASE_URL=" .env 2>/dev/null | cut -d= -f2- | tr -d '"')
-          if [[ "${SAVED_DB_URL}" != postgresql://* ]] && [[ "${SAVED_DB_URL}" != postgres://* ]]; then
-            echo "❌ .env perdido ou DATABASE_URL inválida após git reset"
-            echo "   Execute no servidor: git update-index --skip-worktree .env"
-            exit 1
-          fi
-          echo "✅ .env preservado"
-
-          # Dependências — instala tudo (dev incluído) pois o Next.js build
-          # precisa de typescript, @types/*, eslint-*, etc. em tempo de compilação
-          # npm ci: instalação reprodutível, exatamente a partir do package-lock.json
-          echo "📦 Instalando dependências..."
-          rm -rf node_modules
-          npm ci
-
-          # Prisma — lê DATABASE_URL explicitamente do .env para evitar ambiguidade
-          # (variáveis de ambiente do CI têm prioridade sobre .env; exportamos manualmente)
-          unset DATABASE_URL
-          RAW_DB_URL=$(grep "^DATABASE_URL=" .env | head -1 | cut -d= -f2-)
-          # Remove aspas duplas, aspas simples e \r residual do Windows
-          CLEAN_DB_URL=$(echo "${RAW_DB_URL}" | tr -d '"' | tr -d "'" | tr -d '\r')
-          export DATABASE_URL="${CLEAN_DB_URL}"
-
-          # Diagnóstico: exibe URL sem expor a senha
-          SAFE_URL=$(echo "${DATABASE_URL}" | sed 's|://[^:]*:[^@]*@|://***:***@|')
-          echo "🔍 DATABASE_URL (sanitizado): ${SAFE_URL}"
-
-          # Valida formato final antes de chamar o Prisma
-          if [[ "${DATABASE_URL}" != postgresql://* ]] && [[ "${DATABASE_URL}" != postgres://* ]]; then
-            echo "❌ DATABASE_URL inválida após limpeza. Verifique o .env no servidor."
-            echo "   Formato esperado: postgresql://usuario:senha@host:porta/banco"
-            exit 1
-          fi
-
-          echo "🗄️ Gerando cliente Prisma..."
-          npx prisma generate
-
-          # Aplica apenas migrations versionadas (prisma/migrations/**). Sem fallback
-          # automático para `db push --accept-data-loss`: se a migration falhar, o
-          # deploy para aqui e exige revisão manual (evita perda de dados silenciosa).
-          echo "🗄️ Aplicando migrations..."
-          npx prisma migrate deploy
-
-          # Build — limpa cache Turbopack para evitar chunks stale de builds anteriores
-          echo "🔨 Compilando aplicação (cache limpo)..."
-          rm -rf .next
-          npm run build
-
-          # Restart — mata processo anterior e inicia com o build já pronto
-          echo "🚀 Reiniciando serviço na porta 5000..."
-          fuser -k 5000/tcp 2>/dev/null || true
-          pkill -9 -f "next start -p 5000" 2>/dev/null || true
-          sleep 2
-
-          rm -f logs_app.txt
-          nohup npm run start > logs_app.txt 2>&1 &
-
-          echo "⏳ Aguardando inicialização (15s)..."
-          sleep 15
-
-          if curl -sf http://localhost:5000 > /dev/null; then
-            echo "✅ Servidor iniciado com sucesso na porta 5000"
-          else
-            echo "❌ Servidor não respondeu — verifique logs_app.txt"
-            tail -30 logs_app.txt || true
-            exit 1
-          fi
-
-          # Crontab — notificações de ponto em horário BRT
-          echo "⏰ Configurando crontab (BRT)..."
-          SCRIPT_DIR="$(pwd)/scripts"
-          NOTIFY_SCRIPT="${SCRIPT_DIR}/cron-notify-attendance.sh"
-          DAILY_SCRIPT="${SCRIPT_DIR}/cron-daily-check.sh"
-
-          chmod +x "$NOTIFY_SCRIPT" "$DAILY_SCRIPT" 2>/dev/null || true
-
-          (crontab -l 2>/dev/null | grep -v "chronos-cron\|CRON_TZ" || true) > /tmp/chronos_crontab_tmp
-          echo "CRON_TZ=America/Fortaleza"                                         >> /tmp/chronos_crontab_tmp
-          echo "0 9 * * 1-5  ${NOTIFY_SCRIPT} >> /tmp/chronos-notify.log 2>&1"    >> /tmp/chronos_crontab_tmp
-          echo "30 12 * * 1-5 ${NOTIFY_SCRIPT} >> /tmp/chronos-notify.log 2>&1"   >> /tmp/chronos_crontab_tmp
-          echo "0 18 * * 1-5 ${NOTIFY_SCRIPT} >> /tmp/chronos-notify.log 2>&1"    >> /tmp/chronos_crontab_tmp
-          echo "0 9 * * 1-5  ${DAILY_SCRIPT}  >> /tmp/chronos-daily.log 2>&1"     >> /tmp/chronos_crontab_tmp
-          crontab /tmp/chronos_crontab_tmp
-          rm -f /tmp/chronos_crontab_tmp
-          echo "✅ Crontab configurado — notificações às 09h, 12h30 e 18h (seg-sex, BRT)"
-
-          # Redis
-          if command -v redis-cli &>/dev/null; then
-            redis-cli KEYS "rate_limit:*" | xargs -r redis-cli DEL || true
-            echo "✅ Cache Redis limpo"
-          fi
-
-          echo "✅ Deploy concluído com sucesso!"
