@@ -18,7 +18,6 @@ import {
   formatHours,
 } from '@/lib/contract-types'
 import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
-import { determineRoleFromSiape } from '@/lib/admin-siape'
 
 interface ProfileData {
   phone?: string
@@ -72,12 +71,13 @@ export default function CompleteProfilePage() {
   const [existingUserData, setExistingUserData] = useState<Record<string, unknown> | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
+  // O nivel de acesso final e sempre decidido pelo servidor (ver
+  // POST /api/auth/complete-profile) — nunca pelo numero de SIAPE digitado
+  // aqui. Usamos o role da sessao apenas como dica de UX para mostrar/ocultar
+  // campos; nao deve (e nao pode mais) prever nem exibir uma promocao a ADMIN.
   const effectiveRole = useMemo(() => {
-    if (profileData.siapeNumber && profileData.siapeNumber.length === 7) {
-      return determineRoleFromSiape(profileData.siapeNumber)
-    }
     return session?.user?.role || 'EMPLOYEE'
-  }, [profileData.siapeNumber, session?.user?.role])
+  }, [session?.user?.role])
 
   // Função para voltar (logout e redirecionar para login)
   const handleGoBack = async () => {
@@ -671,25 +671,8 @@ export default function CompleteProfilePage() {
                         <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>
                       )}
                       <p className="text-neutral-400 text-xs mt-1">
-                        Sua matrícula SIAPE determinará automaticamente seu nível de acesso no
-                        sistema
+                        Sua matrícula SIAPE será conferida pelo administrador do sistema.
                       </p>
-                      {profileData.siapeNumber && profileData.siapeNumber.length === 7 && (
-                        <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
-                          <p className="text-xs text-neutral-300">
-                            <span className="font-medium">Nível de acesso detectado:</span>{' '}
-                            <span
-                              className={`font-semibold ${
-                                determineRoleFromSiape(profileData.siapeNumber) === 'ADMIN'
-                                  ? 'text-red-400'
-                                  : 'text-blue-400'
-                              }`}
-                            >
-                              {determineRoleFromSiape(profileData.siapeNumber)}
-                            </span>
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
