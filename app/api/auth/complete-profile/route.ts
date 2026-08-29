@@ -67,9 +67,25 @@ export async function POST(request: NextRequest) {
       allowFlexibleHours,
     } = parsedBody.data
 
-    // Determinar role baseado na matrícula SIAPE (se fornecida)
-    const newRole = siapeNumber ? determineRoleFromSiape(siapeNumber) : 'EMPLOYEE'
-    authLogger.debug('SIAPE validation', { siape: siapeNumber || 'N/A', role: newRole })
+    // Determinar role baseado na matrícula SIAPE.
+    //
+    // SEGURANÇA: lib/admin-siape.ts é um arquivo público (o repositório é
+    // público no GitHub), então a lista de matrículas nunca pode ser tratada
+    // como segredo. Por isso a promoção automática a ADMIN via SIAPE só é
+    // permitida quando NENHUM administrador existe ainda no sistema — ou
+    // seja, apenas para provisionar o primeiro admin em uma instalação nova
+    // (bootstrap). Uma vez que exista pelo menos um ADMIN, completar o
+    // próprio perfil nunca mais concede ADMIN sozinho; qualquer promoção
+    // depois disso é uma ação administrativa explícita feita por um ADMIN
+    // já existente (POST /api/users ou PUT /api/users/[id]).
+    const hasExistingAdmin = (await prisma.user.count({ where: { role: 'ADMIN' } })) > 0
+    const siapeGrantsAdmin = !hasExistingAdmin && !!siapeNumber && determineRoleFromSiape(siapeNumber) === 'ADMIN'
+    const newRole = siapeGrantsAdmin ? 'ADMIN' : 'EMPLOYEE'
+    authLogger.debug('SIAPE validation', {
+      siape: siapeNumber || 'N/A',
+      role: newRole,
+      hasExistingAdmin,
+    })
 
     // Validações específicas para funcionários (não para ADMIN/SUPERVISOR)
     if (newRole === 'EMPLOYEE') {
@@ -161,6 +177,24 @@ export async function POST(request: NextRequest) {
         details: `Perfil completado para usuário ${updatedUser.email}`,
       },
     })
+
+    // Evento de segurança dedicado: só ocorre no bootstrap do primeiro ADMIN
+    // do sistema (ver comentário acima de siapeGrantsAdmin). Deve ser raro —
+    // um alerta/monitoramento sobre esta action é recomendado.
+    if (siapeGrantsAdmin) {
+      authLogger.security('Bootstrap admin granted via SIAPE self-service', {
+        userId: session.user.id,
+        email: updatedUser.email,
+      })
+      await prisma.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'BOOTSTRAP_ADMIN_VIA_SIAPE',
+          resource: 'USER_PROFILE',
+          details: `Primeiro ADMIN do sistema provisionado via auto-cadastro (SIAPE) para ${updatedUser.email}`,
+        },
+      })
+    }
 
     // Determinar URL de redirecionamento baseado no role
     const redirectUrl = ['ADMIN', 'SUPERVISOR'].includes(updatedUser.role) ? '/admin' : '/employee'

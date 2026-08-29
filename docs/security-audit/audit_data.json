@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "project": "Chronos System",
+    "repo": "c1c3ru/ChronosSystem",
+    "branch": "main",
+    "audit_date": "2026-08-29",
+    "auditor": "Claude Code — skill audit-security",
+    "scope": "Repositório completo (monolito Next.js), focado em 5 categorias: Isolamento, Permissões Frontend vs Backend, IDOR, Chaves Expostas e XSS."
+  },
+  "stack": [
+    {"layer": "Framework", "tech": "Next.js 16.2.6 (App Router, monolito full-stack)"},
+    {"layer": "Linguagem", "tech": "TypeScript 5.x + React 18.2"},
+    {"layer": "ORM / Banco", "tech": "Prisma 5.22 + PostgreSQL (sem Supabase — DATABASE_URL/DIRECT_URL diretos)"},
+    {"layer": "Autenticação", "tech": "NextAuth.js v4 (JWT strategy) — Credentials (bcrypt) + Google OAuth com allowlist de domínio institucional"},
+    {"layer": "Autorização de rotas", "tech": "Next.js Middleware — arquivo proxy.ts (convenção renomeada de middleware.ts no Next 16)"},
+    {"layer": "Cache / Rate limit", "tech": "Redis (ioredis) com fallback em memória"},
+    {"layer": "Terminais físicos", "tech": "Kiosk web (PWA) com QR HMAC-SHA256 + TOTP client-side"},
+    {"layer": "Geração de PDF", "tech": "pdfmake (client) — @react-pdf/renderer NÃO está mais instalado"},
+    {"layer": "Deploy", "tech": "Vercel (principal) + suporte a self-host via PM2/ecosystem.config.cjs e cron via GitHub Actions"}
+  ],
+  "category_definitions": [
+    {
+      "category": "Isolamento",
+      "definition": "Neste stack (monolito Next.js single-tenant + terminais físicos de kiosk públicos), Isolamento significa: (1) o segredo mestre QR_SECRET nunca deve alcançar um dispositivo cliente; (2) o comprometimento de um terminal físico não deve comprometer os demais; (3) endpoints intencionalmente públicos (/api/kiosk/*) não devem vazar mais dado do que o estritamente necessário para a tela de quiosque."
+    },
+    {
+      "category": "Permissões no Frontend vs Backend",
+      "definition": "Como o Next.js renderiza páginas React no servidor mas o middleware de autorização roda em um arquivo separado (proxy.ts) do resto da lógica de rota, a pergunta central é: toda decisão de autorização visível na UI (esconder um botão, ocultar um menu) tem um espelho obrigatório no servidor (middleware + handler de API), ou existe algum caminho que confia apenas no que o cliente decidiu não mostrar?"
+    },
+    {
+      "category": "IDOR",
+      "definition": "Como quase todo recurso de negócio (registros de ponto, justificativas, saldo de horas, contratos) é modelado em Prisma com um campo userId e exposto via rotas dinâmicas (/api/recurso/[id]) ou parâmetros de query (?userId=), IDOR aqui significa: buscar/alterar o registro de OUTRO usuário trocando o id/userId na URL, sem que o handler confira session.user.id ou o role do chamador."
+    },
+    {
+      "category": "Chaves Expostas",
+      "definition": "Além do sentido clássico (.env commitado, chave hardcoded em string), neste projeto Next.js App Router qualquer módulo importado por um Client Component ('use client') é enviado ao bundle JS do navegador — logo, uma constante 'secreta' em lib/ que seja importada por uma página client-side está, por definição, exposta a qualquer visitante, mesmo sem nunca aparecer em uma resposta de API."
+    },
+    {
+      "category": "XSS",
+      "definition": "Como a superfície principal é React/JSX (que escapa automaticamente), XSS aqui foi buscado especificamente nos pontos onde o código sai desse trilho seguro: dangerouslySetInnerHTML, innerHTML, e — o padrão mais relevante encontrado neste projeto — geração de HTML via concatenação de string pura fora do JSX (respostas de API que devolvem text/html construído manualmente)."
+    }
+  ],
+  "strengths": [
+    {
+      "id": "S1",
+      "category": "Isolamento",
+      "file": "app/api/kiosk/init/route.ts",
+      "line": "50-56",
+      "title": "Segredo por-máquina derivado via HMAC, nunca o QR_SECRET mestre",
+      "description": "machineSecret = HMAC-SHA256(QR_SECRET, machineId) é calculado no servidor e devolvido ao terminal físico; o QR_SECRET em si nunca sai do backend. Um terminal comprometido vaza apenas o segredo daquela máquina, não o segredo mestre do sistema."
+    },
+    {
+      "id": "S2",
+      "category": "Isolamento",
+      "file": "lib/qr-security.ts",
+      "line": "98-103, 170-175, 262-265",
+      "title": "Comparações timing-safe consistentes em toda a lógica de criptografia",
+      "description": "validateSecureQR, validateClientSecureQR e verifyRecordHash usam crypto.timingSafeEqual com checagem de tamanho antes de comparar, prevenindo ataques de timing contra assinaturas HMAC e a cadeia de hash de auditoria. Mesmo padrão replicado em app/api/kiosk/init/route.ts:16-19 para o segredo de provisionamento."
+    },
+    {
+      "id": "S3",
+      "category": "Permissões no Frontend vs Backend",
+      "file": "proxy.ts",
+      "line": "96-134",
+      "title": "Gate de autorização por role roda no servidor, independente da UI",
+      "description": "isAdminOnlyPath/isEmployeeOnlyPath/isAdminApiPath (lib/auth-policy.ts:29-61) são checados no Next.js Middleware antes de qualquer página ou rota de API executar. Verificado contra o código-fonte compilado do Next.js instalado (node_modules/next/dist/lib/constants.js:289 e dist/build/index.js:614-651): 'proxy.ts' é a convenção correta e intencional do Next 16 para o antigo middleware.ts — não é um arquivo morto."
+    },
+    {
+      "id": "S4",
+      "category": "Permissões no Frontend vs Backend",
+      "file": "lib/auth-helpers.ts",
+      "line": "24-122",
+      "title": "Helpers de autorização centralizados e reutilizáveis",
+      "description": "requireAuth, requireRole, requireAdmin e requireUserAccess encapsulam a lógica de autorização em vez de cada rota reimplementar a checagem manualmente — reduz a chance de um handler futuro esquecer uma verificação."
+    },
+    {
+      "id": "S5",
+      "category": "IDOR",
+      "file": "app/api/attendance/[id]/route.ts +4 rotas",
+      "line": "56-61 (e hour-balance:40, users/contract:65, attendance:41-54, employee/justifications/[id]:21-23)",
+      "title": "Checagem de posse consistente nos endpoints de dados por-usuário",
+      "description": "Todos os endpoints auditados que aceitam um id ou userId vindo do cliente conferem explicitamente session.user.id === alvo OU role ADMIN/SUPERVISOR antes de responder. employee/justifications/[id] usa o padrão correto findFirst({ where: { id, userId: session.user.id } }) em vez de findUnique({ where: { id } }), a forma certa de evitar IDOR no Prisma."
+    },
+    {
+      "id": "S6",
+      "category": "Chaves Expostas",
+      "file": ".gitignore:17-26; .github/workflows/*.yml",
+      "line": "17-26",
+      "title": "Higiene de segredos correta no repositório e no CI",
+      "description": "Nenhum arquivo .env real está rastreado pelo git (confirmado via 'git ls-files' — apenas .env.example aparece). Os workflows do GitHub Actions referenciam segredos exclusivamente via ${{ secrets.X }} criptografado, sem nenhum echo ou log de valor em texto plano."
+    },
+    {
+      "id": "S7",
+      "category": "XSS",
+      "file": "app/, components/, lib/ (varredura completa)",
+      "line": "N/A — ausência confirmada por grep em todo o repositório",
+      "title": "Zero uso de dangerouslySetInnerHTML, innerHTML ou eval no código first-party",
+      "description": "Busca em todo o código-fonte (excluindo node_modules/.next) não encontrou nenhuma ocorrência de dangerouslySetInnerHTML, atribuição a .innerHTML, eval() ou new Function(). Todo dado de usuário renderizado via JSX se beneficia do escape automático do React — a única exceção real ao 'trilho seguro' do JSX é o Achado F3."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "category": "Chaves Expostas",
+      "secondary_categories": ["Permissões no Frontend vs Backend"],
+      "severity": "CRITICAL",
+      "title": "Lista de matrículas SIAPE \"administradoras\" hardcoded e enviada ao bundle do navegador permite auto-promoção a ADMIN",
+      "files": [
+        {"file": "lib/admin-siape.ts", "line": "8-57"},
+        {"file": "app/api/auth/complete-profile/route.ts", "line": "71, 144"},
+        {"file": "app/auth/complete-profile/page.tsx", "line": "1, 21, 677-688"},
+        {"file": "app/admin/users/new/page.tsx", "line": "1, 30, 611-616"}
+      ],
+      "description": "lib/admin-siape.ts exporta um array hardcoded com 47 matrículas SIAPE (incluindo nome completo e matrícula real do proprietário do sistema, em comentário na linha 10). determineRoleFromSiape() apenas confere se o número está nesse array — não há nenhuma verificação de identidade real contra RH ou outra fonte. app/api/auth/complete-profile/route.ts chama essa função diretamente sobre o campo siapeNumber vindo do corpo da requisição (não confiável) e grava o resultado em User.role (linha 144) sem nenhuma outra validação de autorização. Como lib/admin-siape.ts também é importado por dois Client Components ('use client' confirmado em app/auth/complete-profile/page.tsx:1 e app/admin/users/new/page.tsx:1), o Next.js inclui o array inteiro no bundle JavaScript enviado a qualquer visitante — e a própria tela de completar perfil exibe em tempo real 'Nível de acesso detectado: ADMIN' (linhas 677-688) enquanto o usuário digita, transformando o formulário de cadastro em um oráculo de auto-descoberta do segredo.",
+      "evidence": "lib/admin-siape.ts:8-57 (array AUTHORIZED_ADMIN_SIAPE); route.ts:71 'const newRole = siapeNumber ? determineRoleFromSiape(siapeNumber) : \"EMPLOYEE\"'; route.ts:144 'role: newRole' gravado direto no Prisma; page.tsx:677-688 renderiza o resultado de determineRoleFromSiape(profileData.siapeNumber) client-side.",
+      "impact": "Qualquer pessoa capaz de criar uma conta (qualquer email @ifce.edu.br / @aluno.ifce.edu.br via Google, ou o email pessoal na allowlist) pode inspecionar o bundle JS público ou simplesmente observar o feedback ao vivo da própria tela de cadastro, submeter um dos 47 números durante o onboarding e receber o role ADMIN — acesso total de leitura/escrita a todos os registros de ponto, PII de todos os usuários, gestão de máquinas e segredos de kiosk — sem senha, convite ou qualquer outra credencial.",
+      "recommendation": "Mover a decisão de role para fora do alcance do usuário final: (1) nunca aceitar siapeNumber como determinante de role em uma rota que o próprio usuário chama sobre si mesmo; (2) mover a lista de matrículas para uma tabela no banco de dados gerenciada apenas por rotas admin-only, nunca importada por um Client Component; (3) tratar qualquer promoção a ADMIN/SUPERVISOR como uma ação administrativa explícita (POST /api/admin/...) auditada, nunca um efeito colateral automático de completar o próprio perfil; (4) rotacionar/invalidar imediatamente os SIAPEs já hardcoded, já que devem ser considerados publicamente conhecidos."
+    },
+    {
+      "id": "F2",
+      "category": "Permissões no Frontend vs Backend",
+      "secondary_categories": ["IDOR"],
+      "severity": "HIGH",
+      "title": "PUT /api/users/[id] permite auto-atribuição do campo role (escalação SUPERVISOR → ADMIN)",
+      "files": [
+        {"file": "app/api/users/[id]/route.ts", "line": "12-21, 90, 119, 127, 134"}
+      ],
+      "description": "updateUserSchema (linhas 12-21) aceita role: z.enum(['ADMIN','SUPERVISOR','EMPLOYEE']).optional(). O handler PUT permite edição quando session.user.id === id (linha 90, auto-edição). A linha 119 bloqueia explicitamente a alteração de isActive por quem não é ADMIN, mas não existe bloqueio equivalente para role — updateData espalha validatedData por inteiro (linha 127) e grava via prisma.user.update (linha 134). Como a rota está sob o prefixo /api/users, o middleware (proxy.ts, isAdminApiPath) já exige role ADMIN ou SUPERVISOR para sequer alcançar este handler — um EMPLOYEE não chega aqui — mas um SUPERVISOR (papel que o restante do código trata como estritamente menos privilegiado que ADMIN: só ADMIN pode deletar usuário ou alternar isActive) pode chamar PUT /api/users/<próprio-id> com {\"role\":\"ADMIN\"} e se auto-promover.",
+      "evidence": "route.ts:90 'const canEdit = session.user.id === id || [\"ADMIN\",\"SUPERVISOR\"].includes(session.user.role)'; route.ts:119 bloqueia apenas isActive; route.ts:127 'const updateData = { ...validatedData }' inclui role sem filtro; route.ts:134 prisma.user.update grava o role recebido.",
+      "impact": "Escalação de privilégio de SUPERVISOR para ADMIN, contornando a separação de camadas que o resto do código impõe (exclusão de usuário e ativação/desativação são ADMIN-only).",
+      "recommendation": "Bloquear explicitamente o campo role no caminho de auto-edição (mesmo padrão já usado para isActive na linha 119): somente um ADMIN pode alterar o role de qualquer usuário, inclusive o próprio. Considerar exigir reautenticação (senha atual) para mudanças de role, e emitir um AuditLog dedicado e alertável para toda alteração de role."
+    },
+    {
+      "id": "F3",
+      "category": "XSS",
+      "secondary_categories": [],
+      "severity": "HIGH",
+      "title": "Relatório \"PDF\" em /api/reports/download interpola dados de usuário sem escape em HTML bruto (Stored XSS)",
+      "files": [
+        {"file": "app/api/reports/download/route.ts", "line": "142-273 (função generatePDFReport), especialmente 244-246 e 250-251"}
+      ],
+      "description": "Diferente do restante da aplicação (JSX, escapado automaticamente), generatePDFReport() monta a resposta por concatenação direta de template string, injetando record.user.name, .email, .role, machine.name e .location dentro de um documento HTML devolvido com Content-Type: text/html (apesar do parâmetro ?format=pdf — nenhum PDF real é gerado, é uma inconsistência funcional adicional). POST /api/users (acessível por ADMIN ou SUPERVISOR) aceita qualquer string com 2+ caracteres para name (app/api/users/route.ts:13, createUserSchema) sem nenhuma filtragem de caracteres.",
+      "evidence": "route.ts:244 '<td>${record.user?.name || \"N/A\"}</td>' sem escape; route.ts:245-246 mesmo padrão para email e role; Content-Type: text/html na resposta (linha ~269).",
+      "impact": "Uma conta SUPERVISOR pode criar um usuário cujo name é um payload HTML/JS; o payload executa no navegador de um ADMIN na próxima vez que esse admin rodar GET /api/reports/download?format=pdf e abrir o arquivo, permitindo roubo de sessão/cookie ou ações adicionais como aquele admin. Cruza a mesma fronteira de confiança SUPERVISOR→ADMIN do Achado F2, por um mecanismo diferente.",
+      "recommendation": "Escapar todo dado de usuário antes de interpolar em HTML (ex.: uma função escapeHtml() mínima, ou migrar esse relatório para JSX/React renderizado server-side, que já escapa automaticamente). Corrigir também a inconsistência de Content-Type: se format=pdf, gerar um PDF de fato (pdfmake, já usado no restante do projeto) em vez de retornar HTML disfarçado."
+    },
+    {
+      "id": "F4",
+      "category": "IDOR",
+      "secondary_categories": [],
+      "severity": "MEDIUM",
+      "title": "GET /api/auth/check-user está desautenticado e devolve PII (incluindo role) de qualquer usuário por email",
+      "files": [
+        {"file": "app/api/auth/check-user/route.ts", "line": "6-45"}
+      ],
+      "description": "O arquivo inteiro não contém nenhuma chamada a getServerSession — confirmado ao listar todas as rotas de app/api que não chamam essa função (apenas 12 de 65 rotas, todas com motivo legítimo de serem pré-autenticação, exceto esta). A única proteção é um rate limit genérico por IP de 100 req/min (rateLimiters.general). O endpoint aceita um parâmetro email arbitrário e, se existir um usuário correspondente, devolve id, name, role, profileComplete, createdAt e updatedAt.",
+      "evidence": "route.ts:6-9 sem getServerSession; route.ts:13-27 monta a query com o email da query string sem checar sessão; route.ts:29-38 devolve role e demais campos no corpo da resposta.",
+      "impact": "Permite (a) enumeração de usuários contra o formato previsível de email institucional, e (b) reconhecimento direcionado — um atacante pode descobrir especificamente quais emails têm role ADMIN/SUPERVISOR antes de tentar outros ataques (incluindo os Achados F1/F2 acima), tudo sem se autenticar.",
+      "recommendation": "Restringir a resposta a { exists: boolean } apenas — a UI de login só precisa saber se deve mostrar 'entrar' ou 'cadastrar', não o nome, role ou timestamps do usuário. Se esses campos forem necessários em algum fluxo legítimo, mover para uma rota autenticada."
+    },
+    {
+      "id": "F5",
+      "category": "Isolamento",
+      "secondary_categories": [],
+      "severity": "MEDIUM",
+      "title": "/api/kiosk/recent-activity é público e expõe nomes e localização de todos os registros de ponto do dia",
+      "files": [
+        {"file": "app/api/kiosk/recent-activity/route.ts", "line": "9-48"},
+        {"file": "lib/auth-policy.ts", "line": "19"}
+      ],
+      "description": "O endpoint não tem checagem de autenticação por design (deve alimentar a tela do quiosque físico), mas como /api/kiosk é público em todo o middleware (PUBLIC_PREFIXES) e a rota não aplica nenhuma restrição adicional (nem exige um machineId válido/conhecido), qualquer ponto da internet pode chamá-lo diretamente — não apenas quem está fisicamente no terminal — e, omitindo machineId, obter os 10 eventos de entrada/saída mais recentes do dia em todas as máquinas, incluindo o nome de cada funcionário e o local onde bateu o ponto.",
+      "evidence": "route.ts:9 'export async function GET' sem getServerSession; route.ts:24-26 machineId é opcional e não validado contra a lista de máquinas; route.ts:65-73 devolve record.user.name em texto puro.",
+      "impact": "Exposição contínua e automatizável (scraping) de dados de presença/localização de funcionários — dado sensível sob a LGPD, que a própria docs/SECURITY.md do projeto afirma cumprir.",
+      "recommendation": "Exigir machineId válido (rejeitar se não corresponder a uma máquina ativa) e considerar autenticação leve por token de dispositivo (o mesmo x-kiosk-secret já usado em /api/kiosk/init) em vez de acesso totalmente anônimo; aplicar rate limiting dedicado a este endpoint."
+    },
+    {
+      "id": "F6",
+      "category": "Isolamento",
+      "secondary_categories": [],
+      "severity": "MEDIUM",
+      "title": "KIOSK_PROVISION_SECRET é um segredo único compartilhado por toda a frota de terminais físicos",
+      "files": [
+        {"file": ".env.example", "line": "38-42"},
+        {"file": "app/api/kiosk/init/route.ts", "line": "6-20"}
+      ],
+      "description": "Todo terminal físico é provisionado com o mesmo valor de KIOSK_PROVISION_SECRET (conforme as instruções de setup em .env.example e a leitura de uma única variável de ambiente em isProvisionSecretValid). A derivação por-máquina do machineSecret (Ponto Forte S1) limita corretamente o raio de explosão desse segredo secundário, mas o segredo de provisionamento em si não é isolado por dispositivo: extraí-lo de um único terminal comprometido/roubado (ex.: do localStorage do navegador daquele quiosque) permite chamar /api/kiosk/init para qualquer machineId do sistema e derivar o machineSecret de todos os terminais.",
+      "evidence": "app/api/kiosk/init/route.ts:7 'const provisionSecret = process.env.KIOSK_PROVISION_SECRET' — um único valor para todas as máquinas; .env.example:39-41 instrui configurar 'esse mesmo valor uma única vez em cada dispositivo kiosk físico'.",
+      "impact": "Um único terminal físico roubado/comprometido pode ser usado para forjar QR codes válidos para toda a frota, não apenas para o terminal comprometido — reduzindo o benefício do isolamento por-máquina já implementado.",
+      "recommendation": "Emitir um segredo de provisionamento distinto por dispositivo/localização no momento do setup (em vez de um valor global), ou pelo menos suportar rotação independente por máquina para conter um comprometimento sem invalidar a frota inteira."
+    },
+    {
+      "id": "F7",
+      "category": "XSS",
+      "secondary_categories": [],
+      "severity": "LOW",
+      "title": "CSP mantém 'unsafe-eval'/'wasm-unsafe-eval' justificados por uma dependência que não está mais instalada",
+      "files": [
+        {"file": "next.config.mjs", "line": "8-9"}
+      ],
+      "description": "O script-src da Content-Security-Policy inclui 'unsafe-eval' e 'wasm-unsafe-eval', justificados por um comentário afirmando serem 'necessário para o WebAssembly do @react-pdf/renderer'. Esse pacote não está presente em package.json, não está instalado em node_modules e não é importado em nenhum arquivo do projeto (confirmado por busca em todo o repositório) — o projeto aparentemente migrou para pdfmake (conforme docs/PDF_MIGRATION_GUIDE.md) sem apertar a CSP de volta.",
+      "evidence": "next.config.mjs:8 comentário citando @react-pdf/renderer; next.config.mjs:9 'unsafe-eval' e 'wasm-unsafe-eval' presentes no array scriptSrc; ausência confirmada do pacote em package.json e node_modules/@react-pdf.",
+      "impact": "'unsafe-eval' somado ao 'unsafe-inline' já existente reduz substancialmente a capacidade da CSP de conter um payload de XSS caso um seja introduzido futuramente (ex.: um padrão como o do Achado F3 em outro lugar) — a política está fazendo menos do que poderia, sem nenhum ganho funcional atual.",
+      "recommendation": "Remover 'unsafe-eval' e 'wasm-unsafe-eval' do script-src e validar o build/testes end-to-end; se alguma dependência futura realmente precisar de eval/WASM, reintroduzir de forma escopada (ex.: um nonce ou hash específico) em vez de uma allowlist ampla e permanente."
+    }
+  ],
+  "recommendations_prioritized": [
+    {"priority": 1, "action": "Corrigir F1 imediatamente: remover a lista de SIAPE-admin de qualquer caminho acessível ao próprio usuário e de qualquer módulo importado por Client Components; tratar toda promoção a ADMIN como ação administrativa auditada.", "related": ["F1"]},
+    {"priority": 2, "action": "Bloquear alteração do campo role no auto-edit de /api/users/[id] e reauditar todo endpoint que aceite role no corpo da requisição.", "related": ["F2"]},
+    {"priority": 3, "action": "Escapar (ou reescrever em JSX) a geração de HTML em /api/reports/download; corrigir a inconsistência format=pdf retornando text/html.", "related": ["F3"]},
+    {"priority": 4, "action": "Reduzir a resposta de /api/auth/check-user a {exists: boolean} e mover qualquer campo adicional para uma rota autenticada.", "related": ["F4"]},
+    {"priority": 5, "action": "Restringir /api/kiosk/recent-activity a machineId válido e considerar exigir o token de dispositivo já usado em /api/kiosk/init.", "related": ["F5"]},
+    {"priority": 6, "action": "Migrar de um KIOSK_PROVISION_SECRET global para segredos por-dispositivo, ou suportar rotação independente por máquina.", "related": ["F6"]},
+    {"priority": 7, "action": "Remover 'unsafe-eval'/'wasm-unsafe-eval' da CSP em next.config.mjs, já que @react-pdf/renderer não está mais em uso.", "related": ["F7"]}
+  ],
+  "notes": [
+    "docs/SECURITY.md descreve uma arquitetura NestJS (class-validator, ThrottlerModule, Helmet, JWT em localStorage) que não corresponde ao código real (Next.js/NextAuth/Prisma). Trata-se de documentação desatualizada/genérica — não foi usada como fonte de verdade nesta auditoria; todo achado aqui foi verificado diretamente no código-fonte atual."
+  ]
+}

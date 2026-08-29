@@ -5,8 +5,13 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts')
 const isProd = process.env.NODE_ENV === 'production'
 
 function buildCsp() {
-  // 'unsafe-eval' é necessário para o WebAssembly do @react-pdf/renderer
-  const scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'wasm-unsafe-eval'"]
+  // 'unsafe-eval'/'wasm-unsafe-eval' foram removidos: existiam apenas para o
+  // WebAssembly do @react-pdf/renderer, que não está mais instalado (o
+  // projeto migrou para pdfmake). Sem eles a CSP filtra melhor um payload de
+  // XSS caso um seja introduzido no futuro. Se uma dependência futura
+  // realmente precisar de eval/WASM, reintroduza de forma escopada em vez de
+  // uma allowlist ampla e permanente.
+  const scriptSrc = ["'self'", "'unsafe-inline'"]
 
   return [
     `default-src 'self'`,
@@ -14,7 +19,7 @@ function buildCsp() {
     `object-src 'none'`,
     `frame-ancestors 'none'`,
     `form-action 'self'`,
-    `script-src ${scriptSrc.join(' ')} blob: 'wasm-unsafe-eval'`,
+    `script-src ${scriptSrc.join(' ')} blob:`,
     `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com data:`,

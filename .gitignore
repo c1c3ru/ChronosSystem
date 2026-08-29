@@ -77,3 +77,9 @@ vercel_dump_backup.sql
 .agent/
 .agents/
 .qwen
+
+# Security audit tooling (docs/security-audit) — venv e graficos gerados
+# nao devem ir para o git; o PDF final e o audit_data.json sim.
+docs/security-audit/.venv/
+docs/security-audit/_charts/
+docs/security-audit/__pycache__/

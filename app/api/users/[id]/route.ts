@@ -123,6 +123,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
+    // Apenas ADMIN pode alterar role — SUPERVISOR também pode chegar até
+    // aqui (edição do próprio perfil), então sem esta checagem um
+    // SUPERVISOR poderia se auto-promover a ADMIN via PUT no próprio id.
+    if ('role' in validatedData && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem alterar o nível de acesso (role)' },
+        { status: 403 }
+      )
+    }
+
     // Preparar dados para atualização
     const updateData: Record<string, unknown> = { ...validatedData } as Record<string, unknown>
 
