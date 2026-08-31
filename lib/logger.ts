@@ -3,7 +3,7 @@
  * Remove dados sensíveis automaticamente
  */
 
-export enum LogLevel {
+enum LogLevel {
   ERROR = 0,
   WARN = 1,
   INFO = 2,
@@ -202,77 +202,3 @@ export const logger = new Logger()
 export const authLogger = new Logger('auth')
 export const qrLogger = new Logger('qr-scanner')
 export const apiLogger = new Logger('api')
-export const dbLogger = new Logger('database')
-
-/**
- * Helper para medir performance
- */
-export function withPerformanceLogging<T>(
-  operation: string,
-  fn: () => Promise<T>,
-  context: LogContext = {}
-): Promise<T> {
-  const start = Date.now()
-
-  return fn()
-    .then((result) => {
-      const duration = Date.now() - start
-      logger.performance(operation, duration, context)
-      return result
-    })
-    .catch((error) => {
-      const duration = Date.now() - start
-      logger.error(`${operation} failed after ${duration}ms`, {
-        ...context,
-        error: error.message,
-      })
-      throw error
-    })
-}
-
-/**
- * Decorator para logging automático de métodos
- */
-export function logMethod(target: object, propertyName: string, descriptor: PropertyDescriptor) {
-  const method = descriptor.value
-
-  descriptor.value = function (...args: unknown[]) {
-    const className = target.constructor.name
-    const methodName = `${className}.${propertyName}`
-
-    logger.debug(`Calling ${methodName}`, {
-      method: methodName,
-      args: args.length,
-    })
-
-    try {
-      const result = method.apply(this, args)
-
-      if (result instanceof Promise) {
-        return result
-          .then((res) => {
-            logger.debug(`${methodName} completed successfully`)
-            return res
-          })
-          .catch((error) => {
-            logger.error(`${methodName} failed`, {
-              method: methodName,
-              error: error.message,
-            })
-            throw error
-          })
-      }
-
-      logger.debug(`${methodName} completed successfully`)
-      return result
-    } catch (error: unknown) {
-      logger.error(`${methodName} failed`, {
-        method: methodName,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      throw error
-    }
-  }
-
-  return descriptor
-}

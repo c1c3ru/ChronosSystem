@@ -5,7 +5,7 @@ const TZ = 'America/Fortaleza'
 const LATE_GRACE_MIN = 15
 const EXPECTED_START_MIN = 8 * 60
 
-export function dateKeyFortaleza(d: Date): string {
+function dateKeyFortaleza(d: Date): string {
   return d.toLocaleDateString('en-CA', { timeZone: TZ })
 }
 

@@ -9,7 +9,7 @@ import { logger } from './logger'
 /**
  * Cache key prefixes for different data types
  */
-export const CachePrefix = {
+const CachePrefix = {
   USER: 'user',
   USERS_LIST: 'users:list',
   ATTENDANCE: 'attendance',
@@ -24,7 +24,7 @@ export const CachePrefix = {
 /**
  * Default TTL values (in seconds) for different cache types
  */
-export const CacheTTL = {
+const CacheTTL = {
   USER: 300, // 5 minutes
   USERS_LIST: 300, // 5 minutes
   ATTENDANCE: 120, // 2 minutes
@@ -39,7 +39,7 @@ export const CacheTTL = {
 /**
  * Get a value from cache
  */
-export async function getCache<T>(key: string): Promise<T | null> {
+async function getCache<T>(key: string): Promise<T | null> {
   const client = getRedisClient()
 
   if (!client || !isRedisConnected()) {
@@ -66,7 +66,7 @@ export async function getCache<T>(key: string): Promise<T | null> {
 /**
  * Set a value in cache with TTL
  */
-export async function setCache<T>(key: string, value: T, ttlSeconds: number): Promise<boolean> {
+async function setCache<T>(key: string, value: T, ttlSeconds: number): Promise<boolean> {
   const client = getRedisClient()
 
   if (!client || !isRedisConnected()) {
@@ -89,7 +89,7 @@ export async function setCache<T>(key: string, value: T, ttlSeconds: number): Pr
 /**
  * Delete a specific cache key
  */
-export async function deleteCache(key: string): Promise<boolean> {
+async function deleteCache(key: string): Promise<boolean> {
   const client = getRedisClient()
 
   if (!client || !isRedisConnected()) {
@@ -111,7 +111,7 @@ export async function deleteCache(key: string): Promise<boolean> {
 /**
  * Delete all keys matching a pattern
  */
-export async function deleteCachePattern(pattern: string): Promise<boolean> {
+async function deleteCachePattern(pattern: string): Promise<boolean> {
   const client = getRedisClient()
 
   if (!client || !isRedisConnected()) {
@@ -182,55 +182,6 @@ export const UserCache = {
 }
 
 /**
- * Cache helper for attendance records
- */
-export const AttendanceCache = {
-  /**
-   * Get attendance record by ID from cache
-   */
-  async get(recordId: string) {
-    return getCache(`${CachePrefix.ATTENDANCE}:${recordId}`)
-  },
-
-  /**
-   * Set attendance record in cache
-   */
-  async set(recordId: string, record: unknown) {
-    return setCache(`${CachePrefix.ATTENDANCE}:${recordId}`, record, CacheTTL.ATTENDANCE)
-  },
-
-  /**
-   * Get attendance list from cache
-   */
-  async getList(cacheKey: string) {
-    return getCache(`${CachePrefix.ATTENDANCE_LIST}:${cacheKey}`)
-  },
-
-  /**
-   * Set attendance list in cache
-   */
-  async setList(data: unknown, cacheKey: string) {
-    return setCache(`${CachePrefix.ATTENDANCE_LIST}:${cacheKey}`, data, CacheTTL.ATTENDANCE_LIST)
-  },
-
-  /**
-   * Invalidate attendance caches for a user
-   */
-  async invalidateUser(userId: string) {
-    await deleteCachePattern(`${CachePrefix.ATTENDANCE}:*`)
-    await deleteCachePattern(`${CachePrefix.ATTENDANCE_LIST}:*${userId}*`)
-  },
-
-  /**
-   * Invalidate all attendance caches
-   */
-  async invalidateAll() {
-    await deleteCachePattern(`${CachePrefix.ATTENDANCE}:*`)
-    await deleteCachePattern(`${CachePrefix.ATTENDANCE_LIST}:*`)
-  },
-}
-
-/**
  * Cache helper for machines
  */
 export const MachineCache = {
@@ -268,87 +219,5 @@ export const MachineCache = {
   async invalidateAll() {
     await deleteCachePattern(`${CachePrefix.MACHINES}:*`)
     await deleteCache(CachePrefix.MACHINES_ACTIVE)
-  },
-}
-
-/**
- * Cache helper for justifications
- */
-export const JustificationCache = {
-  /**
-   * Get justification by ID from cache
-   */
-  async get(justificationId: string) {
-    return getCache(`${CachePrefix.JUSTIFICATIONS}:${justificationId}`)
-  },
-
-  /**
-   * Set justification in cache
-   */
-  async set(justificationId: string, justification: unknown) {
-    return setCache(
-      `${CachePrefix.JUSTIFICATIONS}:${justificationId}`,
-      justification,
-      CacheTTL.JUSTIFICATIONS
-    )
-  },
-
-  /**
-   * Get pending justifications from cache
-   */
-  async getPending() {
-    return getCache(CachePrefix.JUSTIFICATIONS_PENDING)
-  },
-
-  /**
-   * Set pending justifications in cache
-   */
-  async setPending(justifications: unknown[]) {
-    return setCache(
-      CachePrefix.JUSTIFICATIONS_PENDING,
-      justifications,
-      CacheTTL.JUSTIFICATIONS_PENDING
-    )
-  },
-
-  /**
-   * Invalidate all justification caches
-   */
-  async invalidateAll() {
-    await deleteCachePattern(`${CachePrefix.JUSTIFICATIONS}:*`)
-    await deleteCache(CachePrefix.JUSTIFICATIONS_PENDING)
-  },
-}
-
-/**
- * Cache helper for hour balance
- */
-export const HourBalanceCache = {
-  /**
-   * Get hour balance for user and date
-   */
-  async get(userId: string, date: string) {
-    return getCache(`${CachePrefix.HOUR_BALANCE}:${userId}:${date}`)
-  },
-
-  /**
-   * Set hour balance in cache
-   */
-  async set(userId: string, date: string, balance: unknown) {
-    return setCache(`${CachePrefix.HOUR_BALANCE}:${userId}:${date}`, balance, CacheTTL.HOUR_BALANCE)
-  },
-
-  /**
-   * Invalidate hour balance for a user
-   */
-  async invalidateUser(userId: string) {
-    await deleteCachePattern(`${CachePrefix.HOUR_BALANCE}:${userId}:*`)
-  },
-
-  /**
-   * Invalidate all hour balance caches
-   */
-  async invalidateAll() {
-    await deleteCachePattern(`${CachePrefix.HOUR_BALANCE}:*`)
   },
 }

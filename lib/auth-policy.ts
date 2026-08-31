@@ -1,9 +1,9 @@
 export type Role = 'ADMIN' | 'SUPERVISOR' | 'EMPLOYEE'
 
-export const VALID_ROLES: Role[] = ['ADMIN', 'SUPERVISOR', 'EMPLOYEE']
+const VALID_ROLES: Role[] = ['ADMIN', 'SUPERVISOR', 'EMPLOYEE']
 
 // Rotas públicas com match exato
-export const PUBLIC_ROUTES = [
+const PUBLIC_ROUTES = [
   '/',
   '/auth/signin',
   '/auth/recover',
@@ -14,7 +14,7 @@ export const PUBLIC_ROUTES = [
 ] as const
 
 // Rotas públicas por prefixo
-export const PUBLIC_PREFIXES = [
+const PUBLIC_PREFIXES = [
   '/api/auth',
   '/api/kiosk',
   '/api/reset-password',
@@ -26,15 +26,10 @@ export const PUBLIC_PREFIXES = [
   '/images',
 ] as const
 
-export const ADMIN_ONLY_PREFIXES = ['/admin', '/dashboard'] as const
-export const EMPLOYEE_ONLY_PREFIXES = ['/employee'] as const
+const ADMIN_ONLY_PREFIXES = ['/admin', '/dashboard'] as const
+const EMPLOYEE_ONLY_PREFIXES = ['/employee'] as const
 
-export const ADMIN_API_PREFIXES = [
-  '/api/users',
-  '/api/machines',
-  '/api/dashboard',
-  '/api/admin',
-] as const
+const ADMIN_API_PREFIXES = ['/api/users', '/api/machines', '/api/dashboard', '/api/admin'] as const
 
 export function isValidRole(role: unknown): role is Role {
   return typeof role === 'string' && (VALID_ROLES as readonly string[]).includes(role)

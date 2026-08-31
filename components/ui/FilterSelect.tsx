@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { Filter } from 'lucide-react'
 
-export interface FilterSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface FilterSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options: Array<{ value: string; label: string }>
   icon?: React.ReactNode
 }

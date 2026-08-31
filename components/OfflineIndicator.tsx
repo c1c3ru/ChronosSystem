@@ -54,5 +54,3 @@ export function OfflineIndicator() {
     </AnimatePresence>
   )
 }
-
-export default OfflineIndicator

@@ -86,5 +86,3 @@ export function ErrorMessage({
     </Alert>
   )
 }
-
-export default ErrorMessage

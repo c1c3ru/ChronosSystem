@@ -14,7 +14,7 @@ interface OfficialFormTemplateProps {
   sector?: string
 }
 
-export function OfficialHeader({
+function OfficialHeader({
   showLogos = true,
   campus = 'Maracanaú',
   sector = 'Setor de Acompanhamento de Estágio',
@@ -109,50 +109,6 @@ export function FormTable({
 }) {
   return (
     <table className={`w-full official-form-table text-[8pt] mb-1 ${className}`}>{children}</table>
-  )
-}
-
-export function FormHeaderCell({
-  children,
-  colSpan,
-  rowSpan,
-  className = '',
-}: {
-  children?: ReactNode
-  colSpan?: number
-  rowSpan?: number
-  className?: string
-}) {
-  return (
-    <td
-      className={`official-form-header-cell px-1 py-0.5 font-bold text-[7pt] uppercase ${className}`}
-      colSpan={colSpan}
-      rowSpan={rowSpan}
-    >
-      {children}
-    </td>
-  )
-}
-
-export function FormDataCell({
-  children,
-  colSpan,
-  rowSpan,
-  className = '',
-}: {
-  children: ReactNode
-  colSpan?: number
-  rowSpan?: number
-  className?: string
-}) {
-  return (
-    <td
-      className={`official-form-cell px-1 py-0.5 align-top ${className}`}
-      colSpan={colSpan}
-      rowSpan={rowSpan}
-    >
-      {children}
-    </td>
   )
 }
 

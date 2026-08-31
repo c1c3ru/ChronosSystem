@@ -1,6 +1,6 @@
 // lib/client-crypto.ts
 
-export interface ClientQRPayload {
+interface ClientQRPayload {
   machineId: string
   timestamp: number
   window: number
