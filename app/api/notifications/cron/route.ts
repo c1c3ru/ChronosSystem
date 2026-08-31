@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAndNotifyAttendance } from '@/lib/notifications'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
+import { apiLogger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  // Verificar autorização do Vercel Cron
-  // Em desenvolvimento, você pode pular isso ou definir CRON_SECRET no .env.local
-  const authHeader = request.headers.get('authorization')
-  if (process.env.NODE_ENV === 'production') {
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return new NextResponse('Não autorizado', { status: 401 })
-    }
+  // Fail-closed em qualquer ambiente: nunca depender de NODE_ENV para decidir
+  // se a autenticação é aplicada (ver lib/cron-auth.ts).
+  if (!isAuthorizedCronRequest(request)) {
+    apiLogger.security('Tentativa de acesso não autorizado ao cron de notificações', {
+      ip: request.headers.get('x-forwarded-for') || undefined,
+    })
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
 
   try {
