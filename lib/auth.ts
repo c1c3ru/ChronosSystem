@@ -38,19 +38,24 @@ if (!GOOGLE_CLIENT_ID) {
   console.warn('⚠️ GOOGLE_CLIENT_ID environment variable is missing. Google Login will not work.')
 }
 if (!GOOGLE_CLIENT_SECRET) {
-  console.warn('⚠️ GOOGLE_CLIENT_SECRET environment variable is missing. Google Login will not work.')
+  console.warn(
+    '⚠️ GOOGLE_CLIENT_SECRET environment variable is missing. Google Login will not work.'
+  )
 }
 if (!NEXTAUTH_SECRET) {
-  console.warn('⚠️ NEXTAUTH_SECRET environment variable is missing. Sessions may fail in production.')
+  console.warn(
+    '⚠️ NEXTAUTH_SECRET environment variable is missing. Sessions may fail in production.'
+  )
 }
 
 // Domínios de email institucionais autorizados a logar via Google OAuth.
 // Configurável via GOOGLE_ALLOWED_EMAIL_DOMAINS (lista separada por vírgula).
-// IFCE Maracanaú usa dois domínios institucionais distintos:
-//   - ifce.edu.br        -> servidores/professores
-//   - aluno.ifce.edu.br  -> exclusivo para alunos
+//   - ifce.edu.br        -> servidores/professores do IFCE
+//   - aluno.ifce.edu.br  -> exclusivo para alunos do IFCE
+//   - aluno.ce.gov.br    -> alunos da rede estadual do Ceará (SEDUC-CE) — também
+//                           fazem estágio aqui e não têm email institucional @ifce
 const ALLOWED_GOOGLE_EMAIL_DOMAINS = (
-  process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS || 'ifce.edu.br,aluno.ifce.edu.br'
+  process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS || 'ifce.edu.br,aluno.ifce.edu.br,aluno.ce.gov.br'
 )
   .split(',')
   .map((domain) => domain.trim().toLowerCase())
@@ -60,9 +65,7 @@ const ALLOWED_GOOGLE_EMAIL_DOMAINS = (
 // (ex.: conta pessoal do administrador/proprietário do sistema).
 // Configurável via GOOGLE_ALLOWED_EMAILS (lista separada por vírgula).
 // Evita abrir todo o domínio gmail.com/etc. só para liberar uma conta.
-const ALLOWED_GOOGLE_EMAILS = (
-  process.env.GOOGLE_ALLOWED_EMAILS || 'cicerosilva.ifce@gmail.com'
-)
+const ALLOWED_GOOGLE_EMAILS = (process.env.GOOGLE_ALLOWED_EMAILS || 'cicerosilva.ifce@gmail.com')
   .split(',')
   .map((email) => email.trim().toLowerCase())
   .filter(Boolean)
@@ -232,8 +235,10 @@ export const authOptions: NextAuthOptions = {
           // Validar domínio institucional permitido (ou email na allowlist explícita)
           const normalizedEmail = user.email?.toLowerCase()
           const emailDomain = normalizedEmail?.split('@')[1]
-          const isAllowedDomain = !!emailDomain && ALLOWED_GOOGLE_EMAIL_DOMAINS.includes(emailDomain)
-          const isAllowedEmail = !!normalizedEmail && ALLOWED_GOOGLE_EMAILS.includes(normalizedEmail)
+          const isAllowedDomain =
+            !!emailDomain && ALLOWED_GOOGLE_EMAIL_DOMAINS.includes(emailDomain)
+          const isAllowedEmail =
+            !!normalizedEmail && ALLOWED_GOOGLE_EMAILS.includes(normalizedEmail)
 
           if (!isAllowedDomain && !isAllowedEmail) {
             authLogger.security('Google login blocked - unauthorized domain', {
