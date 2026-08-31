@@ -104,13 +104,6 @@ export function getContractTypeConfig(contractTypeId: string): ContractTypeConfi
 }
 
 /**
- * Obtém o tipo de contrato padrão
- */
-export function getDefaultContractType(): ContractTypeConfig {
-  return CONTRACT_TYPES.find((type) => type.isDefault) || CONTRACT_TYPES[2] // ESTAGIO_20H
-}
-
-/**
  * Valida se a carga horária está dentro dos limites legais
  */
 export function validateWorkingHours(
@@ -157,11 +150,4 @@ export function formatHours(hours: number): string {
   }
 
   return `${wholeHours}h${minutes.toString().padStart(2, '0')}min`
-}
-
-/**
- * Calcula horas diárias baseado nas horas semanais (assumindo 5 dias úteis)
- */
-export function calculateDailyHours(weeklyHours: number): number {
-  return weeklyHours / 5
 }

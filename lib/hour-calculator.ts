@@ -8,7 +8,7 @@ const CONTRACT_CONFIGS = {
   CUSTOM: { dailyHours: 6, weeklyHours: 30 }, // Será sobrescrito pelos campos do usuário
 }
 
-export interface HourCalculationResult {
+interface HourCalculationResult {
   workedHours: number
   expectedHours: number
   dailyBalance: number
@@ -20,7 +20,7 @@ export interface HourCalculationResult {
 /**
  * Calcula o saldo de horas para um usuário em uma data específica
  */
-export async function calculateHourBalance(
+async function calculateHourBalance(
   userId: string,
   date: Date = new Date()
 ): Promise<HourCalculationResult> {
@@ -218,144 +218,6 @@ export async function updateHourBalance(userId: string, date: Date = new Date())
     )
   } catch (error) {
     console.error('❌ [HOUR-CALCULATOR] Erro ao atualizar saldo:', error)
-    throw error
-  }
-}
-
-/**
- * Calcula estatísticas de horas para relatórios
- */
-export async function calculateHourStatistics(userId: string, startDate: Date, endDate: Date) {
-  try {
-    const records = await prisma.hourBalance.findMany({
-      where: {
-        userId,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      orderBy: { date: 'asc' },
-    })
-
-    const totalWorked = records.reduce(
-      (sum: number, record: { workedHours: number }) => sum + record.workedHours,
-      0
-    )
-    const totalExpected = records.reduce(
-      (sum: number, record: { expectedHours: number }) => sum + record.expectedHours,
-      0
-    )
-    const totalBalance = records.reduce(
-      (sum: number, record: { balance: number }) => sum + record.balance,
-      0
-    )
-
-    const daysWorked = records.filter(
-      (record: { workedHours: number }) => record.workedHours > 0
-    ).length
-    const averageDaily = daysWorked > 0 ? totalWorked / daysWorked : 0
-
-    const positiveBalanceDays = records.filter(
-      (record: { balance: number }) => record.balance > 0
-    ).length
-    const negativeBalanceDays = records.filter(
-      (record: { balance: number }) => record.balance < 0
-    ).length
-
-    return {
-      period: {
-        startDate,
-        endDate,
-        totalDays: records.length,
-        daysWorked,
-      },
-      hours: {
-        totalWorked,
-        totalExpected,
-        totalBalance,
-        averageDaily,
-        efficiency: totalExpected > 0 ? (totalWorked / totalExpected) * 100 : 0,
-      },
-      balance: {
-        positive: positiveBalanceDays,
-        negative: negativeBalanceDays,
-        neutral: records.length - positiveBalanceDays - negativeBalanceDays,
-      },
-      records,
-    }
-  } catch (error) {
-    console.error('❌ [HOUR-CALCULATOR] Erro ao calcular estatísticas:', error)
-    throw error
-  }
-}
-
-/**
- * Valida se um registro de ponto está dentro dos limites legais
- */
-export async function validateWorkingHours(
-  userId: string,
-  entryTime: Date,
-  exitTime?: Date
-): Promise<{
-  isValid: boolean
-  violations: string[]
-  warnings: string[]
-}> {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        contractType: true,
-        dailyHours: true,
-        weeklyHours: true,
-      },
-    })
-
-    if (!user) {
-      throw new Error('Usuário não encontrado')
-    }
-
-    const violations: string[] = []
-    const warnings: string[] = []
-
-    // Se há horário de saída, validar duração
-    if (exitTime) {
-      const diffMs = exitTime.getTime() - entryTime.getTime()
-      const workedHours = diffMs / (1000 * 60 * 60)
-
-      const contractConfig = CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS]
-      const maxDailyHours =
-        user.contractType === 'CUSTOM' ? user.dailyHours : contractConfig.dailyHours
-
-      if (workedHours > maxDailyHours) {
-        violations.push(`Excede limite diário: ${workedHours.toFixed(2)}h > ${maxDailyHours}h`)
-      }
-
-      if (workedHours > maxDailyHours * 0.9) {
-        warnings.push(`Próximo do limite diário: ${workedHours.toFixed(2)}h`)
-      }
-    }
-
-    // Validar horários noturnos (Lei do Estágio não permite trabalho noturno para menores)
-    const entryHour = entryTime.getHours()
-    const exitHour = exitTime?.getHours()
-
-    if (entryHour < 6 || entryHour > 22) {
-      warnings.push('Horário de entrada fora do período recomendado (6h-22h)')
-    }
-
-    if (exitHour && (exitHour < 6 || exitHour > 22)) {
-      warnings.push('Horário de saída fora do período recomendado (6h-22h)')
-    }
-
-    return {
-      isValid: violations.length === 0,
-      violations,
-      warnings,
-    }
-  } catch (error) {
-    console.error('❌ [HOUR-CALCULATOR] Erro ao validar horários:', error)
     throw error
   }
 }

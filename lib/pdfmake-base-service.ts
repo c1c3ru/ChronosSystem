@@ -116,7 +116,7 @@ async function getPdfMake(): Promise<PdfMakeInstance> {
 // ─── MARGENS E CONFIGURAÇÃO PADRÃO A4 ────────────────────────────────────────
 
 /** Margens padrão A4 IFCE (em pontos: 1 mm ≈ 2.835 pt) */
-export const PAGE_MARGINS: [number, number, number, number] = [
+const PAGE_MARGINS: [number, number, number, number] = [
   34, // left  ≈ 12 mm
   28, // top   ≈ 10 mm
   34, // right ≈ 12 mm
@@ -125,7 +125,7 @@ export const PAGE_MARGINS: [number, number, number, number] = [
 
 // ─── ESTILOS GLOBAIS (StyleDictionary) ───────────────────────────────────────
 
-export const STYLES: StyleDictionary = {
+const STYLES: StyleDictionary = {
   // Cabeçalho institucional
   headerInstitution: {
     fontSize: 9,
@@ -545,42 +545,6 @@ export async function generatePDF(
   } else {
     pdfMake.createPdf(finalDoc, undefined, pdfMake.fonts, pdfMake.vfs).download(filename)
   }
-}
-
-/**
- * Gera o PDF como Blob (para preview ou envio à API).
- */
-export async function generatePDFBlob(
-  docDefinition: Omit<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'> &
-    Partial<Pick<TDocumentDefinitions, 'pageSize' | 'pageMargins' | 'defaultStyle'>>
-): Promise<Blob> {
-  const pdfMake = (await getPdfMake()) as unknown as PdfMakeInstance
-
-  const finalDoc: TDocumentDefinitions = {
-    pageSize: 'A4',
-    pageMargins: PAGE_MARGINS,
-    ...docDefinition,
-    styles: { ...STYLES, ...(docDefinition.styles ?? {}) },
-    defaultStyle: {
-      font: 'Roboto',
-      fontSize: 8,
-      color: '#000000',
-      lineHeight: 1.2,
-      ...(docDefinition.defaultStyle ?? {}),
-    },
-  }
-
-  return new Promise((resolve, reject) => {
-    try {
-      pdfMake
-        .createPdf(finalDoc, undefined, pdfMake.fonts, pdfMake.vfs)
-        .getBlob()
-        .then(resolve)
-        .catch(reject)
-    } catch (err) {
-      reject(err)
-    }
-  })
 }
 
 // ─── UTILITÁRIOS ──────────────────────────────────────────────────────────────

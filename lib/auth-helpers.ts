@@ -43,7 +43,7 @@ export function requireAuth(session: Session | null): Session {
  * requireRole(session, ['ADMIN', 'SUPERVISOR'])
  * ```
  */
-export function requireRole(session: Session | null, roles: string[]): Session {
+function requireRole(session: Session | null, roles: string[]): Session {
   const authenticatedSession = requireAuth(session)
 
   if (!roles.includes(authenticatedSession.user.role)) {
@@ -70,53 +70,4 @@ export function requireRole(session: Session | null, roles: string[]): Session {
  */
 export function requireAdmin(session: Session | null): Session {
   return requireRole(session, ['ADMIN', 'SUPERVISOR'])
-}
-
-/**
- * Checks if user can access a specific user's data
- *
- * @param session - NextAuth session object
- * @param targetUserId - ID of the user whose data is being accessed
- * @throws ForbiddenError if user is not admin and not accessing their own data
- * @returns The session object
- *
- * @example
- * ```typescript
- * const session = await getServerSession(authOptions)
- * requireUserAccess(session, userId)
- * ```
- */
-export function requireUserAccess(session: Session | null, targetUserId: string): Session {
-  const authenticatedSession = requireAuth(session)
-
-  const isAdmin = ['ADMIN', 'SUPERVISOR'].includes(authenticatedSession.user.role)
-  const isOwnData = authenticatedSession.user.id === targetUserId
-
-  if (!isAdmin && !isOwnData) {
-    throw new ForbiddenError('Você só pode acessar seus próprios dados')
-  }
-
-  return authenticatedSession
-}
-
-/**
- * Checks if user has a specific role (non-throwing)
- *
- * @param session - NextAuth session object
- * @param roles - Array of roles to check
- * @returns true if user has one of the roles, false otherwise
- */
-export function hasRole(session: Session | null, roles: string[]): boolean {
-  if (!session) return false
-  return roles.includes(session.user.role)
-}
-
-/**
- * Checks if user is admin or supervisor (non-throwing)
- *
- * @param session - NextAuth session object
- * @returns true if user is admin or supervisor
- */
-export function isAdmin(session: Session | null): boolean {
-  return hasRole(session, ['ADMIN', 'SUPERVISOR'])
 }

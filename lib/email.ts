@@ -26,7 +26,7 @@ function escapeHtml(unsafe: string | null | undefined): string {
     .replace(/'/g, '&#039;')
 }
 
-export class EmailService {
+class EmailService {
   private static instance: EmailService
 
   private constructor() {}
@@ -515,6 +515,3 @@ export class EmailService {
 
 // Instância singleton
 export const emailService = EmailService.getInstance()
-
-// Tipos para exportação
-export type { EmailOptions, PasswordResetEmailData }

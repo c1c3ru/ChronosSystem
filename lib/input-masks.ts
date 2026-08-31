@@ -61,11 +61,6 @@ export const maskPhone = (value: string): string => {
     .replace(/(-\d{4})\d+?$/, '$1')
 }
 
-export const validateEmail = (email: string): boolean => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(email)
-}
-
 /**
  * Máscara para valores monetários (R$)
  * Exemplos: R$ 1.234,56 | R$ 10,00 | R$ 1.000.000,00
@@ -87,14 +82,6 @@ export const maskCurrency = (value: string): string => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
-}
-
-/**
- * Remove a máscara de moeda e retorna apenas o número
- * Útil para enviar ao backend
- */
-export const unmaskCurrency = (value: string): string => {
-  return value.replace(/\D/g, '')
 }
 
 /**

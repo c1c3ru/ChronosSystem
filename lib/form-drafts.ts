@@ -18,7 +18,7 @@ export type FormType =
   | 'realization-term'
   | 'student-evaluation'
 
-export interface FormDraftData {
+interface FormDraftData {
   formType: FormType
   formData: Record<string, unknown>
 }
@@ -26,7 +26,7 @@ export interface FormDraftData {
 /**
  * Salva um rascunho de formulário localmente (localStorage)
  */
-export function saveDraftLocally(formType: FormType, formData: Record<string, unknown>): void {
+function saveDraftLocally(formType: FormType, formData: Record<string, unknown>): void {
   if (typeof window === 'undefined') return // Skip on server
 
   try {
@@ -46,7 +46,7 @@ export function saveDraftLocally(formType: FormType, formData: Record<string, un
 /**
  * Recupera um rascunho salvo localmente
  */
-export function getDraftLocally(formType: FormType): Record<string, unknown> | null {
+function getDraftLocally(formType: FormType): Record<string, unknown> | null {
   if (typeof window === 'undefined') return null // Skip on server
 
   try {
@@ -64,24 +64,9 @@ export function getDraftLocally(formType: FormType): Record<string, unknown> | n
 }
 
 /**
- * Remove um rascunho salvo localmente
- */
-export function removeDraftLocally(formType: FormType): void {
-  if (typeof window === 'undefined') return // Skip on server
-
-  try {
-    const key = `form_draft_${formType}`
-    localStorage.removeItem(key)
-    console.log(`Rascunho removido: ${formType}`)
-  } catch (error) {
-    console.error('Erro ao remover rascunho:', error)
-  }
-}
-
-/**
  * Salva um rascunho no servidor
  */
-export async function saveDraftToServer(
+async function saveDraftToServer(
   formType: FormType,
   formData: Record<string, unknown>
 ): Promise<{ success: boolean; message: string }> {
@@ -113,9 +98,7 @@ export async function saveDraftToServer(
 /**
  * Recupera um rascunho do servidor
  */
-export async function getDraftFromServer(
-  formType: FormType
-): Promise<Record<string, unknown> | null> {
+async function getDraftFromServer(formType: FormType): Promise<Record<string, unknown> | null> {
   try {
     const response = await fetch(`/api/forms/drafts?formType=${formType}`)
 
@@ -168,47 +151,6 @@ export async function getDraft(formType: FormType): Promise<Record<string, unkno
 
   // Fallback para localStorage
   return getDraftLocally(formType)
-}
-
-/**
- * Limpa todos os rascunhos locais
- */
-export function clearAllLocalDrafts(): void {
-  if (typeof window === 'undefined') return // Skip on server
-
-  try {
-    const keys = Object.keys(localStorage)
-    keys.forEach((key) => {
-      if (key.startsWith('form_draft_')) {
-        localStorage.removeItem(key)
-      }
-    })
-    console.log('Todos os rascunhos locais foram removidos')
-  } catch (error) {
-    console.error('Erro ao limpar rascunhos:', error)
-  }
-}
-
-/**
- * Extrai dados de um formulário HTML
- */
-export function extractFormData(formElement: HTMLFormElement): Record<string, unknown | unknown[]> {
-  const formData = new FormData(formElement)
-  const data: Record<string, unknown | unknown[]> = {}
-
-  formData.forEach((value, key) => {
-    if (data[key]) {
-      // Se a chave já existe, converte para array
-      if (!Array.isArray(data[key])) {
-        data[key] = [data[key]]
-      }
-      ;(data[key] as unknown[]).push(value)
-    } else {
-      data[key] = value
-    }
-  })
-
-  return data
 }
 
 /**

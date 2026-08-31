@@ -103,7 +103,7 @@ export function isRedisConnected(): boolean {
 /**
  * Gracefully close Redis connection
  */
-export async function closeRedis(): Promise<void> {
+async function closeRedis(): Promise<void> {
   if (redisClient) {
     try {
       await redisClient.quit()
