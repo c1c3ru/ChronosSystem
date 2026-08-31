@@ -23,7 +23,9 @@ jobs:
     steps:
       - name: Chamar /api/cron/daily-justification-check
         run: |
+          # retry de 3 vezes com intervalo de 5s, e timeout de 30s
           RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            --retry 3 --retry-delay 5 --max-time 30 \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "https://chronos-system.vercel.app/api/cron/daily-justification-check")
 

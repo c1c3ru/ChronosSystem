@@ -1,0 +1,44 @@
+name: 🔔 Lembrete de Entrada/Saída
+
+# Dispara /api/notifications/cron a cada 10 min no horário comercial, para
+# avisar estagiários sobre entrada/saída de ponto não registrada — até 15 min
+# antes do início do turno, e assim que uma saída não registrada é detectada
+# após o fim do turno (esquecimento ou atraso). A janela de 15 min só é
+# respeitada de forma confiável se o cron rodar com essa cadência (ver
+# lib/notifications.ts para a lógica de decisão).
+#
+# Roda em runner do GitHub (gratuito, ubuntu-latest) — não depende de
+# nenhuma infraestrutura própria. A aplicação em si roda na Vercel; este
+# workflow só faz uma chamada HTTP autenticada (CRON_SECRET) para acordar
+# o cron job, já que o plano gratuito da Vercel não permite Cron Jobs
+# nativos com essa frequência (a cada poucos minutos, o dia todo).
+on:
+  workflow_dispatch:
+  schedule:
+    # A cada 10 min, das 09:00 às 22:50 UTC (06:00–19:50 BRT, UTC-3), em dias úteis.
+    - cron: '*/10 9-22 * * 1-5'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  trigger-reminder:
+    name: Disparar lembrete de ponto
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/notifications/cron
+        run: |
+          # retry de 3 vezes com intervalo de 5s, e timeout de 30s
+          RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            --retry 3 --retry-delay 5 --max-time 30 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://chronos-system.vercel.app/api/notifications/cron")
+
+          echo "Status HTTP: $RESPONSE"
+          cat /tmp/response.json || true
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "::error::Endpoint retornou status $RESPONSE (esperado 200)"
+            exit 1
+          fi

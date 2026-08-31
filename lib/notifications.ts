@@ -19,10 +19,14 @@ interface UserWithAttendance {
  * Verifica e notifica funcionários sobre pontos de entrada/saída.
  *
  * Critérios de notificação:
- *  - ENTRY_REMINDER : Faltam até 10 min para o início do turno e não há registro de entrada
+ *  - ENTRY_REMINDER : Faltam até 15 min para o início do turno e não há registro de entrada
  *  - MISSED_ENTRY   : Passou 1 min do início do turno e não há registro de entrada
  *  - EXIT_REMINDER  : Faltam até 15 min para o fim do turno e há ENTRY sem EXIT correspondente
  *  - MISSED_EXIT    : Passou o horário de fim do turno e há ENTRY sem EXIT correspondente
+ *
+ * Para pegar os estagiários dentro dessas janelas de 15 min, este endpoint
+ * precisa ser chamado por um cron externo a cada poucos minutos durante o
+ * horário comercial — ver .github/workflows/attendance-reminder-cron.yml.
  */
 export async function checkAndNotifyAttendance() {
   const now = getNowInFortaleza()
@@ -70,8 +74,8 @@ export async function checkAndNotifyAttendance() {
 
       const minsFromStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
 
-      // 10 min ANTES do turno → lembrete preventivo
-      if (minsFromStart >= -10 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
+      // 15 min ANTES do turno → lembrete preventivo
+      if (minsFromStart >= -15 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
         const delivered = await sendNotification(
           intern,
           'ENTRY_REMINDER',
