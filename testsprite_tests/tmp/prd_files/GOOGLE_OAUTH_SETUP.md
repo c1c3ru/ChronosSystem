@@ -4,9 +4,9 @@
 
 As credenciais do Google OAuth já foram configuradas no sistema:
 
-- **Client ID:** `669988829985-pcebjkv860j0ke2uth2ccodof1ne4hpq.apps.googleusercontent.com`
-- **Client Secret:** `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`
-- **Project ID:** `chronossystem`
+- **Client ID:** `SUA_ID`
+- **Client Secret:** `SEU_SECRET`
+- **Project ID:** `SEU_PROJETO`
 
 ## 🌐 URLs de Callback Necessárias
 
