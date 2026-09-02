@@ -171,6 +171,10 @@ export default function NewUserPage() {
         newErrors.department = 'Departamento é obrigatório para funcionários'
       }
 
+      if (!userData.registrationNumber?.trim()) {
+        newErrors.registrationNumber = 'Matrícula é obrigatória para alunos/estagiários'
+      }
+
       if (!userData.startDate) {
         newErrors.startDate = 'Data de início é obrigatória para funcionários'
       }
@@ -780,13 +784,13 @@ export default function NewUserPage() {
                         htmlFor="new-user-registration-number"
                         className="block text-sm font-medium text-neutral-300 mb-2"
                       >
-                        Matrícula
+                        Matrícula *
                       </label>
                       <input
                         id="new-user-registration-number"
                         type="text"
                         placeholder="Número da matrícula do aluno"
-                        className="input"
+                        className={`input ${errors.registrationNumber ? 'border-error' : ''}`}
                         value={userData.registrationNumber || ''}
                         onChange={(e) =>
                           setUserData((prev) => ({
@@ -795,6 +799,9 @@ export default function NewUserPage() {
                           }))
                         }
                       />
+                      {errors.registrationNumber && (
+                        <p className="text-error text-xs mt-1">{errors.registrationNumber}</p>
+                      )}
                     </div>
                   )}
                 </div>

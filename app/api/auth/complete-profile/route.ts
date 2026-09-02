@@ -19,6 +19,7 @@ const completeProfileSchema = z.object({
   emergencyContact: z.string().min(1, 'Contato de emergência é obrigatório'),
   emergencyPhone: z.string().min(1, 'Telefone de emergência é obrigatório'),
   department: z.string().optional().nullable(),
+  registrationNumber: z.string().optional().nullable(),
   startDate: isoDateString.optional().nullable(),
   contractStartDate: isoDateString.optional().nullable(),
   contractEndDate: isoDateString.optional().nullable(),
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       emergencyContact,
       emergencyPhone,
       department,
+      registrationNumber,
       startDate,
       contractStartDate,
       contractEndDate,
@@ -92,6 +94,12 @@ export async function POST(request: NextRequest) {
       if (!department) {
         return NextResponse.json(
           { error: 'Departamento é obrigatório para funcionários' },
+          { status: 400 }
+        )
+      }
+      if (!registrationNumber?.trim()) {
+        return NextResponse.json(
+          { error: 'Matrícula é obrigatória para alunos/estagiários' },
           { status: 400 }
         )
       }
@@ -144,6 +152,7 @@ export async function POST(request: NextRequest) {
         emergencyContact,
         emergencyPhone,
         department: newRole === 'EMPLOYEE' ? department : 'DIRECAO_GERAL', // Padrão para ADMINs
+        registrationNumber: newRole === 'EMPLOYEE' ? registrationNumber : null,
         startDate: startDate ? new Date(startDate) : null,
         contractStartDate: contractStartDate ? new Date(contractStartDate) : null,
         contractEndDate: contractEndDate ? new Date(contractEndDate) : null,

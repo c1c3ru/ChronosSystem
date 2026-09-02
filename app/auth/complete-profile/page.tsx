@@ -26,6 +26,7 @@ interface ProfileData {
   emergencyContact?: string
   emergencyPhone?: string
   department?: string
+  registrationNumber?: string
   startDate?: string
   contractStartDate?: string
   contractEndDate?: string
@@ -48,6 +49,7 @@ const FIELD_LABELS: Record<string, string> = {
   emergencyContact: 'Contato de emergência',
   emergencyPhone: 'Telefone de emergência',
   department: 'Departamento',
+  registrationNumber: 'Matrícula',
   siapeNumber: 'Matrícula SIAPE',
   contractType: 'Tipo de contrato',
   startDate: 'Data de início',
@@ -146,9 +148,13 @@ export default function CompleteProfilePage() {
       newErrors.emergencyPhone = 'Formato inválido. Use: (11) 99999-9999'
     }
 
-    // Departamento só é obrigatório para funcionários
+    // Departamento e matrícula só são obrigatórios para funcionários (alunos/estagiários)
     if (effectiveRole === 'EMPLOYEE' && !profileData.department) {
       newErrors.department = 'Departamento é obrigatório para funcionários'
+    }
+
+    if (effectiveRole === 'EMPLOYEE' && !profileData.registrationNumber?.trim()) {
+      newErrors.registrationNumber = 'Matrícula é obrigatória para alunos/estagiários'
     }
 
     // Validar matrícula SIAPE (apenas se hasSiape for true)
@@ -210,6 +216,8 @@ export default function CompleteProfilePage() {
         emergencyPhone: !!profileData.emergencyPhone,
         siapeNumber: !!profileData.siapeNumber,
         department: effectiveRole === 'EMPLOYEE' ? !!profileData.department : 'N/A (ADMIN)',
+        registrationNumber:
+          effectiveRole === 'EMPLOYEE' ? !!profileData.registrationNumber : 'N/A (ADMIN)',
         contractType: effectiveRole === 'EMPLOYEE' ? !!profileData.contractType : 'N/A (ADMIN)',
         contractStartDate:
           effectiveRole === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
@@ -828,6 +836,31 @@ export default function CompleteProfilePage() {
                       </select>
                       {errors.department && (
                         <p className="text-error text-xs mt-1">{errors.department}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="registrationNumber"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
+                        Matrícula *
+                      </label>
+                      <input
+                        id="registrationNumber"
+                        type="text"
+                        placeholder="Número da sua matrícula"
+                        className={`input ${errors.registrationNumber ? 'border-error' : ''}`}
+                        value={profileData.registrationNumber || ''}
+                        onChange={(e) =>
+                          setProfileData((prev) => ({
+                            ...prev,
+                            registrationNumber: e.target.value,
+                          }))
+                        }
+                      />
+                      {errors.registrationNumber && (
+                        <p className="text-error text-xs mt-1">{errors.registrationNumber}</p>
                       )}
                     </div>
 

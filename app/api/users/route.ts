@@ -153,6 +153,12 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
+      if (!validatedData.registrationNumber?.trim()) {
+        return NextResponse.json(
+          { error: 'Matrícula é obrigatória para alunos/estagiários' },
+          { status: 400 }
+        )
+      }
       if (
         !validatedData.startDate ||
         !validatedData.contractStartDate ||
