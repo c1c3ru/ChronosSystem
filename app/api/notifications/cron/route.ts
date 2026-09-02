@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAndNotifyAttendance } from '@/lib/notifications'
-import { isAuthorizedCronRequest } from '@/lib/cron-auth'
+import { checkCronAuth } from '@/lib/cron-auth'
 import { apiLogger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -8,8 +8,20 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   // Fail-closed em qualquer ambiente: nunca depender de NODE_ENV para decidir
   // se a autenticação é aplicada (ver lib/cron-auth.ts).
-  if (!isAuthorizedCronRequest(request)) {
+  const auth = checkCronAuth(request)
+  if (!auth.authorized) {
+    if (auth.reason === 'missing_secret') {
+      apiLogger.error('Cron auth failed: CRON_SECRET não configurado no servidor', {
+        path: request.nextUrl.pathname,
+      })
+      return NextResponse.json(
+        { error: 'Erro de configuração do servidor: CRON_SECRET não definido' },
+        { status: 500 }
+      )
+    }
+
     apiLogger.security('Tentativa de acesso não autorizado ao cron de notificações', {
+      reason: auth.reason,
       ip: request.headers.get('x-forwarded-for') || undefined,
     })
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
