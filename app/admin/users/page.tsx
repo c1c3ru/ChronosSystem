@@ -16,6 +16,7 @@ import {
   Eye,
   Download,
   RefreshCw,
+  Wand2,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -57,6 +58,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('ALL')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [backfilling, setBackfilling] = useState(false)
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -165,6 +167,62 @@ export default function UsersPage() {
     }
   }
 
+  const handleBackfillRegistrationNumbers = async () => {
+    try {
+      setBackfilling(true)
+      toast.loading('Verificando rascunhos de documentos...', { id: 'backfill-registration' })
+
+      const dryRunResponse = await fetch(
+        '/api/admin/students/backfill-registration-number?dryRun=true',
+        { method: 'POST' }
+      )
+      const dryRunData = await dryRunResponse.json()
+
+      if (!dryRunResponse.ok) {
+        toast.error(dryRunData.error || 'Erro ao verificar matrículas', {
+          id: 'backfill-registration',
+        })
+        return
+      }
+
+      if (dryRunData.updated === 0) {
+        toast.success('Nenhuma matrícula nova encontrada nos rascunhos de documento.', {
+          id: 'backfill-registration',
+        })
+        return
+      }
+
+      toast.dismiss('backfill-registration')
+      const confirmed = confirm(
+        `${dryRunData.updated} aluno(s) têm matrícula digitada em algum rascunho de documento mas não no perfil.\n\n` +
+          `Confirmar o preenchimento automático? (quem já tem matrícula no perfil não é alterado)`
+      )
+      if (!confirmed) return
+
+      toast.loading('Migrando matrículas...', { id: 'backfill-registration' })
+      const applyResponse = await fetch('/api/admin/students/backfill-registration-number', {
+        method: 'POST',
+      })
+      const applyData = await applyResponse.json()
+
+      if (applyResponse.ok) {
+        toast.success(`${applyData.updated} matrícula(s) preenchida(s) com sucesso!`, {
+          id: 'backfill-registration',
+        })
+        loadUsers()
+      } else {
+        toast.error(applyData.error || 'Erro ao migrar matrículas', {
+          id: 'backfill-registration',
+        })
+      }
+    } catch (error) {
+      console.error('Erro ao migrar matrículas de alunos:', error)
+      toast.error('Erro inesperado ao migrar matrículas', { id: 'backfill-registration' })
+    } finally {
+      setBackfilling(false)
+    }
+  }
+
   const filteredUsers = (users || []).filter((user) => {
     const search = searchTerm.trim().toLowerCase()
     const name = (user.name || '').toLowerCase()
@@ -234,6 +292,17 @@ export default function UsersPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Exportar CSV
               </Button>
+              {session?.user?.role === 'ADMIN' && (
+                <Button
+                  variant="outline"
+                  onClick={handleBackfillRegistrationNumbers}
+                  loading={backfilling}
+                  title="Preencher matrícula dos alunos a partir de rascunhos de documento já digitados"
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Migrar Matrículas
+                </Button>
+              )}
               <Button asChild>
                 <Link href="/admin/users/new">
                   <UserPlus className="h-4 w-4 mr-2" />
