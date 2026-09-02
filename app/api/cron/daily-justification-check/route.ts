@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/email'
 import { apiLogger } from '@/lib/logger'
-import { isAuthorizedCronRequest } from '@/lib/cron-auth'
+import { checkCronAuth } from '@/lib/cron-auth'
 import {
   analyzeDayForJustification,
   isWeekend,
@@ -215,8 +215,34 @@ async function dispatchReminder(candidate: Candidate): Promise<boolean> {
 }
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorizedCronRequest(request)) {
+  // TODO(temp-log): remover após confirmar em produção que o cron autentica
+  // corretamente — ajuda a distinguir "não chegou requisição" de "chegou e
+  // falhou na auth" nos logs da Vercel.
+  apiLogger.info('Cron request received: daily-justification-check', {
+    path: request.nextUrl.pathname,
+  })
+
+  const auth = checkCronAuth(request)
+  if (!auth.authorized) {
+    if (auth.reason === 'missing_secret') {
+      // CRON_SECRET não está configurado no servidor (Vercel) — isso é um
+      // erro de CONFIGURAÇÃO, não uma tentativa de acesso indevido. Retornar
+      // 500 em vez de 401 deixa claro, do lado de fora, que o problema é a
+      // env var ausente na Vercel, não um secret incorreto no GitHub.
+      apiLogger.error('Cron auth failed: CRON_SECRET não configurado no servidor', {
+        path: request.nextUrl.pathname,
+      })
+      return NextResponse.json(
+        { error: 'Erro de configuração do servidor: CRON_SECRET não definido' },
+        { status: 500 }
+      )
+    }
+
+    // Nunca logar o header/token recebido nem o CRON_SECRET aqui — apenas o
+    // motivo classificado (auth.reason), suficiente para depurar sem vazar o
+    // segredo.
     apiLogger.security('Tentativa de acesso não autorizado ao cron de justificativas', {
+      reason: auth.reason,
       ip: request.headers.get('x-forwarded-for') || undefined,
     })
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
