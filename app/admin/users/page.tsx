@@ -34,6 +34,7 @@ interface User {
   phone?: string
   department?: string
   siapeNumber?: string
+  registrationNumber?: string
   contractType?: string
   weeklyHours?: number
   shiftStartTime?: string
@@ -170,13 +171,15 @@ export default function UsersPage() {
     const email = (user.email || '').toLowerCase()
     const department = (user.department || '').toLowerCase()
     const siape = (user.siapeNumber || '').toLowerCase()
+    const registrationNumber = (user.registrationNumber || '').toLowerCase()
 
     const matchesSearch =
       search === '' ||
       name.includes(search) ||
       email.includes(search) ||
       department.includes(search) ||
-      siape.includes(search)
+      siape.includes(search) ||
+      registrationNumber.includes(search)
 
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
@@ -333,6 +336,14 @@ export default function UsersPage() {
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">SIAPE:</span>
                             <p className="text-white font-medium break-all">{user.siapeNumber}</p>
+                          </div>
+                        )}
+                        {user.registrationNumber && (
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">Matrícula:</span>
+                            <p className="text-white font-medium break-all">
+                              {user.registrationNumber}
+                            </p>
                           </div>
                         )}
                         {user.department && (

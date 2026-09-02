@@ -42,6 +42,7 @@ interface UserData {
   emergencyPhone?: string
   siapeNumber?: string
   hasSiape?: boolean
+  registrationNumber?: string
   startDate?: string
   contractStartDate?: string
   contractEndDate?: string
@@ -769,6 +770,31 @@ export default function NewUserPage() {
                       {errors.department && (
                         <p className="text-error text-xs mt-1">{errors.department}</p>
                       )}
+                    </div>
+                  )}
+
+                  {/* Matrícula - do aluno/estagiário (não confundir com SIAPE, exclusiva de servidor) */}
+                  {userData.role === 'EMPLOYEE' && (
+                    <div>
+                      <label
+                        htmlFor="new-user-registration-number"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
+                        Matrícula
+                      </label>
+                      <input
+                        id="new-user-registration-number"
+                        type="text"
+                        placeholder="Número da matrícula do aluno"
+                        className="input"
+                        value={userData.registrationNumber || ''}
+                        onChange={(e) =>
+                          setUserData((prev) => ({
+                            ...prev,
+                            registrationNumber: e.target.value,
+                          }))
+                        }
+                      />
                     </div>
                   )}
                 </div>

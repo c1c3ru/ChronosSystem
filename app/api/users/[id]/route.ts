@@ -17,6 +17,7 @@ const updateUserSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   department: z.string().optional(),
+  registrationNumber: z.string().optional(),
   isActive: z.boolean().optional(),
 })
 
@@ -50,6 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         department: true,
         startDate: true,
         siapeNumber: true,
+        registrationNumber: true,
         contractType: true,
         weeklyHours: true,
         dailyHours: true,

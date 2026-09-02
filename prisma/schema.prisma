@@ -50,6 +50,9 @@ model User {
   department              String?
   startDate               DateTime?
   siapeNumber             String?
+  // Matrícula acadêmica/de estágio do aluno (IFCE, SEDUC-CE etc.) — não
+  // confundir com siapeNumber, que é a matrícula SIAPE de servidor público.
+  registrationNumber      String?
   profileComplete         Boolean                  @default(false)
   twoFactorSecret         String?
   twoFactorEnabled        Boolean                  @default(false)

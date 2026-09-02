@@ -12,7 +12,7 @@ const CSV_HEADERS = ['Nome Completo', 'Matrícula', 'E-mail', 'Turno', 'Status']
 type StudentRow = {
   name: string | null
   email: string
-  siapeNumber: string | null
+  registrationNumber: string | null
   shift: string
   isActive: boolean
 }
@@ -28,7 +28,7 @@ function buildStudentsCsv(students: StudentRow[]): string {
   const rows = students.map((student) =>
     [
       sanitizeCsvField(student.name || 'N/A'),
-      sanitizeCsvField(student.siapeNumber || 'N/A'),
+      sanitizeCsvField(student.registrationNumber || 'N/A'),
       sanitizeCsvField(student.email),
       sanitizeCsvField(
         getShiftDescription(student.shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
@@ -67,7 +67,7 @@ export async function GET() {
       select: {
         name: true,
         email: true,
-        siapeNumber: true,
+        registrationNumber: true,
         shift: true,
         isActive: true,
       },
