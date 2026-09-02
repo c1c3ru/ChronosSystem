@@ -4,8 +4,6 @@ Este diretório contém as **migrations do Prisma**, aplicadas em produção via
 
 - O deploy em produção (Vercel) roda `npx prisma migrate deploy` como parte do script `vercel-build`
   do `package.json`, **antes** de `next build` — é assim que migrations versionadas chegam ao banco.
-  Se `migrate deploy` falhar, o build inteiro falha e a Vercel mantém o último deploy que funcionava
-  no ar (não publica código novo esperando uma coluna/tabela que o banco ainda não tem).
 - Isso evita mudanças de schema "fora de trilha" (como `db push --accept-data-loss`) e torna o deploy
   reprodutível/auditável.
 - **Atenção:** por um tempo esse script não existiu (o workflow de CI que rodava `migrate deploy`
@@ -15,6 +13,23 @@ Este diretório contém as **migrations do Prisma**, aplicadas em produção via
   parecido acontecer de novo, `app/api/admin/system/repair-registration-number-column/route.ts` é
   um exemplo de reparo emergencial via SQL direto (idempotente) que não depende do pipeline de
   migration para desbloquear produção na hora.
+
+### ⚠️ Estado atual: `vercel-build` está em modo não-bloqueante
+
+`vercel-build` hoje é `(prisma migrate deploy || true) && next build` — a falha do `migrate deploy`
+**não** derruba o build. Isso é temporário: ao ligar esse script pela primeira vez, `migrate deploy`
+falhou em produção com `P3018 relation "Account" already exists` (o passo de adoção da migration
+`_init` abaixo nunca foi executado) e em Preview por faltar `DIRECT_URL` naquele ambiente — e um
+`vercel-build` que falha bloqueia *todo* deploy, não só quem toca na coluna nova, então foi
+revertido para não-bloqueante às pressas para não deixar o site inteiro sem poder receber deploy
+novo. Antes de voltar a fazer `vercel-build` estrito (remover o `|| true`):
+
+1. Rode o "Passo único de adoção" abaixo contra o banco de produção.
+2. Configure `DIRECT_URL` (conexão direta, não pooled) também no ambiente Preview da Vercel.
+3. Confirme com um deploy de teste que `migrate deploy` passa limpo antes de remover o `|| true`.
+
+Enquanto isso não acontece, migrations novas continuam precisando do reparo manual/endpoint de
+emergência de sempre — o `vercel-build` não está de fato aplicando nada ainda.
 
 ## Migration `_init`
 
