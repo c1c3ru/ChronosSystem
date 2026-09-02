@@ -24,6 +24,7 @@ const createUserSchema = z.object({
   department: z.string().optional(),
   siapeNumber: z.string().optional(),
   hasSiape: z.boolean().optional(),
+  registrationNumber: z.string().optional(),
   startDate: z.string().optional(),
   contractStartDate: z.string().optional(),
   contractEndDate: z.string().optional(),
@@ -80,6 +81,7 @@ export async function GET(request: NextRequest) {
           phone: true,
           department: true,
           siapeNumber: true,
+          registrationNumber: true,
           contractType: true,
           weeklyHours: true,
           shiftStartTime: true,
@@ -204,6 +206,7 @@ export async function POST(request: NextRequest) {
         emergencyPhone: validatedData.emergencyPhone,
         department: validatedData.department,
         siapeNumber: validatedData.siapeNumber,
+        registrationNumber: validatedData.registrationNumber,
         startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
         contractStartDate: validatedData.contractStartDate
           ? new Date(validatedData.contractStartDate)

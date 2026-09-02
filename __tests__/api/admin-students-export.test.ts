@@ -78,14 +78,14 @@ describe('GET /api/admin/students/export', () => {
         {
           name: 'Maria da Conceição',
           email: 'maria@aluno.ifce.edu.br',
-          siapeNumber: '1234567',
+          registrationNumber: '20231234567',
           shift: 'MORNING',
           isActive: true,
         },
         {
           name: 'João Sousa',
           email: 'joao@aluno.ce.gov.br',
-          siapeNumber: null,
+          registrationNumber: null,
           shift: 'AFTERNOON',
           isActive: false,
         },
@@ -114,7 +114,7 @@ describe('GET /api/admin/students/export', () => {
       const [headerLine, ...dataLines] = text.slice(1).split('\r\n')
       expect(headerLine).toBe('"Nome Completo","Matrícula","E-mail","Turno","Status"')
       expect(dataLines[0]).toBe(
-        '"Maria da Conceição","1234567","maria@aluno.ifce.edu.br","Período da Manhã","Ativo"'
+        '"Maria da Conceição","20231234567","maria@aluno.ifce.edu.br","Período da Manhã","Ativo"'
       )
       expect(dataLines[1]).toBe(
         '"João Sousa","N/A","joao@aluno.ce.gov.br","Período da Tarde","Inativo"'
@@ -140,7 +140,7 @@ describe('GET /api/admin/students/export', () => {
       {
         name: '=cmd|"/c calc"!A1',
         email: 'atacante@example.com',
-        siapeNumber: null,
+        registrationNumber: null,
         shift: 'NIGHT',
         isActive: true,
       },
