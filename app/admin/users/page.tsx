@@ -55,6 +55,7 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('ALL')
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -127,6 +128,42 @@ export default function UsersPage() {
     toast.success('Lista de usuários atualizada!')
   }
 
+  const handleExportCsv = async () => {
+    try {
+      setExporting(true)
+      toast.loading('Gerando arquivo CSV...', { id: 'export-students' })
+
+      const response = await fetch('/api/admin/students/export')
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Erro ao exportar alunos' }))
+        toast.error(error.error || 'Erro ao exportar alunos', { id: 'export-students' })
+        return
+      }
+
+      const blob = await response.blob()
+      const today = new Date().toISOString().split('T')[0]
+      const fileName = `alunos_chronos_${today}.csv`
+
+      // Gera o blob e força o download no navegador com nome de arquivo dinâmico
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      toast.success('Alunos exportados com sucesso!', { id: 'export-students' })
+    } catch (error) {
+      console.error('Erro ao exportar alunos para CSV:', error)
+      toast.error('Erro inesperado ao exportar alunos', { id: 'export-students' })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const filteredUsers = (users || []).filter((user) => {
     const search = searchTerm.trim().toLowerCase()
     const name = (user.name || '').toLowerCase()
@@ -184,6 +221,15 @@ export default function UsersPage() {
             <div className="flex items-center space-x-2 self-start sm:self-auto">
               <Button variant="ghost" onClick={handleRefresh} title="Atualizar lista">
                 <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportCsv}
+                loading={exporting}
+                title="Exportar alunos para CSV"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
               </Button>
               <Button asChild>
                 <Link href="/admin/users/new">
