@@ -17,6 +17,7 @@ import {
   Download,
   RefreshCw,
   Wand2,
+  Wrench,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -59,6 +60,7 @@ export default function UsersPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
   const [backfilling, setBackfilling] = useState(false)
+  const [repairing, setRepairing] = useState(false)
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -223,6 +225,38 @@ export default function UsersPage() {
     }
   }
 
+  const handleRepairSchema = async () => {
+    if (
+      !confirm(
+        'Reparo emergencial: garante que a coluna "registrationNumber" existe no banco de produção ' +
+          '(necessária desde a última atualização, ainda não aplicada automaticamente). Confirmar?'
+      )
+    )
+      return
+
+    try {
+      setRepairing(true)
+      toast.loading('Aplicando reparo no banco de dados...', { id: 'repair-schema' })
+
+      const response = await fetch('/api/admin/system/repair-registration-number-column', {
+        method: 'POST',
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(data.message || 'Reparo aplicado com sucesso!', { id: 'repair-schema' })
+        loadUsers()
+      } else {
+        toast.error(data.error || 'Erro ao aplicar reparo', { id: 'repair-schema' })
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar reparo de schema:', error)
+      toast.error('Erro inesperado ao aplicar reparo', { id: 'repair-schema' })
+    } finally {
+      setRepairing(false)
+    }
+  }
+
   const filteredUsers = (users || []).filter((user) => {
     const search = searchTerm.trim().toLowerCase()
     const name = (user.name || '').toLowerCase()
@@ -292,6 +326,18 @@ export default function UsersPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Exportar CSV
               </Button>
+              {session?.user?.role === 'ADMIN' && (
+                <Button
+                  variant="outline"
+                  onClick={handleRepairSchema}
+                  loading={repairing}
+                  title="Reparo emergencial: garante a coluna registrationNumber no banco de produção"
+                  className="border-warning/50 text-warning hover:bg-warning/10"
+                >
+                  <Wrench className="h-4 w-4 mr-2" />
+                  Reparar Banco
+                </Button>
+              )}
               {session?.user?.role === 'ADMIN' && (
                 <Button
                   variant="outline"

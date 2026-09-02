@@ -2,9 +2,19 @@ Este diretório contém as **migrations do Prisma**, aplicadas em produção via
 
 ## Por quê?
 
-- O deploy em produção usa `npx prisma migrate deploy`, que **aplica apenas migrations versionadas**.
-- Isso evita mudanças de schema "fora de trilha" (como `db push --accept-data-loss`) e torna o deploy reprodutível/auditável.
-- O workflow de CI (`.github/workflows/chronos-pipeline.yml`) **não** tem mais fallback automático para `db push`: se `migrate deploy` falhar, o deploy para e exige revisão manual.
+- O deploy em produção (Vercel) roda `npx prisma migrate deploy` como parte do script `vercel-build`
+  do `package.json`, **antes** de `next build` — é assim que migrations versionadas chegam ao banco.
+  Se `migrate deploy` falhar, o build inteiro falha e a Vercel mantém o último deploy que funcionava
+  no ar (não publica código novo esperando uma coluna/tabela que o banco ainda não tem).
+- Isso evita mudanças de schema "fora de trilha" (como `db push --accept-data-loss`) e torna o deploy
+  reprodutível/auditável.
+- **Atenção:** por um tempo esse script não existiu (o workflow de CI que rodava `migrate deploy`
+  foi removido e nada o substituiu), então migrations commitadas nesse período — como
+  `20260902132210_add_student_registration_number` — nunca chegaram a ser aplicadas em produção,
+  mesmo com o código já esperando por elas. Isso quebrou rotas que liam a coluna nova. Se algo
+  parecido acontecer de novo, `app/api/admin/system/repair-registration-number-column/route.ts` é
+  um exemplo de reparo emergencial via SQL direto (idempotente) que não depende do pipeline de
+  migration para desbloquear produção na hora.
 
 ## Migration `_init`
 
