@@ -279,11 +279,17 @@ export default function KioskPage() {
     }
   }, [machineInfo.id])
 
-  // Buscar atividade inicial e configurar polling a cada 5 segundos
+  // Buscar atividade inicial e configurar polling a cada 30 segundos.
+  // Já foi 5s ("instantâneo"), mas para um terminal ligado o dia todo isso
+  // significa ~500 mil requisições/mês só desse endpoint (cada uma com 2
+  // queries no banco) — arriscando estourar as cotas gratuitas da Vercel
+  // (Hobby não tem pay-as-you-go: excede e pausa/limita) e do Supabase. 30s
+  // ainda é rápido o bastante para um feed de "atividade recente" e reduz
+  // esse volume em ~6x.
   useEffect(() => {
     fetchRecentActivity()
 
-    const activityTimer = setInterval(fetchRecentActivity, 5 * 1000) // 5 segundos
+    const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
 
     return () => clearInterval(activityTimer)
   }, [fetchRecentActivity])
