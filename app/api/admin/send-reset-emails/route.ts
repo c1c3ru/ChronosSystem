@@ -80,11 +80,17 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         failureCount++
+        console.error('Erro ao enviar email de reset para', token.user.id, error)
         emailResults.push({
           userId: token.user.id,
           email: token.user.email,
           status: 'failed',
-          error: error instanceof Error ? error.message : 'Erro desconhecido',
+          error:
+            process.env.NODE_ENV === 'development'
+              ? error instanceof Error
+                ? error.message
+                : 'Erro desconhecido'
+              : 'Falha no envio do e-mail',
         })
       }
     }

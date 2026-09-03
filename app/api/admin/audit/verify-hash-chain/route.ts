@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { verifyHashChain, type HashChainRecord } from '@/lib/qr-security'
+import { logger } from '@/lib/logger'
 
 // GET /api/admin/audit/verify-hash-chain
 // Verifica a integridade da cadeia de hash (HMAC) dos registros de ponto.
@@ -68,8 +69,12 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error('Erro ao verificar cadeia de hash', { error: errorMessage })
     return NextResponse.json(
-      { error: 'Erro ao verificar cadeia de hash', details: errorMessage },
+      {
+        error: 'Erro ao verificar cadeia de hash',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      },
       { status: 500 }
     )
   }

@@ -128,7 +128,9 @@ export const authOptions: NextAuthOptions = {
             image: user.image,
           }
         } catch (error) {
-          authLogger.error('Authentication failed', { error })
+          authLogger.error('Authentication failed', {
+            error: error instanceof Error ? error.message : String(error),
+          })
           return null
         }
       },
