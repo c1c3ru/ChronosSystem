@@ -135,6 +135,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
 
+    // Apenas ADMIN pode criar usuários com role ADMIN — sem esta checagem, um
+    // SUPERVISOR (também autorizado a chegar até aqui) poderia criar uma
+    // conta ADMIN para si mesmo ou para terceiros. Mesma regra já aplicada
+    // em PUT /api/users/[id] para alteração de role.
+    if (validatedData.role === 'ADMIN' && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem criar usuários com nível de acesso ADMIN' },
+        { status: 403 }
+      )
+    }
+
     // Validações específicas para SIAPE
     if (validatedData.hasSiape && validatedData.siapeNumber) {
       if (!/^\d{7}$/.test(validatedData.siapeNumber)) {
