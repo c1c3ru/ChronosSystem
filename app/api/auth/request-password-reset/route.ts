@@ -55,13 +55,21 @@ export async function POST(request: NextRequest) {
 
     const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken.token}`
 
-    await emailService.sendPasswordResetEmail({
-      userName: user.name || 'Usuário',
-      userEmail: user.email,
-      resetUrl,
-      expiresAt,
-      reason: 'Solicitado pelo próprio usuário via tela de login.',
-    })
+    try {
+      await emailService.sendPasswordResetEmail({
+        userName: user.name || 'Usuário',
+        userEmail: user.email,
+        resetUrl,
+        expiresAt,
+        reason: 'Solicitado pelo próprio usuário via tela de login.',
+      })
+    } catch (error: unknown) {
+      // A resposta desta rota é sempre a mesma mensagem genérica, email
+      // enviado ou não — não deixar uma falha de envio (ex.: SMTP fora do
+      // ar) mudar o status HTTP, ou o status passa a revelar se o email
+      // existe na base.
+      console.error('Erro ao enviar email de reset de senha:', error)
+    }
 
     await prisma.auditLog.create({
       data: {

@@ -61,10 +61,13 @@ class EmailService {
       logger.info('Email sent successfully', { messageId: info.messageId })
       return true
     } catch (error: unknown) {
-      logger.error('Failed to send email via SMTP', {
-        error: error instanceof Error ? error.message : String(error),
-      })
-      return false
+      const reason = error instanceof Error ? error.message : String(error)
+      logger.error('Failed to send email via SMTP', { to: options.to, error: reason })
+      // Propaga a causa real (em vez de engolir em `false`) para que os
+      // chamadores — em especial os crons, via Promise.allSettled — reportem
+      // o motivo verdadeiro da falha (ex.: credenciais inválidas, host
+      // inacessível) em vez do genérico "Erro ao enviar email".
+      throw new Error(`Falha ao enviar email via SMTP: ${reason}`)
     }
   }
 
