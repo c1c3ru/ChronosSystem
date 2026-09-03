@@ -46,11 +46,18 @@ export async function POST(request: NextRequest) {
 // Reset em massa
 async function handleMassReset(
   request: NextRequest,
-  session: { user: { id: string } },
+  session: { user: { id: string; role: string } },
   body: unknown
 ) {
   try {
     const validatedData = massResetSchema.parse(body)
+
+    // Apenas ADMIN pode resetar a senha de outro ADMIN. Sem este filtro, um
+    // SUPERVISOR fazendo reset em massa (inclusive o "reset de todo mundo",
+    // sem userIds) geraria e receberia na resposta tokens válidos para
+    // contas ADMIN — suficiente para assumir esse acesso via
+    // POST /api/auth/reset-password.
+    const targetRoleFilter = session.user.role === 'ADMIN' ? {} : { role: { not: 'ADMIN' } }
 
     // Buscar usuários
     let users
@@ -59,6 +66,7 @@ async function handleMassReset(
         where: {
           id: { in: validatedData.userIds },
           password: { not: null }, // Apenas usuários com senha (não só Google)
+          ...targetRoleFilter,
         },
         select: { id: true, email: true, name: true },
       })
@@ -67,6 +75,7 @@ async function handleMassReset(
       users = await prisma.user.findMany({
         where: {
           password: { not: null },
+          ...targetRoleFilter,
         },
         select: { id: true, email: true, name: true },
       })
@@ -142,7 +151,7 @@ async function handleMassReset(
 // Reset individual
 async function handleIndividualReset(
   request: NextRequest,
-  session: { user: { id: string } },
+  session: { user: { id: string; role: string } },
   body: unknown
 ) {
   try {
@@ -151,11 +160,22 @@ async function handleIndividualReset(
     // Buscar usuário
     const user = await prisma.user.findUnique({
       where: { id: validatedData.userId },
-      select: { id: true, email: true, name: true, password: true },
+      select: { id: true, email: true, name: true, password: true, role: true },
     })
 
     if (!user) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+    }
+
+    // Apenas ADMIN pode resetar a senha de outro ADMIN — sem esta checagem,
+    // um SUPERVISOR poderia informar o userId de um ADMIN e receber, na
+    // própria resposta, um token válido para assumir aquela conta via
+    // POST /api/auth/reset-password.
+    if (user.role === 'ADMIN' && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem resetar a senha de outro administrador' },
+        { status: 403 }
+      )
     }
 
     if (!user.password) {
