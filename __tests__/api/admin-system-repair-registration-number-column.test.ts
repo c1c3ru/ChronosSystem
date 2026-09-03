@@ -84,7 +84,7 @@ describe('POST /api/admin/system/repair-registration-number-column', () => {
     )
   })
 
-  it('retorna 500 com detalhes quando a alteração falha', async () => {
+  it('retorna 500 sem vazar o erro interno do banco quando a alteração falha', async () => {
     mockedGetServerSession.mockResolvedValue({
       user: { id: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
     })
@@ -94,7 +94,32 @@ describe('POST /api/admin/system/repair-registration-number-column', () => {
     const body = await response.json()
 
     expect(response.status).toBe(500)
-    expect(body.details).toContain('permission denied')
+    expect(body.error).toBe('Erro interno do servidor')
+    // Em produção (e em teste/CI) o detalhe cru do erro de banco não deve
+    // chegar ao cliente — evita expor nomes de tabela/coluna e mensagens do
+    // driver do Postgres. Ver lib/logger.ts: o erro completo ainda é
+    // registrado no log do servidor via console.error.
+    expect(body.details).toBeUndefined()
     expect(mockedAuditCreate).not.toHaveBeenCalled()
+  })
+
+  it('em desenvolvimento, expõe o detalhe do erro para depuração local', async () => {
+    const originalEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'development'
+
+    try {
+      mockedGetServerSession.mockResolvedValue({
+        user: { id: 'admin-1', email: 'admin@example.com', role: 'ADMIN' },
+      })
+      mockedExecuteRawUnsafe.mockRejectedValue(new Error('permission denied for table User'))
+
+      const response = await POST()
+      const body = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(body.details).toContain('permission denied')
+    } finally {
+      process.env.NODE_ENV = originalEnv
+    }
   })
 })

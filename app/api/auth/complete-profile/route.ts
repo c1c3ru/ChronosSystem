@@ -223,11 +223,13 @@ export async function POST(request: NextRequest) {
         process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined,
     })
 
+    const exposeDetails = process.env.NODE_ENV === 'development'
+
     return NextResponse.json(
       {
         error: 'Erro ao salvar perfil',
-        details: errorMessage,
-        message: errorMessage,
+        details: exposeDetails ? errorMessage : undefined,
+        message: exposeDetails ? errorMessage : undefined,
       },
       { status: 500 }
     )

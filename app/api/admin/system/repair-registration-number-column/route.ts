@@ -53,6 +53,12 @@ export async function POST() {
   } catch (error: unknown) {
     console.error('Erro ao aplicar reparo de schema (registrationNumber):', error)
     const details = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: 'Erro interno do servidor', details }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Erro interno do servidor',
+        details: process.env.NODE_ENV === 'development' ? details : undefined,
+      },
+      { status: 500 }
+    )
   }
 }
