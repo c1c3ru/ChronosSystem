@@ -104,8 +104,10 @@ describe('POST /api/admin/system/repair-registration-number-column', () => {
   })
 
   it('em desenvolvimento, expõe o detalhe do erro para depuração local', async () => {
-    const originalEnv = process.env.NODE_ENV
-    process.env.NODE_ENV = 'development'
+    // process.env.NODE_ENV é tipado como readonly pelo next (next/types/global.d.ts),
+    // então não pode ser reatribuído diretamente — jest.replaceProperty contorna isso
+    // sem precisar de cast e restaura o valor original ao final do teste.
+    const nodeEnvProp = jest.replaceProperty(process.env, 'NODE_ENV', 'development')
 
     try {
       mockedGetServerSession.mockResolvedValue({
@@ -119,7 +121,7 @@ describe('POST /api/admin/system/repair-registration-number-column', () => {
       expect(response.status).toBe(500)
       expect(body.details).toContain('permission denied')
     } finally {
-      process.env.NODE_ENV = originalEnv
+      nodeEnvProp.restore()
     }
   })
 })
