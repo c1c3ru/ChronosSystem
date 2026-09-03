@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/Button'
 import { FilterSelect } from '@/components/ui/FilterSelect'
 import { handleCompleteLogout } from '@/lib/logout'
 import { Loading } from '@/components/ui/Loading'
+import { CronStatusPanel } from '@/components/CronStatusPanel'
 import { toast } from 'sonner'
 
 interface DashboardStats {
@@ -468,6 +469,11 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               </Link>
+            </div>
+
+            {/* Status dos Alertas — histórico dos crons de justificativa/ponto */}
+            <div className="mb-6 sm:mb-8">
+              <CronStatusPanel />
             </div>
 
             {/* Interns Overview */}

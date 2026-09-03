@@ -290,3 +290,28 @@ model Holiday {
 
   @@index([date])
 }
+
+/// Histórico de execuções dos crons de notificação (justificativas pendentes,
+/// lembretes de ponto). Uma linha por execução, usada pelo painel "Status dos
+/// Alertas" no dashboard admin — ver lib/cron-log.ts para quem escreve aqui.
+model CronLog {
+  id           String    @id @default(cuid())
+  jobName      String
+  // 'SUCCESS' (tudo enviado) | 'PARTIAL_FAILURE' (alguns e-mails falharam,
+  // mas o job rodou até o fim) | 'ERROR' (o job em si quebrou antes de terminar)
+  status       String
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  totalCount   Int       @default(0)
+  successCount Int       @default(0)
+  failureCount Int       @default(0)
+  // JSON serializado (array de { email, message }) com o detalhe de cada
+  // falha de envio — String em vez de Json pelo mesmo motivo de FormDraft.formData.
+  errors       String?
+  // Erro fatal da execução (status = ERROR), quando o job quebrou fora do loop de envio.
+  errorMessage String?
+
+  @@index([jobName, startedAt(sort: Desc)])
+  @@index([status])
+  @@map("cron_logs")
+}

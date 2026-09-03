@@ -9,6 +9,13 @@ import {
   HORARIO_TRABALHO_PADRAO,
 } from '@/lib/attendance-logic'
 import { getHolidaysForPeriod } from '@/lib/holidays'
+import {
+  recordCronLog,
+  recordCronError,
+  cronHttpStatus,
+  type CronRunStatus,
+  type CronFailureDetail,
+} from '@/lib/cron-log'
 import type { AttendanceRecord, Justification, Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -31,12 +38,16 @@ export const maxDuration = 60
  * AttendanceNotification), o que também torna a rota segura para reexecução
  * (retry do GitHub Actions ou nova chamada do cron no mesmo dia).
  *
- * Só retorna 200 quando todos os lembretes elegíveis foram efetivamente
- * enviados; qualquer falha de envio — ou o orçamento de tempo estourado —
- * resulta em 500, para que o chamador (GitHub Actions) tente novamente.
- * Graças à deduplicação, uma nova tentativa não reenvia e-mails já entregues.
+ * Retorna 200 quando todos os lembretes elegíveis foram efetivamente
+ * enviados, 207 (Multi-Status) quando parte deles falhou — o orçamento de
+ * tempo estourado conta como falha aqui também — e 500 apenas quando o job
+ * quebra antes de terminar (erro de API/infra, não de envio de e-mail). Cada
+ * execução grava uma linha em CronLog (tabela `cron_logs`), consumida pelo
+ * painel "Status dos Alertas" no admin. Graças à deduplicação por
+ * AttendanceNotification, uma nova tentativa não reenvia e-mails já entregues.
  */
 
+const JOB_NAME = 'daily-justification-check'
 const REMINDER_NOTIFICATION_TYPE = 'JUSTIFICATION_PENDING_REMINDER'
 const DAYS_TO_ANALYZE = 30
 const EMAIL_BATCH_SIZE = 8
@@ -249,6 +260,7 @@ export async function GET(request: NextRequest) {
   }
 
   const startedAt = Date.now()
+  const startedAtDate = new Date(startedAt)
 
   try {
     apiLogger.info('Starting daily justification check')
@@ -267,6 +279,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (employees.length === 0) {
+      await recordCronLog(JOB_NAME, startedAtDate, {
+        status: 'SUCCESS',
+        totalCount: 0,
+        successCount: 0,
+        failureCount: 0,
+        failures: [],
+      })
       return NextResponse.json({
         success: true,
         message: 'Nenhum estagiário ativo encontrado',
@@ -405,7 +424,11 @@ export async function GET(request: NextRequest) {
     }
 
     const durationMs = Date.now() - startedAt
-    const success = results.failed === 0
+    const status: CronRunStatus = results.failed === 0 ? 'SUCCESS' : 'PARTIAL_FAILURE'
+    const httpStatus = cronHttpStatus(status)
+    const failures: CronFailureDetail[] = results.details
+      .filter((detail): detail is Extract<CronDetail, { status: 'failed' }> => detail.status === 'failed')
+      .map((detail) => ({ email: detail.email, message: detail.message }))
 
     apiLogger.info('Daily justification check completed', {
       total: results.total,
@@ -415,20 +438,30 @@ export async function GET(request: NextRequest) {
       durationMs,
     })
 
+    await recordCronLog(JOB_NAME, startedAtDate, {
+      status,
+      totalCount: results.sent + results.failed,
+      successCount: results.sent,
+      failureCount: results.failed,
+      failures,
+    })
+
     return NextResponse.json(
       {
-        success,
-        message: success
-          ? `Verificação diária concluída: ${results.sent} lembrete(s) enviado(s)`
-          : `Verificação diária concluída com falhas: ${results.sent} enviado(s), ${results.failed} falharam`,
+        success: status === 'SUCCESS',
+        message:
+          status === 'SUCCESS'
+            ? `Verificação diária concluída: ${results.sent} lembrete(s) enviado(s)`
+            : `Verificação diária concluída com falha parcial no envio: ${results.sent} enviado(s), ${results.failed} falharam`,
         timestamp: new Date().toISOString(),
         results,
       },
-      { status: success ? 200 : 500 }
+      { status: httpStatus }
     )
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     apiLogger.error('Error in daily justification check', { error: errorMessage })
+    await recordCronError(JOB_NAME, startedAtDate, error)
     return NextResponse.json(
       {
         success: false,
