@@ -2,7 +2,7 @@ import { prisma } from './prisma'
 import { emailService } from './email'
 import { getNowInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
-import { logger } from './logger'
+import { runBatchWithAllSettled, type CronRunSummary, type CronFailureDetail } from './cron-log'
 
 export type NotificationType = 'ENTRY_REMINDER' | 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
 
@@ -14,6 +14,11 @@ interface UserWithAttendance {
   shiftEndTime: string
   attendanceRecords: Array<{ type: string; timestamp: Date }>
   attendanceNotifications: Array<{ type: string }>
+}
+
+interface NotificationTask {
+  intern: UserWithAttendance
+  type: NotificationType
 }
 
 /**
@@ -28,8 +33,13 @@ interface UserWithAttendance {
  * Para pegar os estagiários dentro dessas janelas de 15 min, este endpoint
  * precisa ser chamado por um cron externo a cada poucos minutos durante o
  * horário comercial — ver .github/workflows/attendance-reminder-cron.yml.
+ *
+ * A decisão de "quem precisa de notificação" é toda síncrona (primeira
+ * passada, sem I/O); o envio em si roda depois, em paralelo via
+ * Promise.allSettled (runBatchWithAllSettled) — uma falha de e-mail isolada
+ * não impede o envio dos demais nem aborta o restante do lote.
  */
-export async function checkAndNotifyAttendance() {
+export async function checkAndNotifyAttendance(): Promise<CronRunSummary> {
   const now = getNowInFortaleza()
 
   // Início do dia para filtrar registros de hoje
@@ -56,7 +66,7 @@ export async function checkAndNotifyAttendance() {
     },
   })
 
-  const sentNotifications: Array<{ user: string; type: NotificationType }> = []
+  const tasks: NotificationTask[] = []
 
   for (const intern of interns as UserWithAttendance[]) {
     const { shiftStartTime, shiftEndTime, attendanceRecords, attendanceNotifications } = intern
@@ -65,85 +75,62 @@ export async function checkAndNotifyAttendance() {
 
     const alreadySentTypes = new Set(attendanceNotifications.map((n) => n.type))
 
-    // Isola cada estagiário: uma falha de envio (ex.: SMTP fora do ar) não
-    // pode interromper a verificação dos demais — cada intern processado com
-    // sucesso não deve ficar refém de um vizinho quebrado no array. O cron
-    // roda a cada 10 min, então o próximo ciclo tenta de novo.
-    try {
-      // ── Verificação de ENTRADA ──────────────────────────────────────────────
-      const hasEntryToday = attendanceRecords.some((r) => r.type === 'ENTRY')
+    // ── Verificação de ENTRADA ────────────────────────────────────────────────
+    const hasEntryToday = attendanceRecords.some((r) => r.type === 'ENTRY')
 
-      if (!hasEntryToday) {
-        const [startH, startM] = shiftStartTime.split(':').map(Number)
-        const shiftStart = new Date(now)
-        shiftStart.setHours(startH, startM, 0, 0)
+    if (!hasEntryToday) {
+      const [startH, startM] = shiftStartTime.split(':').map(Number)
+      const shiftStart = new Date(now)
+      shiftStart.setHours(startH, startM, 0, 0)
 
-        const minsFromStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
+      const minsFromStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
 
-        // 15 min ANTES do turno → lembrete preventivo
-        if (minsFromStart >= -15 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
-          const delivered = await sendNotification(
-            intern,
-            'ENTRY_REMINDER',
-            shiftStartTime,
-            shiftEndTime
-          )
-          if (delivered) sentNotifications.push({ user: intern.email, type: 'ENTRY_REMINDER' })
-        }
-
-        // 1 min DEPOIS do turno → alerta de entrada esquecida
-        if (minsFromStart >= 1 && !alreadySentTypes.has('MISSED_ENTRY')) {
-          const delivered = await sendNotification(
-            intern,
-            'MISSED_ENTRY',
-            shiftStartTime,
-            shiftEndTime
-          )
-          if (delivered) sentNotifications.push({ user: intern.email, type: 'MISSED_ENTRY' })
-        }
-
-        // Se não tem entrada, não verificar saída
-        continue
+      // 15 min ANTES do turno → lembrete preventivo
+      if (minsFromStart >= -15 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
+        tasks.push({ intern, type: 'ENTRY_REMINDER' })
       }
 
-      // ── Verificação de SAÍDA ────────────────────────────────────────────────
-      // Pega o último registro do dia — se for EXIT, o funcionário já saiu
-      const lastRecord = attendanceRecords[0]
-      if (lastRecord.type === 'EXIT') continue
-
-      const [endH, endM] = shiftEndTime.split(':').map(Number)
-      const shiftEnd = new Date(now)
-      shiftEnd.setHours(endH, endM, 0, 0)
-
-      const diffMinutes = (shiftEnd.getTime() - now.getTime()) / (1000 * 60)
-
-      let notificationType: NotificationType | null = null
-
-      if (diffMinutes <= 15 && diffMinutes > 0) {
-        notificationType = 'EXIT_REMINDER'
-      } else if (diffMinutes <= 0) {
-        notificationType = 'MISSED_EXIT'
+      // 1 min DEPOIS do turno → alerta de entrada esquecida
+      if (minsFromStart >= 1 && !alreadySentTypes.has('MISSED_ENTRY')) {
+        tasks.push({ intern, type: 'MISSED_ENTRY' })
       }
 
-      if (notificationType && !alreadySentTypes.has(notificationType)) {
-        const delivered = await sendNotification(
-          intern,
-          notificationType,
-          shiftStartTime,
-          shiftEndTime
-        )
-        if (delivered) sentNotifications.push({ user: intern.email, type: notificationType })
-      }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error)
-      logger.error('Falha ao verificar/notificar ponto de estagiário', {
-        userId: intern.id,
-        error: message,
-      })
+      // Se não tem entrada, não verificar saída
+      continue
+    }
+
+    // ── Verificação de SAÍDA ──────────────────────────────────────────────────
+    // Pega o último registro do dia — se for EXIT, o funcionário já saiu
+    const lastRecord = attendanceRecords[0]
+    if (lastRecord.type === 'EXIT') continue
+
+    const [endH, endM] = shiftEndTime.split(':').map(Number)
+    const shiftEnd = new Date(now)
+    shiftEnd.setHours(endH, endM, 0, 0)
+
+    const diffMinutes = (shiftEnd.getTime() - now.getTime()) / (1000 * 60)
+
+    let notificationType: NotificationType | null = null
+
+    if (diffMinutes <= 15 && diffMinutes > 0) {
+      notificationType = 'EXIT_REMINDER'
+    } else if (diffMinutes <= 0) {
+      notificationType = 'MISSED_EXIT'
+    }
+
+    if (notificationType && !alreadySentTypes.has(notificationType)) {
+      tasks.push({ intern, type: notificationType })
     }
   }
 
-  return sentNotifications
+  return runBatchWithAllSettled(
+    tasks,
+    (task) => sendNotification(task.intern, task.type, task.intern.shiftStartTime, task.intern.shiftEndTime),
+    (task, reason): CronFailureDetail => ({
+      email: task.intern.email,
+      message: reason instanceof Error ? reason.message : String(reason),
+    })
+  )
 }
 
 async function sendNotification(

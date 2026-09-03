@@ -32,7 +32,11 @@ jobs:
           echo "Status HTTP: $RESPONSE"
           cat /tmp/response.json || true
 
-          if [ "$RESPONSE" != "200" ]; then
-            echo "::error::Endpoint retornou status $RESPONSE (esperado 200)"
+          # 207 (Multi-Status) = falha parcial no envio de e-mail — o próprio
+          # endpoint já registrou em CronLog e vai reprocessar o que faltou no
+          # próximo ciclo (deduplicado), então não é um erro de infra para o
+          # GitHub Actions tentar de novo. Só 4xx/5xx é falha de verdade aqui.
+          if [ "$RESPONSE" != "200" ] && [ "$RESPONSE" != "207" ]; then
+            echo "::error::Endpoint retornou status $RESPONSE (esperado 200 ou 207)"
             exit 1
           fi
