@@ -371,7 +371,10 @@ export default function NewUserPage() {
                     Nível de Acesso *
                   </legend>
                   <div className="space-y-3">
-                    {['EMPLOYEE', 'SUPERVISOR', 'ADMIN'].map((role) => (
+                    {(session?.user?.role === 'ADMIN'
+                      ? ['EMPLOYEE', 'SUPERVISOR', 'ADMIN']
+                      : ['EMPLOYEE', 'SUPERVISOR']
+                    ).map((role) => (
                       <div
                         key={role}
                         className="flex items-start space-x-3 p-3 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors"
