@@ -55,16 +55,16 @@ NEXTAUTH_URL=https://chronos-system.vercel.app
 NEXTAUTH_SECRET=sua-chave-secreta-super-segura-minimo-32-caracteres
 
 # Google OAuth
-GOOGLE_CLIENT_ID=669988829985-pcebjkv860j0ke2uth2ccodof1ne4hpq.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=SEU_CLIENT_ID.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=SEU_CLIENT_SECRET
 
 # Database
-DATABASE_URL=postgres://b1d316d5b4ac81592c801607e150386f8fc45b9bd4abdf103604a27d0e2bca43:sk_tFP-v_lybGfPnRrIhvLMt@db.prisma.io:5432/postgres?sslmode=require
-POSTGRES_URL=postgres://b1d316d5b4ac81592c801607e150386f8fc45b9bd4abdf103604a27d0e2bca43:sk_tFP-v_lybGfPnRrIhvLMt@db.prisma.io:5432/postgres?sslmode=require
-PRISMA_DATABASE_URL=prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza190RlAtdl9seWJHZlBuUnJJaHZMTXQiLCJhcGlfa2V5IjoiMDFLOUEzWjhBWlc0QUM0RldBVjBCOFRDMVAiLCJ0ZW5hbnRfaWQiOiJiMWQzMTZkNWI0YWM4MTU5MmM4MDE2MDdlMTUwMzg2ZjhmYzQ1YjliZDRhYmRmMTAzNjA0YTI3ZDBlMmJjYTQzIiwiaW50ZXJuYWxfc2VjcmV0IjoiYTUyZTBkZTMtM2NmZC00NWM0LTlhOTQtZmY2MGFkZGE1OWU5In0.2vjRmt3_ppKiI4B6bQf-MBVtZoBprYFA5gDCNgC3rvc
+DATABASE_URL=postgres://usuario:senha@db.prisma.io:5432/postgres?sslmode=require
+POSTGRES_URL=postgres://usuario:senha@db.prisma.io:5432/postgres?sslmode=require
+PRISMA_DATABASE_URL=prisma+postgres://accelerate.prisma-data.net/?api_key=SEU_API_KEY
 
 # QR Security
-QR_SECRET=0HY4rhgEt1Bxc0LxIs7DxBJUvXdIfvAZHRZ0fSAF08k=
+QR_SECRET=gere-com-openssl-rand-base64-32
 
 # Environment
 NODE_ENV=production

@@ -132,8 +132,8 @@ sudo ./deploy/scripts/deploy-nginx.sh
 ### **Backend (.env):**
 
 ```env
-GOOGLE_CLIENT_ID="669988829985-pcebjkv860j0ke2uth2ccodof1ne4hpq.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="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"
+GOOGLE_CLIENT_ID="SUA_ID.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="SEU_SECRET"
 PWA_URL="http://localhost:3001"  # ou http://pwa.chronos.local em produção
 ```
 

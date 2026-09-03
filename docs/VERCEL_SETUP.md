@@ -50,8 +50,8 @@ Para funcionalidade completa:
 | ---------------------- | ------------------- |
 | `NEXTAUTH_SECRET`      | `seu-secret-seguro` |
 | `QR_SECRET`            | `seu-qr-secret`     |
-| `GOOGLE_CLIENT_ID`     | `669988829985-...`  |
-| `GOOGLE_CLIENT_SECRET` | `GOCSPX-...`        |
+| `GOOGLE_CLIENT_ID`     | `seu-client-id.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | `seu-client-secret` |
 
 ## 🔧 Workflow Atual (Já Configurado)
 
