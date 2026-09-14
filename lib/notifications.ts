@@ -47,7 +47,7 @@ export async function checkAndNotifyAttendance(): Promise<CronRunSummary> {
   todayStart.setHours(0, 0, 0, 0)
 
   const interns = await prisma.user.findMany({
-    where: { role: 'EMPLOYEE' },
+    where: { role: 'EMPLOYEE', isActive: true },
     select: {
       id: true,
       name: true,
