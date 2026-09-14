@@ -60,10 +60,11 @@ export async function POST(request: NextRequest) {
         usersToNotify = [user]
       }
     } else {
-      // Notificar todos os usuários com role EMPLOYEE
+      // Notificar todos os usuários ativos com role EMPLOYEE
       usersToNotify = await prisma.user.findMany({
         where: {
           role: 'EMPLOYEE',
+          isActive: true,
         },
         select: {
           id: true,
