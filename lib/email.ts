@@ -26,6 +26,29 @@ function escapeHtml(unsafe: string | null | undefined): string {
     .replace(/'/g, '&#039;')
 }
 
+const SEND_MAX_ATTEMPTS = 3
+const SEND_RETRY_BASE_DELAY_MS = 1000
+
+// nodemailer marca falhas na fase de conexão (DNS, TCP connect, TLS handshake)
+// com code: 'ESOCKET'/'ECONNECTION' — diferente de falhas permanentes como
+// EAUTH (credenciais inválidas) ou EENVELOPE (destinatário inválido), que
+// tentar de novo não resolve. O regex é uma rede de segurança adicional para
+// os códigos de erro de baixo nível do Node (ex.: EBUSY, EAI_AGAIN) para o
+// caso da versão do nodemailer em uso não preservar o `code` esperado.
+const TRANSIENT_ERROR_CODES = new Set(['ESOCKET', 'ECONNECTION', 'ETIMEDOUT'])
+const TRANSIENT_MESSAGE_PATTERN = /\b(EBUSY|EAI_AGAIN|ETIMEDOUT|ECONNRESET|ECONNREFUSED)\b/
+
+function isTransientSmtpError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const code = (error as NodeJS.ErrnoException).code
+  if (code && TRANSIENT_ERROR_CODES.has(code)) return true
+  return TRANSIENT_MESSAGE_PATTERN.test(error.message)
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 class EmailService {
   private static instance: EmailService
 
@@ -38,37 +61,61 @@ class EmailService {
     return EmailService.instance
   }
 
+  /**
+   * Envia via SMTP com retry (backoff de 1s/2s) para falhas transitórias de
+   * rede/DNS na conexão (ex.: getaddrinfo EBUSY, comum em rajadas de envio
+   * concorrente em ambiente serverless) — falhas permanentes (credenciais
+   * inválidas, destinatário rejeitado) não são reprocessadas.
+   */
   async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!isSmtpConfigured()) {
       logger.warn('SMTP não configurado — email não enviado', { to: options.to })
       return false
     }
 
-    try {
-      logger.debug('Sending email via SMTP', {
-        to: options.to,
-        subject: options.subject,
-      })
+    for (let attempt = 1; attempt <= SEND_MAX_ATTEMPTS; attempt++) {
+      try {
+        logger.debug('Sending email via SMTP', {
+          to: options.to,
+          subject: options.subject,
+          attempt,
+        })
 
-      const info = await mailerTransport.sendMail({
-        from: MAIL_FROM,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      })
+        const info = await mailerTransport.sendMail({
+          from: MAIL_FROM,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        })
 
-      logger.info('Email sent successfully', { messageId: info.messageId })
-      return true
-    } catch (error: unknown) {
-      const reason = error instanceof Error ? error.message : String(error)
-      logger.error('Failed to send email via SMTP', { to: options.to, error: reason })
-      // Propaga a causa real (em vez de engolir em `false`) para que os
-      // chamadores — em especial os crons, via Promise.allSettled — reportem
-      // o motivo verdadeiro da falha (ex.: credenciais inválidas, host
-      // inacessível) em vez do genérico "Erro ao enviar email".
-      throw new Error(`Falha ao enviar email via SMTP: ${reason}`)
+        logger.info('Email sent successfully', { messageId: info.messageId })
+        return true
+      } catch (error: unknown) {
+        const reason = error instanceof Error ? error.message : String(error)
+
+        if (attempt < SEND_MAX_ATTEMPTS && isTransientSmtpError(error)) {
+          logger.warn('Falha transitória ao enviar email via SMTP — tentando novamente', {
+            to: options.to,
+            attempt,
+            error: reason,
+          })
+          await sleep(attempt * SEND_RETRY_BASE_DELAY_MS)
+          continue
+        }
+
+        logger.error('Failed to send email via SMTP', { to: options.to, error: reason, attempt })
+        // Propaga a causa real (em vez de engolir em `false`) para que os
+        // chamadores — em especial os crons, via Promise.allSettled — reportem
+        // o motivo verdadeiro da falha (ex.: credenciais inválidas, host
+        // inacessível) em vez do genérico "Erro ao enviar email".
+        throw new Error(`Falha ao enviar email via SMTP: ${reason}`)
+      }
     }
+
+    // Inalcançável: o loop acima sempre retorna (sucesso) ou lança (última
+    // tentativa) antes de terminar — presente só para a análise de tipos do TS.
+    throw new Error('Falha ao enviar email via SMTP: número máximo de tentativas excedido')
   }
 
   /**
