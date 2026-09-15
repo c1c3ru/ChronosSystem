@@ -1,9 +1,10 @@
-import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
+import type { TDocumentDefinitions, Content, Alignment } from 'pdfmake/interfaces'
 import {
   ifceHeader,
   docTitle,
   dataTable,
   cell,
+  cellRow,
   sigBlock,
   fmtDate,
   v,
@@ -185,44 +186,44 @@ export async function buildFinalReportDoc(d: FinalReportData): Promise<TDocument
   ]
 
   // --- 1. Introdução ---
-  const studentTable = dataTable(
-    ['*'],
-    [
-      [{ text: 'DISCENTE ESTAGIÁRIO(A)', style: 'tableHeader', alignment: 'center' as Alignment }],
-      [cell('NOME', v(d.student_name))],
-      [cell('NOME SOCIAL', v(d.student_social_name))],
+  const studentTable: Content[] = [
+    dataTable(
+      ['*'],
       [
-        {
-          columns: [
-            cell('CURSO', v(d.course), { border: [false, false, true, true] }),
-            cell('MATRÍCULA', v(d.enrollment), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+        [
+          {
+            text: 'DISCENTE ESTAGIÁRIO(A)',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+        [cell('NOME', v(d.student_name))],
+        [cell('NOME SOCIAL', v(d.student_social_name))],
+      ]
+    ),
+    cellRow([
+      { label: 'CURSO', value: v(d.course), width: '70%' },
+      { label: 'MATRÍCULA', value: v(d.enrollment), width: '30%' },
+    ]),
+  ]
 
-  const companyTable = dataTable(
-    ['*'],
-    [
-      [{ text: 'CONCEDENTE DO ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment }],
-      [cell('RAZÃO SOCIAL', v(d.company_name))],
-      [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
+  const companyTable: Content[] = [
+    dataTable(
+      ['*'],
       [
-        {
-          columns: [
-            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.company_cnpj), {
-              border: [false, false, true, true],
-            }),
-            cell('RAMO DE ATIVIDADE', v(d.company_industry), {
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [cell('ÁREA/SETOR DE REALIZAÇÃO DO ESTÁGIO', v(d.internship_sector))],
-    ]
-  )
+        [
+          { text: 'CONCEDENTE DO ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment },
+        ],
+        [cell('RAZÃO SOCIAL', v(d.company_name))],
+        [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
+      ]
+    ),
+    cellRow([
+      { label: 'CNPJ OU REGISTRO NO CONSELHO', value: v(d.company_cnpj), width: '40%' },
+      { label: 'RAMO DE ATIVIDADE', value: v(d.company_industry), width: '60%' },
+    ]),
+    dataTable(['*'], [[cell('ÁREA/SETOR DE REALIZAÇÃO DO ESTÁGIO', v(d.internship_sector))]]),
+  ]
 
   const supervisorTable = dataTable(
     ['*'],
@@ -418,9 +419,9 @@ export async function buildFinalReportDoc(d: FinalReportData): Promise<TDocument
       style: 'sectionTitle',
       margin: [0, 0, 0, 10],
     },
-    studentTable,
+    ...studentTable,
     { text: '\n' },
-    companyTable,
+    ...companyTable,
     { text: '\n' },
     supervisorTable,
     { text: '\n' },

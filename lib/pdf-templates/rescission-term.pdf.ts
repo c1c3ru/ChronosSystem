@@ -1,10 +1,10 @@
-import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
+import type { TDocumentDefinitions, Content, Alignment } from 'pdfmake/interfaces'
 import {
   ifceHeader,
   docTitle,
   dataTable,
   cell,
-  sigBlock,
+  cellRow,
   fmtDate,
   v,
 } from '@/lib/pdfmake-base-service'
@@ -83,216 +83,121 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
   const header = await ifceHeader()
   const cb = (checked: boolean) => (checked ? '(X)' : '( )')
 
-  const ifceTable = dataTable(
-    ['*'],
-    [
+  const ifceTable: Content[] = [
+    dataTable(
+      ['*'],
       [
-        {
-          text: 'Instituição de Ensino – IFCE',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
-      [
-        {
-          columns: [
-            cell('CAMPUS', v(d.campus_name), { width: '50%', border: [false, false, true, true] }),
-            cell('CNPJ', v(d.campus_cnpj), { width: '50%', border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.campus_address))],
-      [
-        {
-          columns: [
-            cell('BAIRRO', v(d.campus_neighborhood), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('MUNICÍPIO', v(d.campus_city), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('CEP', v(d.campus_cep), { width: '20%', border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', v(d.campus_phone), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('E-MAIL', v(d.campus_email), {
-              width: '60%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [cell('REPRESENTANTE PARA ESTE ESPECÍFICO FIM', v(d.campus_representative))],
-      [
-        {
-          columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.campus_rep_role), {
-              width: '70%',
-              border: [false, false, true, true],
-            }),
-            cell('SIAPE', v(d.campus_rep_siape), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('E-MAIL', v(d.campus_rep_email), {
-              width: '60%',
-              border: [false, false, true, true],
-            }),
-            cell('DDD+TELEFONE', v(d.campus_rep_phone), {
-              width: '40%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+        [
+          {
+            text: 'Instituição de Ensino – IFCE',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    cellRow([
+      { label: 'CAMPUS', value: v(d.campus_name), width: '50%' },
+      { label: 'CNPJ', value: v(d.campus_cnpj), width: '50%' },
+    ]),
+    dataTable(
+      ['*'],
+      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.campus_address))]]
+    ),
+    cellRow([
+      { label: 'BAIRRO', value: v(d.campus_neighborhood), width: '40%' },
+      { label: 'MUNICÍPIO', value: v(d.campus_city), width: '40%' },
+      { label: 'CEP', value: v(d.campus_cep), width: '20%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: v(d.campus_phone), width: '40%' },
+      { label: 'E-MAIL', value: v(d.campus_email), width: '60%' },
+    ]),
+    dataTable(
+      ['*'],
+      [[cell('REPRESENTANTE PARA ESTE ESPECÍFICO FIM', v(d.campus_representative))]]
+    ),
+    cellRow([
+      { label: 'CARGO/QUALIFICAÇÃO', value: v(d.campus_rep_role), width: '70%' },
+      { label: 'SIAPE', value: v(d.campus_rep_siape), width: '30%' },
+    ]),
+    cellRow([
+      { label: 'E-MAIL', value: v(d.campus_rep_email), width: '60%' },
+      { label: 'DDD+TELEFONE', value: v(d.campus_rep_phone), width: '40%' },
+    ]),
+  ]
 
-  const companyTable = dataTable(
-    ['*'],
-    [
+  const companyTable: Content[] = [
+    dataTable(
+      ['*'],
       [
-        {
-          text: 'Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
-      [cell('RAZÃO SOCIAL', v(d.company_name))],
-      [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
-      [
-        {
-          columns: [
-            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.company_cnpj), {
-              width: '50%',
-              border: [false, false, true, true],
-            }),
-            cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.company_address), {
-              width: '50%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('BAIRRO', v(d.company_neighborhood), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('MUNICÍPIO', v(d.company_city), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('CEP', v(d.company_cep), { width: '20%', border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', v(d.company_phone), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('E-MAIL', v(d.company_email), {
-              width: '60%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [cell('REPRESENTANTE LEGAL PARA ASSINATURA DESTE TERMO', v(d.company_representative))],
-      [
-        {
-          columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.company_rep_role), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('CPF', v(d.company_rep_cpf), { width: '30%', border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', v(d.company_rep_phone), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+        [
+          {
+            text: 'Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    dataTable(['*'], [[cell('RAZÃO SOCIAL', v(d.company_name))]]),
+    dataTable(['*'], [[cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))]]),
+    cellRow([
+      { label: 'CNPJ OU REGISTRO NO CONSELHO', value: v(d.company_cnpj), width: '50%' },
+      {
+        label: 'ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)',
+        value: v(d.company_address),
+        width: '50%',
+      },
+    ]),
+    cellRow([
+      { label: 'BAIRRO', value: v(d.company_neighborhood), width: '40%' },
+      { label: 'MUNICÍPIO', value: v(d.company_city), width: '40%' },
+      { label: 'CEP', value: v(d.company_cep), width: '20%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: v(d.company_phone), width: '40%' },
+      { label: 'E-MAIL', value: v(d.company_email), width: '60%' },
+    ]),
+    dataTable(
+      ['*'],
+      [[cell('REPRESENTANTE LEGAL PARA ASSINATURA DESTE TERMO', v(d.company_representative))]]
+    ),
+    cellRow([
+      { label: 'CARGO/QUALIFICAÇÃO', value: v(d.company_rep_role), width: '40%' },
+      { label: 'CPF', value: v(d.company_rep_cpf), width: '30%' },
+      { label: 'DDD + TELEFONE', value: v(d.company_rep_phone), width: '30%' },
+    ]),
+  ]
 
-  const studentTable = dataTable(
-    ['*'],
-    [
-      [{ text: 'Discente Estagiário(A)', style: 'tableHeader', alignment: 'center' as Alignment }],
-      [
-        {
-          columns: [
-            cell('NOME', v(d.student_name), { width: '70%', border: [false, false, true, true] }),
-            cell('CPF', v(d.student_cpf), { width: '30%', border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('NOME SOCIAL', v(d.student_social_name))],
-      [
-        {
-          columns: [
-            cell('CURSO', v(d.student_course), {
-              width: '70%',
-              border: [false, false, true, true],
-            }),
-            cell('MATRÍCULA', v(d.student_enrollment), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))],
-      [
-        {
-          columns: [
-            cell('MUNICÍPIO-UF', v(d.student_city), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('CEP', v(d.student_cep), { width: '30%', border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', v(d.student_phone), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('E-MAIL INSTITUCIONAL', v(d.student_email), {
-              width: '50%',
-              border: [false, false, true, true],
-            }),
-            cell('E-MAIL PESSOAL', '', { width: '50%', border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+  const studentTable: Content[] = [
+    dataTable(
+      ['*'],
+      [[{ text: 'Discente Estagiário(A)', style: 'tableHeader', alignment: 'center' as Alignment }]]
+    ),
+    cellRow([
+      { label: 'NOME', value: v(d.student_name), width: '70%' },
+      { label: 'CPF', value: v(d.student_cpf), width: '30%' },
+    ]),
+    dataTable(['*'], [[cell('NOME SOCIAL', v(d.student_social_name))]]),
+    cellRow([
+      { label: 'CURSO', value: v(d.student_course), width: '70%' },
+      { label: 'MATRÍCULA', value: v(d.student_enrollment), width: '30%' },
+    ]),
+    dataTable(
+      ['*'],
+      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]
+    ),
+    cellRow([
+      { label: 'MUNICÍPIO-UF', value: v(d.student_city), width: '40%' },
+      { label: 'CEP', value: v(d.student_cep), width: '30%' },
+      { label: 'DDD + TELEFONE', value: v(d.student_phone), width: '30%' },
+    ]),
+    cellRow([
+      { label: 'E-MAIL INSTITUCIONAL', value: v(d.student_email), width: '50%' },
+      { label: 'E-MAIL PESSOAL', value: '', width: '50%' },
+    ]),
+  ]
 
   const termBox = dataTable(
     ['33%', '33%', '34%'],
@@ -344,11 +249,11 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
       alignment: 'justify' as Alignment,
       margin: [0, 5, 0, 10],
     },
-    ifceTable,
+    ...ifceTable,
     { text: '\n' },
-    companyTable,
+    ...companyTable,
     { text: '\n' },
-    studentTable,
+    ...studentTable,
     { text: '', pageBreak: 'after' },
 
     termBox,
