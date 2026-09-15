@@ -56,26 +56,35 @@ export function cronHttpStatus(status: CronRunStatus): 200 | 207 | 500 {
 }
 
 /**
- * Roda `sendOne` para cada item de `items` em paralelo via Promise.allSettled
- * — uma falha de envio isolada (ex.: SMTP fora do ar para um destinatário)
- * não derruba as demais nem aborta o restante do lote. Para jobs com
- * necessidade de lotes/orçamento de tempo (ex.: o cron de justificativas, que
- * também precisa categorizar "sem pendência" separado de falha), monte o
- * resumo na mão com summarizeOutcomes() em vez de usar este helper.
+ * Roda `sendOne` para cada item de `items` sequencialmente, um de cada vez —
+ * uma falha de envio isolada (ex.: SMTP fora do ar para um destinatário) não
+ * impede as demais nem aborta o restante do lote. Deliberadamente NÃO
+ * paraleliza os envios: abrir várias conexões SMTP simultâneas contra o
+ * mesmo host, a partir da mesma função serverless, é o gatilho mais provável
+ * para erros de baixo nível como "getaddrinfo EBUSY" (contenção do
+ * threadpool de DNS do Node) — o mesmo padrão sequencial já usado em
+ * app/api/admin/send-reset-emails/route.ts. Para jobs com necessidade de
+ * lotes/orçamento de tempo (ex.: o cron de justificativas, que também
+ * precisa categorizar "sem pendência" separado de falha), monte o resumo na
+ * mão com summarizeOutcomes() em vez de usar este helper.
  */
-export async function runBatchWithAllSettled<T>(
+export async function runBatchSequentially<T>(
   items: T[],
   sendOne: (item: T) => Promise<boolean>,
   describeFailure: (item: T, reason: unknown) => CronFailureDetail
 ): Promise<CronRunSummary> {
-  const settled = await Promise.allSettled(items.map((item) => sendOne(item)))
-
   const failures: CronFailureDetail[] = []
-  settled.forEach((outcome, index) => {
-    if (outcome.status === 'fulfilled' && outcome.value) return
-    const reason = outcome.status === 'rejected' ? outcome.reason : new Error('Falha no envio')
-    failures.push(describeFailure(items[index], reason))
-  })
+
+  for (const item of items) {
+    try {
+      const sent = await sendOne(item)
+      if (!sent) {
+        failures.push(describeFailure(item, new Error('Falha no envio')))
+      }
+    } catch (reason) {
+      failures.push(describeFailure(item, reason))
+    }
+  }
 
   return summarizeOutcomes(items.length, failures)
 }

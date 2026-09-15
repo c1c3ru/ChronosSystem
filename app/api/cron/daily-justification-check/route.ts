@@ -50,7 +50,6 @@ export const maxDuration = 60
 const JOB_NAME = 'daily-justification-check'
 const REMINDER_NOTIFICATION_TYPE = 'JUSTIFICATION_PENDING_REMINDER'
 const DAYS_TO_ANALYZE = 30
-const EMAIL_BATCH_SIZE = 8
 const EMAIL_TIME_BUDGET_MS = Number(process.env.CRON_EMAIL_TIME_BUDGET_MS) || 8_000
 
 type EmployeeForCheck = Prisma.UserGetPayload<{
@@ -361,13 +360,17 @@ export async function GET(request: NextRequest) {
       candidates.push({ employee, pendingDays })
     }
 
-    // Disparo em lotes com Promise.allSettled: paraleliza os envios sem abrir
-    // uma conexão SMTP por estagiário de uma vez, e uma falha isolada não
-    // derruba o lote inteiro. Entre lotes, verifica o orçamento de tempo para
+    // Disparo sequencial, um estagiário de cada vez — deliberadamente NÃO em
+    // paralelo: abrir várias conexões SMTP simultâneas contra o mesmo host, a
+    // partir da mesma função serverless, é o gatilho mais provável para erros
+    // de baixo nível como "getaddrinfo EBUSY" (contenção do threadpool de DNS
+    // do Node). Verifica o orçamento de tempo antes de cada envio para
     // encerrar com segurança antes do limite da função serverless — o que
     // sobrar fica marcado como falha e será reprocessado (sem duplicar
     // e-mails já entregues, graças à deduplicação por AttendanceNotification).
-    for (let i = 0; i < candidates.length; i += EMAIL_BATCH_SIZE) {
+    for (let i = 0; i < candidates.length; i++) {
+      const candidate = candidates[i]
+
       if (Date.now() - startedAt > EMAIL_TIME_BUDGET_MS) {
         for (const remaining of candidates.slice(i)) {
           results.failed++
@@ -385,15 +388,10 @@ export async function GET(request: NextRequest) {
         break
       }
 
-      const batch = candidates.slice(i, i + EMAIL_BATCH_SIZE)
-      const settled = await Promise.allSettled(
-        batch.map((candidate) => dispatchReminder(candidate))
-      )
+      try {
+        const sent = await dispatchReminder(candidate)
 
-      settled.forEach((outcome, index) => {
-        const candidate = batch[index]
-
-        if (outcome.status === 'fulfilled' && outcome.value) {
+        if (sent) {
           results.sent++
           results.details.push({
             userId: candidate.employee.id,
@@ -402,16 +400,18 @@ export async function GET(request: NextRequest) {
             pendingCount: candidate.pendingDays.length,
             oldestDate: candidate.pendingDays[0].date,
           })
-          return
+          continue
         }
 
-        const message =
-          outcome.status === 'rejected'
-            ? outcome.reason instanceof Error
-              ? outcome.reason.message
-              : String(outcome.reason)
-            : 'Erro ao enviar email'
-
+        results.failed++
+        results.details.push({
+          userId: candidate.employee.id,
+          email: candidate.employee.email,
+          status: 'failed',
+          message: 'Erro ao enviar email',
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
         results.failed++
         results.details.push({
           userId: candidate.employee.id,
@@ -420,7 +420,7 @@ export async function GET(request: NextRequest) {
           message,
         })
         apiLogger.error('Reminder failed', { email: candidate.employee.email, message })
-      })
+      }
     }
 
     const durationMs = Date.now() - startedAt

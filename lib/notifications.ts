@@ -2,7 +2,7 @@ import { prisma } from './prisma'
 import { emailService } from './email'
 import { getNowInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
-import { runBatchWithAllSettled, type CronRunSummary, type CronFailureDetail } from './cron-log'
+import { runBatchSequentially, type CronRunSummary, type CronFailureDetail } from './cron-log'
 
 export type NotificationType = 'ENTRY_REMINDER' | 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
 
@@ -123,7 +123,7 @@ export async function checkAndNotifyAttendance(): Promise<CronRunSummary> {
     }
   }
 
-  return runBatchWithAllSettled(
+  return runBatchSequentially(
     tasks,
     (task) => sendNotification(task.intern, task.type, task.intern.shiftStartTime, task.intern.shiftEndTime),
     (task, reason): CronFailureDetail => ({
