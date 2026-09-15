@@ -11,7 +11,7 @@ jest.mock('@/lib/prisma', () => ({
 import {
   summarizeOutcomes,
   cronHttpStatus,
-  runBatchWithAllSettled,
+  runBatchSequentially,
   recordCronLog,
   recordCronError,
 } from '@/lib/cron-log'
@@ -63,7 +63,7 @@ describe('lib/cron-log', () => {
     })
   })
 
-  describe('runBatchWithAllSettled', () => {
+  describe('runBatchSequentially', () => {
     it('processa todos os itens mesmo quando um deles rejeita, e reporta a falha real', async () => {
       const items = ['ok-1', 'fail', 'ok-2']
       const attempted: string[] = []
@@ -76,7 +76,7 @@ describe('lib/cron-log', () => {
         return true
       })
 
-      const summary = await runBatchWithAllSettled(items, sendOne, (item, reason) => ({
+      const summary = await runBatchSequentially(items, sendOne, (item, reason) => ({
         email: item,
         message: reason instanceof Error ? reason.message : String(reason),
       }))
@@ -95,7 +95,7 @@ describe('lib/cron-log', () => {
       const items = ['a', 'b']
       const sendOne = jest.fn(async (item: string) => item !== 'b')
 
-      const summary = await runBatchWithAllSettled(items, sendOne, (item) => ({
+      const summary = await runBatchSequentially(items, sendOne, (item) => ({
         email: item,
         message: 'não configurado',
       }))
@@ -109,7 +109,7 @@ describe('lib/cron-log', () => {
       const items = ['a', 'b', 'c']
       const sendOne = jest.fn(async () => true)
 
-      const summary = await runBatchWithAllSettled(items, sendOne, (item) => ({
+      const summary = await runBatchSequentially(items, sendOne, (item) => ({
         email: item,
         message: 'unreachable',
       }))
