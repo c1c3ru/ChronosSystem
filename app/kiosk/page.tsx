@@ -19,6 +19,7 @@ import QRCode from 'qrcode'
 import Image from 'next/image'
 import Link from 'next/link'
 import { generateClientSecureQR } from '@/lib/client-crypto'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 interface QRData {
   qrData: string
@@ -126,13 +127,17 @@ export default function KioskPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kioskSecret])
 
-  // Atualizar relógio a cada segundo (apenas no cliente)
+  // Atualizar relógio a cada segundo (apenas no cliente). Usa
+  // getNowInFortaleza() (não new Date()) porque formatTime formata com
+  // timeZone: 'UTC' — o mesmo truque usado em toda a aplicação para exibir
+  // horários de Fortaleza-CE independente do fuso do dispositivo; misturar
+  // a hora real (new Date()) com essa formatação adianta o relógio em 3h.
   useEffect(() => {
     // Definir o horário inicial apenas no cliente
-    setCurrentTime(new Date())
+    setCurrentTime(getNowInFortaleza())
 
     const timer = setInterval(() => {
-      setCurrentTime(new Date())
+      setCurrentTime(getNowInFortaleza())
     }, 1000)
 
     return () => clearInterval(timer)
