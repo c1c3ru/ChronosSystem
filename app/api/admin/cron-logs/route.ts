@@ -32,11 +32,19 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const limitParam = parseInt(searchParams.get('limit') || '20', 10)
     const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 20
+    const pageParam = parseInt(searchParams.get('page') || '1', 10)
+    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
 
-    const logs = await prisma.cronLog.findMany({
-      orderBy: { startedAt: 'desc' },
-      take: limit,
-    })
+    const [logs, total] = await Promise.all([
+      prisma.cronLog.findMany({
+        orderBy: { startedAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.cronLog.count(),
+    ])
+
+    const totalPages = Math.max(Math.ceil(total / limit), 1)
 
     return NextResponse.json({
       logs: logs.map((log) => ({
@@ -51,6 +59,14 @@ export async function GET(request: NextRequest) {
         failures: parseFailures(log.errors),
         errorMessage: log.errorMessage,
       })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
     })
   } catch (error) {
     console.error('Erro ao buscar logs de cron:', error)
