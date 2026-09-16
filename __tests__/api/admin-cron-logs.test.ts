@@ -20,6 +20,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     cronLog: {
       findMany: jest.fn(),
+      count: jest.fn(),
     },
   },
 }))
@@ -28,6 +29,7 @@ import { GET } from '@/app/api/admin/cron-logs/route'
 
 const mockedGetServerSession = getServerSession as jest.Mock
 const mockedFindMany = prisma.cronLog.findMany as jest.Mock
+const mockedCount = prisma.cronLog.count as jest.Mock
 
 function makeRequest(query = ''): NextRequest {
   return new NextRequest(`https://example.com/api/admin/cron-logs${query}`)
@@ -36,6 +38,7 @@ function makeRequest(query = ''): NextRequest {
 describe('GET /api/admin/cron-logs', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockedCount.mockResolvedValue(0)
   })
 
   it('retorna 403 sem sessão', async () => {
@@ -70,6 +73,7 @@ describe('GET /api/admin/cron-logs', () => {
           errorMessage: null,
         },
       ])
+      mockedCount.mockResolvedValue(1)
 
       const response = await GET(makeRequest())
       const body = await response.json()
@@ -78,8 +82,16 @@ describe('GET /api/admin/cron-logs', () => {
       expect(body.logs).toHaveLength(1)
       expect(body.logs[0].failures).toEqual([{ email: 'a@example.com', message: 'boom' }])
       expect(mockedFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { startedAt: 'desc' }, take: 20 })
+        expect.objectContaining({ orderBy: { startedAt: 'desc' }, take: 20, skip: 0 })
       )
+      expect(body.pagination).toEqual({
+        page: 1,
+        limit: 20,
+        total: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      })
     }
   )
 
@@ -116,5 +128,27 @@ describe('GET /api/admin/cron-logs', () => {
 
     await GET(makeRequest('?limit=abc'))
     expect(mockedFindMany).toHaveBeenLastCalledWith(expect.objectContaining({ take: 20 }))
+  })
+
+  it('converte o parâmetro page em skip e devolve a paginação, com fallback para a página 1', async () => {
+    mockedGetServerSession.mockResolvedValue({ user: { role: 'ADMIN' } })
+    mockedFindMany.mockResolvedValue([])
+    mockedCount.mockResolvedValue(45)
+
+    const response = await GET(makeRequest('?page=3&limit=20'))
+    const body = await response.json()
+
+    expect(mockedFindMany).toHaveBeenLastCalledWith(expect.objectContaining({ skip: 40, take: 20 }))
+    expect(body.pagination).toEqual({
+      page: 3,
+      limit: 20,
+      total: 45,
+      totalPages: 3,
+      hasNextPage: false,
+      hasPrevPage: true,
+    })
+
+    await GET(makeRequest('?page=abc'))
+    expect(mockedFindMany).toHaveBeenLastCalledWith(expect.objectContaining({ skip: 0 }))
   })
 })
