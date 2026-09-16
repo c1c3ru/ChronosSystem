@@ -5,6 +5,14 @@ import { apiLogger } from '@/lib/logger'
 import { recordCronLog, recordCronError, cronHttpStatus } from '@/lib/cron-log'
 
 export const dynamic = 'force-dynamic'
+// Sem isso a função cai no limite padrão (bem mais curto) de execução da
+// Vercel. checkAndNotifyAttendance() envia os e-mails sequencialmente (ver
+// runBatchSequentially em lib/cron-log.ts), então o tempo total cresce com o
+// número de estagiários notificados no ciclo — em turnos concorridos isso já
+// estourou o padrão e fez o GitHub Actions dar timeout (curl --max-time 30)
+// sem nunca receber resposta. Mesmo valor já usado pelo cron irmão em
+// app/api/cron/daily-justification-check/route.ts.
+export const maxDuration = 60
 
 const JOB_NAME = 'attendance-reminder'
 
