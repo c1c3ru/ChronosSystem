@@ -167,8 +167,15 @@ async function sendNotification(
     html
   )
 
-  // Enviar push em paralelo (falha silenciosa se não configurado)
-  void sendPushToUser(user.id, pushPayload)
+  // Aguarda o push terminar antes de seguir para o próximo destinatário
+  // (falha silenciosa se não configurado). Antes rodava em paralelo
+  // (`void sendPushToUser(...)`) sem aguardar: como sendPushToUser também
+  // faz I/O de rede (consulta ao banco + POST HTTPS por assinatura via
+  // web-push), o push de um destinatário ainda em voo colidia com a
+  // resolução de DNS do smtp.gmail.com do próximo, recriando o mesmo
+  // EBUSY que o envio sequencial de e-mails (ver runBatchSequentially em
+  // lib/cron-log.ts) foi feito para evitar.
+  await sendPushToUser(user.id, pushPayload)
 
   if (emailDelivered) {
     const expiresAt = new Date()
