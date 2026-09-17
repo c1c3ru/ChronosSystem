@@ -5,12 +5,12 @@
  * Seguindo o padrão oficial multi-páginas com cláusulas jurídicas.
  */
 
-import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
+import type { TDocumentDefinitions, Content, Alignment } from 'pdfmake/interfaces'
 import {
   ifceHeader,
   docTitle,
   cell,
-  emptyCell,
+  cellRow,
   dataTable,
   fmtDate,
   v,
@@ -125,175 +125,126 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
 
   // ── 1. Tabelas de Identificação ───────────────────────────────────────────
 
-  const ifceTable = dataTable(
-    ['*'],
-    [
+  const ifceTable: Content[] = [
+    dataTable(
+      ['*'],
       [
-        {
-          text: 'Instituição de Ensino – IFCE',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
+        [
+          {
+            text: 'Instituição de Ensino – IFCE',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    cellRow([
+      { label: 'CAMPUS', value: 'MARACANAÚ', width: '50%' },
+      { label: 'CNPJ', value: '10.744.098/0009-00', width: '50%' },
+    ]),
+    dataTable(
+      ['*'],
       [
-        {
-          columns: [
-            cell('CAMPUS', 'MARACANAÚ', { border: [false, false, true, true] }),
-            cell('CNPJ', '10.744.098/0009-00', { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        cell(
-          'ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)',
-          'AV. VICE PRESIDENTE JOSÉ DE ALENCAR, S/N'
-        ),
-      ],
-      [
-        {
-          columns: [
-            cell('BAIRRO', 'JEREISSATI I', { border: [false, false, true, true] }),
-            cell('MUNICÍPIO', 'MARACANAÚ', { border: [false, false, true, true] }),
-            cell('CEP', '61.939-140', { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', '85 3512-8709', { border: [false, false, true, true] }),
-            cell('E-MAIL', 'gabmaracanau@ifce.edu.br', { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('REPRESENTANTE PARA ESTE ESPECÍFICO FIM', 'ELDER KENED CARDOSO')],
-      [
-        {
-          columns: [
-            cell('CARGO/QUALIFICAÇÃO', 'ASSISTENTE EM ADMINISTRAÇÃO', {
-              border: [false, false, true, true],
-            }),
-            cell('SIAPE', '1818968', { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('E-MAIL', 'estagio.maracanau@ifce.edu.br', { border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', '85 3512-8706', { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+        [
+          cell(
+            'ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)',
+            'AV. VICE PRESIDENTE JOSÉ DE ALENCAR, S/N'
+          ),
+        ],
+      ]
+    ),
+    cellRow([
+      { label: 'BAIRRO', value: 'JEREISSATI I', width: '35%' },
+      { label: 'MUNICÍPIO', value: 'MARACANAÚ', width: '40%' },
+      { label: 'CEP', value: '61.939-140', width: '25%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: '85 3512-8709', width: '30%' },
+      { label: 'E-MAIL', value: 'gabmaracanau@ifce.edu.br', width: '70%' },
+    ]),
+    dataTable(['*'], [[cell('REPRESENTANTE PARA ESTE ESPECÍFICO FIM', 'ELDER KENED CARDOSO')]]),
+    cellRow([
+      { label: 'CARGO/QUALIFICAÇÃO', value: 'ASSISTENTE EM ADMINISTRAÇÃO', width: '65%' },
+      { label: 'SIAPE', value: '1818968', width: '35%' },
+    ]),
+    cellRow([
+      { label: 'E-MAIL', value: 'estagio.maracanau@ifce.edu.br', width: '65%' },
+      { label: 'DDD + TELEFONE', value: '85 3512-8706', width: '35%' },
+    ]),
+  ]
 
-  const companyTable = dataTable(
-    ['*'],
-    [
+  const companyTable: Content[] = [
+    dataTable(
+      ['*'],
       [
-        {
-          text: 'Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
-      [cell('RAZÃO SOCIAL', v(d.company_name))],
-      [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
-      [
-        {
-          columns: [
-            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.company_cnpj), {
-              border: [false, false, true, true],
-            }),
-            cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.company_address), {
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('BAIRRO', v(d.company_neighborhood), { border: [false, false, true, true] }),
-            cell('MUNICÍPIO-UF', v(d.company_city_state), { border: [false, false, true, true] }),
-            cell('CEP', v(d.company_zip), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', v(d.company_phone), { border: [false, false, true, true] }),
-            cell('E-MAIL', v(d.company_email), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM', v(d.company_representative))],
-      [
-        {
-          columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.company_representative_role), {
-              border: [false, false, true, true],
-            }),
-            cell('CPF', v(d.company_representative_cpf), { border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', v(d.company_representative_phone), {
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+        [
+          {
+            text: 'Instituição Concedente de vaga de estágio – CONCEDENTE DO ESTÁGIO',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    dataTable(['*'], [[cell('RAZÃO SOCIAL', v(d.company_name))]]),
+    dataTable(['*'], [[cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))]]),
+    cellRow([
+      { label: 'CNPJ OU REGISTRO NO CONSELHO', value: v(d.company_cnpj), width: '35%' },
+      {
+        label: 'ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)',
+        value: v(d.company_address),
+        width: '65%',
+      },
+    ]),
+    cellRow([
+      { label: 'BAIRRO', value: v(d.company_neighborhood), width: '35%' },
+      { label: 'MUNICÍPIO-UF', value: v(d.company_city_state), width: '40%' },
+      { label: 'CEP', value: v(d.company_zip), width: '25%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: v(d.company_phone), width: '30%' },
+      { label: 'E-MAIL', value: v(d.company_email), width: '70%' },
+    ]),
+    dataTable(
+      ['*'],
+      [[cell('RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM', v(d.company_representative))]]
+    ),
+    cellRow([
+      { label: 'CARGO/QUALIFICAÇÃO', value: v(d.company_representative_role), width: '40%' },
+      { label: 'CPF', value: v(d.company_representative_cpf), width: '30%' },
+      { label: 'DDD + TELEFONE', value: v(d.company_representative_phone), width: '30%' },
+    ]),
+  ]
 
-  const studentTable = dataTable(
-    ['*'],
-    [
-      [{ text: 'DISCENTE ESTAGIÁRIO(A)', style: 'tableHeader', alignment: 'center' as Alignment }],
-      [
-        {
-          columns: [
-            cell('NOME', v(d.student_name), { border: [false, false, true, true] }),
-            cell('CPF', v(d.student_cpf), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('NOME SOCIAL', v(d.student_social_name))],
-      [
-        {
-          columns: [
-            cell('CURSO', v(d.student_course), { border: [false, false, true, true] }),
-            cell('MATRÍCULA', v(d.student_id), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))],
-      [
-        {
-          columns: [
-            cell('BAIRRO/DISTRITO', v(d.student_neighborhood), {
-              border: [false, false, true, true],
-            }),
-            cell('MUNICÍPIO-UF', v(d.student_city_state), { border: [false, false, true, true] }),
-            cell('CEP', v(d.student_zip), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', v(d.student_phone), { border: [false, false, true, true] }),
-            cell('E-MAIL INSTITUCIONAL', v(d.student_email_institutional), {
-              border: [false, false, true, true],
-            }),
-            cell('E-MAIL PESSOAL', v(d.student_email_personal), {
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+  const studentTable: Content[] = [
+    dataTable(
+      ['*'],
+      [[{ text: 'DISCENTE ESTAGIÁRIO(A)', style: 'tableHeader', alignment: 'center' as Alignment }]]
+    ),
+    cellRow([
+      { label: 'NOME', value: v(d.student_name), width: '70%' },
+      { label: 'CPF', value: v(d.student_cpf), width: '30%' },
+    ]),
+    dataTable(['*'], [[cell('NOME SOCIAL', v(d.student_social_name))]]),
+    cellRow([
+      { label: 'CURSO', value: v(d.student_course), width: '70%' },
+      { label: 'MATRÍCULA', value: v(d.student_id), width: '30%' },
+    ]),
+    dataTable(
+      ['*'],
+      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]
+    ),
+    cellRow([
+      { label: 'BAIRRO/DISTRITO', value: v(d.student_neighborhood), width: '40%' },
+      { label: 'MUNICÍPIO-UF', value: v(d.student_city_state), width: '35%' },
+      { label: 'CEP', value: v(d.student_zip), width: '25%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: v(d.student_phone), width: '25%' },
+      { label: 'E-MAIL INSTITUCIONAL', value: v(d.student_email_institutional), width: '40%' },
+      { label: 'E-MAIL PESSOAL', value: v(d.student_email_personal), width: '35%' },
+    ]),
+  ]
 
   // ── 2. Conteúdo Jurídico ──────────────────────────────────────────────────
 
@@ -429,17 +380,13 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
         [
           [{ text: 'DOCENTE ORIENTADOR', style: 'tableHeader', alignment: 'center' as Alignment }],
           [cell('NOME', v(d.advisor_name))],
-          [
-            {
-              columns: [
-                cell('SIAPE', v(d.advisor_siape), { border: [false, false, true, true] }),
-                cell('DDD + TELEFONE', v(d.advisor_phone), { border: [false, false, true, true] }),
-                cell('E-MAIL', v(d.advisor_email), { border: [false, false, false, true] }),
-              ],
-            } as TableCell,
-          ],
         ]
       ),
+      cellRow([
+        { label: 'SIAPE', value: v(d.advisor_siape), width: '25%' },
+        { label: 'DDD + TELEFONE', value: v(d.advisor_phone), width: '35%' },
+        { label: 'E-MAIL', value: v(d.advisor_email), width: '40%' },
+      ]),
       { text: '\n' },
       subItem(
         'II -',
@@ -457,19 +404,13 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
           ],
           [cell('NOME', v(d.supervisor_name))],
           [cell('FORMAÇÃO OU EXPERIÊNCIA PROFISSIONAL', v(d.supervisor_education))],
-          [
-            {
-              columns: [
-                cell('CPF', v(d.supervisor_cpf), { border: [false, false, true, true] }),
-                cell('DDD + TELEFONE', v(d.supervisor_phone), {
-                  border: [false, false, true, true],
-                }),
-                cell('E-MAIL', v(d.supervisor_email), { border: [false, false, false, true] }),
-              ],
-            } as TableCell,
-          ],
         ]
       ),
+      cellRow([
+        { label: 'CPF', value: v(d.supervisor_cpf), width: '30%' },
+        { label: 'DDD + TELEFONE', value: v(d.supervisor_phone), width: '30%' },
+        { label: 'E-MAIL', value: v(d.supervisor_email), width: '40%' },
+      ]),
     ]),
 
     clauseTitle(
@@ -717,11 +658,11 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
     ...header,
     docTitle('TERMO DE COMPROMISSO DE ESTÁGIO'),
     preamble,
-    ifceTable,
+    ...ifceTable,
     { text: '\n' },
-    companyTable,
+    ...companyTable,
     { text: '\n' },
-    studentTable,
+    ...studentTable,
     ...clauses,
     scheduleTable,
     ...finalClauses,

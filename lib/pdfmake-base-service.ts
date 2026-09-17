@@ -218,10 +218,15 @@ const STYLES: StyleDictionary = {
 export interface CellOptions {
   /** Número de colunas que a célula ocupa */
   colSpan?: number
-  /** Largura relativa (ex: '*' ou número de pontos) */
-  width?: string | number
   /** Configuração de bordas [esquerda, topo, direita, baixo] */
   border?: [boolean, boolean, boolean, boolean]
+}
+
+export interface CellGroupField {
+  label: string
+  value?: string
+  /** Largura da coluna (ex: '30%' ou número de pontos). Padrão: '*' (divide igualmente). */
+  width?: string | number
 }
 
 // ─── HELPERS DE LAYOUT ────────────────────────────────────────────────────────
@@ -338,6 +343,20 @@ export function sectionTitle(title: string): Content {
     },
     margin: [0, 4, 0, 0],
   }
+}
+
+/**
+ * Linha com múltiplos campos lado a lado (rótulo + valor), com bordas internas
+ * reais entre eles. Diferente de usar `columns` diretamente, isso monta uma
+ * sub-tabela de verdade: pdfmake ignora `border`/`width` de célula quando o
+ * item está dentro de um `columns`, então esse era o motivo das bordas
+ * internas somem nas linhas com vários campos (ex: NOME + CPF).
+ */
+export function cellRow(fields: CellGroupField[]): ContentTable {
+  return dataTable(
+    fields.map((f) => f.width ?? '*'),
+    [fields.map((f) => cell(f.label, f.value))]
+  )
 }
 
 /**

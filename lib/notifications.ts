@@ -35,9 +35,14 @@ interface NotificationTask {
  * horário comercial — ver .github/workflows/attendance-reminder-cron.yml.
  *
  * A decisão de "quem precisa de notificação" é toda síncrona (primeira
- * passada, sem I/O); o envio em si roda depois, em paralelo via
- * Promise.allSettled (runBatchWithAllSettled) — uma falha de e-mail isolada
- * não impede o envio dos demais nem aborta o restante do lote.
+ * passada, sem I/O); o envio em si roda depois, sequencialmente — um
+ * destinatário de cada vez, via runBatchSequentially (ver lib/cron-log.ts) —
+ * para evitar EBUSY de contenção de DNS ao abrir várias conexões SMTP em
+ * paralelo. Uma falha de e-mail isolada não impede o envio dos demais nem
+ * aborta o restante do lote, mas o tempo total cresce com o número de
+ * destinatários: a rota HTTP precisa de maxDuration alto o suficiente (ver
+ * app/api/notifications/cron/route.ts) para não estourar em ciclos com
+ * muitos estagiários.
  */
 export async function checkAndNotifyAttendance(): Promise<CronRunSummary> {
   const now = getNowInFortaleza()
@@ -162,8 +167,15 @@ async function sendNotification(
     html
   )
 
-  // Enviar push em paralelo (falha silenciosa se não configurado)
-  void sendPushToUser(user.id, pushPayload)
+  // Aguarda o push terminar antes de seguir para o próximo destinatário
+  // (falha silenciosa se não configurado). Antes rodava em paralelo
+  // (`void sendPushToUser(...)`) sem aguardar: como sendPushToUser também
+  // faz I/O de rede (consulta ao banco + POST HTTPS por assinatura via
+  // web-push), o push de um destinatário ainda em voo colidia com a
+  // resolução de DNS do smtp.gmail.com do próximo, recriando o mesmo
+  // EBUSY que o envio sequencial de e-mails (ver runBatchSequentially em
+  // lib/cron-log.ts) foi feito para evitar.
+  await sendPushToUser(user.id, pushPayload)
 
   if (emailDelivered) {
     const expiresAt = new Date()
