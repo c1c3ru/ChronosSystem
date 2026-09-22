@@ -102,6 +102,16 @@ export async function POST(request: NextRequest) {
     }
     const { email, name, role, department } = parsed.data
 
+    // Apenas ADMIN pode pré-autorizar usuários com role ADMIN — mesma regra
+    // de POST /api/users, evita que um SUPERVISOR pré-autorize uma conta
+    // ADMIN para si mesmo ou para terceiros.
+    if (role === 'ADMIN' && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem pré-autorizar usuários com nível de acesso ADMIN' },
+        { status: 403 }
+      )
+    }
+
     // Verificar se usuário já existe
     const existingUser = await prisma.user.findUnique({
       where: { email },

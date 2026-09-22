@@ -109,28 +109,3 @@ export function handleApiError(error: unknown, context?: Record<string, unknown>
     { status: 500 }
   )
 }
-
-/**
- * Error handler for client-side errors
- *
- * @param error - The error to handle
- * @returns User-friendly error message
- */
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof AppError) {
-    return error.message
-  }
-
-  if (error instanceof Error) {
-    return error.message
-  }
-
-  return 'Ocorreu um erro inesperado'
-}
-
-/**
- * Type guard to check if error is an AppError
- */
-export function isAppError(error: unknown): error is AppError {
-  return error instanceof AppError
-}

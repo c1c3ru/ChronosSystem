@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import { apiLogger } from '@/lib/logger'
 
 // GET /api/dashboard/stats - Estatísticas do dashboard
@@ -16,10 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const today = startOfDayInFortaleza()
+    const tomorrow = addDaysInFortaleza(today, 1)
 
     // Buscar estatísticas em paralelo
     const [totalUsers, todayRecords, activeMachines, totalMachines, pendingAlerts] =

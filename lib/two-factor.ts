@@ -100,25 +100,6 @@ export function isTwoFactorEnabled(user: {
 }
 
 /**
- * Gera códigos de backup para 2FA (opcional)
- */
-export function generateBackupCodes(count: number = 8): string[] {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // sem caracteres ambíguos (0/O, 1/I/L)
-  const codeLength = 8
-  const codes: string[] = []
-
-  for (let i = 0; i < count; i++) {
-    let code = ''
-    for (let j = 0; j < codeLength; j++) {
-      code += alphabet[crypto.randomInt(alphabet.length)]
-    }
-    codes.push(code)
-  }
-
-  return codes
-}
-
-/**
  * Formatar secret para exibição manual
  */
 export function formatSecretForDisplay(secret: string): string {

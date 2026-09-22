@@ -42,6 +42,7 @@ interface UserData {
   emergencyPhone?: string
   siapeNumber?: string
   hasSiape?: boolean
+  registrationNumber?: string
   startDate?: string
   contractStartDate?: string
   contractEndDate?: string
@@ -168,6 +169,10 @@ export default function NewUserPage() {
     if (userData.role === 'EMPLOYEE') {
       if (!userData.department) {
         newErrors.department = 'Departamento é obrigatório para funcionários'
+      }
+
+      if (!userData.registrationNumber?.trim()) {
+        newErrors.registrationNumber = 'Matrícula é obrigatória para alunos/estagiários'
       }
 
       if (!userData.startDate) {
@@ -366,7 +371,10 @@ export default function NewUserPage() {
                     Nível de Acesso *
                   </legend>
                   <div className="space-y-3">
-                    {['EMPLOYEE', 'SUPERVISOR', 'ADMIN'].map((role) => (
+                    {(session?.user?.role === 'ADMIN'
+                      ? ['EMPLOYEE', 'SUPERVISOR', 'ADMIN']
+                      : ['EMPLOYEE', 'SUPERVISOR']
+                    ).map((role) => (
                       <div
                         key={role}
                         className="flex items-start space-x-3 p-3 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors"
@@ -768,6 +776,34 @@ export default function NewUserPage() {
                       </select>
                       {errors.department && (
                         <p className="text-error text-xs mt-1">{errors.department}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Matrícula - do aluno/estagiário (não confundir com SIAPE, exclusiva de servidor) */}
+                  {userData.role === 'EMPLOYEE' && (
+                    <div>
+                      <label
+                        htmlFor="new-user-registration-number"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
+                        Matrícula *
+                      </label>
+                      <input
+                        id="new-user-registration-number"
+                        type="text"
+                        placeholder="Número da matrícula do aluno"
+                        className={`input ${errors.registrationNumber ? 'border-error' : ''}`}
+                        value={userData.registrationNumber || ''}
+                        onChange={(e) =>
+                          setUserData((prev) => ({
+                            ...prev,
+                            registrationNumber: e.target.value,
+                          }))
+                        }
+                      />
+                      {errors.registrationNumber && (
+                        <p className="text-error text-xs mt-1">{errors.registrationNumber}</p>
                       )}
                     </div>
                   )}

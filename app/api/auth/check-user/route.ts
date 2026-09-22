@@ -15,32 +15,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Email é obrigatório' }, { status: 400 })
     }
 
-    // Buscar usuário no banco
+    // Endpoint desautenticado por design (usado pela tela de login para
+    // decidir "entrar" vs "cadastrar"), então a resposta não deve incluir
+    // nada além disso — devolver name/role/id/timestamps aqui permitiria
+    // enumerar usuários e descobrir quem é ADMIN sem autenticação.
     const existingUser = await prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        profileComplete: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { profileComplete: true },
     })
 
     if (existingUser) {
       return NextResponse.json({
         exists: true,
-        user: {
-          id: existingUser.id,
-          email: existingUser.email,
-          name: existingUser.name,
-          role: existingUser.role,
-          profileComplete: existingUser.profileComplete,
-          createdAt: existingUser.createdAt,
-          updatedAt: existingUser.updatedAt,
-        },
         message: existingUser.profileComplete
           ? 'Usuário já cadastrado e com perfil completo'
           : 'Usuário já cadastrado mas precisa completar o perfil',

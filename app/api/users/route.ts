@@ -24,6 +24,7 @@ const createUserSchema = z.object({
   department: z.string().optional(),
   siapeNumber: z.string().optional(),
   hasSiape: z.boolean().optional(),
+  registrationNumber: z.string().optional(),
   startDate: z.string().optional(),
   contractStartDate: z.string().optional(),
   contractEndDate: z.string().optional(),
@@ -80,6 +81,7 @@ export async function GET(request: NextRequest) {
           phone: true,
           department: true,
           siapeNumber: true,
+          registrationNumber: true,
           contractType: true,
           weeklyHours: true,
           shiftStartTime: true,
@@ -133,6 +135,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
 
+    // Apenas ADMIN pode criar usuários com role ADMIN — sem esta checagem, um
+    // SUPERVISOR (também autorizado a chegar até aqui) poderia criar uma
+    // conta ADMIN para si mesmo ou para terceiros. Mesma regra já aplicada
+    // em PUT /api/users/[id] para alteração de role.
+    if (validatedData.role === 'ADMIN' && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem criar usuários com nível de acesso ADMIN' },
+        { status: 403 }
+      )
+    }
+
     // Validações específicas para SIAPE
     if (validatedData.hasSiape && validatedData.siapeNumber) {
       if (!/^\d{7}$/.test(validatedData.siapeNumber)) {
@@ -148,6 +161,12 @@ export async function POST(request: NextRequest) {
       if (!validatedData.department) {
         return NextResponse.json(
           { error: 'Departamento é obrigatório para funcionários' },
+          { status: 400 }
+        )
+      }
+      if (!validatedData.registrationNumber?.trim()) {
+        return NextResponse.json(
+          { error: 'Matrícula é obrigatória para alunos/estagiários' },
           { status: 400 }
         )
       }
@@ -204,6 +223,7 @@ export async function POST(request: NextRequest) {
         emergencyPhone: validatedData.emergencyPhone,
         department: validatedData.department,
         siapeNumber: validatedData.siapeNumber,
+        registrationNumber: validatedData.registrationNumber,
         startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
         contractStartDate: validatedData.contractStartDate
           ? new Date(validatedData.contractStartDate)

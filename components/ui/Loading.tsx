@@ -33,34 +33,3 @@ export function Loading({ size = 'md', className, text = 'Carregando...' }: Load
     </div>
   )
 }
-
-export function LoadingScreen({ text = 'Carregando...' }: { text?: string }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loading size="lg" text={text} />
-    </div>
-  )
-}
-
-export function LoadingButton({
-  children,
-  loading,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
-  return (
-    <button
-      {...props}
-      disabled={loading || props.disabled}
-      {...(loading ? { 'aria-busy': 'true' } : { 'aria-busy': 'false' })}
-    >
-      {loading && (
-        <div
-          className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-          aria-hidden="true"
-        />
-      )}
-      {loading && <span className="sr-only">Carregando...</span>}
-      {children}
-    </button>
-  )
-}

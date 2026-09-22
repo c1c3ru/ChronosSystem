@@ -43,5 +43,3 @@ export function useOnlineStatus() {
     wasOffline, // Useful for showing "back online" message
   }
 }
-
-export default useOnlineStatus

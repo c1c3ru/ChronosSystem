@@ -121,19 +121,23 @@ global.ResizeObserver = jest.fn(() => ({
 }))
 
 // Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-})
+// Guarded: testes de Route Handlers usam `@jest-environment node` (sem DOM),
+// onde `window` não existe.
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  })
+}
 
 // Polyfill for TextEncoder/TextDecoder (needed for QR code generation in tests)
 const { TextEncoder, TextDecoder } = require('util')

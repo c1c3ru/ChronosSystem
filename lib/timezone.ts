@@ -4,64 +4,78 @@
 
 /**
  * Retorna a data/hora atual em Fortaleza-CE (BRT, UTC-3, sem horário de verão).
- * O Date retornado tem os métodos .getHours(), .getMinutes(), .getDate() etc.
- * refletindo a hora local de Fortaleza, independente do timezone do servidor.
+ * O Date retornado tem os métodos .getUTCHours(), .getUTCMinutes(), .getUTCDate()
+ * etc. (e qualquer formatação com `timeZone: 'UTC'`, o padrão usado em toda a
+ * aplicação) refletindo a hora local de Fortaleza — independente do fuso de
+ * quem chama, seja o servidor ou o navegador de quem está usando a página.
  *
- * Uso correto: comparações de horário de turno, início/fim do dia local.
- * NÃO usar como timestamp UTC para salvar no banco — use `new Date()` para isso.
+ * Uso correto: comparações de horário de turno, início/fim do dia local e o
+ * timestamp gravado nos registros de ponto.
+ *
+ * Convenção de fuso do sistema: os registros de ponto são gravados com este
+ * relógio, ou seja, a hora de parede de Fortaleza codificada como UTC. Quem lê
+ * esses campos usa os getters UTC (`getUTCHours`, `getUTCDate`) ou formata com
+ * `timeZone: 'UTC'` — nunca converte de UTC para America/Fortaleza, porque isso
+ * aplicaria o deslocamento de -3h uma segunda vez.
  */
 export function getNowInFortaleza(): Date {
-  const now = new Date()
-  // UTC-3 fixo (Fortaleza não adota horário de verão)
+  // UTC-3 fixo (Fortaleza não adota horário de verão). Date.now() é sempre o
+  // instante UTC real, então este deslocamento fixo dá a hora certa não
+  // importa o fuso de onde a função roda. Uma versão anterior tentava
+  // "cancelar" o fuso de quem chama via getTimezoneOffset() antes de aplicar
+  // esse deslocamento — funcionava no servidor (Vercel roda em UTC, então a
+  // cancelagem era zero), mas quebrava ao rodar no navegador de um terminal
+  // já configurado para o fuso do Brasil: a cancelagem anulava o próprio
+  // deslocamento de -3h, deixando o relógio exibido 3h adiantado (ex.: o
+  // relógio do Kiosk, que roda no dispositivo do terminal).
   const BRT_OFFSET_MS = -3 * 60 * 60 * 1000
-  // getTimezoneOffset() retorna minutos de diferença local→UTC (positivo a oeste)
-  const serverOffsetMs = now.getTimezoneOffset() * 60_000
-  return new Date(now.getTime() + BRT_OFFSET_MS + serverOffsetMs)
+  return new Date(Date.now() + BRT_OFFSET_MS)
 }
 
 /**
- * Converte uma data para string formatada em Fortaleza
+ * Início do dia (00:00) em Fortaleza, na mesma codificação usada para gravar os
+ * registros de ponto.
+ *
+ * Substitui o padrão `new Date()` + `setHours(0, 0, 0, 0)`, que espalhava dois
+ * erros pelas rotas: usava o dia de quem roda o processo (UTC, na Vercel) em
+ * vez do dia de Fortaleza, o que jogava todo registro feito entre 21:00 e a
+ * meia-noite para o dia seguinte; e dependia do fuso do processo, então o mesmo
+ * código dava respostas diferentes no servidor e na máquina de quem desenvolve.
+ *
+ * Sem argumento, usa o dia corrente de Fortaleza. Com argumento, espera um Date
+ * já nessa codificação — o que veio do banco, ou de `getNowInFortaleza()`.
  */
-export function formatDateFortaleza(date: Date): string {
-  return date.toLocaleString('pt-BR', {
-    timeZone: 'America/Fortaleza',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+export function startOfDayInFortaleza(reference: Date = getNowInFortaleza()): Date {
+  const inicio = new Date(reference)
+  inicio.setUTCHours(0, 0, 0, 0)
+  return inicio
+}
+
+/** Fim do dia (23:59:59.999) em Fortaleza. Ver `startOfDayInFortaleza`. */
+export function endOfDayInFortaleza(reference: Date = getNowInFortaleza()): Date {
+  const fim = new Date(reference)
+  fim.setUTCHours(23, 59, 59, 999)
+  return fim
 }
 
 /**
- * Retorna apenas a hora em Fortaleza (HH:mm:ss)
+ * Soma (ou subtrai, com valor negativo) dias sem sair da codificação de
+ * Fortaleza. Usa os setters UTC, então não depende do fuso do processo nem
+ * escorrega em horário de verão de outro fuso.
  */
-export function getTimeFortaleza(date: Date = new Date()): string {
-  return date.toLocaleString('pt-BR', {
-    timeZone: 'America/Fortaleza',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+export function addDaysInFortaleza(reference: Date, days: number): Date {
+  const resultado = new Date(reference)
+  resultado.setUTCDate(resultado.getUTCDate() + days)
+  return resultado
 }
 
 /**
- * Retorna apenas a data em Fortaleza (DD/MM/YYYY)
+ * Converte uma data vinda de fora (query string `YYYY-MM-DD`, corpo de
+ * requisição) para a codificação de Fortaleza. Um `YYYY-MM-DD` puro já é
+ * interpretado como meia-noite UTC pelo `Date`, que é exatamente a meia-noite
+ * de Fortaleza nessa codificação; a função existe para deixar a intenção
+ * explícita e para normalizar o horário quando vem um timestamp completo.
  */
-export function getDateFortaleza(date: Date = new Date()): string {
-  return date.toLocaleString('pt-BR', {
-    timeZone: 'America/Fortaleza',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-}
-
-/**
- * Retorna a data em ISO format mas com timezone de Fortaleza
- */
-export function getISODateFortaleza(date: Date = new Date()): string {
-  const fortalezaDate = new Date(date.toLocaleString('pt-BR', { timeZone: 'America/Fortaleza' }))
-  return fortalezaDate.toISOString()
+export function parseDateInFortaleza(value: string | Date): Date {
+  return startOfDayInFortaleza(new Date(value))
 }

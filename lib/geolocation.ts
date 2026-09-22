@@ -38,7 +38,7 @@ function toRadians(degrees: number): number {
  * console.log(`Distância: ${distance.toFixed(2)} metros`)
  * ```
  */
-export function calculateDistance(point1: Coordinates, point2: Coordinates): number {
+function calculateDistance(point1: Coordinates, point2: Coordinates): number {
   // Validar coordenadas
   if (!isValidCoordinate(point1) || !isValidCoordinate(point2)) {
     throw new Error('Coordenadas inválidas')
@@ -64,7 +64,7 @@ export function calculateDistance(point1: Coordinates, point2: Coordinates): num
 /**
  * Verifica se as coordenadas são válidas
  */
-export function isValidCoordinate(coord: Coordinates): boolean {
+function isValidCoordinate(coord: Coordinates): boolean {
   return (
     typeof coord.latitude === 'number' &&
     typeof coord.longitude === 'number' &&
@@ -75,32 +75,6 @@ export function isValidCoordinate(coord: Coordinates): boolean {
     !isNaN(coord.latitude) &&
     !isNaN(coord.longitude)
   )
-}
-
-/**
- * Verifica se o usuário está dentro do raio permitido da máquina
- *
- * @param userLocation - Localização do usuário
- * @param machineLocation - Localização da máquina
- * @param maxRadiusMeters - Raio máximo permitido em metros (padrão: 100m)
- * @returns true se o usuário está dentro do raio, false caso contrário
- *
- * @example
- * ```typescript
- * const isNearby = isWithinRadius(
- *   { latitude: -3.7319, longitude: -38.5267 },
- *   { latitude: -3.7320, longitude: -38.5268 },
- *   100 // 100 metros
- * )
- * ```
- */
-export function isWithinRadius(
-  userLocation: Coordinates,
-  machineLocation: Coordinates,
-  maxRadiusMeters: number = 100
-): boolean {
-  const distance = calculateDistance(userLocation, machineLocation)
-  return distance <= maxRadiusMeters
 }
 
 /**
@@ -144,64 +118,6 @@ export function validateProximity(
 }
 
 /**
- * Formata distância para exibição amigável
- *
- * @param meters - Distância em metros
- * @returns String formatada (ex: "50m" ou "1.2km")
- */
-export function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)}m`
-  }
-  return `${(meters / 1000).toFixed(1)}km`
-}
-
-/**
- * Obtém coordenadas do navegador (client-side)
- *
- * @param options - Opções de geolocalização
- * @returns Promise com as coordenadas
- */
-export function getCurrentPosition(options?: PositionOptions): Promise<Coordinates> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocalização não suportada pelo navegador'))
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        })
-      },
-      (error) => {
-        let message = 'Erro ao obter localização'
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            message = 'Permissão de localização negada'
-            break
-          case error.POSITION_UNAVAILABLE:
-            message = 'Localização indisponível'
-            break
-          case error.TIMEOUT:
-            message = 'Timeout ao obter localização'
-            break
-        }
-        reject(new Error(message))
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-        ...options,
-      }
-    )
-  })
-}
-
-/**
  * Configuração padrão de raio por tipo de ambiente
  */
 export const DEFAULT_RADIUS = {
@@ -210,26 +126,3 @@ export const DEFAULT_RADIUS = {
   RELAXED: 200, // 200 metros - mais flexível
   VERY_RELAXED: 500, // 500 metros - muito flexível
 } as const
-
-/**
- * Exemplo de uso completo:
- *
- * ```typescript
- * import { getCurrentPosition, validateProximity, DEFAULT_RADIUS } from '@/lib/geolocation'
- *
- * // No cliente (browser)
- * const userLocation = await getCurrentPosition()
- *
- * // No servidor (API)
- * const machineLocation = { latitude: -3.7320, longitude: -38.5268 }
- * const validation = validateProximity(
- *   userLocation,
- *   machineLocation,
- *   DEFAULT_RADIUS.NORMAL
- * )
- *
- * if (!validation.isValid) {
- *   throw new Error(validation.message)
- * }
- * ```
- */

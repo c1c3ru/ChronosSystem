@@ -1,12 +1,10 @@
-import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
+import type { TDocumentDefinitions, Content, Alignment } from 'pdfmake/interfaces'
 import {
   ifceHeader,
   docTitle,
   dataTable,
   cell,
-  emptyCell,
-  sectionBlock,
-  sectionTitle,
+  cellRow,
   sigBlock,
   fmtDate,
   v,
@@ -103,49 +101,28 @@ export async function buildInternshipRegistrationRequestDoc(
 ): Promise<TDocumentDefinitions> {
   const header = await ifceHeader()
 
-  const studentTable = dataTable(
-    ['*'],
-    [
-      [
-        {
-          columns: [
-            cell('NOME', v(d.nome), { border: [false, false, true, true] }),
-            cell('CPF', v(d.cpf), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('NOME SOCIAL', v(d.nome_social))],
-      [
-        {
-          columns: [
-            cell('CURSO', v(d.curso), { border: [false, false, true, true] }),
-            cell('MATRÍCULA', v(d.matricula), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.endereco))],
-      [
-        {
-          columns: [
-            cell('BAIRRO/DISTRITO', v(d.bairro), { border: [false, false, true, true] }),
-            cell('MUNICÍPIO-UF', v(d.municipio_uf), { border: [false, false, true, true] }),
-            cell('CEP', v(d.cep), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', v(d.telefone), { border: [false, false, true, true] }),
-            cell('E-MAIL INSTITUCIONAL', v(d.email_institucional), {
-              border: [false, false, true, true],
-            }),
-            cell('E-MAIL PESSOAL', v(d.email_pessoal), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+  const studentTable: Content[] = [
+    cellRow([
+      { label: 'NOME', value: v(d.nome), width: '70%' },
+      { label: 'CPF', value: v(d.cpf), width: '30%' },
+    ]),
+    dataTable(['*'], [[cell('NOME SOCIAL', v(d.nome_social))]]),
+    cellRow([
+      { label: 'CURSO', value: v(d.curso), width: '70%' },
+      { label: 'MATRÍCULA', value: v(d.matricula), width: '30%' },
+    ]),
+    dataTable(['*'], [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.endereco))]]),
+    cellRow([
+      { label: 'BAIRRO/DISTRITO', value: v(d.bairro), width: '40%' },
+      { label: 'MUNICÍPIO-UF', value: v(d.municipio_uf), width: '35%' },
+      { label: 'CEP', value: v(d.cep), width: '25%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: v(d.telefone), width: '25%' },
+      { label: 'E-MAIL INSTITUCIONAL', value: v(d.email_institucional), width: '40%' },
+      { label: 'E-MAIL PESSOAL', value: v(d.email_pessoal), width: '35%' },
+    ]),
+  ]
 
   const cb = (checked: boolean) => (checked ? '(X)' : '( )')
 
@@ -219,91 +196,80 @@ export async function buildInternshipRegistrationRequestDoc(
     ]
   )
 
-  const companyTable = dataTable(
-    ['*'],
-    [
-      [{ text: 'RAZÃO SOCIAL', style: 'tableHeader', alignment: 'center' as Alignment }],
-      [cell(' ', '')], // Placeholder for social name if needed, usually empty in this doc
+  const companyTable: Content[] = [
+    dataTable(
+      ['*'],
+      [[{ text: 'RAZÃO SOCIAL', style: 'tableHeader', alignment: 'center' as Alignment }]]
+    ),
+    dataTable(['*'], [[cell(' ', '')]]), // Placeholder for social name if needed, usually empty in this doc
+    dataTable(
+      ['*'],
       [
-        {
-          text: 'NOME DE FANTASIA OU DE PESSOA FÍSICA',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
-      [cell(' ', v(d.nome_fantasia_pf))],
+        [
+          {
+            text: 'NOME DE FANTASIA OU DE PESSOA FÍSICA',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    dataTable(['*'], [[cell(' ', v(d.nome_fantasia_pf))]]),
+    cellRow([
+      { label: 'CNPJ OU REGISTRO NO CONSELHO', value: v(d.cnpj_registro_conselho), width: '35%' },
+      {
+        label: 'ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)',
+        value: v(d.endereco_pf),
+        width: '65%',
+      },
+    ]),
+    cellRow([
+      { label: 'BAIRRO', value: v(d.bairro_pf), width: '35%' },
+      { label: 'MUNICÍPIO-UF', value: v(d.municipio_uf_pf), width: '40%' },
+      { label: 'CEP', value: v(d.cep_pf), width: '25%' },
+    ]),
+    cellRow([
+      { label: 'DDD + TELEFONE', value: v(d.telefone_pf), width: '30%' },
+      { label: 'E-MAIL', value: v(d.email_pf), width: '70%' },
+    ]),
+    dataTable(
+      ['*'],
       [
-        {
-          columns: [
-            cell('CNPJ OU REGISTRO NO CONSELHO', v(d.cnpj_registro_conselho), {
-              border: [false, false, true, true],
-            }),
-            cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.endereco_pf), {
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
+        [
+          {
+            text: 'RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    dataTable(['*'], [[cell(' ', v(d.responsavel_legal))]]),
+    cellRow([
+      { label: 'CARGO/QUALIFICAÇÃO', value: v(d.cargo_qualificacao), width: '40%' },
+      { label: 'CPF', value: v(d.cpf_responsavel), width: '30%' },
+      { label: 'DDD + TELEFONE', value: v(d.telefone_responsavel), width: '30%' },
+    ]),
+    dataTable(
+      ['*'],
       [
-        {
-          columns: [
-            cell('BAIRRO', v(d.bairro_pf), { border: [false, false, true, true] }),
-            cell('MUNICÍPIO-UF', v(d.municipio_uf_pf), { border: [false, false, true, true] }),
-            cell('CEP', v(d.cep_pf), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DDD + TELEFONE', v(d.telefone_pf), { border: [false, false, true, true] }),
-            cell('E-MAIL', v(d.email_pf), { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          text: 'RESPONSÁVEL LEGAL PELA INSTITUIÇÃO PARA ESTE FIM',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
-      [cell(' ', v(d.responsavel_legal))],
-      [
-        {
-          columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.cargo_qualificacao), {
-              border: [false, false, true, true],
-            }),
-            cell('CPF', v(d.cpf_responsavel), { border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', v(d.telefone_responsavel), {
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          text: 'SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO',
-          style: 'tableHeader',
-          alignment: 'center' as Alignment,
-        },
-      ],
-      [cell(' ', v(d.supervisor_nome))],
-      [
-        {
-          columns: [
-            cell('CARGO/QUALIFICAÇÃO', v(d.supervisor_cargo), {
-              border: [false, false, true, true],
-            }),
-            cell('CPF', ' ', { border: [false, false, true, true] }), // CPF supervisor often not in basic registration
-            cell('DDD + TELEFONE', ' ', { border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [cell('SETOR DE REALIZAÇÃO DO ESTÁGIO', v(d.setor_realizacao))],
-    ]
-  )
+        [
+          {
+            text: 'SUPERVISOR DO ESTÁGIO NA INSTITUIÇÃO CONCEDENTE DA VAGA DE ESTÁGIO',
+            style: 'tableHeader',
+            alignment: 'center' as Alignment,
+          },
+        ],
+      ]
+    ),
+    dataTable(['*'], [[cell(' ', v(d.supervisor_nome))]]),
+    cellRow([
+      { label: 'CARGO/QUALIFICAÇÃO', value: v(d.supervisor_cargo), width: '40%' },
+      { label: 'CPF', value: ' ', width: '30%' }, // CPF supervisor often not in basic registration
+      { label: 'DDD + TELEFONE', value: ' ', width: '30%' },
+    ]),
+    dataTable(['*'], [[cell('SETOR DE REALIZAÇÃO DO ESTÁGIO', v(d.setor_realizacao))]]),
+  ]
 
   const internshipTable = dataTable(
     ['25%', '25%', '16.6%', '16.6%', '16.8%'],
@@ -461,11 +427,11 @@ export async function buildInternshipRegistrationRequestDoc(
   const content: Content[] = [
     ...header,
     docTitle('Solicitação de Cadastro no Estágio'),
-    studentTable,
+    ...studentTable,
     { text: '\n' },
     complementTable,
     { text: '\n' },
-    companyTable,
+    ...companyTable,
     { text: '\n' },
     internshipTable,
     { text: '\n' },

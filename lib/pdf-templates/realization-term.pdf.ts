@@ -4,7 +4,7 @@ import {
   docTitle,
   dataTable,
   cell,
-  sigBlock,
+  cellRow,
   fmtDate,
   v,
 } from '@/lib/pdfmake-base-service'
@@ -72,73 +72,38 @@ export async function buildRealizationTermDoc(
   const header = await ifceHeader()
   const cb = (checked?: boolean) => (checked ? '( X )' : '(   )')
 
-  const infoTable = dataTable(
-    ['*'],
-    [
-      [cell('DISCENTE ESTAGIÁRIO', v(d.student_name))],
+  const infoTable: Content[] = [
+    dataTable(['*'], [[cell('DISCENTE ESTAGIÁRIO', v(d.student_name))]]),
+    cellRow([
+      { label: 'CURSO', value: v(d.student_course), width: '70%' },
+      { label: 'MATRÍCULA', value: v(d.student_enrollment), width: '30%' },
+    ]),
+    dataTable(['*'], [[cell('DOCENTE ORIENTADOR', v(d.advisor_name))]]),
+    cellRow([
+      { label: 'CONCEDENTE DO ESTÁGIO (RAZÃO SOCIAL)', value: v(d.company_name), width: '70%' },
+      { label: 'CNPJ', value: v(d.company_cnpj), width: '30%' },
+    ]),
+    cellRow([
+      { label: 'SUPERVISOR DO ESTÁGIO', value: v(d.company_supervisor), width: '70%' },
+      { label: 'DDD + TELEFONE', value: v(d.company_supervisor_phone), width: '30%' },
+    ]),
+    dataTable(
+      ['35%', '35%', '30%'],
       [
-        {
-          columns: [
-            cell('CURSO', v(d.student_course), {
-              width: '70%',
-              border: [false, false, true, true],
-            }),
-            cell('MATRÍCULA', v(d.student_enrollment), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [cell('DOCENTE ORIENTADOR', v(d.advisor_name))],
-      [
-        {
-          columns: [
-            cell('CONCEDENTE DO ESTÁGIO (RAZÃO SOCIAL)', v(d.company_name), {
-              width: '70%',
-              border: [false, false, true, true],
-            }),
-            cell('CNPJ', v(d.company_cnpj), { width: '30%', border: [false, false, false, true] }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('SUPERVISOR DO ESTÁGIO', v(d.company_supervisor), {
-              width: '70%',
-              border: [false, false, true, true],
-            }),
-            cell('DDD + TELEFONE', v(d.company_supervisor_phone), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [
-        {
-          columns: [
-            cell('DATA INICIAL DO ESTÁGIO', fmtDate(d.start_date), {
-              width: '35%',
-              border: [false, false, true, false],
-            }),
-            cell('DATA FINAL DO ESTÁGIO', fmtDate(d.end_date), {
-              width: '35%',
-              border: [false, false, true, false],
-            }),
-            {
-              text: [
-                { text: 'CARGA HORÁRIA REALIZADA: ', fontSize: 8, bold: true },
-                { text: `${v(d.realized_hours)} HORAS`, fontSize: 8 },
-              ],
-              margin: [4, 4, 4, 4],
-            },
-          ],
-        } as TableCell,
-      ],
-    ]
-  )
+        [
+          cell('DATA INICIAL DO ESTÁGIO', fmtDate(d.start_date)),
+          cell('DATA FINAL DO ESTÁGIO', fmtDate(d.end_date)),
+          {
+            text: [
+              { text: 'CARGA HORÁRIA REALIZADA: ', fontSize: 8, bold: true },
+              { text: `${v(d.realized_hours)} HORAS`, fontSize: 8 },
+            ],
+            margin: [4, 4, 4, 4],
+          },
+        ],
+      ]
+    ),
+  ]
 
   const traits = [
     { label: 'ASSIDUIDADE', value: d.traits?.assiduidade },
@@ -159,7 +124,7 @@ export async function buildRealizationTermDoc(
   const content: Content[] = [
     ...header,
     docTitle('TERMO DE REALIZAÇÃO DE ESTÁGIO'),
-    infoTable,
+    ...infoTable,
     { text: '\n' },
     dataTable(
       ['*'],

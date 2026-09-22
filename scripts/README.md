@@ -2,6 +2,36 @@
 
 Este diretório contém scripts utilitários para administração do sistema Chronos.
 
+## create-admin.ts
+
+Cria um usuário administrador interativamente (prompt de nome/email/senha/departamento).
+
+```bash
+npx tsx scripts/create-admin.ts
+```
+
+## authorize-google-user.ts
+
+Pré-cadastra um usuário (qualquer role) para completar o perfil no primeiro login.
+
+```bash
+npx tsx scripts/authorize-google-user.ts
+```
+
+## seed-machines.js
+
+Cria máquinas de kiosk de teste (idempotente — pula as que já existem).
+
+```bash
+node scripts/seed-machines.js
+```
+
+## debug-records.ts / check-oauth-config.js / test-email.ts
+
+Diagnósticos somente-leitura: últimos registros de ponto por usuário, configuração
+de OAuth do Google (`.env`) e um teste de envio de e-mail pelo `emailService` real
+da aplicação (respeita as variáveis `SMTP_*` configuradas).
+
 ## remove-user.js
 
 Script para remover usuários que ficaram em estado inconsistente (ex: perfil incompleto que não consegue ser finalizado).

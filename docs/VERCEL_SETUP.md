@@ -46,12 +46,12 @@ Adicione os seguintes secrets:
 
 Para funcionalidade completa:
 
-| Nome                   | Valor               |
-| ---------------------- | ------------------- |
-| `NEXTAUTH_SECRET`      | `seu-secret-seguro` |
-| `QR_SECRET`            | `seu-qr-secret`     |
-| `GOOGLE_CLIENT_ID`     | `669988829985-...`  |
-| `GOOGLE_CLIENT_SECRET` | `GOCSPX-...`        |
+| Nome                   | Valor                                      |
+| ---------------------- | ------------------------------------------ |
+| `NEXTAUTH_SECRET`      | `seu-secret-seguro`                        |
+| `QR_SECRET`            | `seu-qr-secret`                            |
+| `GOOGLE_CLIENT_ID`     | `seu-client-id.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | `seu-client-secret`                        |
 
 ## 🔧 Workflow Atual (Já Configurado)
 

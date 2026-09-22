@@ -282,5 +282,3 @@ const QRScannerStatus = React.memo(function QRScannerStatus({
     </div>
   )
 })
-
-export { QRScanner }

@@ -198,29 +198,6 @@ export function generateNonce(): string {
 }
 
 /**
- * OTIMIZAÇÃO: Cache de nonce removido
- *
- * O sistema JÁ usa o banco de dados (QrEvent.used) como fonte principal de verdade.
- * O cache em memória era redundante e causava problemas em deploys/restarts.
- *
- * A verificação de nonce usado agora é feita APENAS no banco de dados,
- * que é mais confiável e persistente.
- */
-
-export function isNonceUsed(nonce: string): boolean {
-  // DEPRECATED: Função mantida para compatibilidade
-  // A verificação real é feita no banco de dados via QrEvent.used
-  qrLogger.warn('isNonceUsed() está deprecated. Use verificação no banco de dados.', { nonce })
-  return false
-}
-
-export function markNonceAsUsed(nonce: string): void {
-  // DEPRECATED: Função mantida para compatibilidade
-  // O nonce é marcado como usado no banco de dados via QrEvent.used
-  qrLogger.warn('markNonceAsUsed() está deprecated. Use QrEvent.used no banco.', { nonce })
-}
-
-/**
  * Gera hash HMAC-SHA256 para integridade de registros (hash chain).
  * Usa QR_SECRET como chave para que a cadeia não possa ser recalculada
  * por quem tiver apenas acesso de escrita ao banco de dados.

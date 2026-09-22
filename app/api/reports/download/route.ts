@@ -3,6 +3,28 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Escapa dado de usuário antes de interpolar em HTML bruto (este arquivo
+// monta HTML por concatenação de string, fora do JSX — então não tem o
+// escape automático do React). Sem isso, um `name` malicioso criado via
+// POST /api/users (acessível a ADMIN ou SUPERVISOR) executaria no
+// navegador de quem abrir este relatório.
+function escapeHtml(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;'
+      case '<':
+        return '&lt;'
+      case '>':
+        return '&gt;'
+      case '"':
+        return '&quot;'
+      default:
+        return '&#39;'
+    }
+  })
+}
+
 // GET /api/reports/download - Download de relatórios
 
 // Force dynamic rendering
@@ -240,15 +262,15 @@ function generatePDFReport(records: ReportAttendanceRecord[], users: ReportUser[
                   .map(
                     (record) => `
                     <tr>
-                        <td>${new Date(record.timestamp).toLocaleString('pt-BR')}</td>
-                        <td>${record.user?.name || 'N/A'}</td>
-                        <td>${record.user?.email || 'N/A'}</td>
-                        <td>${record.user?.role || 'N/A'}</td>
-                        <td class="${record.type.toLowerCase()}">
+                        <td>${escapeHtml(new Date(record.timestamp).toLocaleString('pt-BR'))}</td>
+                        <td>${escapeHtml(record.user?.name || 'N/A')}</td>
+                        <td>${escapeHtml(record.user?.email || 'N/A')}</td>
+                        <td>${escapeHtml(record.user?.role || 'N/A')}</td>
+                        <td class="${record.type === 'ENTRY' ? 'entry' : 'exit'}">
                             ${record.type === 'ENTRY' ? 'Entrada' : 'Saída'}
                         </td>
-                        <td>${record.machine?.name || 'N/A'}</td>
-                        <td>${record.machine?.location || 'N/A'}</td>
+                        <td>${escapeHtml(record.machine?.name || 'N/A')}</td>
+                        <td>${escapeHtml(record.machine?.location || 'N/A')}</td>
                     </tr>
                 `
                   )

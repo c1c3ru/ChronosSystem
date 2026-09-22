@@ -1,5 +1,13 @@
-import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
-import { ifceHeader, cell, emptyCell, dataTable, fmtDate, v } from '@/lib/pdfmake-base-service'
+import type { TDocumentDefinitions, Content, Alignment } from 'pdfmake/interfaces'
+import {
+  ifceHeader,
+  cell,
+  cellRow,
+  emptyCell,
+  dataTable,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface ExperienceDeclarationData {
   // Declarante
@@ -61,28 +69,25 @@ export async function buildExperienceDeclarationDoc(
     alignment: 'center',
   }
 
-  const studentTable = dataTable(
-    ['*'],
-    [
-      [cell('DISCENTE', v(d.student_name))],
+  const studentTable: Content[] = [
+    dataTable(['*'], [[cell('DISCENTE', v(d.student_name))]]),
+    cellRow([
+      { label: 'CURSO', value: v(d.student_course), width: '70%' },
+      { label: 'MATRÍCULA', value: v(d.student_enrollment), width: '30%' },
+    ]),
+    dataTable(
+      ['*'],
       [
-        {
-          columns: [
-            cell('CURSO', v(d.student_course), {
-              width: '70%',
-              border: [false, false, true, true],
-            }),
-            cell('MATRÍCULA', v(d.student_enrollment), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-      ],
-      [cell('INSTITUIÇÃO DE ENSINO', 'INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA – IFCE')],
-      [cell('CAMPUS', v(d.campus) || 'MARACANAÚ')],
-    ]
-  )
+        [
+          cell(
+            'INSTITUIÇÃO DE ENSINO',
+            'INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA – IFCE'
+          ),
+        ],
+        [cell('CAMPUS', v(d.campus) || 'MARACANAÚ')],
+      ]
+    ),
+  ]
 
   const experienceSection = dataTable(
     ['*'],
@@ -164,7 +169,7 @@ export async function buildExperienceDeclarationDoc(
     },
     declarantTable,
     introText,
-    studentTable,
+    ...studentTable,
     experienceSection,
     detailsTable,
     activitiesTable,

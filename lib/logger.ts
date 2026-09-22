@@ -3,7 +3,7 @@
  * Remove dados sensíveis automaticamente
  */
 
-export enum LogLevel {
+enum LogLevel {
   ERROR = 0,
   WARN = 1,
   INFO = 2,
@@ -38,50 +38,92 @@ class Logger {
     this.logLevel = process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG
   }
 
+  // Nomes de campo tratados como sensíveis em QUALQUER profundidade do
+  // contexto (não só no nível superior) — cobre variantes comuns
+  // (accessToken, apiKey, twoFactorSecret, Authorization, etc.) via
+  // substring case-insensitive. `key`, `session` e `pin` ficam ancorados
+  // (^...$) para não capturar campos legítimos como `sessionId`/`userId`.
+  private static readonly SENSITIVE_KEY_REGEX =
+    /password|token|secret|credential|authoriz|apikey|api_key|cookie|twofactorsecret|qrdata|^key$|^session$|^pin$/i
+
+  // E-mails podem aparecer embutidos em strings livres (ex.: "login:fulano@ifce.edu.br"
+  // ou mensagens de erro), não só em campos chamados `email` — por isso a
+  // máscara é aplicada a qualquer string, via regex, não a um campo específico.
+  private static readonly EMAIL_REGEX = /([a-zA-Z0-9._%+-]{1,64})@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g
+
+  private static readonly MAX_SANITIZE_DEPTH = 6
+
+  private maskEmailsInString(value: string): string {
+    return value.replace(
+      Logger.EMAIL_REGEX,
+      (_match, local: string, domain: string) => `${local.substring(0, 2)}***@${domain}`
+    )
+  }
+
+  private maskIp(value: string): string {
+    const parts = value.split('.')
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.***.***`
+    }
+    return value
+  }
+
   /**
-   * Remove dados sensíveis do contexto
+   * Sanitiza um valor de contexto recursivamente, para que campos sensíveis
+   * aninhados (ex.: `{ profileData: { email } }`, `{ user: { password } }`)
+   * também sejam redigidos — o antigo código só olhava o nível superior.
+   * `seen` evita loop infinito em referências circulares.
+   */
+  private sanitizeValue(value: unknown, depth: number, seen: WeakSet<object>): unknown {
+    if (value === null || value === undefined) return value
+
+    if (typeof value === 'string') {
+      return this.maskEmailsInString(value)
+    }
+
+    if (typeof value !== 'object') {
+      return value
+    }
+
+    if (value instanceof Date) {
+      return value
+    }
+
+    if (value instanceof Error) {
+      // Evita logar um Error bruto (propriedades customizadas de erros como
+      // os do Prisma podem carregar dados que não passaram pela sanitização).
+      return { name: value.name, message: this.maskEmailsInString(value.message) }
+    }
+
+    if (depth >= Logger.MAX_SANITIZE_DEPTH || seen.has(value as object)) {
+      return '[REDACTED_DEPTH]'
+    }
+    seen.add(value as object)
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeValue(item, depth + 1, seen))
+    }
+
+    const result: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      if (Logger.SENSITIVE_KEY_REGEX.test(key)) {
+        result[key] = val ? '[REDACTED]' : val
+        continue
+      }
+      if (key.toLowerCase() === 'ip' && typeof val === 'string') {
+        result[key] = this.maskIp(val)
+        continue
+      }
+      result[key] = this.sanitizeValue(val, depth + 1, seen)
+    }
+    return result
+  }
+
+  /**
+   * Remove/mascara dados sensíveis do contexto antes de logar
    */
   private sanitizeContext(context: LogContext): LogContext {
-    const sanitized = { ...context }
-
-    // Lista de campos sensíveis para remover
-    const sensitiveFields = [
-      'password',
-      'token',
-      'secret',
-      'key',
-      'authorization',
-      'cookie',
-      'session',
-      'twoFactorSecret',
-      'qrData',
-    ]
-
-    // Remover campos sensíveis
-    for (const field of sensitiveFields) {
-      if (sanitized[field]) {
-        sanitized[field] = '[REDACTED]'
-      }
-    }
-
-    // Mascarar email parcialmente
-    if (sanitized.email && typeof sanitized.email === 'string') {
-      const email = sanitized.email
-      const [local, domain] = email.split('@')
-      if (local && domain) {
-        sanitized.email = `${local.substring(0, 2)}***@${domain}`
-      }
-    }
-
-    // Mascarar IP parcialmente
-    if (sanitized.ip && typeof sanitized.ip === 'string') {
-      const parts = sanitized.ip.split('.')
-      if (parts.length === 4) {
-        sanitized.ip = `${parts[0]}.${parts[1]}.***.***.`
-      }
-    }
-
-    return sanitized
+    return (this.sanitizeValue(context, 0, new WeakSet<object>()) ?? {}) as LogContext
   }
 
   /**
@@ -202,77 +244,3 @@ export const logger = new Logger()
 export const authLogger = new Logger('auth')
 export const qrLogger = new Logger('qr-scanner')
 export const apiLogger = new Logger('api')
-export const dbLogger = new Logger('database')
-
-/**
- * Helper para medir performance
- */
-export function withPerformanceLogging<T>(
-  operation: string,
-  fn: () => Promise<T>,
-  context: LogContext = {}
-): Promise<T> {
-  const start = Date.now()
-
-  return fn()
-    .then((result) => {
-      const duration = Date.now() - start
-      logger.performance(operation, duration, context)
-      return result
-    })
-    .catch((error) => {
-      const duration = Date.now() - start
-      logger.error(`${operation} failed after ${duration}ms`, {
-        ...context,
-        error: error.message,
-      })
-      throw error
-    })
-}
-
-/**
- * Decorator para logging automático de métodos
- */
-export function logMethod(target: object, propertyName: string, descriptor: PropertyDescriptor) {
-  const method = descriptor.value
-
-  descriptor.value = function (...args: unknown[]) {
-    const className = target.constructor.name
-    const methodName = `${className}.${propertyName}`
-
-    logger.debug(`Calling ${methodName}`, {
-      method: methodName,
-      args: args.length,
-    })
-
-    try {
-      const result = method.apply(this, args)
-
-      if (result instanceof Promise) {
-        return result
-          .then((res) => {
-            logger.debug(`${methodName} completed successfully`)
-            return res
-          })
-          .catch((error) => {
-            logger.error(`${methodName} failed`, {
-              method: methodName,
-              error: error.message,
-            })
-            throw error
-          })
-      }
-
-      logger.debug(`${methodName} completed successfully`)
-      return result
-    } catch (error: unknown) {
-      logger.error(`${methodName} failed`, {
-        method: methodName,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      throw error
-    }
-  }
-
-  return descriptor
-}

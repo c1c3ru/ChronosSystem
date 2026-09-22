@@ -1,7 +1,13 @@
 import { prisma } from './prisma'
 import { emailService } from './email'
-import { getNowInFortaleza } from './timezone'
+import { getNowInFortaleza, startOfDayInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
+import {
+  runBatchSequentially,
+  type BatchTimeOptions,
+  type CronRunSummary,
+  type CronFailureDetail,
+} from './cron-log'
 
 export type NotificationType = 'ENTRY_REMINDER' | 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
 
@@ -15,24 +21,48 @@ interface UserWithAttendance {
   attendanceNotifications: Array<{ type: string }>
 }
 
+interface NotificationTask {
+  intern: UserWithAttendance
+  type: NotificationType
+}
+
 /**
  * Verifica e notifica funcionários sobre pontos de entrada/saída.
  *
  * Critérios de notificação:
- *  - ENTRY_REMINDER : Faltam até 10 min para o início do turno e não há registro de entrada
+ *  - ENTRY_REMINDER : Faltam até 15 min para o início do turno e não há registro de entrada
  *  - MISSED_ENTRY   : Passou 1 min do início do turno e não há registro de entrada
  *  - EXIT_REMINDER  : Faltam até 15 min para o fim do turno e há ENTRY sem EXIT correspondente
  *  - MISSED_EXIT    : Passou o horário de fim do turno e há ENTRY sem EXIT correspondente
+ *
+ * Para pegar os estagiários dentro dessas janelas de 15 min, este endpoint
+ * precisa ser chamado por um cron externo a cada poucos minutos durante o
+ * horário comercial — ver .github/workflows/attendance-reminder-cron.yml.
+ *
+ * A decisão de "quem precisa de notificação" é toda síncrona (primeira
+ * passada, sem I/O); o envio em si roda depois, sequencialmente — um
+ * destinatário de cada vez, via runBatchSequentially (ver lib/cron-log.ts) —
+ * para evitar EBUSY de contenção de DNS ao abrir várias conexões SMTP em
+ * paralelo. Uma falha de e-mail isolada não impede o envio dos demais nem
+ * aborta o restante do lote.
+ *
+ * Como o tempo total cresce com o número de destinatários, o lote roda dentro
+ * de um orçamento de tempo (ver CRON_EMAIL_TIME_BUDGET_MS em lib/cron-log.ts):
+ * `options.startedAt` deve ser o início da REQUISIÇÃO, para que a consulta ao
+ * banco acima também entre na conta. O que não couber no ciclo é reportado
+ * como falha (resposta 207) e reenviado na próxima execução do cron, o que é
+ * seguro porque AttendanceNotification deduplica o que já foi entregue.
  */
-export async function checkAndNotifyAttendance() {
+export async function checkAndNotifyAttendance(
+  options: BatchTimeOptions = {}
+): Promise<CronRunSummary> {
   const now = getNowInFortaleza()
 
   // Início do dia para filtrar registros de hoje
-  const todayStart = new Date(now)
-  todayStart.setHours(0, 0, 0, 0)
+  const todayStart = startOfDayInFortaleza(now)
 
   const interns = await prisma.user.findMany({
-    where: { role: 'EMPLOYEE' },
+    where: { role: 'EMPLOYEE', isActive: true },
     select: {
       id: true,
       name: true,
@@ -51,7 +81,7 @@ export async function checkAndNotifyAttendance() {
     },
   })
 
-  const sentNotifications: Array<{ user: string; type: NotificationType }> = []
+  const tasks: NotificationTask[] = []
 
   for (const intern of interns as UserWithAttendance[]) {
     const { shiftStartTime, shiftEndTime, attendanceRecords, attendanceNotifications } = intern
@@ -70,26 +100,14 @@ export async function checkAndNotifyAttendance() {
 
       const minsFromStart = (now.getTime() - shiftStart.getTime()) / (1000 * 60)
 
-      // 10 min ANTES do turno → lembrete preventivo
-      if (minsFromStart >= -10 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
-        const delivered = await sendNotification(
-          intern,
-          'ENTRY_REMINDER',
-          shiftStartTime,
-          shiftEndTime
-        )
-        if (delivered) sentNotifications.push({ user: intern.email, type: 'ENTRY_REMINDER' })
+      // 15 min ANTES do turno → lembrete preventivo
+      if (minsFromStart >= -15 && minsFromStart < 0 && !alreadySentTypes.has('ENTRY_REMINDER')) {
+        tasks.push({ intern, type: 'ENTRY_REMINDER' })
       }
 
       // 1 min DEPOIS do turno → alerta de entrada esquecida
       if (minsFromStart >= 1 && !alreadySentTypes.has('MISSED_ENTRY')) {
-        const delivered = await sendNotification(
-          intern,
-          'MISSED_ENTRY',
-          shiftStartTime,
-          shiftEndTime
-        )
-        if (delivered) sentNotifications.push({ user: intern.email, type: 'MISSED_ENTRY' })
+        tasks.push({ intern, type: 'MISSED_ENTRY' })
       }
 
       // Se não tem entrada, não verificar saída
@@ -116,17 +134,25 @@ export async function checkAndNotifyAttendance() {
     }
 
     if (notificationType && !alreadySentTypes.has(notificationType)) {
-      const delivered = await sendNotification(
-        intern,
-        notificationType,
-        shiftStartTime,
-        shiftEndTime
-      )
-      if (delivered) sentNotifications.push({ user: intern.email, type: notificationType })
+      tasks.push({ intern, type: notificationType })
     }
   }
 
-  return sentNotifications
+  return runBatchSequentially(
+    tasks,
+    (task) =>
+      sendNotification(
+        task.intern,
+        task.type,
+        task.intern.shiftStartTime,
+        task.intern.shiftEndTime
+      ),
+    (task, reason): CronFailureDetail => ({
+      email: task.intern.email,
+      message: reason instanceof Error ? reason.message : String(reason),
+    }),
+    options
+  )
 }
 
 async function sendNotification(
@@ -158,8 +184,15 @@ async function sendNotification(
     html
   )
 
-  // Enviar push em paralelo (falha silenciosa se não configurado)
-  void sendPushToUser(user.id, pushPayload)
+  // Aguarda o push terminar antes de seguir para o próximo destinatário
+  // (falha silenciosa se não configurado). Antes rodava em paralelo
+  // (`void sendPushToUser(...)`) sem aguardar: como sendPushToUser também
+  // faz I/O de rede (consulta ao banco + POST HTTPS por assinatura via
+  // web-push), o push de um destinatário ainda em voo colidia com a
+  // resolução de DNS do smtp.gmail.com do próximo, recriando o mesmo
+  // EBUSY que o envio sequencial de e-mails (ver runBatchSequentially em
+  // lib/cron-log.ts) foi feito para evitar.
+  await sendPushToUser(user.id, pushPayload)
 
   if (emailDelivered) {
     const expiresAt = new Date()

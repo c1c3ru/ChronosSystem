@@ -5,7 +5,7 @@
  * Todos os outros serão automaticamente definidos como EMPLOYEE
  */
 
-export const AUTHORIZED_ADMIN_SIAPE = [
+const AUTHORIZED_ADMIN_SIAPE = [
   // Adicione aqui as matrículas SIAPE dos administradores autorizados
   '2231232', // SIAPE do administrador (Cicero Jose Sousa da Silva)
   '2283496', // Exemplo - substitua pelas matrículas reais
@@ -59,7 +59,7 @@ export const AUTHORIZED_ADMIN_SIAPE = [
 /**
  * Verifica se uma matrícula SIAPE está autorizada como admin
  */
-export function isAuthorizedAdminSiape(siapeNumber: string): boolean {
+function isAuthorizedAdminSiape(siapeNumber: string): boolean {
   return AUTHORIZED_ADMIN_SIAPE.includes(siapeNumber.trim())
 }
 

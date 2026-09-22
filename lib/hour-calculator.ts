@@ -1,4 +1,10 @@
 import { prisma } from '@/lib/prisma'
+import {
+  getNowInFortaleza,
+  startOfDayInFortaleza,
+  endOfDayInFortaleza,
+  addDaysInFortaleza,
+} from '@/lib/timezone'
 
 // Configurações de contrato conforme Lei 11.788/2008
 const CONTRACT_CONFIGS = {
@@ -8,7 +14,7 @@ const CONTRACT_CONFIGS = {
   CUSTOM: { dailyHours: 6, weeklyHours: 30 }, // Será sobrescrito pelos campos do usuário
 }
 
-export interface HourCalculationResult {
+interface HourCalculationResult {
   workedHours: number
   expectedHours: number
   dailyBalance: number
@@ -20,9 +26,9 @@ export interface HourCalculationResult {
 /**
  * Calcula o saldo de horas para um usuário em uma data específica
  */
-export async function calculateHourBalance(
+async function calculateHourBalance(
   userId: string,
-  date: Date = new Date()
+  date: Date = getNowInFortaleza()
 ): Promise<HourCalculationResult> {
   try {
     // Buscar dados do usuário
@@ -40,10 +46,8 @@ export async function calculateHourBalance(
     }
 
     // Definir início e fim do dia
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
+    const startOfDay = startOfDayInFortaleza(date)
+    const endOfDay = endOfDayInFortaleza(date)
 
     // Buscar registros de ponto do dia
     const attendanceRecords = await prisma.attendanceRecord.findMany({
@@ -79,10 +83,13 @@ export async function calculateHourBalance(
       attendanceRecords[attendanceRecords.length - 1].type === 'ENTRY'
     ) {
       const lastEntry = attendanceRecords[attendanceRecords.length - 1]
-      const now = new Date()
+      // Relógio de Fortaleza: `lastEntry.timestamp` está nessa codificação, e
+      // subtrair um `new Date()` real daria 3h a mais de trabalho a quem ainda
+      // está com o ponto aberto.
+      const now = getNowInFortaleza()
 
       // Só calcular se for hoje
-      if (date.toDateString() === now.toDateString()) {
+      if (startOfDayInFortaleza(date).getTime() === startOfDayInFortaleza(now).getTime()) {
         const diffMs = now.getTime() - lastEntry.timestamp.getTime()
         workedHours += diffMs / (1000 * 60 * 60)
         isComplete = false // Ainda trabalhando
@@ -100,12 +107,8 @@ export async function calculateHourBalance(
     const dailyBalance = workedHours - expectedHours
 
     // Calcular saldo semanal
-    const startOfWeek = new Date(date)
-    startOfWeek.setDate(date.getDate() - date.getDay())
-    startOfWeek.setHours(0, 0, 0, 0)
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(startOfWeek.getDate() + 6)
-    endOfWeek.setHours(23, 59, 59, 999)
+    const startOfWeek = startOfDayInFortaleza(addDaysInFortaleza(date, -date.getUTCDay()))
+    const endOfWeek = endOfDayInFortaleza(addDaysInFortaleza(startOfWeek, 6))
 
     const weeklyRecords = await prisma.hourBalance.findMany({
       where: {
@@ -156,14 +159,15 @@ export async function calculateHourBalance(
 /**
  * Atualiza ou cria registro de saldo de horas
  */
-export async function updateHourBalance(userId: string, date: Date = new Date()): Promise<void> {
+export async function updateHourBalance(
+  userId: string,
+  date: Date = getNowInFortaleza()
+): Promise<void> {
   try {
     const calculation = await calculateHourBalance(userId, date)
 
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
+    const startOfDay = startOfDayInFortaleza(date)
+    const endOfDay = endOfDayInFortaleza(date)
 
     // Verificar se já existe registro para o dia
     const existingRecord = await prisma.hourBalance.findFirst({
@@ -218,144 +222,6 @@ export async function updateHourBalance(userId: string, date: Date = new Date())
     )
   } catch (error) {
     console.error('❌ [HOUR-CALCULATOR] Erro ao atualizar saldo:', error)
-    throw error
-  }
-}
-
-/**
- * Calcula estatísticas de horas para relatórios
- */
-export async function calculateHourStatistics(userId: string, startDate: Date, endDate: Date) {
-  try {
-    const records = await prisma.hourBalance.findMany({
-      where: {
-        userId,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      orderBy: { date: 'asc' },
-    })
-
-    const totalWorked = records.reduce(
-      (sum: number, record: { workedHours: number }) => sum + record.workedHours,
-      0
-    )
-    const totalExpected = records.reduce(
-      (sum: number, record: { expectedHours: number }) => sum + record.expectedHours,
-      0
-    )
-    const totalBalance = records.reduce(
-      (sum: number, record: { balance: number }) => sum + record.balance,
-      0
-    )
-
-    const daysWorked = records.filter(
-      (record: { workedHours: number }) => record.workedHours > 0
-    ).length
-    const averageDaily = daysWorked > 0 ? totalWorked / daysWorked : 0
-
-    const positiveBalanceDays = records.filter(
-      (record: { balance: number }) => record.balance > 0
-    ).length
-    const negativeBalanceDays = records.filter(
-      (record: { balance: number }) => record.balance < 0
-    ).length
-
-    return {
-      period: {
-        startDate,
-        endDate,
-        totalDays: records.length,
-        daysWorked,
-      },
-      hours: {
-        totalWorked,
-        totalExpected,
-        totalBalance,
-        averageDaily,
-        efficiency: totalExpected > 0 ? (totalWorked / totalExpected) * 100 : 0,
-      },
-      balance: {
-        positive: positiveBalanceDays,
-        negative: negativeBalanceDays,
-        neutral: records.length - positiveBalanceDays - negativeBalanceDays,
-      },
-      records,
-    }
-  } catch (error) {
-    console.error('❌ [HOUR-CALCULATOR] Erro ao calcular estatísticas:', error)
-    throw error
-  }
-}
-
-/**
- * Valida se um registro de ponto está dentro dos limites legais
- */
-export async function validateWorkingHours(
-  userId: string,
-  entryTime: Date,
-  exitTime?: Date
-): Promise<{
-  isValid: boolean
-  violations: string[]
-  warnings: string[]
-}> {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        contractType: true,
-        dailyHours: true,
-        weeklyHours: true,
-      },
-    })
-
-    if (!user) {
-      throw new Error('Usuário não encontrado')
-    }
-
-    const violations: string[] = []
-    const warnings: string[] = []
-
-    // Se há horário de saída, validar duração
-    if (exitTime) {
-      const diffMs = exitTime.getTime() - entryTime.getTime()
-      const workedHours = diffMs / (1000 * 60 * 60)
-
-      const contractConfig = CONTRACT_CONFIGS[user.contractType as keyof typeof CONTRACT_CONFIGS]
-      const maxDailyHours =
-        user.contractType === 'CUSTOM' ? user.dailyHours : contractConfig.dailyHours
-
-      if (workedHours > maxDailyHours) {
-        violations.push(`Excede limite diário: ${workedHours.toFixed(2)}h > ${maxDailyHours}h`)
-      }
-
-      if (workedHours > maxDailyHours * 0.9) {
-        warnings.push(`Próximo do limite diário: ${workedHours.toFixed(2)}h`)
-      }
-    }
-
-    // Validar horários noturnos (Lei do Estágio não permite trabalho noturno para menores)
-    const entryHour = entryTime.getHours()
-    const exitHour = exitTime?.getHours()
-
-    if (entryHour < 6 || entryHour > 22) {
-      warnings.push('Horário de entrada fora do período recomendado (6h-22h)')
-    }
-
-    if (exitHour && (exitHour < 6 || exitHour > 22)) {
-      warnings.push('Horário de saída fora do período recomendado (6h-22h)')
-    }
-
-    return {
-      isValid: violations.length === 0,
-      violations,
-      warnings,
-    }
-  } catch (error) {
-    console.error('❌ [HOUR-CALCULATOR] Erro ao validar horários:', error)
     throw error
   }
 }

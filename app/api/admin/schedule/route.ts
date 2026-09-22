@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza } from '@/lib/timezone'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +29,7 @@ export async function GET() {
         attendanceRecords: {
           where: {
             timestamp: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              gte: startOfDayInFortaleza(),
             },
           },
           select: { type: true, timestamp: true },

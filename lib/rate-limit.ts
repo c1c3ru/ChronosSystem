@@ -93,7 +93,7 @@ export async function rateLimitByIdentifier(
  * Rate limiter com Redis (sliding window) e fallback em memória
  * Identificador: apenas IP + path (compartilhado por todos atrás do mesmo NAT)
  */
-export function rateLimit(config: RateLimitConfig) {
+function rateLimit(config: RateLimitConfig) {
   return async (request: NextRequest): Promise<RateLimitResult> => {
     const ip = getClientIP(request)
     const identifier = `${ip}:${request.nextUrl.pathname}`
@@ -105,7 +105,7 @@ export function rateLimit(config: RateLimitConfig) {
  * Rate limiter com chave extra (ex.: userId) para não penalizar toda a rede institucional.
  * Identificador: IP + sufixo + path
  */
-export function rateLimitWithKey(config: RateLimitConfig) {
+function rateLimitWithKey(config: RateLimitConfig) {
   return async (request: NextRequest, key: string): Promise<RateLimitResult> => {
     const ip = getClientIP(request)
     const identifier = `${ip}:${key}:${request.nextUrl.pathname}`

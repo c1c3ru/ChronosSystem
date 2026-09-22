@@ -19,6 +19,7 @@ import QRCode from 'qrcode'
 import Image from 'next/image'
 import Link from 'next/link'
 import { generateClientSecureQR } from '@/lib/client-crypto'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 interface QRData {
   qrData: string
@@ -126,13 +127,17 @@ export default function KioskPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kioskSecret])
 
-  // Atualizar relógio a cada segundo (apenas no cliente)
+  // Atualizar relógio a cada segundo (apenas no cliente). Usa
+  // getNowInFortaleza() (não new Date()) porque formatTime formata com
+  // timeZone: 'UTC' — o mesmo truque usado em toda a aplicação para exibir
+  // horários de Fortaleza-CE independente do fuso do dispositivo; misturar
+  // a hora real (new Date()) com essa formatação adianta o relógio em 3h.
   useEffect(() => {
     // Definir o horário inicial apenas no cliente
-    setCurrentTime(new Date())
+    setCurrentTime(getNowInFortaleza())
 
     const timer = setInterval(() => {
-      setCurrentTime(new Date())
+      setCurrentTime(getNowInFortaleza())
     }, 1000)
 
     return () => clearInterval(timer)
@@ -279,11 +284,17 @@ export default function KioskPage() {
     }
   }, [machineInfo.id])
 
-  // Buscar atividade inicial e configurar polling a cada 5 segundos
+  // Buscar atividade inicial e configurar polling a cada 30 segundos.
+  // Já foi 5s ("instantâneo"), mas para um terminal ligado o dia todo isso
+  // significa ~500 mil requisições/mês só desse endpoint (cada uma com 2
+  // queries no banco) — arriscando estourar as cotas gratuitas da Vercel
+  // (Hobby não tem pay-as-you-go: excede e pausa/limita) e do Supabase. 30s
+  // ainda é rápido o bastante para um feed de "atividade recente" e reduz
+  // esse volume em ~6x.
   useEffect(() => {
     fetchRecentActivity()
 
-    const activityTimer = setInterval(fetchRecentActivity, 5 * 1000) // 5 segundos
+    const activityTimer = setInterval(fetchRecentActivity, 30 * 1000) // 30 segundos
 
     return () => clearInterval(activityTimer)
   }, [fetchRecentActivity])
@@ -334,16 +345,16 @@ export default function KioskPage() {
             <KeyRound className="h-8 w-8 text-primary mx-auto" />
             <h1 className="text-lg font-bold text-white">Configurar Terminal</h1>
             <p className="text-sm text-neutral-400">
-              Insira o segredo de provisionamento deste dispositivo. Ele é solicitado apenas uma
-              vez por terminal — o navegador vai lembrar dele depois.
+              Insira o segredo de provisionamento deste dispositivo. Ele é solicitado apenas uma vez
+              por terminal — o navegador vai lembrar dele depois.
             </p>
           </div>
 
           <div className="bg-neutral-900/50 border border-neutral-700/50 rounded-lg p-3 text-xs text-neutral-400 leading-relaxed">
-            Não sabe qual é esse valor? Ele não é gerado automaticamente aqui — é um segredo
-            único, configurado por um administrador do sistema em{' '}
-            <span className="text-neutral-300">Painel Admin → Gerenciar Máquinas</span>. Peça
-            esse valor a um administrador, ou{' '}
+            Não sabe qual é esse valor? Ele não é gerado automaticamente aqui — é um segredo único,
+            configurado por um administrador do sistema em{' '}
+            <span className="text-neutral-300">Painel Admin → Gerenciar Máquinas</span>. Peça esse
+            valor a um administrador, ou{' '}
             <Link href="/admin/machines" className="text-primary hover:underline">
               acesse o painel de máquinas
             </Link>{' '}

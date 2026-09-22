@@ -10,7 +10,7 @@ export interface HorarioTrabalho {
   fimAlmoco: string
 }
 
-export interface UltimoRegistro {
+interface UltimoRegistro {
   tipo: 'ENTRY' | 'EXIT'
   timestamp: Date
 }
@@ -28,7 +28,7 @@ function hParaMins(h: string) {
   return hrs * 60 + mins
 }
 
-export function ehFimDeSemana(data: Date): boolean {
+function ehFimDeSemana(data: Date): boolean {
   const dia = data.getDay()
   return dia === 0 || dia === 6
 }
@@ -47,7 +47,7 @@ function obterNomeDia(data: Date): string {
 }
 
 // Determinação de Tipo
-export function determinarTipoRegistro(contexto: Record<string, unknown>) {
+function determinarTipoRegistro(contexto: Record<string, unknown>) {
   const horaAtual = (contexto.horaAtual || contexto.currentTime || new Date()) as Date
   const ultimoRegistro = (contexto.ultimoRegistro || contexto.lastRecord) as {
     timestamp?: string | Date
@@ -102,7 +102,7 @@ export function determinarTipoRegistro(contexto: Record<string, unknown>) {
 }
 
 // Validação
-export async function validarRegistro(contexto: Record<string, unknown>, tipoSolicitado: string) {
+async function validarRegistro(contexto: Record<string, unknown>, tipoSolicitado: string) {
   const data = (contexto.horaAtual || contexto.currentTime || new Date()) as Date
   const ultimoPonto = (contexto.ultimoRegistro || contexto.lastRecord) as {
     timestamp?: string | Date
@@ -147,7 +147,7 @@ export async function validarRegistro(contexto: Record<string, unknown>, tipoSol
 }
 
 // Horários
-export function detectarAtraso(data: Date, horario: HorarioTrabalho) {
+function detectarAtraso(data: Date, horario: HorarioTrabalho) {
   const minsEntrada = data.getHours() * 60 + data.getMinutes()
   const minsInicioPrevisto = hParaMins(horario.inicio)
   const atraso = Math.max(0, minsEntrada - minsInicioPrevisto)
@@ -159,7 +159,7 @@ export function detectarAtraso(data: Date, horario: HorarioTrabalho) {
   }
 }
 
-export function detectarSaidaAntecipada(
+function detectarSaidaAntecipada(
   inicioTime: Date | string,
   fimTime: Date | string,
   horario: HorarioTrabalho = HORARIO_TRABALHO_PADRAO,
@@ -182,7 +182,7 @@ export function detectarSaidaAntecipada(
 }
 
 // Análise Diária
-export function analisarDiaParaJustificativa(
+function analisarDiaParaJustificativa(
   data: Date,
   entradaParams: unknown = null,
   saidaParams: unknown = null,
@@ -250,7 +250,7 @@ export function analisarDiaParaJustificativa(
   }
 }
 
-export async function obterHorarioTrabalhoUsuario(usuarioId: string): Promise<HorarioTrabalho> {
+async function obterHorarioTrabalhoUsuario(usuarioId: string): Promise<HorarioTrabalho> {
   return HORARIO_TRABALHO_PADRAO
 }
 

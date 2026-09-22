@@ -5,7 +5,17 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { User, ArrowLeft, Save, Mail, Lock, Shield, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react'
+import {
+  User,
+  ArrowLeft,
+  Save,
+  Mail,
+  Lock,
+  Shield,
+  ToggleLeft,
+  ToggleRight,
+  AlertTriangle,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -18,6 +28,7 @@ interface UserData {
   phone?: string
   address?: string
   department?: string
+  registrationNumber?: string
   isActive: boolean
 }
 
@@ -29,6 +40,7 @@ interface UpdateData {
   phone?: string
   address?: string
   department?: string
+  registrationNumber?: string
   isActive?: boolean
 }
 
@@ -76,6 +88,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             phone: data.phone || '',
             address: data.address || '',
             department: data.department || '',
+            registrationNumber: data.registrationNumber || '',
             isActive: data.isActive ?? true,
           })
         } else {
@@ -130,6 +143,8 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
       if (updateData.address !== userData?.address) changedData.address = updateData.address
       if (updateData.department !== userData?.department)
         changedData.department = updateData.department
+      if (updateData.registrationNumber !== userData?.registrationNumber)
+        changedData.registrationNumber = updateData.registrationNumber
       if (updateData.password) changedData.password = updateData.password
       if (updateData.isActive !== userData?.isActive) changedData.isActive = updateData.isActive
 
@@ -403,8 +418,8 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                       <div className="flex items-start gap-2 p-3 rounded-lg bg-error/10 border border-error/30 text-error text-xs">
                         <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                         <span>
-                          Ao salvar, este estagiário não poderá fazer login ou registrar ponto.
-                          O histórico de registros será preservado.
+                          Ao salvar, este estagiário não poderá fazer login ou registrar ponto. O
+                          histórico de registros será preservado.
                         </span>
                       </div>
                     )}
@@ -464,6 +479,31 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                       </select>
                     </div>
                   </div>
+
+                  {/* Matrícula — apenas para alunos/estagiários */}
+                  {updateData.role === 'EMPLOYEE' && (
+                    <div>
+                      <label
+                        htmlFor="edit-user-registration-number"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
+                        Matrícula
+                      </label>
+                      <input
+                        id="edit-user-registration-number"
+                        type="text"
+                        placeholder="Número da matrícula do aluno"
+                        className="input"
+                        value={updateData.registrationNumber || ''}
+                        onChange={(e) =>
+                          setUpdateData((prev) => ({
+                            ...prev,
+                            registrationNumber: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  )}
 
                   {/* Endereço */}
                   <div>

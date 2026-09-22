@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { designTokens } from '@/lib/design-tokens'
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline'
   size?: 'sm' | 'md' | 'lg' | 'icon'
   loading?: boolean

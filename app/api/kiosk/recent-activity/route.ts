@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza } from '@/lib/timezone'
 import { Prisma } from '@prisma/client'
 
 // Force dynamic rendering
@@ -11,18 +12,31 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const machineId = searchParams.get('machineId')
 
+    // Este endpoint é público por design (alimenta a tela do quiosque físico
+    // antes de qualquer login), mas sem exigir um machineId válido, qualquer
+    // ponto da internet podia obter a atividade recente de TODAS as máquinas
+    // (nomes + local de quem bateu ponto hoje). Agora exige um machineId de
+    // uma máquina ativa — sem isso, devolve lista vazia em vez de tudo.
+    if (!machineId) {
+      return NextResponse.json({ success: true, activity: [], count: 0 })
+    }
+
+    const machine = await prisma.machine.findUnique({
+      where: { id: machineId },
+      select: { id: true, isActive: true },
+    })
+    if (!machine || !machine.isActive) {
+      return NextResponse.json({ success: true, activity: [], count: 0 })
+    }
+
     // Buscar os últimos 10 registros de ponto do dia atual (desde as 00h)
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
+    const startOfDay = startOfDayInFortaleza()
 
     const whereClause: Prisma.AttendanceRecordWhereInput = {
       timestamp: {
         gte: startOfDay,
       },
-    }
-
-    if (machineId) {
-      whereClause.machineId = machineId
+      machineId,
     }
 
     const recentActivity = await prisma.attendanceRecord.findMany({

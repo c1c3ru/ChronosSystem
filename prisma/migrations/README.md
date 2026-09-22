@@ -2,9 +2,34 @@ Este diretório contém as **migrations do Prisma**, aplicadas em produção via
 
 ## Por quê?
 
-- O deploy em produção usa `npx prisma migrate deploy`, que **aplica apenas migrations versionadas**.
-- Isso evita mudanças de schema "fora de trilha" (como `db push --accept-data-loss`) e torna o deploy reprodutível/auditável.
-- O workflow de CI (`.github/workflows/chronos-pipeline.yml`) **não** tem mais fallback automático para `db push`: se `migrate deploy` falhar, o deploy para e exige revisão manual.
+- O deploy em produção (Vercel) roda `npx prisma migrate deploy` como parte do script `vercel-build`
+  do `package.json`, **antes** de `next build` — é assim que migrations versionadas chegam ao banco.
+- Isso evita mudanças de schema "fora de trilha" (como `db push --accept-data-loss`) e torna o deploy
+  reprodutível/auditável.
+- **Atenção:** por um tempo esse script não existiu (o workflow de CI que rodava `migrate deploy`
+  foi removido e nada o substituiu), então migrations commitadas nesse período — como
+  `20260902132210_add_student_registration_number` — nunca chegaram a ser aplicadas em produção,
+  mesmo com o código já esperando por elas. Isso quebrou rotas que liam a coluna nova. Se algo
+  parecido acontecer de novo, `app/api/admin/system/repair-registration-number-column/route.ts` é
+  um exemplo de reparo emergencial via SQL direto (idempotente) que não depende do pipeline de
+  migration para desbloquear produção na hora.
+
+### ⚠️ Estado atual: `vercel-build` está em modo não-bloqueante
+
+`vercel-build` hoje é `(prisma migrate deploy || true) && next build` — a falha do `migrate deploy`
+**não** derruba o build. Isso é temporário: ao ligar esse script pela primeira vez, `migrate deploy`
+falhou em produção com `P3018 relation "Account" already exists` (o passo de adoção da migration
+`_init` abaixo nunca foi executado) e em Preview por faltar `DIRECT_URL` naquele ambiente — e um
+`vercel-build` que falha bloqueia _todo_ deploy, não só quem toca na coluna nova, então foi
+revertido para não-bloqueante às pressas para não deixar o site inteiro sem poder receber deploy
+novo. Antes de voltar a fazer `vercel-build` estrito (remover o `|| true`):
+
+1. Rode o "Passo único de adoção" abaixo contra o banco de produção.
+2. Configure `DIRECT_URL` (conexão direta, não pooled) também no ambiente Preview da Vercel.
+3. Confirme com um deploy de teste que `migrate deploy` passa limpo antes de remover o `|| true`.
+
+Enquanto isso não acontece, migrations novas continuam precisando do reparo manual/endpoint de
+emergência de sempre — o `vercel-build` não está de fato aplicando nada ainda.
 
 ## Migration `_init`
 

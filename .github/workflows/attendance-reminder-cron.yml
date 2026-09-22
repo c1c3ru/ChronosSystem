@@ -1,20 +1,22 @@
 name: 🔔 Lembrete de Entrada/Saída
 
-# Dispara /api/notifications/cron perto dos horários de turno, para avisar
-# estagiários sobre entrada/saída de ponto não registrada.
+# Dispara /api/notifications/cron a cada 10 min no horário comercial, para
+# avisar estagiários sobre entrada/saída de ponto não registrada — até 15 min
+# antes do início do turno, e assim que uma saída não registrada é detectada
+# após o fim do turno (esquecimento ou atraso). A janela de 15 min só é
+# respeitada de forma confiável se o cron rodar com essa cadência (ver
+# lib/notifications.ts para a lógica de decisão).
 #
 # Roda em runner do GitHub (gratuito, ubuntu-latest) — não depende de
 # nenhuma infraestrutura própria. A aplicação em si roda na Vercel; este
 # workflow só faz uma chamada HTTP autenticada (CRON_SECRET) para acordar
 # o cron job, já que o plano gratuito da Vercel não permite Cron Jobs
-# nativos com essa frequência (múltiplas vezes ao dia).
+# nativos com essa frequência (a cada poucos minutos, o dia todo).
 on:
   workflow_dispatch:
   schedule:
-    # Horários em UTC. Fortaleza/BRT = UTC-3 (sem horário de verão).
-    - cron: '0 12 * * 1-5' # 09:00 BRT — checar entrada não registrada
-    - cron: '30 15 * * 1-5' # 12:30 BRT — lembrete de saída (turno manhã)
-    - cron: '0 21 * * 1-5' # 18:00 BRT — checar saída não registrada (turno tarde)
+    # A cada 10 min, das 09:00 às 22:50 UTC (06:00–19:50 BRT, UTC-3), em dias úteis.
+    - cron: '*/10 9-22 * * 1-5'
 
 concurrency:
   group: ${{ github.workflow }}
@@ -27,14 +29,25 @@ jobs:
     steps:
       - name: Chamar /api/notifications/cron
         run: |
+          # Retry de 3 vezes com intervalo de 5s, e timeout de 30s por tentativa.
+          # O endpoint se limita sozinho para responder bem antes disso (ver
+          # CRON_EMAIL_TIME_BUDGET_MS e CRON_SEND_TIMEOUT_MS em lib/cron-log.ts):
+          # o que não couber no ciclo volta como 207 e é reenviado na próxima
+          # execução. Se este passo falhar com exit 28, o endpoint quebrou esse
+          # contrato — não adianta só aumentar o --max-time aqui.
           RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            --retry 3 --retry-delay 5 --max-time 30 \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "https://chronos-system.vercel.app/api/notifications/cron")
 
           echo "Status HTTP: $RESPONSE"
           cat /tmp/response.json || true
 
-          if [ "$RESPONSE" != "200" ]; then
-            echo "::error::Endpoint retornou status $RESPONSE (esperado 200)"
+          # 207 (Multi-Status) = falha parcial no envio de e-mail — o próprio
+          # endpoint já registrou em CronLog e vai reprocessar o que faltou no
+          # próximo ciclo (deduplicado), então não é um erro de infra para o
+          # GitHub Actions tentar de novo. Só 4xx/5xx é falha de verdade aqui.
+          if [ "$RESPONSE" != "200" ] && [ "$RESPONSE" != "207" ]; then
+            echo "::error::Endpoint retornou status $RESPONSE (esperado 200 ou 207)"
             exit 1
           fi

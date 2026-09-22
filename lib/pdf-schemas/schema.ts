@@ -14,9 +14,9 @@ export interface PDFDocumentSchema {
   signatureLines?: PDFSigatureLine[]
 }
 
-export type PDFSection = PDFTableSection | PDFParagraphSection | PDFListSection
+type PDFSection = PDFTableSection | PDFParagraphSection | PDFListSection
 
-export interface PDFSectionBase {
+interface PDFSectionBase {
   title: string
 }
 
@@ -36,9 +36,9 @@ export interface PDFListSection extends PDFSectionBase {
   items: string[]
 }
 
-export interface PDFSigatureLine {
+interface PDFSigatureLine {
   label: string
 }
 
 // Helper type for form data mapping
-export type FormDataMap = Record<string, unknown>
+type FormDataMap = Record<string, unknown>

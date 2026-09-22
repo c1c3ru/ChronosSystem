@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza, endOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import {
   buildEntryDayKeySet,
   countWeekdayAbsenceIncidents,
@@ -24,12 +25,8 @@ export async function GET(request: NextRequest) {
     const period = parseInt(searchParams.get('period') || '30', 10)
     const userFilter = searchParams.get('user') || 'ALL'
 
-    const endDate = new Date()
-    endDate.setHours(23, 59, 59, 999)
-
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - period)
-    startDate.setHours(0, 0, 0, 0)
+    const endDate = endOfDayInFortaleza()
+    const startDate = addDaysInFortaleza(startOfDayInFortaleza(), -period)
 
     const userWhere = userFilter !== 'ALL' ? { role: userFilter } : {}
 
@@ -71,13 +68,12 @@ export async function GET(request: NextRequest) {
 
         Promise.all(
           Array.from({ length: 6 }, async (_, i) => {
-            const monthStart = new Date()
-            monthStart.setMonth(monthStart.getMonth() - i)
-            monthStart.setDate(1)
-            monthStart.setHours(0, 0, 0, 0)
+            const monthStart = startOfDayInFortaleza()
+            monthStart.setUTCDate(1)
+            monthStart.setUTCMonth(monthStart.getUTCMonth() - i)
 
             const monthEnd = new Date(monthStart)
-            monthEnd.setMonth(monthEnd.getMonth() + 1)
+            monthEnd.setUTCMonth(monthEnd.getUTCMonth() + 1)
 
             const [records, monthEntries] = await Promise.all([
               prisma.attendanceRecord.count({

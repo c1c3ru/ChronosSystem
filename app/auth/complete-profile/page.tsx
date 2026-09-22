@@ -18,7 +18,6 @@ import {
   formatHours,
 } from '@/lib/contract-types'
 import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
-import { determineRoleFromSiape } from '@/lib/admin-siape'
 
 interface ProfileData {
   phone?: string
@@ -27,6 +26,7 @@ interface ProfileData {
   emergencyContact?: string
   emergencyPhone?: string
   department?: string
+  registrationNumber?: string
   startDate?: string
   contractStartDate?: string
   contractEndDate?: string
@@ -40,6 +40,26 @@ interface ProfileData {
   allowFlexibleHours?: boolean
 }
 
+// Rótulos legíveis dos campos, para listar no toast/banner de erro exatamente
+// quais campos precisam ser corrigidos (em vez de uma mensagem genérica).
+const FIELD_LABELS: Record<string, string> = {
+  phone: 'Telefone',
+  address: 'Endereço',
+  birthDate: 'Data de nascimento',
+  emergencyContact: 'Contato de emergência',
+  emergencyPhone: 'Telefone de emergência',
+  department: 'Departamento',
+  registrationNumber: 'Matrícula',
+  siapeNumber: 'Matrícula SIAPE',
+  contractType: 'Tipo de contrato',
+  startDate: 'Data de início',
+  contractStartDate: 'Data de início do contrato',
+  contractEndDate: 'Data de fim do contrato',
+  shift: 'Turno',
+  shiftStartTime: 'Horário de início do turno',
+  shiftEndTime: 'Horário de fim do turno',
+}
+
 export default function CompleteProfilePage() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
@@ -49,17 +69,17 @@ export default function CompleteProfilePage() {
   const [success, setSuccess] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
   const [existingUserData, setExistingUserData] = useState<Record<string, unknown> | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
+  // O nivel de acesso final e sempre decidido pelo servidor (ver
+  // POST /api/auth/complete-profile) — nunca pelo numero de SIAPE digitado
+  // aqui. Usamos o role da sessao apenas como dica de UX para mostrar/ocultar
+  // campos; nao deve (e nao pode mais) prever nem exibir uma promocao a ADMIN.
   const effectiveRole = useMemo(() => {
-    if (profileData.siapeNumber && profileData.siapeNumber.length === 7) {
-      return determineRoleFromSiape(profileData.siapeNumber)
-    }
     return session?.user?.role || 'EMPLOYEE'
-  }, [profileData.siapeNumber, session?.user?.role])
+  }, [session?.user?.role])
 
   // Função para voltar (logout e redirecionar para login)
   const handleGoBack = async () => {
@@ -98,13 +118,6 @@ export default function CompleteProfilePage() {
     }
   }, [session, status, router, hasRedirected])
 
-  // Detectar hidratação
-  useEffect(() => {
-    console.log('🔄 Componente hidratado')
-    setIsHydrated(true)
-  }, [])
-
-  // Anexar event listener após hidratação e quando formulário estiver disponível
   const validateForm = useCallback(() => {
     console.log('🔍 [VALIDAÇÃO] Iniciando validação do formulário...')
     console.log('📝 [VALIDAÇÃO] Dados atuais:', profileData)
@@ -135,9 +148,13 @@ export default function CompleteProfilePage() {
       newErrors.emergencyPhone = 'Formato inválido. Use: (11) 99999-9999'
     }
 
-    // Departamento só é obrigatório para funcionários
+    // Departamento e matrícula só são obrigatórios para funcionários (alunos/estagiários)
     if (effectiveRole === 'EMPLOYEE' && !profileData.department) {
       newErrors.department = 'Departamento é obrigatório para funcionários'
+    }
+
+    if (effectiveRole === 'EMPLOYEE' && !profileData.registrationNumber?.trim()) {
+      newErrors.registrationNumber = 'Matrícula é obrigatória para alunos/estagiários'
     }
 
     // Validar matrícula SIAPE (apenas se hasSiape for true)
@@ -199,6 +216,8 @@ export default function CompleteProfilePage() {
         emergencyPhone: !!profileData.emergencyPhone,
         siapeNumber: !!profileData.siapeNumber,
         department: effectiveRole === 'EMPLOYEE' ? !!profileData.department : 'N/A (ADMIN)',
+        registrationNumber:
+          effectiveRole === 'EMPLOYEE' ? !!profileData.registrationNumber : 'N/A (ADMIN)',
         contractType: effectiveRole === 'EMPLOYEE' ? !!profileData.contractType : 'N/A (ADMIN)',
         contractStartDate:
           effectiveRole === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
@@ -213,7 +232,7 @@ export default function CompleteProfilePage() {
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return newErrors
   }, [profileData, effectiveRole])
 
   const handleSubmit = useCallback(
@@ -223,8 +242,35 @@ export default function CompleteProfilePage() {
 
       console.log('📝 Dados do formulário:', profileData)
 
-      if (!validateForm()) {
-        console.log('❌ Validação falhou')
+      const validationErrors = validateForm()
+      const invalidFields = Object.keys(validationErrors)
+
+      if (invalidFields.length > 0) {
+        console.log('❌ Validação falhou', validationErrors)
+
+        // Feedback visual: sem isso, clicar em Salvar com um campo obrigatório
+        // vazio não mostrava nada além de um texto pequeno abaixo do campo
+        // (fácil de não notar, especialmente se estiver fora da tela). Agora
+        // nomeia exatamente quais campos precisam ser corrigidos.
+        const fieldNames = invalidFields.map((key) => FIELD_LABELS[key] || key).join(', ')
+        toast.error(`Corrija os seguintes campos: ${fieldNames}`)
+        setErrors((prev) => ({
+          ...prev,
+          general: `Campos pendentes: ${fieldNames}.`,
+        }))
+
+        // Foca e rola até o primeiro campo inválido que existe no DOM (a
+        // maioria dos campos tem id igual à chave); senão, rola até o topo
+        // do formulário para o banner de erro ficar visível.
+        const firstFieldWithId = invalidFields.find((key) => document.getElementById(key))
+        const target = firstFieldWithId ? document.getElementById(firstFieldWithId) : null
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          target.focus()
+        } else {
+          formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+
         return
       }
 
@@ -302,38 +348,6 @@ export default function CompleteProfilePage() {
     },
     [profileData, update, validateForm]
   )
-
-  // Anexar event listener após hidratação e quando formulário estiver disponível
-  useEffect(() => {
-    if (!isHydrated) return
-
-    // Aguardar um tick para garantir que o DOM está pronto
-    const timer = setTimeout(() => {
-      const form = formRef.current
-      if (form) {
-        console.log('📋 Anexando event listener manual ao formulário')
-
-        const handleFormSubmit = async (e: Event) => {
-          console.log('🚀 Event listener manual chamado!')
-          await handleSubmit(e)
-        }
-
-        // Anexar listener manual
-        form.addEventListener('submit', handleFormSubmit)
-        console.log('✅ Event listener manual anexado')
-
-        // Cleanup
-        return () => {
-          console.log('🧹 Removendo event listener manual')
-          form.removeEventListener('submit', handleFormSubmit)
-        }
-      } else {
-        console.log('❌ Formulário ainda não está disponível no DOM')
-      }
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [isHydrated, profileData, handleSubmit])
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '')
@@ -665,25 +679,8 @@ export default function CompleteProfilePage() {
                         <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>
                       )}
                       <p className="text-neutral-400 text-xs mt-1">
-                        Sua matrícula SIAPE determinará automaticamente seu nível de acesso no
-                        sistema
+                        Sua matrícula SIAPE será conferida pelo administrador do sistema.
                       </p>
-                      {profileData.siapeNumber && profileData.siapeNumber.length === 7 && (
-                        <div className="mt-2 p-2 rounded bg-neutral-800 border border-neutral-600">
-                          <p className="text-xs text-neutral-300">
-                            <span className="font-medium">Nível de acesso detectado:</span>{' '}
-                            <span
-                              className={`font-semibold ${
-                                determineRoleFromSiape(profileData.siapeNumber) === 'ADMIN'
-                                  ? 'text-red-400'
-                                  : 'text-blue-400'
-                              }`}
-                            >
-                              {determineRoleFromSiape(profileData.siapeNumber)}
-                            </span>
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -839,6 +836,31 @@ export default function CompleteProfilePage() {
                       </select>
                       {errors.department && (
                         <p className="text-error text-xs mt-1">{errors.department}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="registrationNumber"
+                        className="block text-sm font-medium text-neutral-300 mb-2"
+                      >
+                        Matrícula *
+                      </label>
+                      <input
+                        id="registrationNumber"
+                        type="text"
+                        placeholder="Número da sua matrícula"
+                        className={`input ${errors.registrationNumber ? 'border-error' : ''}`}
+                        value={profileData.registrationNumber || ''}
+                        onChange={(e) =>
+                          setProfileData((prev) => ({
+                            ...prev,
+                            registrationNumber: e.target.value,
+                          }))
+                        }
+                      />
+                      {errors.registrationNumber && (
+                        <p className="text-error text-xs mt-1">{errors.registrationNumber}</p>
                       )}
                     </div>
 

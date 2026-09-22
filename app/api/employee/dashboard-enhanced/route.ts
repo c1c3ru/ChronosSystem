@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza, startOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import { apiLogger } from '@/lib/logger'
 
 // Force dynamic rendering
@@ -56,10 +57,8 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const today = startOfDayInFortaleza()
+    const tomorrow = addDaysInFortaleza(today, 1)
 
     // Buscar último registro do usuário
     const lastRecord = await prisma.attendanceRecord.findFirst({
@@ -141,10 +140,8 @@ export async function GET(request: NextRequest) {
         if (!day || !day.fullDate) return day
 
         try {
-          const dayStart = new Date(day.fullDate)
-          dayStart.setHours(0, 0, 0, 0)
-          const dayEnd = new Date(dayStart)
-          dayEnd.setDate(dayEnd.getDate() + 1)
+          const dayStart = startOfDayInFortaleza(new Date(day.fullDate))
+          const dayEnd = addDaysInFortaleza(dayStart, 1)
 
           // Verificar se há justificativa aprovada para este dia
           const justification = await prisma.justification.findFirst({
@@ -235,9 +232,10 @@ function analyzeTodayRecords(
   estaTrabalhando: boolean = false,
   ultimoRegistro: RecordWithMachine | null = null
 ) {
-  const agora = new Date()
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0)
+  // Relógio de Fortaleza: os timestamps dos registros estão nessa codificação,
+  // e um `new Date()` real daria 3h a mais a quem está com o ponto aberto.
+  const agora = getNowInFortaleza()
+  const hoje = startOfDayInFortaleza(agora)
 
   let minutosTotais = 0
   const alertas: { type: string; message: string; severity: string }[] = []

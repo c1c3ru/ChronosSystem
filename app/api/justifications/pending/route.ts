@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import { analyzeDayForJustification, getUserWorkingHours, isWeekend } from '@/lib/attendance-logic'
 import { isNationalHoliday } from '@/lib/holidays'
 
@@ -22,9 +23,8 @@ export async function GET(request: NextRequest) {
     const workingHours = await getUserWorkingHours(session.user.id)
 
     // Buscar registros dos últimos 30 dias
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    thirtyDaysAgo.setHours(0, 0, 0, 0)
+    const hojeEmFortaleza = startOfDayInFortaleza()
+    const thirtyDaysAgo = addDaysInFortaleza(hojeEmFortaleza, -30)
 
     const attendanceRecords = await prisma.attendanceRecord.findMany({
       where: {
@@ -85,15 +85,12 @@ export async function GET(request: NextRequest) {
     }
 
     const pendingIssues: PendingIssue[] = []
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = hojeEmFortaleza
 
     // Analisar cada dia dos últimos 30 dias
     for (let i = 1; i < 30; i++) {
       // Começar de 1 para não incluir hoje
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      date.setHours(0, 0, 0, 0)
+      const date = addDaysInFortaleza(hojeEmFortaleza, -i)
 
       const dateKey = date.toISOString().split('T')[0]
       const dayData = dayRecords.get(dateKey) || { entry: null, exit: null }

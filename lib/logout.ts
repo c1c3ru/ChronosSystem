@@ -24,20 +24,3 @@ export async function handleCompleteLogout() {
     }
   }
 }
-
-/**
- * Função para logout sem redirecionamento (para uso em componentes)
- */
-export async function handleLogoutNoRedirect() {
-  try {
-    await signOut({ redirect: false })
-
-    // Limpar storage local
-    if (typeof window !== 'undefined') {
-      localStorage.clear()
-      sessionStorage.clear()
-    }
-  } catch (error) {
-    console.error('Erro durante logout:', error)
-  }
-}

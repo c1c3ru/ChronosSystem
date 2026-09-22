@@ -1,5 +1,13 @@
 import type { TDocumentDefinitions, Content, TableCell, Alignment } from 'pdfmake/interfaces'
-import { ifceHeader, cell, emptyCell, dataTable, fmtDate, v } from '@/lib/pdfmake-base-service'
+import {
+  ifceHeader,
+  cell,
+  cellRow,
+  emptyCell,
+  dataTable,
+  fmtDate,
+  v,
+} from '@/lib/pdfmake-base-service'
 
 export interface EquivalenceRequestData {
   // Student Data
@@ -59,38 +67,36 @@ export async function buildEquivalenceRequestDoc(
   const header = await ifceHeader()
   const cb = (checked?: boolean) => (checked ? '( X )' : '(   )')
 
-  const studentTable = dataTable(
-    ['75%', '25%'],
-    [
-      [cell('NOME', v(d.student_name)), cell('CPF', v(d.student_cpf))],
-      [cell('NOME SOCIAL', v(d.student_social_name), { colSpan: 2 }), emptyCell()],
-      [cell('CURSO', v(d.student_course)), cell('MATRÍCULA', v(d.student_enrollment))],
+  const studentTable: Content[] = [
+    dataTable(
+      ['75%', '25%'],
       [
-        cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address)),
-        cell('BAIRRO/DISTRITO', v(d.student_neighborhood)),
-      ],
+        [cell('NOME', v(d.student_name)), cell('CPF', v(d.student_cpf))],
+        [cell('NOME SOCIAL', v(d.student_social_name), { colSpan: 2 }), emptyCell()],
+        [cell('CURSO', v(d.student_course)), cell('MATRÍCULA', v(d.student_enrollment))],
+        [
+          cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address)),
+          cell('BAIRRO/DISTRITO', v(d.student_neighborhood)),
+        ],
+      ]
+    ),
+    // Linha com 3 campos: ocupa a largura total (antes ficava só nos 75%
+    // da grade acima, sobrando 25% em branco à direita).
+    cellRow([
+      { label: 'MUNICÍPIO-UF', value: v(d.student_city_uf), width: '35%' },
+      { label: 'CEP', value: v(d.student_cep), width: '25%' },
+      { label: 'DDD + TELEFONE', value: v(d.student_phone), width: '40%' },
+    ]),
+    dataTable(
+      ['75%', '25%'],
       [
-        {
-          columns: [
-            cell('MUNICÍPIO-UF', v(d.student_city_uf), {
-              width: '40%',
-              border: [false, false, true, true],
-            }),
-            cell('CEP', v(d.student_cep), { width: '30%', border: [false, false, true, true] }),
-            cell('DDD + TELEFONE', v(d.student_phone), {
-              width: '30%',
-              border: [false, false, false, true],
-            }),
-          ],
-        } as TableCell,
-        emptyCell(),
-      ],
-      [
-        cell('E-MAIL INSTITUCIONAL', v(d.student_email_inst)),
-        cell('E-MAIL PESSOAL', v(d.student_email_personal)),
-      ],
-    ]
-  )
+        [
+          cell('E-MAIL INSTITUCIONAL', v(d.student_email_inst)),
+          cell('E-MAIL PESSOAL', v(d.student_email_personal)),
+        ],
+      ]
+    ),
+  ]
 
   const personalInfoTable = dataTable(
     ['33%', '33%', '34%'],
@@ -361,7 +367,7 @@ export async function buildEquivalenceRequestDoc(
       style: 'docTitle',
       margin: [0, 10, 0, 10],
     },
-    studentTable,
+    ...studentTable,
     { text: '\n', fontSize: 4 },
     personalInfoTable,
     { text: '\n', fontSize: 4 },

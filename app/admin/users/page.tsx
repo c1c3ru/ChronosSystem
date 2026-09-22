@@ -16,6 +16,8 @@ import {
   Eye,
   Download,
   RefreshCw,
+  Wand2,
+  Wrench,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -34,6 +36,7 @@ interface User {
   phone?: string
   department?: string
   siapeNumber?: string
+  registrationNumber?: string
   contractType?: string
   weeklyHours?: number
   shiftStartTime?: string
@@ -55,6 +58,9 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('ALL')
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
+  const [backfilling, setBackfilling] = useState(false)
+  const [repairing, setRepairing] = useState(false)
 
   // A proteção de rota agora é feita EXCLUSIVAMENTE pelo middleware.
   // Isso evita loops de redirecionamento quando a sessão do cliente demora a sincronizar.
@@ -127,19 +133,145 @@ export default function UsersPage() {
     toast.success('Lista de usuários atualizada!')
   }
 
+  const handleExportCsv = async () => {
+    try {
+      setExporting(true)
+      toast.loading('Gerando arquivo CSV...', { id: 'export-students' })
+
+      const response = await fetch('/api/admin/students/export')
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Erro ao exportar alunos' }))
+        toast.error(error.error || 'Erro ao exportar alunos', { id: 'export-students' })
+        return
+      }
+
+      const blob = await response.blob()
+      const today = new Date().toISOString().split('T')[0]
+      const fileName = `alunos_chronos_${today}.csv`
+
+      // Gera o blob e força o download no navegador com nome de arquivo dinâmico
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      toast.success('Alunos exportados com sucesso!', { id: 'export-students' })
+    } catch (error) {
+      console.error('Erro ao exportar alunos para CSV:', error)
+      toast.error('Erro inesperado ao exportar alunos', { id: 'export-students' })
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleBackfillRegistrationNumbers = async () => {
+    try {
+      setBackfilling(true)
+      toast.loading('Verificando rascunhos de documentos...', { id: 'backfill-registration' })
+
+      const dryRunResponse = await fetch(
+        '/api/admin/students/backfill-registration-number?dryRun=true',
+        { method: 'POST' }
+      )
+      const dryRunData = await dryRunResponse.json()
+
+      if (!dryRunResponse.ok) {
+        toast.error(dryRunData.error || 'Erro ao verificar matrículas', {
+          id: 'backfill-registration',
+        })
+        return
+      }
+
+      if (dryRunData.updated === 0) {
+        toast.success('Nenhuma matrícula nova encontrada nos rascunhos de documento.', {
+          id: 'backfill-registration',
+        })
+        return
+      }
+
+      toast.dismiss('backfill-registration')
+      const confirmed = confirm(
+        `${dryRunData.updated} aluno(s) têm matrícula digitada em algum rascunho de documento mas não no perfil.\n\n` +
+          `Confirmar o preenchimento automático? (quem já tem matrícula no perfil não é alterado)`
+      )
+      if (!confirmed) return
+
+      toast.loading('Migrando matrículas...', { id: 'backfill-registration' })
+      const applyResponse = await fetch('/api/admin/students/backfill-registration-number', {
+        method: 'POST',
+      })
+      const applyData = await applyResponse.json()
+
+      if (applyResponse.ok) {
+        toast.success(`${applyData.updated} matrícula(s) preenchida(s) com sucesso!`, {
+          id: 'backfill-registration',
+        })
+        loadUsers()
+      } else {
+        toast.error(applyData.error || 'Erro ao migrar matrículas', {
+          id: 'backfill-registration',
+        })
+      }
+    } catch (error) {
+      console.error('Erro ao migrar matrículas de alunos:', error)
+      toast.error('Erro inesperado ao migrar matrículas', { id: 'backfill-registration' })
+    } finally {
+      setBackfilling(false)
+    }
+  }
+
+  const handleRepairSchema = async () => {
+    if (
+      !confirm(
+        'Reparo emergencial: garante que a coluna "registrationNumber" existe no banco de produção ' +
+          '(necessária desde a última atualização, ainda não aplicada automaticamente). Confirmar?'
+      )
+    )
+      return
+
+    try {
+      setRepairing(true)
+      toast.loading('Aplicando reparo no banco de dados...', { id: 'repair-schema' })
+
+      const response = await fetch('/api/admin/system/repair-registration-number-column', {
+        method: 'POST',
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(data.message || 'Reparo aplicado com sucesso!', { id: 'repair-schema' })
+        loadUsers()
+      } else {
+        toast.error(data.error || 'Erro ao aplicar reparo', { id: 'repair-schema' })
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar reparo de schema:', error)
+      toast.error('Erro inesperado ao aplicar reparo', { id: 'repair-schema' })
+    } finally {
+      setRepairing(false)
+    }
+  }
+
   const filteredUsers = (users || []).filter((user) => {
     const search = searchTerm.trim().toLowerCase()
     const name = (user.name || '').toLowerCase()
     const email = (user.email || '').toLowerCase()
     const department = (user.department || '').toLowerCase()
     const siape = (user.siapeNumber || '').toLowerCase()
+    const registrationNumber = (user.registrationNumber || '').toLowerCase()
 
     const matchesSearch =
       search === '' ||
       name.includes(search) ||
       email.includes(search) ||
       department.includes(search) ||
-      siape.includes(search)
+      siape.includes(search) ||
+      registrationNumber.includes(search)
 
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter
     return matchesSearch && matchesRole
@@ -185,6 +317,38 @@ export default function UsersPage() {
               <Button variant="ghost" onClick={handleRefresh} title="Atualizar lista">
                 <RefreshCw className="h-4 w-4" />
               </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportCsv}
+                loading={exporting}
+                title="Exportar alunos para CSV"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+              {session?.user?.role === 'ADMIN' && (
+                <Button
+                  variant="outline"
+                  onClick={handleRepairSchema}
+                  loading={repairing}
+                  title="Reparo emergencial: garante a coluna registrationNumber no banco de produção"
+                  className="border-warning/50 text-warning hover:bg-warning/10"
+                >
+                  <Wrench className="h-4 w-4 mr-2" />
+                  Reparar Banco
+                </Button>
+              )}
+              {session?.user?.role === 'ADMIN' && (
+                <Button
+                  variant="outline"
+                  onClick={handleBackfillRegistrationNumbers}
+                  loading={backfilling}
+                  title="Preencher matrícula dos alunos a partir de rascunhos de documento já digitados"
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Migrar Matrículas
+                </Button>
+              )}
               <Button asChild>
                 <Link href="/admin/users/new">
                   <UserPlus className="h-4 w-4 mr-2" />
@@ -243,7 +407,10 @@ export default function UsersPage() {
         {/* Users List */}
         <div className="grid gap-4 w-full">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className={`w-full overflow-hidden transition-opacity ${!user.isActive ? 'opacity-60' : ''}`}>
+            <Card
+              key={user.id}
+              className={`w-full overflow-hidden transition-opacity ${!user.isActive ? 'opacity-60' : ''}`}
+            >
               <CardContent className="p-4 sm:p-6 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                   <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 flex-1 w-full">
@@ -253,7 +420,10 @@ export default function UsersPage() {
                     <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="font-semibold text-white break-words min-w-0">
-                          <Link href={`/admin/users/${user.id}`} className="hover:text-primary transition-colors hover:underline">
+                          <Link
+                            href={`/admin/users/${user.id}`}
+                            className="hover:text-primary transition-colors hover:underline"
+                          >
                             {user.name}
                           </Link>
                         </h3>
@@ -287,6 +457,14 @@ export default function UsersPage() {
                           <div className="min-w-0">
                             <span className="text-neutral-500 block truncate">SIAPE:</span>
                             <p className="text-white font-medium break-all">{user.siapeNumber}</p>
+                          </div>
+                        )}
+                        {user.registrationNumber && (
+                          <div className="min-w-0">
+                            <span className="text-neutral-500 block truncate">Matrícula:</span>
+                            <p className="text-white font-medium break-all">
+                              {user.registrationNumber}
+                            </p>
                           </div>
                         )}
                         {user.department && (

@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/Button'
 import { FilterSelect } from '@/components/ui/FilterSelect'
 import { handleCompleteLogout } from '@/lib/logout'
 import { Loading } from '@/components/ui/Loading'
+import { CronStatusPanel } from '@/components/CronStatusPanel'
 import { toast } from 'sonner'
 
 interface DashboardStats {
@@ -372,9 +373,7 @@ export default function AdminPage() {
                             (stats?.alerts ?? 0) > 0 ? 'text-error' : 'text-neutral-500'
                           }`}
                         >
-                          {(stats?.alerts ?? 0) > 0 && (
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                          )}
+                          {(stats?.alerts ?? 0) > 0 && <AlertTriangle className="h-3 w-3 mr-1" />}
                           {(stats?.alerts ?? 0) > 0
                             ? 'Justificativas pendentes'
                             : 'Nenhuma pendência'}
@@ -400,7 +399,9 @@ export default function AdminPage() {
                     <div className="bg-success/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-success/30 transition-colors">
                       <UserPlus className="h-6 w-6 sm:h-8 sm:w-8 text-success group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Cadastrar Usuário</h3>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">
+                      Cadastrar Usuário
+                    </h3>
                     <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
                       Adicionar novo estagiário ou supervisor
                     </p>
@@ -417,8 +418,12 @@ export default function AdminPage() {
                     <div className="bg-primary/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/30 transition-colors">
                       <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Gerenciar Usuários</h3>
-                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Visualizar e editar usuários</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">
+                      Gerenciar Usuários
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
+                      Visualizar e editar usuários
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
@@ -432,8 +437,12 @@ export default function AdminPage() {
                     <div className="bg-secondary-500/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-secondary-500/30 transition-colors">
                       <Monitor className="h-6 w-6 sm:h-8 sm:w-8 text-secondary-500 group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Gerenciar Máquinas</h3>
-                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Adicionar e configurar pontos</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">
+                      Gerenciar Máquinas
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
+                      Adicionar e configurar pontos
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
@@ -447,8 +456,12 @@ export default function AdminPage() {
                     <div className="bg-warning/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-warning/30 transition-colors">
                       <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-warning group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Relatórios</h3>
-                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Visualizar relatórios e estatísticas</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">
+                      Relatórios
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
+                      Visualizar relatórios e estatísticas
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
@@ -463,11 +476,20 @@ export default function AdminPage() {
                     <div className="bg-primary/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/30 transition-colors">
                       <CalendarDays className="h-6 w-6 sm:h-8 sm:w-8 text-primary group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">Quadro de Horários</h3>
-                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">Visualizar turnos dos estagiários</p>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">
+                      Quadro de Horários
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
+                      Visualizar turnos dos estagiários
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
+            </div>
+
+            {/* Status dos Alertas — histórico dos crons de justificativa/ponto */}
+            <div className="mb-6 sm:mb-8">
+              <CronStatusPanel />
             </div>
 
             {/* Interns Overview */}

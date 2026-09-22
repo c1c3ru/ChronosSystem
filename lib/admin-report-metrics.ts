@@ -1,24 +1,23 @@
 /**
  * Métricas reais para relatórios administrativos (alinhado ao dashboard: entrada esperada 08:00, tolerância 15 min)
+ *
+ * Convenção de fuso do sistema: os timestamps de ponto são gravados com o
+ * relógio de parede de Fortaleza codificado como UTC (ver `getNowInFortaleza`
+ * em `lib/timezone.ts`). Por isso a hora/data local de Fortaleza de um registro
+ * é lida com os getters UTC (`getUTCHours`, `getUTCDay`, ...), do mesmo jeito
+ * que o dashboard do estagiário e as telas de admin fazem. Converter de UTC
+ * para America/Fortaleza aqui aplicaria o deslocamento de -3h uma segunda vez,
+ * e uma entrada às 08:10 apareceria como 05:10 no relatório.
  */
-const TZ = 'America/Fortaleza'
 const LATE_GRACE_MIN = 15
 const EXPECTED_START_MIN = 8 * 60
 
-export function dateKeyFortaleza(d: Date): string {
-  return d.toLocaleDateString('en-CA', { timeZone: TZ })
+function dateKeyFortaleza(d: Date): string {
+  return d.toISOString().slice(0, 10)
 }
 
 function minutesSinceMidnightFortaleza(d: Date): number {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: TZ,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(d)
-  const h = Number(parts.find((p) => p.type === 'hour')?.value ?? 0)
-  const m = Number(parts.find((p) => p.type === 'minute')?.value ?? 0)
-  return h * 60 + m
+  return d.getUTCHours() * 60 + d.getUTCMinutes()
 }
 
 /** Entrada com atraso além da tolerância (regra espelhada do dashboard-enhanced) */
@@ -27,18 +26,20 @@ export function isLateEntryRecord(timestamp: Date): boolean {
 }
 
 function isWeekendFortaleza(d: Date): boolean {
-  const w = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short' }).format(d)
-  return w === 'Sat' || w === 'Sun'
+  const weekday = d.getUTCDay()
+  return weekday === 0 || weekday === 6
 }
 
 function* eachDayInRange(start: Date, end: Date): Generator<Date> {
+  // Meio-dia evita que qualquer arredondamento de borda mude o dia; os setters
+  // UTC mantêm a iteração independente do fuso de quem roda o processo.
   const cur = new Date(start)
-  cur.setHours(12, 0, 0, 0)
+  cur.setUTCHours(12, 0, 0, 0)
   const endAt = new Date(end)
-  endAt.setHours(12, 0, 0, 0)
+  endAt.setUTCHours(12, 0, 0, 0)
   while (cur <= endAt) {
     yield new Date(cur)
-    cur.setDate(cur.getDate() + 1)
+    cur.setUTCDate(cur.getUTCDate() + 1)
   }
 }
 

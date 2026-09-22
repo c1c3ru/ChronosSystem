@@ -23,14 +23,25 @@ jobs:
     steps:
       - name: Chamar /api/cron/daily-justification-check
         run: |
+          # Retry de 3 vezes com intervalo de 5s, e timeout de 30s por tentativa.
+          # O endpoint se limita sozinho para responder bem antes disso (ver
+          # CRON_EMAIL_TIME_BUDGET_MS e CRON_SEND_TIMEOUT_MS em lib/cron-log.ts):
+          # o que não couber no ciclo volta como 207 e é reenviado na próxima
+          # execução. Se este passo falhar com exit 28, o endpoint quebrou esse
+          # contrato — não adianta só aumentar o --max-time aqui.
           RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            --retry 3 --retry-delay 5 --max-time 30 \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "https://chronos-system.vercel.app/api/cron/daily-justification-check")
 
           echo "Status HTTP: $RESPONSE"
           cat /tmp/response.json || true
 
-          if [ "$RESPONSE" != "200" ]; then
-            echo "::error::Endpoint retornou status $RESPONSE (esperado 200)"
+          # 207 (Multi-Status) = falha parcial no envio de e-mail — o próprio
+          # endpoint já registrou em CronLog e vai reprocessar o que faltou no
+          # próximo ciclo (deduplicado), então não é um erro de infra para o
+          # GitHub Actions tentar de novo. Só 4xx/5xx é falha de verdade aqui.
+          if [ "$RESPONSE" != "200" ] && [ "$RESPONSE" != "207" ]; then
+            echo "::error::Endpoint retornou status $RESPONSE (esperado 200 ou 207)"
             exit 1
           fi

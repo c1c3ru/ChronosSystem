@@ -17,6 +17,7 @@ const updateUserSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   department: z.string().optional(),
+  registrationNumber: z.string().optional(),
   isActive: z.boolean().optional(),
 })
 
@@ -50,6 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         department: true,
         startDate: true,
         siapeNumber: true,
+        registrationNumber: true,
         contractType: true,
         weeklyHours: true,
         dailyHours: true,
@@ -119,6 +121,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if ('isActive' in validatedData && session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Apenas administradores podem ativar/desativar perfis' },
+        { status: 403 }
+      )
+    }
+
+    // Apenas ADMIN pode alterar role — SUPERVISOR também pode chegar até
+    // aqui (edição do próprio perfil), então sem esta checagem um
+    // SUPERVISOR poderia se auto-promover a ADMIN via PUT no próprio id.
+    if ('role' in validatedData && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas administradores podem alterar o nível de acesso (role)' },
         { status: 403 }
       )
     }

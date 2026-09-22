@@ -239,12 +239,3 @@ export function isWorkingDay(date: Date): boolean {
   const { isHoliday: holiday } = isNationalHoliday(date)
   return !isWeekendDay && !holiday
 }
-
-export function getNextWorkingDay(date: Date): Date {
-  const nextDay = new Date(date)
-  nextDay.setDate(nextDay.getDate() + 1)
-  while (!isWorkingDay(nextDay)) {
-    nextDay.setDate(nextDay.getDate() + 1)
-  }
-  return nextDay
-}
