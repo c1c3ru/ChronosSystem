@@ -13,6 +13,9 @@ import {
   recordCronLog,
   recordCronError,
   cronHttpStatus,
+  withSendTimeout,
+  CRON_EMAIL_TIME_BUDGET_MS,
+  TIME_BUDGET_EXCEEDED_MESSAGE,
   type CronRunStatus,
   type CronFailureDetail,
 } from '@/lib/cron-log'
@@ -20,7 +23,7 @@ import type { AttendanceRecord, Justification, Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 // Teto de execução na Vercel — a plataforma limita ao máximo permitido pelo
-// plano (ex.: 10s no Hobby) mesmo se este valor for maior; ver EMAIL_TIME_BUDGET_MS
+// plano (ex.: 10s no Hobby) mesmo se este valor for maior; ver CRON_EMAIL_TIME_BUDGET_MS
 // abaixo para o orçamento interno que realmente evita o timeout.
 export const maxDuration = 60
 
@@ -50,7 +53,6 @@ export const maxDuration = 60
 const JOB_NAME = 'daily-justification-check'
 const REMINDER_NOTIFICATION_TYPE = 'JUSTIFICATION_PENDING_REMINDER'
 const DAYS_TO_ANALYZE = 30
-const EMAIL_TIME_BUDGET_MS = Number(process.env.CRON_EMAIL_TIME_BUDGET_MS) || 8_000
 
 type EmployeeForCheck = Prisma.UserGetPayload<{
   select: { id: true; name: true; email: true }
@@ -371,14 +373,14 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < candidates.length; i++) {
       const candidate = candidates[i]
 
-      if (Date.now() - startedAt > EMAIL_TIME_BUDGET_MS) {
+      if (Date.now() - startedAt > CRON_EMAIL_TIME_BUDGET_MS) {
         for (const remaining of candidates.slice(i)) {
           results.failed++
           results.details.push({
             userId: remaining.employee.id,
             email: remaining.employee.email,
             status: 'failed',
-            message: 'Orçamento de tempo excedido — será reprocessado na próxima execução',
+            message: TIME_BUDGET_EXCEEDED_MESSAGE,
           })
         }
         apiLogger.warn('Daily justification check: time budget exceeded', {
@@ -389,7 +391,10 @@ export async function GET(request: NextRequest) {
       }
 
       try {
-        const sent = await dispatchReminder(candidate)
+        // Teto por envio: o orçamento acima só é conferido ENTRE candidatos,
+        // então sem isto um único e-mail travado segura o lote inteiro e o
+        // endpoint não responde dentro do --max-time do chamador.
+        const sent = await withSendTimeout(dispatchReminder(candidate))
 
         if (sent) {
           results.sent++

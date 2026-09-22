@@ -2,7 +2,12 @@ import { prisma } from './prisma'
 import { emailService } from './email'
 import { getNowInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
-import { runBatchSequentially, type CronRunSummary, type CronFailureDetail } from './cron-log'
+import {
+  runBatchSequentially,
+  type BatchTimeOptions,
+  type CronRunSummary,
+  type CronFailureDetail,
+} from './cron-log'
 
 export type NotificationType = 'ENTRY_REMINDER' | 'EXIT_REMINDER' | 'MISSED_EXIT' | 'MISSED_ENTRY'
 
@@ -39,12 +44,18 @@ interface NotificationTask {
  * destinatário de cada vez, via runBatchSequentially (ver lib/cron-log.ts) —
  * para evitar EBUSY de contenção de DNS ao abrir várias conexões SMTP em
  * paralelo. Uma falha de e-mail isolada não impede o envio dos demais nem
- * aborta o restante do lote, mas o tempo total cresce com o número de
- * destinatários: a rota HTTP precisa de maxDuration alto o suficiente (ver
- * app/api/notifications/cron/route.ts) para não estourar em ciclos com
- * muitos estagiários.
+ * aborta o restante do lote.
+ *
+ * Como o tempo total cresce com o número de destinatários, o lote roda dentro
+ * de um orçamento de tempo (ver CRON_EMAIL_TIME_BUDGET_MS em lib/cron-log.ts):
+ * `options.startedAt` deve ser o início da REQUISIÇÃO, para que a consulta ao
+ * banco acima também entre na conta. O que não couber no ciclo é reportado
+ * como falha (resposta 207) e reenviado na próxima execução do cron, o que é
+ * seguro porque AttendanceNotification deduplica o que já foi entregue.
  */
-export async function checkAndNotifyAttendance(): Promise<CronRunSummary> {
+export async function checkAndNotifyAttendance(
+  options: BatchTimeOptions = {}
+): Promise<CronRunSummary> {
   const now = getNowInFortaleza()
 
   // Início do dia para filtrar registros de hoje
@@ -134,7 +145,8 @@ export async function checkAndNotifyAttendance(): Promise<CronRunSummary> {
     (task, reason): CronFailureDetail => ({
       email: task.intern.email,
       message: reason instanceof Error ? reason.message : String(reason),
-    })
+    }),
+    options
   )
 }
 

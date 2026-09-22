@@ -14,6 +14,8 @@ import {
   runBatchSequentially,
   recordCronLog,
   recordCronError,
+  withSendTimeout,
+  TIME_BUDGET_EXCEEDED_MESSAGE,
 } from '@/lib/cron-log'
 
 const mockedCreate = prisma.cronLog.create as jest.Mock
@@ -117,6 +119,71 @@ describe('lib/cron-log', () => {
       expect(summary.status).toBe('SUCCESS')
       expect(summary.failureCount).toBe(0)
       expect(sendOne).toHaveBeenCalledTimes(3)
+    })
+
+    // O chamador dos crons é um `curl --max-time 30` no GitHub Actions: um
+    // lote sem limite de tempo deixa o job morrer com exit 28 sem resposta.
+    // Os dois testes abaixo cobrem os dois limites que garantem a resposta.
+    it('para o lote ao estourar o orçamento e marca o restante como reprocessável', async () => {
+      const items = ['a', 'b', 'c']
+      const sendOne = jest.fn(async () => true)
+
+      // Orçamento já vencido no início: nenhum item chega a ser enviado.
+      const summary = await runBatchSequentially(
+        items,
+        sendOne,
+        (item, reason) => ({
+          email: item,
+          message: reason instanceof Error ? reason.message : String(reason),
+        }),
+        { startedAt: Date.now() - 60_000, timeBudgetMs: 8_000 }
+      )
+
+      expect(sendOne).not.toHaveBeenCalled()
+      expect(summary.status).toBe('PARTIAL_FAILURE')
+      expect(summary.totalCount).toBe(3)
+      expect(summary.failureCount).toBe(3)
+      expect(summary.failures.map((f) => f.message)).toEqual([
+        TIME_BUDGET_EXCEEDED_MESSAGE,
+        TIME_BUDGET_EXCEEDED_MESSAGE,
+        TIME_BUDGET_EXCEEDED_MESSAGE,
+      ])
+    })
+
+    it('não deixa um envio travado segurar o lote: aplica o teto por envio e segue', async () => {
+      const items = ['trava', 'ok']
+      const sendOne = jest.fn(async (item: string) => {
+        // Simula o caso real: uma conexão SMTP pendurada que nunca resolve.
+        if (item === 'trava') return new Promise<boolean>(() => {})
+        return true
+      })
+
+      const summary = await runBatchSequentially(
+        items,
+        sendOne,
+        (item, reason) => ({
+          email: item,
+          message: reason instanceof Error ? reason.message : String(reason),
+        }),
+        { sendTimeoutMs: 20 }
+      )
+
+      expect(sendOne).toHaveBeenCalledTimes(2)
+      expect(summary.status).toBe('PARTIAL_FAILURE')
+      expect(summary.successCount).toBe(1)
+      expect(summary.failures).toHaveLength(1)
+      expect(summary.failures[0].email).toBe('trava')
+      expect(summary.failures[0].message).toMatch(/tempo limite/)
+    })
+  })
+
+  describe('withSendTimeout', () => {
+    it('resolve normalmente quando o envio termina dentro do limite', async () => {
+      await expect(withSendTimeout(Promise.resolve('enviado'), 50)).resolves.toBe('enviado')
+    })
+
+    it('rejeita quando o envio passa do limite', async () => {
+      await expect(withSendTimeout(new Promise(() => {}), 20)).rejects.toThrow(/tempo limite/)
     })
   })
 
