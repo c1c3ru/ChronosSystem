@@ -31,3 +31,51 @@ export function getNowInFortaleza(): Date {
   const BRT_OFFSET_MS = -3 * 60 * 60 * 1000
   return new Date(Date.now() + BRT_OFFSET_MS)
 }
+
+/**
+ * Início do dia (00:00) em Fortaleza, na mesma codificação usada para gravar os
+ * registros de ponto.
+ *
+ * Substitui o padrão `new Date()` + `setHours(0, 0, 0, 0)`, que espalhava dois
+ * erros pelas rotas: usava o dia de quem roda o processo (UTC, na Vercel) em
+ * vez do dia de Fortaleza, o que jogava todo registro feito entre 21:00 e a
+ * meia-noite para o dia seguinte; e dependia do fuso do processo, então o mesmo
+ * código dava respostas diferentes no servidor e na máquina de quem desenvolve.
+ *
+ * Sem argumento, usa o dia corrente de Fortaleza. Com argumento, espera um Date
+ * já nessa codificação — o que veio do banco, ou de `getNowInFortaleza()`.
+ */
+export function startOfDayInFortaleza(reference: Date = getNowInFortaleza()): Date {
+  const inicio = new Date(reference)
+  inicio.setUTCHours(0, 0, 0, 0)
+  return inicio
+}
+
+/** Fim do dia (23:59:59.999) em Fortaleza. Ver `startOfDayInFortaleza`. */
+export function endOfDayInFortaleza(reference: Date = getNowInFortaleza()): Date {
+  const fim = new Date(reference)
+  fim.setUTCHours(23, 59, 59, 999)
+  return fim
+}
+
+/**
+ * Soma (ou subtrai, com valor negativo) dias sem sair da codificação de
+ * Fortaleza. Usa os setters UTC, então não depende do fuso do processo nem
+ * escorrega em horário de verão de outro fuso.
+ */
+export function addDaysInFortaleza(reference: Date, days: number): Date {
+  const resultado = new Date(reference)
+  resultado.setUTCDate(resultado.getUTCDate() + days)
+  return resultado
+}
+
+/**
+ * Converte uma data vinda de fora (query string `YYYY-MM-DD`, corpo de
+ * requisição) para a codificação de Fortaleza. Um `YYYY-MM-DD` puro já é
+ * interpretado como meia-noite UTC pelo `Date`, que é exatamente a meia-noite
+ * de Fortaleza nessa codificação; a função existe para deixar a intenção
+ * explícita e para normalizar o horário quando vem um timestamp completo.
+ */
+export function parseDateInFortaleza(value: string | Date): Date {
+  return startOfDayInFortaleza(new Date(value))
+}

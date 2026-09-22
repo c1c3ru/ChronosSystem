@@ -20,6 +20,9 @@ jest.mock('@/lib/push', () => ({
 }))
 
 jest.mock('@/lib/timezone', () => ({
+  // Só o relógio é falso; os helpers de início/fim de dia rodam de verdade
+  // sobre o horário que o teste fixa.
+  ...jest.requireActual('@/lib/timezone'),
   getNowInFortaleza: jest.fn(),
 }))
 

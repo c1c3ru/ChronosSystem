@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza, startOfDayInFortaleza, endOfDayInFortaleza, addDaysInFortaleza, parseDateInFortaleza } from '@/lib/timezone'
 import { z } from 'zod'
 
 const recalculateBalanceSchema = z.object({
@@ -59,28 +60,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Calcular período
-    const now = new Date()
+    const now = getNowInFortaleza()
     let startDate: Date
     let endDate: Date
 
     switch (period) {
       case 'current_week':
-        const startOfWeek = new Date(now)
-        startOfWeek.setDate(now.getDate() - now.getDay())
-        startOfWeek.setHours(0, 0, 0, 0)
+        const startOfWeek = startOfDayInFortaleza(addDaysInFortaleza(now, -now.getUTCDay()))
         startDate = startOfWeek
-        endDate = new Date(startOfWeek)
-        endDate.setDate(startOfWeek.getDate() + 6)
-        endDate.setHours(23, 59, 59, 999)
+        endDate = endOfDayInFortaleza(addDaysInFortaleza(startOfWeek, 6))
         break
       case 'current_month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+        endDate = new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999)
+        )
         break
       case 'last_30_days':
         endDate = new Date(now)
-        startDate = new Date(now)
-        startDate.setDate(now.getDate() - 30)
+        startDate = addDaysInFortaleza(now, -30)
         break
       default:
         return NextResponse.json({ error: 'Período inválido' }, { status: 400 })
@@ -181,11 +179,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Definir data para cálculo (hoje se não especificada)
-    const calculationDate = date ? new Date(date) : new Date()
-    const startOfDay = new Date(calculationDate)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(calculationDate)
-    endOfDay.setHours(23, 59, 59, 999)
+    const calculationDate = date ? parseDateInFortaleza(date) : getNowInFortaleza()
+    const startOfDay = startOfDayInFortaleza(calculationDate)
+    const endOfDay = endOfDayInFortaleza(calculationDate)
 
     // Buscar registros de ponto do dia
     const attendanceRecords = await prisma.attendanceRecord.findMany({

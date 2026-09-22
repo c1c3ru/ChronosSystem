@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza } from '@/lib/timezone'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         attendanceRecords: {
           where: {
             timestamp: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              gte: startOfDayInFortaleza(),
             },
           },
           orderBy: {
@@ -56,8 +57,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = startOfDayInFortaleza()
 
     const formattedInterns = interns.map((intern) => {
       const todayRecords = intern.attendanceRecords.filter((r) => new Date(r.timestamp) >= today)

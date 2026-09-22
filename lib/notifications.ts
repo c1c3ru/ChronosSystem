@@ -1,6 +1,6 @@
 import { prisma } from './prisma'
 import { emailService } from './email'
-import { getNowInFortaleza } from './timezone'
+import { getNowInFortaleza, startOfDayInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
 import {
   runBatchSequentially,
@@ -59,8 +59,7 @@ export async function checkAndNotifyAttendance(
   const now = getNowInFortaleza()
 
   // Início do dia para filtrar registros de hoje
-  const todayStart = new Date(now)
-  todayStart.setHours(0, 0, 0, 0)
+  const todayStart = startOfDayInFortaleza(now)
 
   const interns = await prisma.user.findMany({
     where: { role: 'EMPLOYEE', isActive: true },

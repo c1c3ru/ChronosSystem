@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { startOfDayInFortaleza } from '@/lib/timezone'
 import { Prisma } from '@prisma/client'
 
 // Force dynamic rendering
@@ -29,8 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar os últimos 10 registros de ponto do dia atual (desde as 00h)
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
+    const startOfDay = startOfDayInFortaleza()
 
     const whereClause: Prisma.AttendanceRecordWhereInput = {
       timestamp: {

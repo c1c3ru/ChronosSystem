@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { parseDateInFortaleza, endOfDayInFortaleza } from '@/lib/timezone'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Prisma } from '@prisma/client'
@@ -22,11 +23,10 @@ export async function GET(request: NextRequest) {
     // Construir filtro de data
     const filtroData: Prisma.DateTimeFilter = {}
     if (dataInicial) {
-      filtroData.gte = new Date(dataInicial)
+      filtroData.gte = parseDateInFortaleza(dataInicial)
     }
     if (dataFinal) {
-      const dataFim = new Date(dataFinal)
-      dataFim.setHours(23, 59, 59, 999)
+      const dataFim = endOfDayInFortaleza(parseDateInFortaleza(dataFinal))
       filtroData.lte = dataFim
     }
 

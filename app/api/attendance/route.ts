@@ -9,7 +9,7 @@ import { rateLimiters, addRateLimitHeaders } from '@/lib/rate-limit'
 import { DEFAULT_RADIUS } from '@/lib/geolocation'
 import { logger } from '@/lib/logger'
 import { AttendanceLogic, AttendanceRecordType } from '@/lib/attendance-logic'
-import { getNowInFortaleza } from '@/lib/timezone'
+import { getNowInFortaleza, startOfDayInFortaleza, endOfDayInFortaleza } from '@/lib/timezone'
 
 // Forçar renderização dinâmica
 export const dynamic = 'force-dynamic'
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       where: {
         userId: sessao.user.id,
         timestamp: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          gte: startOfDayInFortaleza(),
         },
       },
       orderBy: { timestamp: 'asc' },
@@ -193,10 +193,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar autorização especial para hoje (trabalho em feriado/fim de semana)
-    const hojeInicio = new Date()
-    hojeInicio.setHours(0, 0, 0, 0)
-    const hojeFim = new Date()
-    hojeFim.setHours(23, 59, 59, 999)
+    const hojeInicio = startOfDayInFortaleza()
+    const hojeFim = endOfDayInFortaleza()
 
     const autorizacaoEspecial = await prisma.justification.findFirst({
       where: {

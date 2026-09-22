@@ -12,7 +12,7 @@ import {
   validateRecord,
   isWeekend,
 } from '@/lib/attendance-logic'
-import { getNowInFortaleza } from '@/lib/timezone'
+import { getNowInFortaleza, startOfDayInFortaleza, endOfDayInFortaleza } from '@/lib/timezone'
 import { updateHourBalance } from '@/lib/hour-calculator'
 import { z } from 'zod'
 
@@ -226,10 +226,8 @@ export async function POST(request: NextRequest) {
     const currentTime = new Date()
 
     // Verificar se há autorização especial para hoje (trabalho em feriado/fim de semana)
-    const todayStart = new Date(currentTime)
-    todayStart.setHours(0, 0, 0, 0)
-    const todayEnd = new Date(currentTime)
-    todayEnd.setHours(23, 59, 59, 999)
+    const todayStart = startOfDayInFortaleza()
+    const todayEnd = endOfDayInFortaleza()
 
     const specialAuthorization = await prisma.justification.findFirst({
       where: {
