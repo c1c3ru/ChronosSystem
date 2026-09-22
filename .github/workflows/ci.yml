@@ -1,0 +1,65 @@
+name: ✅ CI
+
+# Qualidade do código em pull requests e em pushes para main: lint, checagem de
+# tipos e testes unitários.
+#
+# Os crons de notificação (attendance-reminder-cron.yml e
+# daily-justification-cron.yml) ficam em workflows dedicados, com concurrency
+# própria, para que um push aqui nunca cancele um disparo em andamento.
+#
+# Deploy não passa por aqui: produção roda na Vercel, conectada pela
+# integração nativa Git -> Vercel, e todo push em `main` já dispara o build lá.
+#
+# `npm run format:check` ficou de fora de propósito: hoje 34 arquivos do
+# repositório reprovam no Prettier, o que deixaria todo PR vermelho. Para
+# incluí-lo, rode `npm run format` uma vez e adicione o passo depois.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  quality-gate:
+    name: 🛡️ Lint, tipos e testes
+    runs-on: ubuntu-latest
+    env:
+      # Valores de fachada: nenhum teste abre conexão real com banco ou SMTP,
+      # mas os módulos importados esperam as variáveis definidas.
+      DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci'
+      DIRECT_URL: 'postgresql://ci:ci@localhost:5432/ci'
+      NEXTAUTH_SECRET: 'ci-secret-nao-usado-em-producao'
+      NEXTAUTH_URL: 'http://localhost:5000'
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Instalar dependências
+        run: npm ci
+
+      - name: 🏗️ Prisma generate
+        run: npx prisma generate
+
+      - name: 🧹 Lint
+        run: npm run lint
+
+      - name: 📐 Checagem de tipos
+        run: npm run type-check
+
+      - name: 🧪 Testes unitários
+        run: npm test
