@@ -9,8 +9,14 @@
  * aplicação) refletindo a hora local de Fortaleza — independente do fuso de
  * quem chama, seja o servidor ou o navegador de quem está usando a página.
  *
- * Uso correto: comparações de horário de turno, início/fim do dia local.
- * NÃO usar como timestamp UTC para salvar no banco — use `new Date()` para isso.
+ * Uso correto: comparações de horário de turno, início/fim do dia local e o
+ * timestamp gravado nos registros de ponto.
+ *
+ * Convenção de fuso do sistema: os registros de ponto são gravados com este
+ * relógio, ou seja, a hora de parede de Fortaleza codificada como UTC. Quem lê
+ * esses campos usa os getters UTC (`getUTCHours`, `getUTCDate`) ou formata com
+ * `timeZone: 'UTC'` — nunca converte de UTC para America/Fortaleza, porque isso
+ * aplicaria o deslocamento de -3h uma segunda vez.
  */
 export function getNowInFortaleza(): Date {
   // UTC-3 fixo (Fortaleza não adota horário de verão). Date.now() é sempre o
