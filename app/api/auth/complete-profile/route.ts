@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
     const parsedBody = completeProfileSchema.safeParse(rawBody)
     if (!parsedBody.success) {
       return NextResponse.json(
-        { error: parsedBody.error.errors[0]?.message || 'Todos os campos básicos são obrigatórios' },
+        {
+          error: parsedBody.error.errors[0]?.message || 'Todos os campos básicos são obrigatórios',
+        },
         { status: 400 }
       )
     }
@@ -81,7 +83,8 @@ export async function POST(request: NextRequest) {
     // depois disso é uma ação administrativa explícita feita por um ADMIN
     // já existente (POST /api/users ou PUT /api/users/[id]).
     const hasExistingAdmin = (await prisma.user.count({ where: { role: 'ADMIN' } })) > 0
-    const siapeGrantsAdmin = !hasExistingAdmin && !!siapeNumber && determineRoleFromSiape(siapeNumber) === 'ADMIN'
+    const siapeGrantsAdmin =
+      !hasExistingAdmin && !!siapeNumber && determineRoleFromSiape(siapeNumber) === 'ADMIN'
     const newRole = siapeGrantsAdmin ? 'ADMIN' : 'EMPLOYEE'
     authLogger.debug('SIAPE validation', {
       siape: siapeNumber || 'N/A',

@@ -140,7 +140,13 @@ export async function checkAndNotifyAttendance(
 
   return runBatchSequentially(
     tasks,
-    (task) => sendNotification(task.intern, task.type, task.intern.shiftStartTime, task.intern.shiftEndTime),
+    (task) =>
+      sendNotification(
+        task.intern,
+        task.type,
+        task.intern.shiftStartTime,
+        task.intern.shiftEndTime
+      ),
     (task, reason): CronFailureDetail => ({
       email: task.intern.email,
       message: reason instanceof Error ? reason.message : String(reason),

@@ -407,7 +407,10 @@ export default function UsersPage() {
         {/* Users List */}
         <div className="grid gap-4 w-full">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className={`w-full overflow-hidden transition-opacity ${!user.isActive ? 'opacity-60' : ''}`}>
+            <Card
+              key={user.id}
+              className={`w-full overflow-hidden transition-opacity ${!user.isActive ? 'opacity-60' : ''}`}
+            >
               <CardContent className="p-4 sm:p-6 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                   <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 flex-1 w-full">
@@ -417,7 +420,10 @@ export default function UsersPage() {
                     <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="font-semibold text-white break-words min-w-0">
-                          <Link href={`/admin/users/${user.id}`} className="hover:text-primary transition-colors hover:underline">
+                          <Link
+                            href={`/admin/users/${user.id}`}
+                            className="hover:text-primary transition-colors hover:underline"
+                          >
                             {user.name}
                           </Link>
                         </h3>

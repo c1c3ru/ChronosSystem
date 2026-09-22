@@ -21,7 +21,9 @@ async function runEmailDiagnostics() {
       `,
       text: 'Teste do Sistema Chronos - verifique o HTML na caixa de entrada.',
     })
-    console.log(sent ? '   ✅ Email simples enviado!' : '   ⚠️  SMTP não configurado — email não enviado')
+    console.log(
+      sent ? '   ✅ Email simples enviado!' : '   ⚠️  SMTP não configurado — email não enviado'
+    )
   } catch (error) {
     console.log(`   ❌ Falha no email simples: ${describeError(error)}`)
   }
@@ -35,7 +37,9 @@ async function runEmailDiagnostics() {
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       reason: 'Teste do script de diagnostico',
     })
-    console.log(sent ? '   ✅ Email de reset enviado!' : '   ⚠️  SMTP não configurado — email não enviado')
+    console.log(
+      sent ? '   ✅ Email de reset enviado!' : '   ⚠️  SMTP não configurado — email não enviado'
+    )
   } catch (error) {
     console.log(`   ❌ Falha no email de reset: ${describeError(error)}`)
   }
@@ -47,7 +51,9 @@ async function runEmailDiagnostics() {
       3,
       'Teste automatizado'
     )
-    console.log(sent ? '   ✅ Notificação enviada!' : '   ⚠️  SMTP não configurado — email não enviado')
+    console.log(
+      sent ? '   ✅ Notificação enviada!' : '   ⚠️  SMTP não configurado — email não enviado'
+    )
   } catch (error) {
     console.log(`   ❌ Falha na notificação: ${describeError(error)}`)
   }

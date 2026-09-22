@@ -1,5 +1,10 @@
 import { prisma } from '@/lib/prisma'
-import { getNowInFortaleza, startOfDayInFortaleza, endOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
+import {
+  getNowInFortaleza,
+  startOfDayInFortaleza,
+  endOfDayInFortaleza,
+  addDaysInFortaleza,
+} from '@/lib/timezone'
 
 // Configurações de contrato conforme Lei 11.788/2008
 const CONTRACT_CONFIGS = {

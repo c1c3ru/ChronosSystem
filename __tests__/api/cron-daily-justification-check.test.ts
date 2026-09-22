@@ -158,7 +158,10 @@ describe('GET /api/cron/daily-justification-check - envio de lembretes', () => {
   })
 
   it('retorna 200 e status SUCCESS quando todos os lembretes são enviados', async () => {
-    mockedFindMany.mockResolvedValue([employee('u1', 'a@example.com'), employee('u2', 'b@example.com')])
+    mockedFindMany.mockResolvedValue([
+      employee('u1', 'a@example.com'),
+      employee('u2', 'b@example.com'),
+    ])
     mockedSendJustificationEmail.mockResolvedValue(true)
 
     const response = await GET(makeRequest('Bearer SECRET_CERTA'))
@@ -195,7 +198,9 @@ describe('GET /api/cron/daily-justification-check - envio de lembretes', () => {
     expect(body.results.sent).toBe(1)
     expect(body.results.failed).toBe(1)
 
-    const failedDetail = body.results.details.find((d: { email: string }) => d.email === 'falha@example.com')
+    const failedDetail = body.results.details.find(
+      (d: { email: string }) => d.email === 'falha@example.com'
+    )
     expect(failedDetail.status).toBe('failed')
     // A mensagem real do erro chega até a resposta — não mais o genérico
     // "Erro ao enviar email" que escondia a causa.

@@ -67,9 +67,7 @@ export function CronStatusPanel() {
           </p>
         )}
 
-        {!loadError && logs === null && (
-          <p className="text-sm text-neutral-400">Carregando...</p>
-        )}
+        {!loadError && logs === null && <p className="text-sm text-neutral-400">Carregando...</p>}
 
         {!loadError && logs !== null && logs.length === 0 && (
           <p className="text-sm text-neutral-400">

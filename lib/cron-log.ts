@@ -57,7 +57,10 @@ export interface CronRunSummary {
  * não é um erro de API. ERROR é reservado para quando o job quebra fora do
  * loop de envio (ver recordCronError).
  */
-export function summarizeOutcomes(totalCount: number, failures: CronFailureDetail[]): CronRunSummary {
+export function summarizeOutcomes(
+  totalCount: number,
+  failures: CronFailureDetail[]
+): CronRunSummary {
   const failureCount = failures.length
   return {
     status: failureCount === 0 ? 'SUCCESS' : 'PARTIAL_FAILURE',
@@ -215,7 +218,11 @@ export async function recordCronLog(
   })
 }
 
-export async function recordCronError(jobName: string, startedAt: Date, error: unknown): Promise<void> {
+export async function recordCronError(
+  jobName: string,
+  startedAt: Date,
+  error: unknown
+): Promise<void> {
   await writeCronLog({
     jobName,
     status: 'ERROR',

@@ -150,7 +150,7 @@ describe('GET /api/admin/students/export', () => {
     const response = await GET()
     const text = decodePreservingBom(await response.arrayBuffer())
 
-    expect(text).toContain("\"'=cmd")
+    expect(text).toContain('"\'=cmd')
     expect(text).not.toContain('"=cmd')
   })
 

@@ -211,9 +211,7 @@ export async function buildFinalReportDoc(d: FinalReportData): Promise<TDocument
     dataTable(
       ['*'],
       [
-        [
-          { text: 'CONCEDENTE DO ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment },
-        ],
+        [{ text: 'CONCEDENTE DO ESTÁGIO', style: 'tableHeader', alignment: 'center' as Alignment }],
         [cell('RAZÃO SOCIAL', v(d.company_name))],
         [cell('NOME DE FANTASIA OU DE PESSOA FÍSICA', v(d.company_fantasy_name))],
       ]

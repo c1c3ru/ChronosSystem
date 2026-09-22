@@ -32,7 +32,10 @@ const CONTRACT_CONFIGS = {
 }
 
 const contractTypeEnum = z.enum(
-  Object.keys(CONTRACT_CONFIGS) as [keyof typeof CONTRACT_CONFIGS, ...(keyof typeof CONTRACT_CONFIGS)[]]
+  Object.keys(CONTRACT_CONFIGS) as [
+    keyof typeof CONTRACT_CONFIGS,
+    ...(keyof typeof CONTRACT_CONFIGS)[],
+  ]
 )
 
 const updateContractSchema = z.object({

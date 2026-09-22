@@ -197,7 +197,10 @@ export async function buildInternshipRegistrationRequestDoc(
   )
 
   const companyTable: Content[] = [
-    dataTable(['*'], [[{ text: 'RAZÃO SOCIAL', style: 'tableHeader', alignment: 'center' as Alignment }]]),
+    dataTable(
+      ['*'],
+      [[{ text: 'RAZÃO SOCIAL', style: 'tableHeader', alignment: 'center' as Alignment }]]
+    ),
     dataTable(['*'], [[cell(' ', '')]]), // Placeholder for social name if needed, usually empty in this doc
     dataTable(
       ['*'],

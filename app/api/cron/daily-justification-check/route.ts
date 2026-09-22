@@ -427,7 +427,9 @@ export async function GET(request: NextRequest) {
     const status: CronRunStatus = results.failed === 0 ? 'SUCCESS' : 'PARTIAL_FAILURE'
     const httpStatus = cronHttpStatus(status)
     const failures: CronFailureDetail[] = results.details
-      .filter((detail): detail is Extract<CronDetail, { status: 'failed' }> => detail.status === 'failed')
+      .filter(
+        (detail): detail is Extract<CronDetail, { status: 'failed' }> => detail.status === 'failed'
+      )
       .map((detail) => ({ email: detail.email, message: detail.message }))
 
     apiLogger.info('Daily justification check completed', {

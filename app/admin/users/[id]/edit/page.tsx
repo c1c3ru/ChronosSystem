@@ -5,7 +5,17 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, use } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { User, ArrowLeft, Save, Mail, Lock, Shield, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react'
+import {
+  User,
+  ArrowLeft,
+  Save,
+  Mail,
+  Lock,
+  Shield,
+  ToggleLeft,
+  ToggleRight,
+  AlertTriangle,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -408,8 +418,8 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                       <div className="flex items-start gap-2 p-3 rounded-lg bg-error/10 border border-error/30 text-error text-xs">
                         <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                         <span>
-                          Ao salvar, este estagiário não poderá fazer login ou registrar ponto.
-                          O histórico de registros será preservado.
+                          Ao salvar, este estagiário não poderá fazer login ou registrar ponto. O
+                          histórico de registros será preservado.
                         </span>
                       </div>
                     )}

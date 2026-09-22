@@ -10,9 +10,7 @@ const createEmployeeJustificationSchema = z.object({
     errorMap: () => ({ message: 'Tipo inválido' }),
   }),
   category: z.string().min(1, 'Tipo, categoria, data e motivo são obrigatórios'),
-  date: z
-    .string()
-    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
+  date: z.string().refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
   reason: z.string().min(1, 'Tipo, categoria, data e motivo são obrigatórios'),
 })
 
