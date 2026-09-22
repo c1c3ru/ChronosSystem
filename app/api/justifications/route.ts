@@ -7,9 +7,7 @@ import { z } from 'zod'
 
 const createJustificationSchema = z.object({
   type: z.string().min(1, 'Todos os campos são obrigatórios'),
-  date: z
-    .string()
-    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
+  date: z.string().refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
   reason: z.string().min(10, 'Justificativa deve ter pelo menos 10 caracteres'),
 })
 

@@ -20,7 +20,7 @@ Este diretório contém as **migrations do Prisma**, aplicadas em produção via
 **não** derruba o build. Isso é temporário: ao ligar esse script pela primeira vez, `migrate deploy`
 falhou em produção com `P3018 relation "Account" already exists` (o passo de adoção da migration
 `_init` abaixo nunca foi executado) e em Preview por faltar `DIRECT_URL` naquele ambiente — e um
-`vercel-build` que falha bloqueia *todo* deploy, não só quem toca na coluna nova, então foi
+`vercel-build` que falha bloqueia _todo_ deploy, não só quem toca na coluna nova, então foi
 revertido para não-bloqueante às pressas para não deixar o site inteiro sem poder receber deploy
 novo. Antes de voltar a fazer `vercel-build` estrito (remover o `|| true`):
 

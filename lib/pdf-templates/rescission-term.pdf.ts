@@ -100,10 +100,7 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
       { label: 'CAMPUS', value: v(d.campus_name), width: '50%' },
       { label: 'CNPJ', value: v(d.campus_cnpj), width: '50%' },
     ]),
-    dataTable(
-      ['*'],
-      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.campus_address))]]
-    ),
+    dataTable(['*'], [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.campus_address))]]),
     cellRow([
       { label: 'BAIRRO', value: v(d.campus_neighborhood), width: '40%' },
       { label: 'MUNICÍPIO', value: v(d.campus_city), width: '40%' },
@@ -184,10 +181,7 @@ export async function buildRescissionTermDoc(d: RescissionTermData): Promise<TDo
       { label: 'CURSO', value: v(d.student_course), width: '70%' },
       { label: 'MATRÍCULA', value: v(d.student_enrollment), width: '30%' },
     ]),
-    dataTable(
-      ['*'],
-      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]
-    ),
+    dataTable(['*'], [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]),
     cellRow([
       { label: 'MUNICÍPIO-UF', value: v(d.student_city), width: '40%' },
       { label: 'CEP', value: v(d.student_cep), width: '30%' },

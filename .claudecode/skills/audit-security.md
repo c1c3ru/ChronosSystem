@@ -147,24 +147,24 @@ mais fáceis de ver do que de prever lendo o código do script.
 Definida em `PALETTE` no topo de `generate_report.py` — mantenha os dois
 arquivos (script + esta skill) sincronizados se a paleta mudar.
 
-| Uso | Token | Hex |
-|---|---|---|
-| Fundo escuro (capa) | `ink` | `#0F172A` |
-| Texto secundário | `muted` | `#475569` |
-| Linhas/bordas | `line` | `#CBD5E1` |
-| Fundo de página | `paper` | `#FFFFFF` |
-| Fundo de painel/zebra | `panel` | `#F1F5F9` |
-| Acento de marca (verde do próprio app) | `brand` | `#22C55E` |
-| Pontos fortes | `strength` | `#15803D` |
-| Severidade — Crítica | `severity.CRITICAL` | `#B91C1C` |
-| Severidade — Alta | `severity.HIGH` | `#EA580C` |
-| Severidade — Média | `severity.MEDIUM` | `#D97706` |
-| Severidade — Baixa | `severity.LOW` | `#2563EB` |
-| Categoria — Isolamento | `category.Isolamento` | `#0E7490` |
-| Categoria — Permissões Frontend vs Backend | `category["Permissões..."]` | `#6D28D9` |
-| Categoria — IDOR | `category.IDOR` | `#BE185D` |
-| Categoria — Chaves Expostas | `category["Chaves Expostas"]` | `#92400E` |
-| Categoria — XSS | `category.XSS` | `#3730A3` |
+| Uso                                        | Token                         | Hex       |
+| ------------------------------------------ | ----------------------------- | --------- |
+| Fundo escuro (capa)                        | `ink`                         | `#0F172A` |
+| Texto secundário                           | `muted`                       | `#475569` |
+| Linhas/bordas                              | `line`                        | `#CBD5E1` |
+| Fundo de página                            | `paper`                       | `#FFFFFF` |
+| Fundo de painel/zebra                      | `panel`                       | `#F1F5F9` |
+| Acento de marca (verde do próprio app)     | `brand`                       | `#22C55E` |
+| Pontos fortes                              | `strength`                    | `#15803D` |
+| Severidade — Crítica                       | `severity.CRITICAL`           | `#B91C1C` |
+| Severidade — Alta                          | `severity.HIGH`               | `#EA580C` |
+| Severidade — Média                         | `severity.MEDIUM`             | `#D97706` |
+| Severidade — Baixa                         | `severity.LOW`                | `#2563EB` |
+| Categoria — Isolamento                     | `category.Isolamento`         | `#0E7490` |
+| Categoria — Permissões Frontend vs Backend | `category["Permissões..."]`   | `#6D28D9` |
+| Categoria — IDOR                           | `category.IDOR`               | `#BE185D` |
+| Categoria — Chaves Expostas                | `category["Chaves Expostas"]` | `#92400E` |
+| Categoria — XSS                            | `category.XSS`                | `#3730A3` |
 
 Se uma nova rodada de auditoria adicionar uma 6ª categoria (fora do
 escopo original), escolha uma cor nova que não colida em tom com as

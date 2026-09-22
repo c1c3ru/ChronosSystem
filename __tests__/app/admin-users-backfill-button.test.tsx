@@ -18,7 +18,10 @@ const mockedFetch = global.fetch as jest.Mock
 
 function mockUsersListFetch() {
   mockedFetch.mockImplementation((url: string) => {
-    if (typeof url === 'string' && url.startsWith('/api/admin/students/backfill-registration-number')) {
+    if (
+      typeof url === 'string' &&
+      url.startsWith('/api/admin/students/backfill-registration-number')
+    ) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ dryRun: true, updated: 3, skippedAlreadySet: 1 }),

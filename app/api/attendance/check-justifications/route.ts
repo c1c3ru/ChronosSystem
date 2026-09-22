@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza, startOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import { analyzeDayForJustification, getUserWorkingHours, isWeekend } from '@/lib/attendance-logic'
 import { getHolidaysForPeriod } from '@/lib/holidays'
 
@@ -32,10 +33,8 @@ export async function GET(request: NextRequest) {
     const workingHours = await getUserWorkingHours(userId)
 
     // Calcular período de análise
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - daysBack)
-    startDate.setHours(0, 0, 0, 0)
+    const endDate = getNowInFortaleza()
+    const startDate = startOfDayInFortaleza(addDaysInFortaleza(endDate, -daysBack))
 
     // BUSCA OTIMIZADA: Pegar todos os feriados do período de uma vez
     const holidayMap = await getHolidaysForPeriod(startDate, endDate)

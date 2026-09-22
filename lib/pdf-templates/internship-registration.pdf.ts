@@ -78,10 +78,7 @@ export async function buildInternshipRegistrationDoc(
       { label: 'CURSO', value: v(d.student_course), width: '70%' },
       { label: 'MATRÍCULA', value: v(d.student_enrollment), width: '30%' },
     ]),
-    dataTable(
-      ['*'],
-      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]
-    ),
+    dataTable(['*'], [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]),
     cellRow([
       { label: 'BAIRRO/DISTRITO', value: v(d.student_neighborhood), width: '40%' },
       { label: 'MUNICÍPIO-UF', value: v(d.student_city_uf), width: '35%' },

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getNowInFortaleza } from '@/lib/timezone'
+import { getNowInFortaleza, startOfDayInFortaleza } from '@/lib/timezone'
 
 // GET /api/dashboard/activity - Atividade recente
 
@@ -19,8 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
+    const startOfDay = startOfDayInFortaleza()
 
     // Buscar registros recentes com dados do usuário e máquina
     const recentRecords = await prisma.attendanceRecord.findMany({

@@ -31,9 +31,11 @@ Sistema de registro de ponto eletrônico e gestão de estágios, construído com
 ## Instalação
 
 1. Clone o repositório e instale as dependências:
+
    ```bash
    npm install
    ```
+
    (o `postinstall` já roda `prisma generate` automaticamente)
 
 2. Crie um arquivo `.env` na raiz a partir do `.env.example` e configure ao menos:

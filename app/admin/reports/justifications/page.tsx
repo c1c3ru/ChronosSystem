@@ -224,7 +224,8 @@ export default function JustificationsPage() {
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
-    if (!confirm(`Excluir permanentemente ${selectedIds.length} justificativas selecionadas?`)) return
+    if (!confirm(`Excluir permanentemente ${selectedIds.length} justificativas selecionadas?`))
+      return
     try {
       setActionLoading(true)
       const res = await fetch('/api/admin/justifications/bulk', {
@@ -250,7 +251,12 @@ export default function JustificationsPage() {
   }
 
   const handleDeleteAll = async () => {
-    if (!confirm(`⚠️ ATENÇÃO: Isso excluirá TODOS os ${justifications.length} registros de justificativa permanentemente. Esta ação não pode ser desfeita!\n\nConfirmar exclusão total?`)) return
+    if (
+      !confirm(
+        `⚠️ ATENÇÃO: Isso excluirá TODOS os ${justifications.length} registros de justificativa permanentemente. Esta ação não pode ser desfeita!\n\nConfirmar exclusão total?`
+      )
+    )
+      return
     try {
       setActionLoading(true)
       const res = await fetch('/api/admin/justifications/bulk', {

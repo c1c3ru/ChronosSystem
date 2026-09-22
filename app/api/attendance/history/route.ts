@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { parseDateInFortaleza, endOfDayInFortaleza } from '@/lib/timezone'
 
 // GET /api/attendance/history - Buscar histórico de registros com paginação
 export async function GET(request: NextRequest) {
@@ -25,11 +26,10 @@ export async function GET(request: NextRequest) {
     // Construir filtro de data
     const dateFilter: { gte?: Date; lte?: Date } = {}
     if (dateFrom) {
-      dateFilter.gte = new Date(dateFrom)
+      dateFilter.gte = parseDateInFortaleza(dateFrom)
     }
     if (dateTo) {
-      const endDate = new Date(dateTo)
-      endDate.setHours(23, 59, 59, 999)
+      const endDate = endOfDayInFortaleza(parseDateInFortaleza(dateTo))
       dateFilter.lte = endDate
     }
 

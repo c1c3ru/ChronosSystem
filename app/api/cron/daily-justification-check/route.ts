@@ -9,6 +9,7 @@ import {
   HORARIO_TRABALHO_PADRAO,
 } from '@/lib/attendance-logic'
 import { getHolidaysForPeriod } from '@/lib/holidays'
+import { startOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import {
   recordCronLog,
   recordCronError,
@@ -173,9 +174,7 @@ function computePendingDays(
 
   // Começa em i=1 para não cobrar justificativa do dia corrente, ainda em curso.
   for (let i = 1; i <= DAYS_TO_ANALYZE; i++) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    date.setHours(0, 0, 0, 0)
+    const date = addDaysInFortaleza(startOfDayInFortaleza(), -i)
     const dateKey = date.toISOString().split('T')[0]
 
     const isWorkDay = !isWeekend(date) && !holidayMap.has(dateKey)
@@ -297,12 +296,8 @@ export async function GET(request: NextRequest) {
 
     const employeeIds = employees.map((employee) => employee.id)
 
-    const periodStart = new Date()
-    periodStart.setDate(periodStart.getDate() - DAYS_TO_ANALYZE)
-    periodStart.setHours(0, 0, 0, 0)
-
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
+    const todayStart = startOfDayInFortaleza()
+    const periodStart = addDaysInFortaleza(todayStart, -DAYS_TO_ANALYZE)
 
     // Todas as buscas usam `in: employeeIds` para evitar N+1 (uma query por
     // estagiário) — essencial para caber no tempo de função serverless.
@@ -432,7 +427,9 @@ export async function GET(request: NextRequest) {
     const status: CronRunStatus = results.failed === 0 ? 'SUCCESS' : 'PARTIAL_FAILURE'
     const httpStatus = cronHttpStatus(status)
     const failures: CronFailureDetail[] = results.details
-      .filter((detail): detail is Extract<CronDetail, { status: 'failed' }> => detail.status === 'failed')
+      .filter(
+        (detail): detail is Extract<CronDetail, { status: 'failed' }> => detail.status === 'failed'
+      )
       .map((detail) => ({ email: detail.email, message: detail.message }))
 
     apiLogger.info('Daily justification check completed', {

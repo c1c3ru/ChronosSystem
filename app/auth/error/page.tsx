@@ -91,8 +91,8 @@ function ErrorContent() {
               <div className="text-xs text-slate-400 space-y-2">
                 <p>
                   Ao clicar em &quot;Entrar com Google&quot;, escolha sua conta institucional —
-                  <strong> @aluno.ifce.edu.br</strong> (alunos) ou{' '}
-                  <strong>@ifce.edu.br</strong> (servidores) — não uma conta pessoal.
+                  <strong> @aluno.ifce.edu.br</strong> (alunos) ou <strong>@ifce.edu.br</strong>{' '}
+                  (servidores) — não uma conta pessoal.
                 </p>
                 <p className="mt-2 text-slate-500">
                   Se sua conta é institucional e o erro persiste, entre em contato com o suporte

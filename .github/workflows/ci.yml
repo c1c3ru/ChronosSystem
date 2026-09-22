@@ -9,10 +9,6 @@ name: ✅ CI
 #
 # Deploy não passa por aqui: produção roda na Vercel, conectada pela
 # integração nativa Git -> Vercel, e todo push em `main` já dispara o build lá.
-#
-# `npm run format:check` ficou de fora de propósito: hoje 34 arquivos do
-# repositório reprovam no Prettier, o que deixaria todo PR vermelho. Para
-# incluí-lo, rode `npm run format` uma vez e adicione o passo depois.
 
 on:
   push:
@@ -57,6 +53,9 @@ jobs:
 
       - name: 🧹 Lint
         run: npm run lint
+
+      - name: 🎨 Formatação
+        run: npm run format:check
 
       - name: 📐 Checagem de tipos
         run: npm run type-check

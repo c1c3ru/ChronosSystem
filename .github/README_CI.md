@@ -9,6 +9,7 @@ Roda em todo pull request para `main`, em todo push para `main` e sob demanda
 
 - `npm ci` e `npx prisma generate`
 - `npm run lint`
+- `npm run format:check`
 - `npm run type-check`
 - `npm test`
 
@@ -16,10 +17,7 @@ Nenhum teste abre conexão real com banco ou SMTP; as variáveis de ambiente
 definidas no workflow existem só porque os módulos importados esperam
 encontrá-las.
 
-`npm run format:check` ainda não faz parte do job: hoje 34 arquivos do
-repositório reprovam no Prettier, e incluir o passo deixaria todo PR vermelho.
-Para adicioná-lo, rode `npm run format` uma vez, comite o resultado e então
-inclua o passo no workflow.
+Se o passo de formatação reprovar, rode `npm run format` e comite o resultado.
 
 ## 2. `attendance-reminder-cron.yml` — Lembrete de entrada/saída
 

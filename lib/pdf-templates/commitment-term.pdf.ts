@@ -230,10 +230,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
       { label: 'CURSO', value: v(d.student_course), width: '70%' },
       { label: 'MATRÍCULA', value: v(d.student_id), width: '30%' },
     ]),
-    dataTable(
-      ['*'],
-      [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]
-    ),
+    dataTable(['*'], [[cell('ENDEREÇO (LOGRADOURO, NÚMERO E COMPLEMENTO)', v(d.student_address))]]),
     cellRow([
       { label: 'BAIRRO/DISTRITO', value: v(d.student_neighborhood), width: '40%' },
       { label: 'MUNICÍPIO-UF', value: v(d.student_city_state), width: '35%' },

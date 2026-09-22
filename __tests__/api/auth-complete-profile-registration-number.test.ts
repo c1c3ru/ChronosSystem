@@ -69,7 +69,11 @@ describe('POST /api/auth/complete-profile - matrícula obrigatória para alunos'
       email: 'aluno@aluno.ifce.edu.br',
       name: 'Aluno Teste',
     })
-    mockedUserUpdate.mockResolvedValue({ id: 'user-1', email: 'aluno@aluno.ifce.edu.br', role: 'EMPLOYEE' })
+    mockedUserUpdate.mockResolvedValue({
+      id: 'user-1',
+      email: 'aluno@aluno.ifce.edu.br',
+      role: 'EMPLOYEE',
+    })
     mockedAuditCreate.mockResolvedValue({})
   })
 
@@ -90,9 +94,7 @@ describe('POST /api/auth/complete-profile - matrícula obrigatória para alunos'
   })
 
   it('completa o perfil com sucesso quando a matrícula é enviada', async () => {
-    const response = await POST(
-      makeRequest({ ...BASE_PAYLOAD, registrationNumber: '20231234567' })
-    )
+    const response = await POST(makeRequest({ ...BASE_PAYLOAD, registrationNumber: '20231234567' }))
     const body = await response.json()
 
     expect(response.status).toBe(200)

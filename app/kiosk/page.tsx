@@ -345,16 +345,16 @@ export default function KioskPage() {
             <KeyRound className="h-8 w-8 text-primary mx-auto" />
             <h1 className="text-lg font-bold text-white">Configurar Terminal</h1>
             <p className="text-sm text-neutral-400">
-              Insira o segredo de provisionamento deste dispositivo. Ele é solicitado apenas uma
-              vez por terminal — o navegador vai lembrar dele depois.
+              Insira o segredo de provisionamento deste dispositivo. Ele é solicitado apenas uma vez
+              por terminal — o navegador vai lembrar dele depois.
             </p>
           </div>
 
           <div className="bg-neutral-900/50 border border-neutral-700/50 rounded-lg p-3 text-xs text-neutral-400 leading-relaxed">
-            Não sabe qual é esse valor? Ele não é gerado automaticamente aqui — é um segredo
-            único, configurado por um administrador do sistema em{' '}
-            <span className="text-neutral-300">Painel Admin → Gerenciar Máquinas</span>. Peça
-            esse valor a um administrador, ou{' '}
+            Não sabe qual é esse valor? Ele não é gerado automaticamente aqui — é um segredo único,
+            configurado por um administrador do sistema em{' '}
+            <span className="text-neutral-300">Painel Admin → Gerenciar Máquinas</span>. Peça esse
+            valor a um administrador, ou{' '}
             <Link href="/admin/machines" className="text-primary hover:underline">
               acesse o painel de máquinas
             </Link>{' '}

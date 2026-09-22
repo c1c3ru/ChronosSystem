@@ -243,11 +243,11 @@ export default function MachinesPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-neutral-400 text-sm">
-              Ao abrir a tela <code className="text-neutral-300">/kiosk</code> em um terminal
-              físico pela primeira vez, ele pede um &quot;segredo do terminal&quot;. Esse valor{' '}
+              Ao abrir a tela <code className="text-neutral-300">/kiosk</code> em um terminal físico
+              pela primeira vez, ele pede um &quot;segredo do terminal&quot;. Esse valor{' '}
               <strong className="text-white">não é gerado por dispositivo</strong> — é um único
-              segredo compartilhado, definido nas variáveis de ambiente do servidor
-              (<code className="text-neutral-300">KIOSK_PROVISION_SECRET</code>). Digite o mesmo
+              segredo compartilhado, definido nas variáveis de ambiente do servidor (
+              <code className="text-neutral-300">KIOSK_PROVISION_SECRET</code>). Digite o mesmo
               valor abaixo em cada terminal, uma única vez; o navegador do terminal lembra dele
               depois disso.
             </p>
@@ -256,9 +256,9 @@ export default function MachinesPage() {
               <div className="flex items-start space-x-2 bg-error/10 border border-error/30 rounded-lg p-3">
                 <AlertCircle className="h-4 w-4 text-error mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-error">
-                  KIOSK_PROVISION_SECRET não está configurado no servidor. Configure essa
-                  variável de ambiente (ex.: gere um valor com{' '}
-                  <code>openssl rand -base64 32</code>) antes de provisionar terminais.
+                  KIOSK_PROVISION_SECRET não está configurado no servidor. Configure essa variável
+                  de ambiente (ex.: gere um valor com <code>openssl rand -base64 32</code>) antes de
+                  provisionar terminais.
                 </p>
               </div>
             )}

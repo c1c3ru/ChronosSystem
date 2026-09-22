@@ -1,4 +1,10 @@
 import { prisma } from '@/lib/prisma'
+import {
+  getNowInFortaleza,
+  startOfDayInFortaleza,
+  endOfDayInFortaleza,
+  addDaysInFortaleza,
+} from '@/lib/timezone'
 
 // Configurações de contrato conforme Lei 11.788/2008
 const CONTRACT_CONFIGS = {
@@ -22,7 +28,7 @@ interface HourCalculationResult {
  */
 async function calculateHourBalance(
   userId: string,
-  date: Date = new Date()
+  date: Date = getNowInFortaleza()
 ): Promise<HourCalculationResult> {
   try {
     // Buscar dados do usuário
@@ -40,10 +46,8 @@ async function calculateHourBalance(
     }
 
     // Definir início e fim do dia
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
+    const startOfDay = startOfDayInFortaleza(date)
+    const endOfDay = endOfDayInFortaleza(date)
 
     // Buscar registros de ponto do dia
     const attendanceRecords = await prisma.attendanceRecord.findMany({
@@ -79,10 +83,13 @@ async function calculateHourBalance(
       attendanceRecords[attendanceRecords.length - 1].type === 'ENTRY'
     ) {
       const lastEntry = attendanceRecords[attendanceRecords.length - 1]
-      const now = new Date()
+      // Relógio de Fortaleza: `lastEntry.timestamp` está nessa codificação, e
+      // subtrair um `new Date()` real daria 3h a mais de trabalho a quem ainda
+      // está com o ponto aberto.
+      const now = getNowInFortaleza()
 
       // Só calcular se for hoje
-      if (date.toDateString() === now.toDateString()) {
+      if (startOfDayInFortaleza(date).getTime() === startOfDayInFortaleza(now).getTime()) {
         const diffMs = now.getTime() - lastEntry.timestamp.getTime()
         workedHours += diffMs / (1000 * 60 * 60)
         isComplete = false // Ainda trabalhando
@@ -100,12 +107,8 @@ async function calculateHourBalance(
     const dailyBalance = workedHours - expectedHours
 
     // Calcular saldo semanal
-    const startOfWeek = new Date(date)
-    startOfWeek.setDate(date.getDate() - date.getDay())
-    startOfWeek.setHours(0, 0, 0, 0)
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(startOfWeek.getDate() + 6)
-    endOfWeek.setHours(23, 59, 59, 999)
+    const startOfWeek = startOfDayInFortaleza(addDaysInFortaleza(date, -date.getUTCDay()))
+    const endOfWeek = endOfDayInFortaleza(addDaysInFortaleza(startOfWeek, 6))
 
     const weeklyRecords = await prisma.hourBalance.findMany({
       where: {
@@ -156,14 +159,15 @@ async function calculateHourBalance(
 /**
  * Atualiza ou cria registro de saldo de horas
  */
-export async function updateHourBalance(userId: string, date: Date = new Date()): Promise<void> {
+export async function updateHourBalance(
+  userId: string,
+  date: Date = getNowInFortaleza()
+): Promise<void> {
   try {
     const calculation = await calculateHourBalance(userId, date)
 
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
+    const startOfDay = startOfDayInFortaleza(date)
+    const endOfDay = endOfDayInFortaleza(date)
 
     // Verificar se já existe registro para o dia
     const existingRecord = await prisma.hourBalance.findFirst({

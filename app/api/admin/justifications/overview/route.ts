@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getNowInFortaleza, startOfDayInFortaleza, addDaysInFortaleza } from '@/lib/timezone'
 import { analyzeDayForJustification, isWeekend } from '@/lib/attendance-logic'
 import { getHolidaysForPeriod } from '@/lib/holidays'
 
@@ -19,10 +20,8 @@ export async function GET(request: NextRequest) {
     const daysBack = parseInt(searchParams.get('daysBack') || '30')
 
     // Calcular período
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - daysBack)
-    startDate.setHours(0, 0, 0, 0)
+    const endDate = getNowInFortaleza()
+    const startDate = startOfDayInFortaleza(addDaysInFortaleza(endDate, -daysBack))
 
     // 1. Buscar todos os estagiários
     const employees = await prisma.user.findMany({
