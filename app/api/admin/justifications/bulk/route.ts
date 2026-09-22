@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { DELETE_ALL_CONFIRMATION } from '@/lib/justification-bulk'
 
 const bulkReviewSchema = z.object({
   justificationIds: z.array(z.string().min(1)).min(1, 'Nenhuma justificativa selecionada'),
@@ -10,7 +11,10 @@ const bulkReviewSchema = z.object({
 })
 
 const bulkDeleteSchema = z.union([
-  z.object({ deleteAll: z.literal(true) }),
+  z.object({
+    deleteAll: z.literal(true),
+    confirmation: z.literal(DELETE_ALL_CONFIRMATION),
+  }),
   z.object({ justificationIds: z.array(z.string().min(1)).min(1) }),
 ])
 
@@ -92,6 +96,18 @@ export async function DELETE(request: NextRequest) {
     const rawBody = await request.json().catch(() => null)
     const parsedDelete = bulkDeleteSchema.safeParse(rawBody)
     if (!parsedDelete.success) {
+      const pedidoDeleteAll =
+        typeof rawBody === 'object' && rawBody !== null && 'deleteAll' in rawBody
+
+      if (pedidoDeleteAll) {
+        return NextResponse.json(
+          {
+            error: `Confirmação obrigatória: reenvie confirmation="${DELETE_ALL_CONFIRMATION}" para excluir todas as justificativas.`,
+          },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json(
         { error: 'Informe justificationIds ou deleteAll=true' },
         { status: 400 }
@@ -100,6 +116,16 @@ export async function DELETE(request: NextRequest) {
     const deleteAll = 'deleteAll' in parsedDelete.data ? parsedDelete.data.deleteAll : false
     const justificationIds =
       'justificationIds' in parsedDelete.data ? parsedDelete.data.justificationIds : undefined
+
+    // Apagar a base inteira é irreversível e não tem por que ser rotina de
+    // supervisão — fica restrito ao ADMIN, na mesma linha de outras ações que
+    // já são exclusivas dele (criar ADMIN, redefinir senha de ADMIN).
+    if (deleteAll === true && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Apenas um ADMIN pode excluir todas as justificativas.' },
+        { status: 403 }
+      )
+    }
 
     let deletedCount = 0
 

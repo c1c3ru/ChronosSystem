@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { DELETE_ALL_CONFIRMATION } from '@/lib/justification-bulk'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
@@ -57,6 +58,7 @@ interface JustificationOverview {
 
 export default function JustificationsPage() {
   const { data: session, status } = useSession()
+  const isAdmin = session?.user?.role === 'ADMIN'
   const router = useRouter()
   const [justifications, setJustifications] = useState<Justification[]>([])
   const [overview, setOverview] = useState<JustificationOverview[]>([])
@@ -254,7 +256,7 @@ export default function JustificationsPage() {
       const res = await fetch('/api/admin/justifications/bulk', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deleteAll: true }),
+        body: JSON.stringify({ deleteAll: true, confirmation: DELETE_ALL_CONFIRMATION }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -380,17 +382,20 @@ export default function JustificationsPage() {
                 <p className="text-neutral-400">Gerenciar justificativas de atrasos e faltas</p>
               </div>
             </div>
-            {/* Excluir Todos — botão destrutivo no canto direito do header */}
-            <button
-              id="delete-all-justifications-btn"
-              onClick={handleDeleteAll}
-              disabled={actionLoading || justifications.length === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-700/50 bg-red-900/20 hover:bg-red-700/30 hover:border-red-600/70 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Excluir todos os registros permanentemente"
-            >
-              <Trash2 className="h-4 w-4" />
-              Excluir Todos ({justifications.length})
-            </button>
+            {/* Excluir Todos — botão destrutivo no canto direito do header.
+                Só aparece para ADMIN; a API recusa a chamada de um SUPERVISOR. */}
+            {isAdmin && (
+              <button
+                id="delete-all-justifications-btn"
+                onClick={handleDeleteAll}
+                disabled={actionLoading || justifications.length === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-700/50 bg-red-900/20 hover:bg-red-700/30 hover:border-red-600/70 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Excluir todos os registros permanentemente"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir Todos ({justifications.length})
+              </button>
+            )}
           </div>
         </div>
       </div>
