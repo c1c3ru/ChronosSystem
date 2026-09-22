@@ -9,6 +9,7 @@ import { rateLimiters, addRateLimitHeaders } from '@/lib/rate-limit'
 import { DEFAULT_RADIUS } from '@/lib/geolocation'
 import { logger } from '@/lib/logger'
 import { AttendanceLogic, AttendanceRecordType } from '@/lib/attendance-logic'
+import { getNowInFortaleza } from '@/lib/timezone'
 
 // Forçar renderização dinâmica
 export const dynamic = 'force-dynamic'
@@ -212,12 +213,14 @@ export async function POST(request: NextRequest) {
     const temAutorizacao = !!autorizacaoEspecial
 
     // Validar anomalias de sequência e registros muito próximos
+    // Relógio de parede de Fortaleza: validateRecord compara hora do turno, fim
+    // de semana e feriado, e o servidor da Vercel roda em UTC.
     const validadorRegistro = await atendimentoLogica.validateRecord(
       dadosValidados.type as AttendanceRecordType,
       ultimoRegistro
         ? { ...ultimoRegistro, type: ultimoRegistro.type as AttendanceRecordType }
         : null,
-      new Date(),
+      getNowInFortaleza(),
       temAutorizacao
     )
 
@@ -243,7 +246,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Gerar hash para integridade
-    const dataAtual = new Date()
+    // Mesma convenção de fuso das rotas de QR Code (qr-scan e qr-unified): o
+    // timestamp gravado é o relógio de Fortaleza codificado como UTC.
+    const dataAtual = getNowInFortaleza()
     const dadosParaHash = `${sessao.user.id}-${dadosValidados.machineId}-${dadosValidados.type}-${dataAtual.getTime()}`
     const hash = crypto.createHash('sha256').update(dadosParaHash).digest('hex')
 
