@@ -50,7 +50,7 @@ describe('lib/notifications - checkAndNotifyAttendance', () => {
     mockedNotificationCreate.mockResolvedValue({})
   })
 
-  it('uma falha de envio isolada não impede o processamento dos demais estagiários (Promise.allSettled)', async () => {
+  it('uma falha de envio isolada não impede o processamento dos demais estagiários', async () => {
     mockedFindMany.mockResolvedValue([
       internNeedingMissedEntry('u1', 'falha@example.com'),
       internNeedingMissedEntry('u2', 'sucesso@example.com'),
@@ -96,6 +96,45 @@ describe('lib/notifications - checkAndNotifyAttendance', () => {
       failureCount: 0,
       failures: [],
     })
+  })
+
+  // Regressão: o cron é chamado por um `curl --max-time 30` no GitHub Actions
+  // (.github/workflows/attendance-reminder-cron.yml). Sem limite de tempo, um
+  // único e-mail pendurado segurava o lote inteiro e o job morria com exit 28
+  // sem nunca receber resposta.
+  it('responde mesmo com um envio pendurado, marcando só ele como falha', async () => {
+    mockedFindMany.mockResolvedValue([
+      internNeedingMissedEntry('u1', 'pendurado@example.com'),
+      internNeedingMissedEntry('u2', 'sucesso@example.com'),
+    ])
+
+    mockedSendEmail.mockImplementation(async (to: string) => {
+      // Conexão SMTP que nunca responde — o caso real do timeout.
+      if (to === 'pendurado@example.com') return new Promise(() => {})
+      return true
+    })
+
+    const summary = await checkAndNotifyAttendance({ sendTimeoutMs: 20 })
+
+    expect(summary.status).toBe('PARTIAL_FAILURE')
+    expect(summary.successCount).toBe(1)
+    expect(summary.failures).toHaveLength(1)
+    expect(summary.failures[0].email).toBe('pendurado@example.com')
+    expect(summary.failures[0].message).toMatch(/tempo limite/)
+  })
+
+  it('não envia nada e devolve o lote para o próximo ciclo quando o orçamento de tempo já estourou', async () => {
+    mockedFindMany.mockResolvedValue([internNeedingMissedEntry('u1', 'adiado@example.com')])
+    mockedSendEmail.mockResolvedValue(true)
+
+    const summary = await checkAndNotifyAttendance({
+      startedAt: Date.now() - 60_000,
+      timeBudgetMs: 8_000,
+    })
+
+    expect(mockedSendEmail).not.toHaveBeenCalled()
+    expect(summary.status).toBe('PARTIAL_FAILURE')
+    expect(summary.failures[0].message).toMatch(/Orçamento de tempo excedido/)
   })
 
   it('retorna SUCCESS (sem tentar enviar nada) quando nenhum estagiário precisa de notificação', async () => {

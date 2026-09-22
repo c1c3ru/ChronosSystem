@@ -23,7 +23,12 @@ jobs:
     steps:
       - name: Chamar /api/cron/daily-justification-check
         run: |
-          # retry de 3 vezes com intervalo de 5s, e timeout de 30s
+          # Retry de 3 vezes com intervalo de 5s, e timeout de 30s por tentativa.
+          # O endpoint se limita sozinho para responder bem antes disso (ver
+          # CRON_EMAIL_TIME_BUDGET_MS e CRON_SEND_TIMEOUT_MS em lib/cron-log.ts):
+          # o que não couber no ciclo volta como 207 e é reenviado na próxima
+          # execução. Se este passo falhar com exit 28, o endpoint quebrou esse
+          # contrato — não adianta só aumentar o --max-time aqui.
           RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
             --retry 3 --retry-delay 5 --max-time 30 \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \

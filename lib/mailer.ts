@@ -2,6 +2,20 @@ import nodemailer from 'nodemailer'
 import { env } from './env'
 
 /**
+ * Timeouts explícitos da conexão SMTP. Os padrões do nodemailer são altos
+ * demais para uma função serverless chamada por um cron externo: 2 min para
+ * conectar, 30s de saudação e 10 MINUTOS de socket ocioso. Com eles, um único
+ * destinatário cuja conexão trava segura o lote inteiro e o endpoint de cron
+ * nunca responde — foi assim que o job do GitHub Actions morreu com exit 28
+ * (curl --max-time 30) sem receber nada de volta. Aqui uma conexão ruim falha
+ * rápido, vira ETIMEDOUT (tratado como transitório em lib/email.ts) e o lote
+ * segue para o próximo destinatário.
+ */
+const SMTP_CONNECTION_TIMEOUT_MS = 5_000
+const SMTP_GREETING_TIMEOUT_MS = 5_000
+const SMTP_SOCKET_TIMEOUT_MS = 10_000
+
+/**
  * Transport SMTP do sistema — configurado via variáveis de ambiente.
  * Para Gmail/Google Workspace: use App Password (não a senha da conta).
  * Gere em: myaccount.google.com → Segurança → Senhas de app
@@ -23,6 +37,9 @@ function createTransport() {
       user: env.SMTP_USER,
       pass: env.SMTP_PASSWORD,
     },
+    connectionTimeout: SMTP_CONNECTION_TIMEOUT_MS,
+    greetingTimeout: SMTP_GREETING_TIMEOUT_MS,
+    socketTimeout: SMTP_SOCKET_TIMEOUT_MS,
   })
 }
 

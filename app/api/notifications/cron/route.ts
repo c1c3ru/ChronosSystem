@@ -5,13 +5,14 @@ import { apiLogger } from '@/lib/logger'
 import { recordCronLog, recordCronError, cronHttpStatus } from '@/lib/cron-log'
 
 export const dynamic = 'force-dynamic'
-// Sem isso a função cai no limite padrão (bem mais curto) de execução da
-// Vercel. checkAndNotifyAttendance() envia os e-mails sequencialmente (ver
-// runBatchSequentially em lib/cron-log.ts), então o tempo total cresce com o
-// número de estagiários notificados no ciclo — em turnos concorridos isso já
-// estourou o padrão e fez o GitHub Actions dar timeout (curl --max-time 30)
-// sem nunca receber resposta. Mesmo valor já usado pelo cron irmão em
-// app/api/cron/daily-justification-check/route.ts.
+// Teto de execução na Vercel — é a rede de segurança da plataforma, NÃO o que
+// garante a resposta a tempo: quem chama é um `curl --max-time 30` no GitHub
+// Actions (ver .github/workflows/attendance-reminder-cron.yml), então uma
+// função que usasse os 60s inteiros mataria o job com exit 28 sem nunca dizer
+// o que o cron fez. Quem segura a resposta dentro da janela do curl é o
+// orçamento de tempo do lote (CRON_EMAIL_TIME_BUDGET_MS) + o teto por envio
+// (CRON_SEND_TIMEOUT_MS), ambos em lib/cron-log.ts. Mesmo valor já usado pelo
+// cron irmão em app/api/cron/daily-justification-check/route.ts.
 export const maxDuration = 60
 
 const JOB_NAME = 'attendance-reminder'
@@ -24,7 +25,9 @@ const JOB_NAME = 'attendance-reminder'
  *
  * Retorna 200 quando todas as notificações elegíveis foram enviadas, 207
  * (Multi-Status) quando parte delas falhou — o job rodou até o fim, é uma
- * falha de envio, não de API — e 500 apenas quando o job quebra antes de
+ * falha de envio, não de API; o orçamento de tempo estourado conta como falha
+ * aqui também, e o que sobrou é reenviado no ciclo seguinte (deduplicado por
+ * AttendanceNotification) — e 500 apenas quando o job quebra antes de
  * terminar. Cada execução grava uma linha em CronLog (tabela `cron_logs`),
  * consumida pelo painel "Status dos Alertas" no admin.
  */
@@ -50,10 +53,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
 
-  const startedAt = new Date()
+  const startedAtMs = Date.now()
+  const startedAt = new Date(startedAtMs)
 
   try {
-    const summary = await checkAndNotifyAttendance()
+    // O orçamento conta a partir daqui (e não do início do lote de envios)
+    // para que a consulta ao banco feita por checkAndNotifyAttendance também
+    // entre na conta dos 30s que o chamador espera.
+    const summary = await checkAndNotifyAttendance({ startedAt: startedAtMs })
     await recordCronLog(JOB_NAME, startedAt, summary)
 
     return NextResponse.json(
