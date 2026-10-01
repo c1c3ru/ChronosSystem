@@ -16,7 +16,7 @@ function ErrorContent() {
           title: 'Acesso Negado - IFCE Maracanaú',
           message: 'Não foi possível entrar com essa conta Google.',
           description:
-            'O Chronos System só aceita contas Google institucionais do IFCE (@ifce.edu.br para servidores, @aluno.ifce.edu.br para alunos). Verifique se você selecionou a conta certa ao fazer login — não é necessário nenhum cadastro prévio, sua conta é criada automaticamente no primeiro acesso com o email institucional.',
+            'O Chronos System aceita contas Google institucionais do IFCE (@ifce.edu.br para servidores, @aluno.ifce.edu.br para alunos) e contas @gmail.com com email verificado. Verifique se você selecionou a conta certa ao fazer login — não é necessário nenhum cadastro prévio, sua conta é criada automaticamente no primeiro acesso.',
           icon: Shield,
         }
       case 'Configuration':
@@ -92,7 +92,7 @@ function ErrorContent() {
                 <p>
                   Ao clicar em &quot;Entrar com Google&quot;, escolha sua conta institucional —
                   <strong> @aluno.ifce.edu.br</strong> (alunos) ou <strong>@ifce.edu.br</strong>{' '}
-                  (servidores) — não uma conta pessoal.
+                  (servidores) — ou uma conta <strong>@gmail.com</strong>.
                 </p>
                 <p className="mt-2 text-slate-500">
                   Se sua conta é institucional e o erro persiste, entre em contato com o suporte

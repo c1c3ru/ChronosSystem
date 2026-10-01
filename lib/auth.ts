@@ -6,6 +6,11 @@ import * as bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { authLogger } from '@/lib/logger'
 import { rateLimitByIdentifier } from '@/lib/rate-limit'
+import {
+  getAllowedGoogleEmailDomains,
+  getAllowedGoogleEmails,
+  isGoogleEmailAllowed,
+} from '@/lib/google-email-allowlist'
 
 declare module 'next-auth' {
   interface Session {
@@ -48,27 +53,9 @@ if (!NEXTAUTH_SECRET) {
   )
 }
 
-// Domínios de email institucionais autorizados a logar via Google OAuth.
-// Configurável via GOOGLE_ALLOWED_EMAIL_DOMAINS (lista separada por vírgula).
-//   - ifce.edu.br        -> servidores/professores do IFCE
-//   - aluno.ifce.edu.br  -> exclusivo para alunos do IFCE
-//   - aluno.ce.gov.br    -> alunos da rede estadual do Ceará (SEDUC-CE) — também
-//                           fazem estágio aqui e não têm email institucional @ifce
-const ALLOWED_GOOGLE_EMAIL_DOMAINS = (
-  process.env.GOOGLE_ALLOWED_EMAIL_DOMAINS || 'ifce.edu.br,aluno.ifce.edu.br,aluno.ce.gov.br'
-)
-  .split(',')
-  .map((domain) => domain.trim().toLowerCase())
-  .filter(Boolean)
-
-// Emails específicos autorizados mesmo fora dos domínios institucionais
-// (ex.: conta pessoal do administrador/proprietário do sistema).
-// Configurável via GOOGLE_ALLOWED_EMAILS (lista separada por vírgula).
-// Evita abrir todo o domínio gmail.com/etc. só para liberar uma conta.
-const ALLOWED_GOOGLE_EMAILS = (process.env.GOOGLE_ALLOWED_EMAILS || 'cicerosilva.ifce@gmail.com')
-  .split(',')
-  .map((email) => email.trim().toLowerCase())
-  .filter(Boolean)
+// Domínios/emails autorizados no login Google (ver lib/google-email-allowlist.ts)
+const ALLOWED_GOOGLE_EMAIL_DOMAINS = getAllowedGoogleEmailDomains()
+const ALLOWED_GOOGLE_EMAILS = getAllowedGoogleEmails()
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -139,7 +126,8 @@ export const authOptions: NextAuthOptions = {
       clientId: GOOGLE_CLIENT_ID || '',
       clientSecret: GOOGLE_CLIENT_SECRET || '',
       // Permite vincular conta Google ao email já cadastrado via credenciais
-      // Seguro para emails institucionais IFCE (@ifce.edu.br)
+      // Seguro porque só aceitamos email_verified=true de domínios cujo dono é o
+      // próprio Google (gmail.com) ou o Workspace institucional (@ifce.edu.br)
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -234,15 +222,10 @@ export const authOptions: NextAuthOptions = {
             return false
           }
 
-          // Validar domínio institucional permitido (ou email na allowlist explícita)
-          const normalizedEmail = user.email?.toLowerCase()
-          const emailDomain = normalizedEmail?.split('@')[1]
-          const isAllowedDomain =
-            !!emailDomain && ALLOWED_GOOGLE_EMAIL_DOMAINS.includes(emailDomain)
-          const isAllowedEmail =
-            !!normalizedEmail && ALLOWED_GOOGLE_EMAILS.includes(normalizedEmail)
-
-          if (!isAllowedDomain && !isAllowedEmail) {
+          // Validar domínio permitido (ou email na allowlist explícita)
+          if (
+            !isGoogleEmailAllowed(user.email, ALLOWED_GOOGLE_EMAIL_DOMAINS, ALLOWED_GOOGLE_EMAILS)
+          ) {
             authLogger.security('Google login blocked - unauthorized domain', {
               email: user.email,
               allowedDomains: ALLOWED_GOOGLE_EMAIL_DOMAINS,
