@@ -1,4 +1,5 @@
-import { mailerTransport, MAIL_FROM, isSmtpConfigured } from './mailer'
+import { mailerTransport, MAIL_FROM, getMailProvider, type MailProvider } from './mailer'
+import { GmailApiError, sendViaGmailApi } from './gmail-api'
 import { logger } from './logger'
 
 interface EmailOptions {
@@ -38,11 +39,17 @@ const SEND_RETRY_BASE_DELAY_MS = 1000
 const TRANSIENT_ERROR_CODES = new Set(['ESOCKET', 'ECONNECTION', 'ETIMEDOUT'])
 const TRANSIENT_MESSAGE_PATTERN = /\b(EBUSY|EAI_AGAIN|ETIMEDOUT|ECONNRESET|ECONNREFUSED)\b/
 
-function isTransientSmtpError(error: unknown): boolean {
+function isTransientSendError(error: unknown): boolean {
+  if (error instanceof GmailApiError) return error.transient
   if (!(error instanceof Error)) return false
   const code = (error as NodeJS.ErrnoException).code
   if (code && TRANSIENT_ERROR_CODES.has(code)) return true
   return TRANSIENT_MESSAGE_PATTERN.test(error.message)
+}
+
+const PROVIDER_LABEL: Record<MailProvider, string> = {
+  'gmail-api': 'Gmail API',
+  smtp: 'SMTP',
 }
 
 function sleep(ms: number): Promise<void> {
@@ -62,60 +69,83 @@ class EmailService {
   }
 
   /**
-   * Envia via SMTP com retry (backoff de 1s/2s) para falhas transitórias de
-   * rede/DNS na conexão (ex.: getaddrinfo EBUSY, comum em rajadas de envio
-   * concorrente em ambiente serverless) — falhas permanentes (credenciais
-   * inválidas, destinatário rejeitado) não são reprocessadas.
+   * Envia pelo provedor configurado (API do Gmail por padrão, SMTP como
+   * alternativa — ver getMailProvider) com retry (backoff de 1s/2s) para
+   * falhas transitórias de rede/DNS, timeout, 429 e 5xx. Falhas permanentes
+   * (credenciais inválidas, destinatário rejeitado) não são reprocessadas.
    */
   async sendEmail(options: EmailOptions): Promise<boolean> {
-    if (!isSmtpConfigured()) {
-      logger.warn('SMTP não configurado — email não enviado', { to: options.to })
+    const provider = getMailProvider()
+    if (!provider) {
+      logger.warn('Envio de email não configurado (Gmail API ou SMTP) — email não enviado', {
+        to: options.to,
+      })
       return false
     }
 
+    const providerLabel = PROVIDER_LABEL[provider]
+
     for (let attempt = 1; attempt <= SEND_MAX_ATTEMPTS; attempt++) {
       try {
-        logger.debug('Sending email via SMTP', {
+        logger.debug(`Sending email via ${providerLabel}`, {
           to: options.to,
           subject: options.subject,
           attempt,
         })
 
-        const info = await mailerTransport.sendMail({
-          from: MAIL_FROM,
-          to: options.to,
-          subject: options.subject,
-          html: options.html,
-          text: options.text,
-        })
+        const messageId = await this.deliver(provider, options)
 
-        logger.info('Email sent successfully', { messageId: info.messageId })
+        logger.info('Email sent successfully', { messageId, provider })
         return true
       } catch (error: unknown) {
         const reason = error instanceof Error ? error.message : String(error)
 
-        if (attempt < SEND_MAX_ATTEMPTS && isTransientSmtpError(error)) {
-          logger.warn('Falha transitória ao enviar email via SMTP — tentando novamente', {
-            to: options.to,
-            attempt,
-            error: reason,
-          })
+        if (attempt < SEND_MAX_ATTEMPTS && isTransientSendError(error)) {
+          logger.warn(
+            `Falha transitória ao enviar email via ${providerLabel} — tentando novamente`,
+            {
+              to: options.to,
+              attempt,
+              error: reason,
+            }
+          )
           await sleep(attempt * SEND_RETRY_BASE_DELAY_MS)
           continue
         }
 
-        logger.error('Failed to send email via SMTP', { to: options.to, error: reason, attempt })
+        logger.error(`Failed to send email via ${providerLabel}`, {
+          to: options.to,
+          error: reason,
+          attempt,
+        })
         // Propaga a causa real (em vez de engolir em `false`) para que os
         // chamadores — em especial os crons, via Promise.allSettled — reportem
         // o motivo verdadeiro da falha (ex.: credenciais inválidas, host
         // inacessível) em vez do genérico "Erro ao enviar email".
-        throw new Error(`Falha ao enviar email via SMTP: ${reason}`)
+        throw new Error(`Falha ao enviar email via ${providerLabel}: ${reason}`)
       }
     }
 
     // Inalcançável: o loop acima sempre retorna (sucesso) ou lança (última
     // tentativa) antes de terminar — presente só para a análise de tipos do TS.
-    throw new Error('Falha ao enviar email via SMTP: número máximo de tentativas excedido')
+    throw new Error(
+      `Falha ao enviar email via ${providerLabel}: número máximo de tentativas excedido`
+    )
+  }
+
+  private async deliver(provider: MailProvider, options: EmailOptions): Promise<string> {
+    const message = {
+      from: MAIL_FROM,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+    }
+
+    if (provider === 'gmail-api') return sendViaGmailApi(message)
+
+    const info = await mailerTransport.sendMail(message)
+    return info.messageId
   }
 
   /**

@@ -44,6 +44,16 @@ const envSchema = z.object({
   SMTP_FROM: z.string().optional().default(''),
 
   // ========================================
+  // EMAIL - Gmail API (HTTPS + OAuth2) — preferida sobre SMTP quando configurada
+  // GMAIL_CLIENT_ID/SECRET são opcionais: por padrão usa GOOGLE_CLIENT_ID/SECRET.
+  // MAIL_FROM é opcional: por padrão usa SMTP_FROM.
+  // ========================================
+  GMAIL_CLIENT_ID: z.string().optional().default(''),
+  GMAIL_CLIENT_SECRET: z.string().optional().default(''),
+  GMAIL_REFRESH_TOKEN: z.string().optional().default(''),
+  MAIL_FROM: z.string().optional().default(''),
+
+  // ========================================
   // APLICAÇÃO
   // ========================================
   NODE_ENV: z.enum(['development', 'production', 'test'], {

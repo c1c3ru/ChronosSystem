@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getNowInFortaleza } from '@/lib/timezone'
 import { redisHealthCheck } from '@/lib/redis'
-import { isSmtpConfigured } from '@/lib/mailer'
+import { getMailProvider } from '@/lib/mailer'
 import { logger } from '@/lib/logger'
 
 export async function GET() {
@@ -19,7 +19,7 @@ export async function GET() {
       prisma.machine.count(),
     ])
 
-    const smtpConfigured = isSmtpConfigured()
+    const mailProvider = getMailProvider()
 
     return NextResponse.json(
       {
@@ -37,12 +37,17 @@ export async function GET() {
           message: redisHealth.message,
         },
         email: {
-          // Não expõe valores, apenas se SMTP_HOST/USER/PASSWORD/FROM estão
-          // todos configurados. Sem isso, e-mails falham silenciosamente.
-          status: smtpConfigured ? 'configured' : 'not_configured',
-          message: smtpConfigured
-            ? 'SMTP configurado'
-            : 'SMTP não configurado — e-mails (reset de senha, lembretes, justificativas) não estão sendo enviados',
+          // Não expõe valores, apenas qual provedor está configurado (Gmail
+          // API tem prioridade sobre SMTP). Sem nenhum, e-mails falham
+          // silenciosamente.
+          status: mailProvider ? 'configured' : 'not_configured',
+          provider: mailProvider,
+          message:
+            mailProvider === 'gmail-api'
+              ? 'Gmail API configurada'
+              : mailProvider === 'smtp'
+                ? 'SMTP configurado (Gmail API não configurada)'
+                : 'Envio de e-mail não configurado — e-mails (reset de senha, lembretes, justificativas) não estão sendo enviados',
         },
         uptime: process.uptime(),
         memory: {

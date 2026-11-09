@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer'
 import { env } from './env'
+import { isGmailApiConfigured } from './gmail-api'
 
 /**
  * Timeouts explícitos da conexão SMTP. Os padrões do nodemailer são altos
@@ -46,7 +47,7 @@ function createTransport() {
 export const mailerTransport = createTransport()
 
 /** Endereço remetente exibido nos emails (ex: "Chronos IFCE <cti.maracanau@ifce.edu.br>") */
-export const MAIL_FROM = env.SMTP_FROM
+export const MAIL_FROM = env.MAIL_FROM || env.SMTP_FROM
 
 /**
  * Verifica se o SMTP está configurado corretamente.
@@ -54,4 +55,18 @@ export const MAIL_FROM = env.SMTP_FROM
  */
 export function isSmtpConfigured(): boolean {
   return Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD && env.SMTP_FROM)
+}
+
+export type MailProvider = 'gmail-api' | 'smtp'
+
+/**
+ * Provedor usado para enviar e-mails. A API do Gmail (HTTPS) tem prioridade:
+ * o SMTP com smtp.gmail.com falhava na Vercel com `getaddrinfo EBUSY`. O SMTP
+ * fica como alternativa para quem ainda não configurou o refresh token.
+ * `null` = nenhum provedor configurado (e-mails não são enviados).
+ */
+export function getMailProvider(): MailProvider | null {
+  if (MAIL_FROM && isGmailApiConfigured()) return 'gmail-api'
+  if (isSmtpConfigured()) return 'smtp'
+  return null
 }
