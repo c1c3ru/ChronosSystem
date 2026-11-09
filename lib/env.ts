@@ -114,8 +114,19 @@ export type Env = z.infer<typeof envSchema>
  * deve acontecer em runtime, no ponto de uso (ex.: lib/mailer.ts já faz
  * isso para as variáveis SMTP).
  */
+/**
+ * Copia de process.env sem espaços/quebras de linha nas pontas. Valores
+ * colados no painel da Vercel podem vir com "\n" no fim — foi o que derrubou
+ * todo o envio de e-mail: SMTP_HOST="smtp.gmail.com\n" fazia o DNS falhar com
+ * `getaddrinfo EBUSY` em toda tentativa, de 28/09 a 09/11/2026.
+ */
+function trimmedProcessEnv(): Record<string, string | undefined> {
+  return Object.fromEntries(Object.entries(process.env).map(([key, value]) => [key, value?.trim()]))
+}
+
 function validateEnv(): Env {
-  const result = envSchema.safeParse(process.env)
+  const rawEnv = trimmedProcessEnv()
+  const result = envSchema.safeParse(rawEnv)
 
   if (result.success) {
     if (process.env.NODE_ENV === 'development') {
@@ -142,7 +153,7 @@ function validateEnv(): Env {
   // em vez de derrubar o build/deploy inteiro. Rotas que realmente precisam
   // de uma variável específica vão falhar em runtime, apenas quando forem
   // chamadas — não no import do módulo.
-  return process.env as unknown as Env
+  return rawEnv as unknown as Env
 }
 
 // Validar e exportar
