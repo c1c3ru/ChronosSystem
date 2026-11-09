@@ -7,28 +7,60 @@ import { getContractTypeConfig } from '@/lib/contract-types'
 import { getShiftStartTime } from '@/lib/shift-validation'
 import { authLogger } from '@/lib/logger'
 import { z } from 'zod'
+import { PROFILE_FIELD_LABELS, PROFILE_MESSAGES } from '@/lib/profile-validation'
 
-const isoDateString = z
-  .string()
-  .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida')
+const isoDateString = (requiredMessage: string = PROFILE_MESSAGES.dateInvalid) =>
+  z
+    .string({ required_error: requiredMessage, invalid_type_error: PROFILE_MESSAGES.dateInvalid })
+    .min(1, requiredMessage)
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), PROFILE_MESSAGES.dateInvalid)
+
+const requiredString = (message: string) =>
+  z.string({ required_error: message, invalid_type_error: message }).trim().min(1, message)
 
 const completeProfileSchema = z.object({
-  phone: z.string().min(1, 'Telefone é obrigatório'),
-  address: z.string().min(1, 'Endereço é obrigatório'),
-  birthDate: isoDateString,
-  emergencyContact: z.string().min(1, 'Contato de emergência é obrigatório'),
-  emergencyPhone: z.string().min(1, 'Telefone de emergência é obrigatório'),
+  phone: requiredString(PROFILE_MESSAGES.phoneRequired),
+  address: requiredString(PROFILE_MESSAGES.addressRequired),
+  birthDate: isoDateString(PROFILE_MESSAGES.birthDateRequired),
+  emergencyContact: requiredString(PROFILE_MESSAGES.emergencyContactRequired),
+  emergencyPhone: requiredString(PROFILE_MESSAGES.emergencyPhoneRequired),
   department: z.string().optional().nullable(),
   registrationNumber: z.string().optional().nullable(),
-  startDate: isoDateString.optional().nullable(),
-  contractStartDate: isoDateString.optional().nullable(),
-  contractEndDate: isoDateString.optional().nullable(),
+  startDate: z
+    .union([z.literal(''), isoDateString()])
+    .optional()
+    .nullable(),
+  contractStartDate: z
+    .union([z.literal(''), isoDateString()])
+    .optional()
+    .nullable(),
+  contractEndDate: z
+    .union([z.literal(''), isoDateString()])
+    .optional()
+    .nullable(),
   siapeNumber: z.string().optional().nullable(),
   contractType: z.string().optional(),
-  shift: z.enum(['MORNING', 'AFTERNOON', 'NIGHT', 'HYBRID']).optional(),
+  shift: z
+    .enum(['MORNING', 'AFTERNOON', 'NIGHT', 'HYBRID'], {
+      errorMap: () => ({ message: PROFILE_MESSAGES.shiftRequired }),
+    })
+    .optional(),
   workingDaysPerWeek: z.number().int().positive().optional(),
   allowFlexibleHours: z.boolean().optional(),
 })
+
+/**
+ * Resposta 400 padronizada: `fieldErrors` diz, campo a campo, o que está
+ * errado e como corrigir; `error`/`message` resumem para o banner/toast.
+ */
+function validationErrorResponse(fieldErrors: Record<string, string>) {
+  const fields = Object.keys(fieldErrors)
+  const summary =
+    fields.length === 1
+      ? fieldErrors[fields[0]]
+      : `Corrija os campos: ${fields.map((f) => PROFILE_FIELD_LABELS[f] || f).join(', ')}.`
+  return NextResponse.json({ error: summary, message: summary, fieldErrors }, { status: 400 })
+}
 
 // POST /api/auth/complete-profile - Completar perfil após login com Google
 
@@ -45,12 +77,17 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.json().catch(() => null)
     const parsedBody = completeProfileSchema.safeParse(rawBody)
     if (!parsedBody.success) {
-      return NextResponse.json(
-        {
-          error: parsedBody.error.errors[0]?.message || 'Todos os campos básicos são obrigatórios',
-        },
-        { status: 400 }
-      )
+      if (!rawBody || typeof rawBody !== 'object') {
+        const message =
+          'Não foi possível ler os dados enviados. Recarregue a página e tente novamente.'
+        return NextResponse.json({ error: message, message }, { status: 400 })
+      }
+      const fieldErrors: Record<string, string> = {}
+      for (const issue of parsedBody.error.errors) {
+        const field = String(issue.path[0] ?? 'general')
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message
+      }
+      return validationErrorResponse(fieldErrors)
     }
 
     const {
@@ -93,27 +130,23 @@ export async function POST(request: NextRequest) {
     })
 
     // Validações específicas para funcionários (não para ADMIN/SUPERVISOR)
+    const fieldErrors: Record<string, string> = {}
     if (newRole === 'EMPLOYEE') {
       if (!department) {
-        return NextResponse.json(
-          { error: 'Departamento é obrigatório para funcionários' },
-          { status: 400 }
-        )
+        fieldErrors.department = PROFILE_MESSAGES.departmentRequired
       }
       if (!registrationNumber?.trim()) {
-        return NextResponse.json(
-          { error: 'Matrícula é obrigatória para alunos/estagiários' },
-          { status: 400 }
-        )
+        fieldErrors.registrationNumber = PROFILE_MESSAGES.registrationNumberRequired
       }
     }
 
     // Validar formato da matrícula SIAPE (apenas se fornecida)
     if (siapeNumber && !/^\d{7}$/.test(siapeNumber)) {
-      return NextResponse.json(
-        { error: 'Matrícula SIAPE deve ter exatamente 7 dígitos' },
-        { status: 400 }
-      )
+      fieldErrors.siapeNumber = PROFILE_MESSAGES.siapeFormat
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return validationErrorResponse(fieldErrors)
     }
 
     authLogger.debug('Updating user profile', { userId: session.user.id, role: newRole })
