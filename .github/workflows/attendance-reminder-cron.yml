@@ -46,8 +46,19 @@ jobs:
           # 207 (Multi-Status) = falha parcial no envio de e-mail — o próprio
           # endpoint já registrou em CronLog e vai reprocessar o que faltou no
           # próximo ciclo (deduplicado), então não é um erro de infra para o
-          # GitHub Actions tentar de novo. Só 4xx/5xx é falha de verdade aqui.
+          # GitHub Actions tentar de novo. 4xx/5xx é falha de verdade aqui.
           if [ "$RESPONSE" != "200" ] && [ "$RESPONSE" != "207" ]; then
             echo "::error::Endpoint retornou status $RESPONSE (esperado 200 ou 207)"
             exit 1
+          fi
+
+          # Exceção: 207 com NENHUM e-mail entregue é falha total, não parcial.
+          # Foi assim que o envio ficou quebrado por semanas com o run verde
+          # (todo envio falhando em "getaddrinfo EBUSY" e respondendo 207).
+          if [ "$RESPONSE" = "207" ]; then
+            DELIVERED=$(jq -r '.results.successCount // empty' /tmp/response.json 2>/dev/null || true)
+            if [ "$DELIVERED" = "0" ]; then
+              echo "::error::Nenhum e-mail foi entregue nesta execução — veja os motivos em results acima"
+              exit 1
+            fi
           fi

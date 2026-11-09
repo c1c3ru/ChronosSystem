@@ -2,6 +2,50 @@
 
 Este guia explica como configurar o sistema de email do Chronos System usando Nodemailer.
 
+## ✅ Configuração atual: API do Gmail (recomendada para a Vercel)
+
+O envio por SMTP (`smtp.gmail.com`) **não funciona na Vercel**: todas as conexões
+falhavam com `getaddrinfo EBUSY smtp.gmail.com` e nenhum lembrete era entregue.
+Por isso o sistema envia pela **API HTTP do Gmail** sempre que `GMAIL_REFRESH_TOKEN`
+estiver configurado (o SMTP fica só como alternativa). O código está em `lib/gmail-api.ts`.
+
+### Passo a passo (uma vez só)
+
+1. **Ative a Gmail API** no mesmo projeto do Google Cloud do login (o do `GOOGLE_CLIENT_ID`):
+   APIs e serviços → Biblioteca → "Gmail API" → Ativar.
+2. **Tela de consentimento OAuth**: adicione o escopo `https://www.googleapis.com/auth/gmail.send`.
+   Se o tipo de usuário for "Externo", deixe o status de publicação em **Em produção** —
+   em "Teste" o refresh token expira em 7 dias.
+3. **Cliente OAuth** (Credenciais → o cliente Web usado no login): adicione o URI de
+   redirecionamento autorizado `https://developers.google.com/oauthplayground`.
+4. **Gere o refresh token** no [OAuth Playground](https://developers.google.com/oauthplayground):
+   - Engrenagem (⚙️) → marque "Use your own OAuth credentials" → cole o Client ID e o Client Secret.
+   - Em "Step 1", digite o escopo `https://www.googleapis.com/auth/gmail.send` → **Authorize APIs**.
+   - Entre com a **conta remetente** (ex.: `cti.maracanau@ifce.edu.br`) e permita.
+   - Em "Step 2", clique em **Exchange authorization code for tokens** e copie o **Refresh token**.
+5. **Na Vercel** (Settings → Environment Variables → Production), crie:
+
+   ```env
+   GMAIL_REFRESH_TOKEN=1//0g...            # o refresh token do passo 4
+   # Opcionais:
+   # MAIL_FROM="Chronos IFCE <cti.maracanau@ifce.edu.br>"   # padrão: SMTP_FROM
+   # GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET                    # padrão: GOOGLE_CLIENT_ID/SECRET
+   ```
+
+   O remetente (`MAIL_FROM`/`SMTP_FROM`) precisa ser a própria conta que gerou o token
+   (ou um alias "Enviar como" dela). Depois, faça um **Redeploy**.
+
+6. **Confira**: `GET /api/health` deve mostrar `email.provider: "gmail-api"`. Rode o workflow
+   "🔔 Lembrete de Entrada/Saída" manualmente (Actions → Run workflow) e veja no log se
+   `successCount` é maior que zero. Se todos os envios falharem, o run agora fica vermelho.
+
+> Se o login da conta remetente bloquear o app (`admin_policy_enforced`, como acontece no
+> Workspace da SEDUC-CE), use outra conta como remetente — por exemplo um `@gmail.com` do setor.
+
+---
+
+## Alternativa: SMTP (Nodemailer)
+
 ## 🚀 Configuração Rápida
 
 ### 1. Gmail (Recomendado)

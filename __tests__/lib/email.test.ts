@@ -6,18 +6,27 @@
 jest.mock('@/lib/mailer', () => ({
   mailerTransport: { sendMail: jest.fn() },
   MAIL_FROM: 'Chronos <noreply@example.com>',
-  isSmtpConfigured: jest.fn(() => true),
+  getMailProvider: jest.fn(() => 'smtp'),
 }))
+
+jest.mock('@/lib/env', () => ({ env: {} }))
+
+jest.mock('@/lib/gmail-api', () => {
+  const actual = jest.requireActual('@/lib/gmail-api')
+  return { ...actual, sendViaGmailApi: jest.fn() }
+})
 
 jest.mock('@/lib/logger', () => ({
   logger: { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }))
 
-import { mailerTransport, isSmtpConfigured } from '@/lib/mailer'
+import { mailerTransport, getMailProvider } from '@/lib/mailer'
+import { GmailApiError, sendViaGmailApi } from '@/lib/gmail-api'
 import { emailService } from '@/lib/email'
 
 const mockedSendMail = mailerTransport.sendMail as jest.Mock
-const mockedIsSmtpConfigured = isSmtpConfigured as jest.Mock
+const mockedGetMailProvider = getMailProvider as jest.Mock
+const mockedSendViaGmailApi = sendViaGmailApi as jest.Mock
 
 function errnoError(message: string, code?: string): NodeJS.ErrnoException {
   const error = new Error(message) as NodeJS.ErrnoException
@@ -28,7 +37,7 @@ function errnoError(message: string, code?: string): NodeJS.ErrnoException {
 describe('emailService.sendEmail (retry para falhas transitórias)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockedIsSmtpConfigured.mockReturnValue(true)
+    mockedGetMailProvider.mockReturnValue('smtp')
     jest.useFakeTimers()
   })
 
@@ -36,8 +45,8 @@ describe('emailService.sendEmail (retry para falhas transitórias)', () => {
     jest.useRealTimers()
   })
 
-  it('retorna false sem tentar enviar quando SMTP não está configurado', async () => {
-    mockedIsSmtpConfigured.mockReturnValue(false)
+  it('retorna false sem tentar enviar quando nenhum provedor está configurado', async () => {
+    mockedGetMailProvider.mockReturnValue(null)
 
     const result = await emailService.sendAttendanceNotificationEmail(
       'user@example.com',
@@ -47,6 +56,7 @@ describe('emailService.sendEmail (retry para falhas transitórias)', () => {
 
     expect(result).toBe(false)
     expect(mockedSendMail).not.toHaveBeenCalled()
+    expect(mockedSendViaGmailApi).not.toHaveBeenCalled()
   })
 
   it('não tenta de novo quando o envio funciona de primeira', async () => {
@@ -105,5 +115,67 @@ describe('emailService.sendEmail (retry para falhas transitórias)', () => {
     ).rejects.toThrow('Invalid login')
 
     expect(mockedSendMail).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('emailService.sendEmail via Gmail API', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockedGetMailProvider.mockReturnValue('gmail-api')
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  it('envia pela API do Gmail (e não pelo SMTP) quando ela está configurada', async () => {
+    mockedSendViaGmailApi.mockResolvedValueOnce('gmail-id-1')
+
+    const result = await emailService.sendAttendanceNotificationEmail(
+      'aluno@example.com',
+      'Assunto',
+      '<p>html</p>'
+    )
+
+    expect(result).toBe(true)
+    expect(mockedSendMail).not.toHaveBeenCalled()
+    expect(mockedSendViaGmailApi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: 'Chronos <noreply@example.com>',
+        to: 'aluno@example.com',
+        subject: 'Assunto',
+        html: '<p>html</p>',
+      })
+    )
+  })
+
+  it('tenta de novo em erro transitório da API (ex.: 503) e entrega na 2ª tentativa', async () => {
+    mockedSendViaGmailApi
+      .mockRejectedValueOnce(new GmailApiError('Gmail API recusou o envio (HTTP 503)', true, 503))
+      .mockResolvedValueOnce('gmail-id-2')
+
+    const promise = emailService.sendAttendanceNotificationEmail(
+      'aluno@example.com',
+      'Assunto',
+      '<p>html</p>'
+    )
+    const assertion = expect(promise).resolves.toBe(true)
+    await jest.advanceTimersByTimeAsync(10_000)
+    await assertion
+
+    expect(mockedSendViaGmailApi).toHaveBeenCalledTimes(2)
+  })
+
+  it('não tenta de novo em erro permanente (refresh token revogado) e informa o motivo', async () => {
+    mockedSendViaGmailApi.mockRejectedValue(
+      new GmailApiError('Falha ao obter access token do Google (HTTP 400: invalid_grant)', false)
+    )
+
+    await expect(
+      emailService.sendAttendanceNotificationEmail('aluno@example.com', 'Assunto', '<p>html</p>')
+    ).rejects.toThrow('Falha ao enviar email via Gmail API: Falha ao obter access token')
+
+    expect(mockedSendViaGmailApi).toHaveBeenCalledTimes(1)
   })
 })
