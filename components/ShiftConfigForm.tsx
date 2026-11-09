@@ -83,10 +83,11 @@ export function ShiftConfigForm({
           type="time"
           value={shiftStartTime}
           onChange={(e) => onChange('shiftStartTime', e.target.value)}
-          className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-invalid={!!errors.shiftStartTime}
+          className={`w-full px-4 py-2 bg-neutral-700 border ${errors.shiftStartTime ? 'border-error' : 'border-neutral-600'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary`}
         />
         {errors.shiftStartTime && (
-          <p className="mt-1 text-xs text-error-400 flex items-center space-x-1">
+          <p className="mt-1 text-xs text-error flex items-center space-x-1">
             <AlertCircle className="h-3 w-3" />
             <span>{errors.shiftStartTime}</span>
           </p>
@@ -103,10 +104,11 @@ export function ShiftConfigForm({
           type="time"
           value={shiftEndTime}
           onChange={(e) => onChange('shiftEndTime', e.target.value)}
-          className="w-full px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-invalid={!!errors.shiftEndTime}
+          className={`w-full px-4 py-2 bg-neutral-700 border ${errors.shiftEndTime ? 'border-error' : 'border-neutral-600'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary`}
         />
         {errors.shiftEndTime && (
-          <p className="mt-1 text-xs text-error-400 flex items-center space-x-1">
+          <p className="mt-1 text-xs text-error flex items-center space-x-1">
             <AlertCircle className="h-3 w-3" />
             <span>{errors.shiftEndTime}</span>
           </p>

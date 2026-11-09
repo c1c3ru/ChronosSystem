@@ -18,6 +18,11 @@ import {
   formatHours,
 } from '@/lib/contract-types'
 import { calculateInternshipEnd, formatDate, formatDuration } from '@/lib/internship-calculator'
+import {
+  PROFILE_FIELD_DOM_IDS,
+  PROFILE_FIELD_LABELS,
+  validateProfileForm,
+} from '@/lib/profile-validation'
 
 interface ProfileData {
   phone?: string
@@ -40,30 +45,35 @@ interface ProfileData {
   allowFlexibleHours?: boolean
 }
 
-// Rótulos legíveis dos campos, para listar no toast/banner de erro exatamente
-// quais campos precisam ser corrigidos (em vez de uma mensagem genérica).
-const FIELD_LABELS: Record<string, string> = {
-  phone: 'Telefone',
-  address: 'Endereço',
-  birthDate: 'Data de nascimento',
-  emergencyContact: 'Contato de emergência',
-  emergencyPhone: 'Telefone de emergência',
-  department: 'Departamento',
-  registrationNumber: 'Matrícula',
-  siapeNumber: 'Matrícula SIAPE',
-  contractType: 'Tipo de contrato',
-  startDate: 'Data de início',
-  contractStartDate: 'Data de início do contrato',
-  contractEndDate: 'Data de fim do contrato',
-  shift: 'Turno',
-  shiftStartTime: 'Horário de início do turno',
-  shiftEndTime: 'Horário de fim do turno',
+const FIELD_LABELS = PROFILE_FIELD_LABELS
+
+// Os campos de turno já aparecem preenchidos com o padrão da manhã no
+// ShiftConfigForm; o estado precisa refletir isso, senão a validação acusava
+// "horário obrigatório" num campo que o aluno via preenchido.
+const INITIAL_PROFILE: ProfileData = {
+  shift: 'MORNING',
+  shiftStartTime: '08:00',
+  shiftEndTime: '12:00',
+  workingDaysPerWeek: 5,
+  allowFlexibleHours: false,
+}
+
+const fieldDomId = (field: string) => PROFILE_FIELD_DOM_IDS[field] || field
+
+/** Leva o aluno até o campo com erro (rola e foca). */
+function focusField(field: string): boolean {
+  if (typeof document === 'undefined') return false
+  const el = document.getElementById(fieldDomId(field))
+  if (!el) return false
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.focus()
+  return true
 }
 
 export default function CompleteProfilePage() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
-  const [profileData, setProfileData] = useState<ProfileData>({})
+  const [profileData, setProfileData] = useState<ProfileData>(INITIAL_PROFILE)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
@@ -72,6 +82,27 @@ export default function CompleteProfilePage() {
   const [showUserExistsAlert, setShowUserExistsAlert] = useState(false)
   const [existingUserData, setExistingUserData] = useState<Record<string, unknown> | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Atualiza um campo e apaga o erro dele: assim que o aluno corrige, a
+  // mensagem vermelha some e ele vê que acertou.
+  const setField = useCallback(<K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
+    setProfileData((prev) => ({ ...prev, [field]: value }))
+    setErrors((prev) => {
+      // Erro de "fim antes do início" depende dos dois campos
+      const related: Record<string, string> = {
+        contractStartDate: 'contractEndDate',
+        shiftStartTime: 'shiftEndTime',
+        hasSiape: 'siapeNumber',
+      }
+      const keys = [field as string, related[field as string]].filter(Boolean)
+      if (!keys.some((key) => key in prev)) return prev
+      const next = { ...prev }
+      keys.forEach((key) => delete next[key])
+      const remaining = Object.keys(next).filter((k) => k !== 'general')
+      if (remaining.length === 0) delete next.general
+      return next
+    })
+  }, [])
 
   // O nivel de acesso final e sempre decidido pelo servidor (ver
   // POST /api/auth/complete-profile) — nunca pelo numero de SIAPE digitado
@@ -119,118 +150,9 @@ export default function CompleteProfilePage() {
   }, [session, status, router, hasRedirected])
 
   const validateForm = useCallback(() => {
-    console.log('🔍 [VALIDAÇÃO] Iniciando validação do formulário...')
-    console.log('📝 [VALIDAÇÃO] Dados atuais:', profileData)
-
-    const newErrors: Record<string, string> = {}
-
-    if (!profileData.phone) {
-      newErrors.phone = 'Telefone é obrigatório'
-    } else if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(profileData.phone)) {
-      newErrors.phone = 'Formato inválido. Use: (11) 99999-9999'
-    }
-
-    if (!profileData.address) {
-      newErrors.address = 'Endereço é obrigatório'
-    }
-
-    if (!profileData.birthDate) {
-      newErrors.birthDate = 'Data de nascimento é obrigatória'
-    }
-
-    if (!profileData.emergencyContact) {
-      newErrors.emergencyContact = 'Contato de emergência é obrigatório'
-    }
-
-    if (!profileData.emergencyPhone) {
-      newErrors.emergencyPhone = 'Telefone de emergência é obrigatório'
-    } else if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(profileData.emergencyPhone)) {
-      newErrors.emergencyPhone = 'Formato inválido. Use: (11) 99999-9999'
-    }
-
-    // Departamento e matrícula só são obrigatórios para funcionários (alunos/estagiários)
-    if (effectiveRole === 'EMPLOYEE' && !profileData.department) {
-      newErrors.department = 'Departamento é obrigatório para funcionários'
-    }
-
-    if (effectiveRole === 'EMPLOYEE' && !profileData.registrationNumber?.trim()) {
-      newErrors.registrationNumber = 'Matrícula é obrigatória para alunos/estagiários'
-    }
-
-    // Validar matrícula SIAPE (apenas se hasSiape for true)
-    if (profileData.hasSiape) {
-      if (!profileData.siapeNumber) {
-        newErrors.siapeNumber = 'Matrícula SIAPE é obrigatória quando selecionada'
-      } else if (!/^\d{7}$/.test(profileData.siapeNumber)) {
-        newErrors.siapeNumber = 'Matrícula SIAPE deve ter exatamente 7 dígitos'
-      }
-    }
-
-    // Validar tipo de contrato e carga horária (apenas para funcionários)
-    if (effectiveRole === 'EMPLOYEE') {
-      if (!profileData.contractType) {
-        newErrors.contractType = 'Tipo de contrato é obrigatório'
-      }
-
-      // Validar datas apenas para funcionários (não para ADMIN/SUPERVISOR)
-      if (!profileData.startDate) {
-        newErrors.startDate = 'Data de início é obrigatória'
-      }
-
-      if (!profileData.contractStartDate) {
-        newErrors.contractStartDate = 'Data de início do contrato é obrigatória'
-      }
-
-      if (!profileData.contractEndDate) {
-        newErrors.contractEndDate = 'Data de fim do contrato é obrigatória'
-      }
-
-      // Validar se data de fim é posterior à data de início
-      if (profileData.contractStartDate && profileData.contractEndDate) {
-        if (new Date(profileData.contractEndDate) <= new Date(profileData.contractStartDate)) {
-          newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
-        }
-      }
-
-      // Validar configurações de turno
-      if (!profileData.shift) {
-        newErrors.shift = 'Turno é obrigatório'
-      }
-      if (!profileData.shiftStartTime) {
-        newErrors.shiftStartTime = 'Horário de início é obrigatório'
-      }
-      if (!profileData.shiftEndTime) {
-        newErrors.shiftEndTime = 'Horário de fim é obrigatório'
-      }
-    }
-
-    console.log('🎯 [VALIDAÇÃO] Role efetivo:', effectiveRole)
-
-    if (Object.keys(newErrors).length > 0) {
-      console.log('❌ [VALIDAÇÃO] Erros encontrados:', newErrors)
-      console.log('📋 [VALIDAÇÃO] Campos obrigatórios para', effectiveRole, ':', {
-        phone: !!profileData.phone,
-        address: !!profileData.address,
-        birthDate: !!profileData.birthDate,
-        emergencyContact: !!profileData.emergencyContact,
-        emergencyPhone: !!profileData.emergencyPhone,
-        siapeNumber: !!profileData.siapeNumber,
-        department: effectiveRole === 'EMPLOYEE' ? !!profileData.department : 'N/A (ADMIN)',
-        registrationNumber:
-          effectiveRole === 'EMPLOYEE' ? !!profileData.registrationNumber : 'N/A (ADMIN)',
-        contractType: effectiveRole === 'EMPLOYEE' ? !!profileData.contractType : 'N/A (ADMIN)',
-        contractStartDate:
-          effectiveRole === 'EMPLOYEE' ? !!profileData.contractStartDate : 'N/A (ADMIN)',
-        contractEndDate:
-          effectiveRole === 'EMPLOYEE' ? !!profileData.contractEndDate : 'N/A (ADMIN)',
-        shift: effectiveRole === 'EMPLOYEE' ? !!profileData.shift : 'N/A (ADMIN)',
-        shiftStartTime: effectiveRole === 'EMPLOYEE' ? !!profileData.shiftStartTime : 'N/A (ADMIN)',
-        shiftEndTime: effectiveRole === 'EMPLOYEE' ? !!profileData.shiftEndTime : 'N/A (ADMIN)',
-      })
-    } else {
-      console.log('✅ [VALIDAÇÃO] Todos os campos OK para', effectiveRole)
-    }
-
+    const newErrors = validateProfileForm(profileData, {
+      isEmployee: effectiveRole === 'EMPLOYEE',
+    })
     setErrors(newErrors)
     return newErrors
   }, [profileData, effectiveRole])
@@ -248,26 +170,23 @@ export default function CompleteProfilePage() {
       if (invalidFields.length > 0) {
         console.log('❌ Validação falhou', validationErrors)
 
-        // Feedback visual: sem isso, clicar em Salvar com um campo obrigatório
-        // vazio não mostrava nada além de um texto pequeno abaixo do campo
-        // (fácil de não notar, especialmente se estiver fora da tela). Agora
-        // nomeia exatamente quais campos precisam ser corrigidos.
+        // Banner no topo com a lista de campos (cada um clicável) + mensagem
+        // embaixo de cada campo dizendo o que está errado e como corrigir.
         const fieldNames = invalidFields.map((key) => FIELD_LABELS[key] || key).join(', ')
-        toast.error(`Corrija os seguintes campos: ${fieldNames}`)
+        toast.error(
+          invalidFields.length === 1
+            ? `${FIELD_LABELS[invalidFields[0]] || invalidFields[0]}: ${validationErrors[invalidFields[0]]}`
+            : `Corrija ${invalidFields.length} campos: ${fieldNames}`
+        )
         setErrors((prev) => ({
           ...prev,
-          general: `Campos pendentes: ${fieldNames}.`,
+          general:
+            invalidFields.length === 1
+              ? 'Falta corrigir 1 campo antes de salvar:'
+              : `Faltam corrigir ${invalidFields.length} campos antes de salvar:`,
         }))
 
-        // Foca e rola até o primeiro campo inválido que existe no DOM (a
-        // maioria dos campos tem id igual à chave); senão, rola até o topo
-        // do formulário para o banner de erro ficar visível.
-        const firstFieldWithId = invalidFields.find((key) => document.getElementById(key))
-        const target = firstFieldWithId ? document.getElementById(firstFieldWithId) : null
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          target.focus()
-        } else {
+        if (!invalidFields.some((key) => focusField(key))) {
           formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
 
@@ -331,15 +250,27 @@ export default function CompleteProfilePage() {
           console.log('🔄 Forçando reload completo...')
           window.location.replace(redirectUrl)
         } else {
-          const error = await response.json()
+          const error = await response.json().catch(() => ({}))
           console.error('Erro na API:', error)
-          const errorMessage = error.message || 'Erro ao salvar perfil'
-          setErrors({ general: errorMessage })
+          const fieldErrors: Record<string, string> =
+            error && typeof error.fieldErrors === 'object' && error.fieldErrors
+              ? error.fieldErrors
+              : {}
+          const errorMessage =
+            error.message ||
+            error.error ||
+            'Não foi possível salvar o perfil. Confira os dados e tente novamente.'
+          setErrors({ ...fieldErrors, general: errorMessage })
           toast.error(errorMessage)
+          const firstField = Object.keys(fieldErrors)[0]
+          if (!firstField || !focusField(firstField)) {
+            formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
         }
       } catch (error) {
         console.error('Erro no submit:', error)
-        const errorMessage = 'Erro interno. Tente novamente.'
+        const errorMessage =
+          'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.'
         setErrors({ general: errorMessage })
         toast.error(errorMessage)
       } finally {
@@ -359,9 +290,10 @@ export default function CompleteProfilePage() {
   }
 
   const handlePhoneChange = (field: 'phone' | 'emergencyPhone', value: string) => {
-    const formatted = formatPhone(value)
-    setProfileData((prev) => ({ ...prev, [field]: formatted }))
+    setField(field, formatPhone(value))
   }
+
+  const fieldErrorKeys = Object.keys(errors).filter((key) => key !== 'general')
 
   if (status === 'loading') {
     return <Loading />
@@ -397,7 +329,7 @@ export default function CompleteProfilePage() {
           <CardContent className="p-4 sm:p-6">
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {errors.general && (
-                <div className="p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
+                <div role="alert" className="p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -409,12 +341,36 @@ export default function CompleteProfilePage() {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-red-400">Erro ao Completar Perfil</h3>
+                      <h3 className="text-sm font-medium text-red-400">
+                        Não foi possível salvar seu perfil
+                      </h3>
                       <p className="mt-1 text-sm text-red-300">{errors.general}</p>
+                      {fieldErrorKeys.length > 0 && (
+                        <ul className="mt-2 space-y-1 text-sm text-red-200 list-disc pl-5">
+                          {fieldErrorKeys.map((key) => (
+                            <li key={key}>
+                              <button
+                                type="button"
+                                onClick={() => focusField(key)}
+                                className="text-left underline decoration-dotted hover:text-white"
+                              >
+                                <strong>{FIELD_LABELS[key] || key}:</strong>
+                              </button>{' '}
+                              {errors[key]}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       <div className="mt-3 flex space-x-3">
                         <button
                           type="button"
-                          onClick={() => setErrors({})}
+                          onClick={() =>
+                            setErrors((prev) => {
+                              const next = { ...prev }
+                              delete next.general
+                              return next
+                            })
+                          }
                           className="text-xs text-red-400 hover:text-red-300 underline"
                         >
                           Fechar
@@ -510,14 +466,19 @@ export default function CompleteProfilePage() {
                       <input
                         id="phone"
                         type="tel"
-                        placeholder="(11) 99999-9999"
+                        placeholder="(85) 99999-9999"
                         className={`input pl-10 ${errors.phone ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.phone}
                         value={profileData.phone || ''}
                         onChange={(e) => handlePhoneChange('phone', e.target.value)}
                         maxLength={15}
                       />
                     </div>
-                    {errors.phone && <p className="text-error text-xs mt-1">{errors.phone}</p>}
+                    {errors.phone && (
+                      <p role="alert" className="text-error text-xs mt-1">
+                        ⚠ {errors.phone}
+                      </p>
+                    )}
                   </div>
 
                   <div className="md:col-span-2">
@@ -533,13 +494,16 @@ export default function CompleteProfilePage() {
                         id="address"
                         placeholder="Rua, número, bairro, cidade, CEP"
                         className={`input pl-10 min-h-[80px] resize-none ${errors.address ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.address}
                         value={profileData.address || ''}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({ ...prev, address: e.target.value }))
-                        }
+                        onChange={(e) => setField('address', e.target.value)}
                       />
                     </div>
-                    {errors.address && <p className="text-error text-xs mt-1">{errors.address}</p>}
+                    {errors.address && (
+                      <p role="alert" className="text-error text-xs mt-1">
+                        ⚠ {errors.address}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -555,14 +519,15 @@ export default function CompleteProfilePage() {
                         id="birthDate"
                         type="date"
                         className={`input pl-10 ${errors.birthDate ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.birthDate}
                         value={profileData.birthDate || ''}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({ ...prev, birthDate: e.target.value }))
-                        }
+                        onChange={(e) => setField('birthDate', e.target.value)}
                       />
                     </div>
                     {errors.birthDate && (
-                      <p className="text-error text-xs mt-1">{errors.birthDate}</p>
+                      <p role="alert" className="text-error text-xs mt-1">
+                        ⚠ {errors.birthDate}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -586,13 +551,14 @@ export default function CompleteProfilePage() {
                       type="text"
                       placeholder="Nome completo"
                       className={`input ${errors.emergencyContact ? 'border-error' : ''}`}
+                      aria-invalid={!!errors.emergencyContact}
                       value={profileData.emergencyContact || ''}
-                      onChange={(e) =>
-                        setProfileData((prev) => ({ ...prev, emergencyContact: e.target.value }))
-                      }
+                      onChange={(e) => setField('emergencyContact', e.target.value)}
                     />
                     {errors.emergencyContact && (
-                      <p className="text-error text-xs mt-1">{errors.emergencyContact}</p>
+                      <p role="alert" className="text-error text-xs mt-1">
+                        ⚠ {errors.emergencyContact}
+                      </p>
                     )}
                   </div>
 
@@ -608,15 +574,18 @@ export default function CompleteProfilePage() {
                       <input
                         id="emergencyPhone"
                         type="tel"
-                        placeholder="(11) 99999-9999"
+                        placeholder="(85) 99999-9999"
                         className={`input pl-10 ${errors.emergencyPhone ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.emergencyPhone}
                         value={profileData.emergencyPhone || ''}
                         onChange={(e) => handlePhoneChange('emergencyPhone', e.target.value)}
                         maxLength={15}
                       />
                     </div>
                     {errors.emergencyPhone && (
-                      <p className="text-error text-xs mt-1">{errors.emergencyPhone}</p>
+                      <p role="alert" className="text-error text-xs mt-1">
+                        ⚠ {errors.emergencyPhone}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -636,11 +605,8 @@ export default function CompleteProfilePage() {
                       type="checkbox"
                       checked={profileData.hasSiape || false}
                       onChange={(e) => {
-                        setProfileData((prev) => ({
-                          ...prev,
-                          hasSiape: e.target.checked,
-                          siapeNumber: e.target.checked ? prev.siapeNumber : '',
-                        }))
+                        setField('hasSiape', e.target.checked)
+                        if (!e.target.checked) setField('siapeNumber', '')
                       }}
                       className="w-4 h-4 text-primary bg-neutral-700 border-neutral-600 rounded focus:ring-primary"
                     />
@@ -668,15 +634,17 @@ export default function CompleteProfilePage() {
                         type="text"
                         placeholder="1234567"
                         className={`input ${errors.siapeNumber ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.siapeNumber}
                         value={profileData.siapeNumber || ''}
                         onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 7)
-                          setProfileData((prev) => ({ ...prev, siapeNumber: value }))
+                          setField('siapeNumber', e.target.value.replace(/\D/g, '').slice(0, 7))
                         }}
                         maxLength={7}
                       />
                       {errors.siapeNumber && (
-                        <p className="text-error text-xs mt-1">{errors.siapeNumber}</p>
+                        <p role="alert" className="text-error text-xs mt-1">
+                          ⚠ {errors.siapeNumber}
+                        </p>
                       )}
                       <p className="text-neutral-400 text-xs mt-1">
                         Sua matrícula SIAPE será conferida pelo administrador do sistema.
@@ -703,10 +671,9 @@ export default function CompleteProfilePage() {
                       <select
                         id="department"
                         className={`input ${errors.department ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.department}
                         value={profileData.department || ''}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({ ...prev, department: e.target.value }))
-                        }
+                        onChange={(e) => setField('department', e.target.value)}
                       >
                         <option value="">Selecione o departamento</option>
                         <option value="ASSDAP-MAR">
@@ -835,7 +802,9 @@ export default function CompleteProfilePage() {
                         <option value="SSA-MAR">Setor Saúde (SSA-MAR)</option>
                       </select>
                       {errors.department && (
-                        <p className="text-error text-xs mt-1">{errors.department}</p>
+                        <p role="alert" className="text-error text-xs mt-1">
+                          ⚠ {errors.department}
+                        </p>
                       )}
                     </div>
 
@@ -851,16 +820,14 @@ export default function CompleteProfilePage() {
                         type="text"
                         placeholder="Número da sua matrícula"
                         className={`input ${errors.registrationNumber ? 'border-error' : ''}`}
+                        aria-invalid={!!errors.registrationNumber}
                         value={profileData.registrationNumber || ''}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({
-                            ...prev,
-                            registrationNumber: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => setField('registrationNumber', e.target.value)}
                       />
                       {errors.registrationNumber && (
-                        <p className="text-error text-xs mt-1">{errors.registrationNumber}</p>
+                        <p role="alert" className="text-error text-xs mt-1">
+                          ⚠ {errors.registrationNumber}
+                        </p>
                       )}
                     </div>
 
@@ -877,14 +844,15 @@ export default function CompleteProfilePage() {
                           id="startDate"
                           type="date"
                           className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
+                          aria-invalid={!!errors.startDate}
                           value={profileData.startDate || ''}
-                          onChange={(e) =>
-                            setProfileData((prev) => ({ ...prev, startDate: e.target.value }))
-                          }
+                          onChange={(e) => setField('startDate', e.target.value)}
                         />
                       </div>
                       {errors.startDate && (
-                        <p className="text-error text-xs mt-1">{errors.startDate}</p>
+                        <p role="alert" className="text-error text-xs mt-1">
+                          ⚠ {errors.startDate}
+                        </p>
                       )}
                     </div>
 
@@ -901,12 +869,10 @@ export default function CompleteProfilePage() {
                           <select
                             id="contractType"
                             className={`input ${errors.contractType ? 'border-error' : ''}`}
+                            aria-invalid={!!errors.contractType}
                             value={profileData.contractType || ''}
                             onChange={(e) => {
-                              setProfileData((prev) => ({
-                                ...prev,
-                                contractType: e.target.value,
-                              }))
+                              setField('contractType', e.target.value)
                             }}
                           >
                             <option value="">Selecione o tipo de contrato</option>
@@ -926,7 +892,9 @@ export default function CompleteProfilePage() {
                               ))}
                           </select>
                           {errors.contractType && (
-                            <p className="text-error text-xs mt-1">{errors.contractType}</p>
+                            <p role="alert" className="text-error text-xs mt-1">
+                              ⚠ {errors.contractType}
+                            </p>
                           )}
                           {profileData.contractType && (
                             <p className="text-neutral-400 text-xs mt-1">
@@ -960,17 +928,15 @@ export default function CompleteProfilePage() {
                           id="contractStartDate"
                           type="date"
                           className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
+                          aria-invalid={!!errors.contractStartDate}
                           value={profileData.contractStartDate || ''}
-                          onChange={(e) =>
-                            setProfileData((prev) => ({
-                              ...prev,
-                              contractStartDate: e.target.value,
-                            }))
-                          }
+                          onChange={(e) => setField('contractStartDate', e.target.value)}
                         />
                       </div>
                       {errors.contractStartDate && (
-                        <p className="text-error text-xs mt-1">{errors.contractStartDate}</p>
+                        <p role="alert" className="text-error text-xs mt-1">
+                          ⚠ {errors.contractStartDate}
+                        </p>
                       )}
                     </div>
 
@@ -987,15 +953,16 @@ export default function CompleteProfilePage() {
                           id="contractEndDate"
                           type="date"
                           className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
+                          aria-invalid={!!errors.contractEndDate}
                           value={profileData.contractEndDate || ''}
-                          onChange={(e) =>
-                            setProfileData((prev) => ({ ...prev, contractEndDate: e.target.value }))
-                          }
+                          onChange={(e) => setField('contractEndDate', e.target.value)}
                           min={profileData.contractStartDate || undefined}
                         />
                       </div>
                       {errors.contractEndDate && (
-                        <p className="text-error text-xs mt-1">{errors.contractEndDate}</p>
+                        <p role="alert" className="text-error text-xs mt-1">
+                          ⚠ {errors.contractEndDate}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -1014,7 +981,7 @@ export default function CompleteProfilePage() {
                   allowFlexibleHours={profileData.allowFlexibleHours || false}
                   contractType={profileData.contractType}
                   onChange={(field, value) => {
-                    setProfileData((prev) => ({ ...prev, [field]: value }))
+                    setField(field as keyof ProfileData, value as never)
                   }}
                   errors={errors}
                 />

@@ -107,3 +107,38 @@ describe('POST /api/auth/complete-profile - matrícula obrigatória para alunos'
     )
   })
 })
+
+describe('POST /api/auth/complete-profile - erros por campo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockedGetServerSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'aluno@aluno.ifce.edu.br', role: 'EMPLOYEE' },
+    })
+    mockedUserCount.mockResolvedValue(1)
+  })
+
+  it('devolve fieldErrors em português para campos ausentes (sem "Required" do zod)', async () => {
+    const response = await POST(makeRequest({ phone: '(85) 98888-7777' }))
+    const body = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(body.message).toBeTruthy()
+    expect(Object.keys(body.fieldErrors)).toEqual(
+      expect.arrayContaining(['address', 'birthDate', 'emergencyContact', 'emergencyPhone'])
+    )
+    for (const message of Object.values(body.fieldErrors)) {
+      expect(message).not.toMatch(/Required/)
+    }
+    expect(mockedUserUpdate).not.toHaveBeenCalled()
+  })
+
+  it('aponta departamento e matrícula juntos quando ambos faltam', async () => {
+    const { department: _department, ...withoutDepartment } = BASE_PAYLOAD
+    const response = await POST(makeRequest(withoutDepartment))
+    const body = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(Object.keys(body.fieldErrors).sort()).toEqual(['department', 'registrationNumber'])
+    expect(body.message).toContain('Departamento')
+  })
+})
