@@ -1,4 +1,5 @@
-import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, XCircle, Clock } from 'lucide-react'
+import { explainSendFailure, type SendFailureExplanation } from '@/lib/send-failure'
 
 export type CronLogStatus = 'SUCCESS' | 'PARTIAL_FAILURE' | 'ERROR'
 
@@ -49,6 +50,43 @@ export const STATUS_META: Record<
   },
 }
 
+/**
+ * Execução em que nada falhou de verdade — só sobraram envios adiados para a
+ * próxima execução (orçamento de tempo). Não é erro, então não usa o amarelo.
+ */
+const DEFERRED_ONLY_META = {
+  label: 'Envio adiado',
+  icon: Clock,
+  badgeClass: 'bg-info/20 text-info border-info/30',
+  iconClass: 'text-info',
+}
+
+interface FailureGroup {
+  explanation: SendFailureExplanation
+  emails: string[]
+  /** Mensagem técnica original (a primeira do grupo), para diagnóstico. */
+  detail: string
+}
+
+/** Agrupa as falhas pelo motivo, para não repetir a mesma explicação por aluno. */
+export function groupFailures(failures: CronLogFailure[]): FailureGroup[] {
+  const groups = new Map<string, FailureGroup>()
+  for (const failure of failures) {
+    const explanation = explainSendFailure(failure.message)
+    const key = `${explanation.kind}:${explanation.title}`
+    const group = groups.get(key)
+    if (group) {
+      group.emails.push(failure.email)
+    } else {
+      groups.set(key, { explanation, emails: [failure.email], detail: failure.message })
+    }
+  }
+  // Falhas reais primeiro; adiamentos (que não são erro) por último.
+  return [...groups.values()].sort(
+    (a, b) => Number(a.explanation.deferred) - Number(b.explanation.deferred)
+  )
+}
+
 export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
     day: '2-digit',
@@ -70,7 +108,14 @@ interface CronLogRowProps {
  * (/admin/alerts), para manter os dois em sincronia visual.
  */
 export function CronLogRow({ log, isExpanded, onToggle }: CronLogRowProps) {
-  const meta = STATUS_META[log.status]
+  const groups = groupFailures(log.failures)
+  const deferredCount = groups
+    .filter((g) => g.explanation.deferred)
+    .reduce((sum, g) => sum + g.emails.length, 0)
+  const failedCount = log.failures.length - deferredCount
+  const deferredOnly = log.status === 'PARTIAL_FAILURE' && failedCount === 0 && deferredCount > 0
+
+  const meta = deferredOnly ? DEFERRED_ONLY_META : STATUS_META[log.status]
   const Icon = meta.icon
   const hasDetails = log.failures.length > 0 || Boolean(log.errorMessage)
 
@@ -80,6 +125,7 @@ export function CronLogRow({ log, isExpanded, onToggle }: CronLogRowProps) {
         type="button"
         disabled={!hasDetails}
         onClick={onToggle}
+        aria-expanded={hasDetails ? isExpanded : undefined}
         className={`w-full flex flex-wrap items-center justify-between gap-2 p-3 text-left ${
           hasDetails ? 'cursor-pointer hover:bg-neutral-800/60' : 'cursor-default'
         } transition-colors`}
@@ -93,10 +139,12 @@ export function CronLogRow({ log, isExpanded, onToggle }: CronLogRowProps) {
             <p className="text-xs text-neutral-400">{formatDateTime(log.startedAt)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-3">
           {log.totalCount > 0 && (
             <span className="text-xs text-neutral-400">
               {log.successCount}/{log.totalCount} enviados
+              {deferredCount > 0 && ` · ${deferredCount} adiado${deferredCount > 1 ? 's' : ''}`}
+              {failedCount > 0 && ` · ${failedCount} com erro`}
             </span>
           )}
           <span className={`text-xs font-medium px-2 py-1 rounded-full border ${meta.badgeClass}`}>
@@ -106,17 +154,26 @@ export function CronLogRow({ log, isExpanded, onToggle }: CronLogRowProps) {
       </button>
 
       {isExpanded && hasDetails && (
-        <div className="px-3 pb-3 border-t border-neutral-700/50 pt-2">
+        <div className="px-3 pb-3 border-t border-neutral-700/50 pt-2 space-y-3">
           {log.errorMessage && <p className="text-xs text-error">{log.errorMessage}</p>}
-          {log.failures.length > 0 && (
-            <ul className="mt-1 space-y-1">
-              {log.failures.map((failure, index) => (
-                <li key={index} className="text-xs text-neutral-400">
-                  <span className="text-neutral-300">{failure.email}</span>: {failure.message}
-                </li>
-              ))}
-            </ul>
-          )}
+          {groups.map((group) => (
+            <div key={`${group.explanation.kind}:${group.explanation.title}`}>
+              <p
+                className={`text-sm font-medium ${
+                  group.explanation.deferred ? 'text-info' : 'text-warning'
+                }`}
+              >
+                {group.explanation.title} ({group.emails.length})
+              </p>
+              <p className="text-xs text-neutral-300 mt-0.5">{group.explanation.hint}</p>
+              <p className="text-xs text-neutral-400 mt-1 break-words">{group.emails.join(', ')}</p>
+              {!group.explanation.deferred && (
+                <p className="text-[11px] text-neutral-500 mt-1 break-words">
+                  Detalhe técnico: {group.detail}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </li>
