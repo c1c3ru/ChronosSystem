@@ -35,6 +35,13 @@ export const CRON_EMAIL_TIME_BUDGET_MS = Number(process.env.CRON_EMAIL_TIME_BUDG
  */
 export const CRON_SEND_TIMEOUT_MS = Number(process.env.CRON_SEND_TIMEOUT_MS) || 12_000
 
+/**
+ * `sendEmail` só devolve `false` (em vez de lançar) quando nenhum provedor de
+ * e-mail está configurado — ver EmailService.sendEmail.
+ */
+export const EMAIL_NOT_CONFIGURED_MESSAGE =
+  'Envio de email não configurado no servidor (nenhum provedor SMTP/Gmail API)'
+
 export const TIME_BUDGET_EXCEEDED_MESSAGE =
   'Orçamento de tempo excedido — será reprocessado na próxima execução'
 
@@ -179,7 +186,7 @@ export async function runBatchSequentially<T>(
     try {
       const sent = await withSendTimeout(sendOne(item), sendTimeoutMs)
       if (!sent) {
-        failures.push(describeFailure(item, new Error('Falha no envio')))
+        failures.push(describeFailure(item, new Error(EMAIL_NOT_CONFIGURED_MESSAGE)))
       }
     } catch (reason) {
       failures.push(describeFailure(item, reason))

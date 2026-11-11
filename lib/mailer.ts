@@ -38,6 +38,14 @@ function createTransport() {
       user: env.SMTP_USER,
       pass: env.SMTP_PASSWORD,
     },
+    // Uma única conexão reaproveitada entre os e-mails de um lote: abrir uma
+    // conexão SMTP nova por mensagem (DNS + TCP + STARTTLS + AUTH) custava
+    // ~2s por e-mail e estourava o orçamento de tempo do cron depois de 4 ou
+    // 5 envios. Com o pool, só o primeiro e-mail paga esse custo. Se a conexão
+    // tiver morrido enquanto a função estava congelada, o erro de socket é
+    // transitório e o retry de EmailService.sendEmail abre outra.
+    pool: true,
+    maxConnections: 1,
     connectionTimeout: SMTP_CONNECTION_TIMEOUT_MS,
     greetingTimeout: SMTP_GREETING_TIMEOUT_MS,
     socketTimeout: SMTP_SOCKET_TIMEOUT_MS,

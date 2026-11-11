@@ -17,6 +17,7 @@ import {
   withSendTimeout,
   CRON_EMAIL_TIME_BUDGET_MS,
   TIME_BUDGET_EXCEEDED_MESSAGE,
+  EMAIL_NOT_CONFIGURED_MESSAGE,
   type CronRunStatus,
   type CronFailureDetail,
 } from '@/lib/cron-log'
@@ -408,7 +409,7 @@ export async function GET(request: NextRequest) {
           userId: candidate.employee.id,
           email: candidate.employee.email,
           status: 'failed',
-          message: 'Erro ao enviar email',
+          message: EMAIL_NOT_CONFIGURED_MESSAGE,
         })
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
