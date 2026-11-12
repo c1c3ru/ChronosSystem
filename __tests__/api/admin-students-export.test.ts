@@ -80,6 +80,10 @@ describe('GET /api/admin/students/export', () => {
           email: 'maria@aluno.ifce.edu.br',
           registrationNumber: '20231234567',
           shift: 'MORNING',
+          shiftStartTime: '08:15',
+          shiftEndTime: '12:15',
+          workingDaysPerWeek: 5,
+          weeklyHours: 20,
           isActive: true,
         },
         {
@@ -87,6 +91,10 @@ describe('GET /api/admin/students/export', () => {
           email: 'joao@aluno.ce.gov.br',
           registrationNumber: null,
           shift: 'AFTERNOON',
+          shiftStartTime: '13:30',
+          shiftEndTime: '17:30',
+          workingDaysPerWeek: 4,
+          weeklyHours: 16,
           isActive: false,
         },
       ])
@@ -112,16 +120,56 @@ describe('GET /api/admin/students/export', () => {
       expect(text.charCodeAt(0)).toBe(0xfeff)
 
       const [headerLine, ...dataLines] = text.slice(1).split('\r\n')
-      expect(headerLine).toBe('"Nome Completo","Matrícula","E-mail","Turno","Status"')
+      expect(headerLine).toBe(
+        [
+          '"Nome Completo"',
+          '"Matrícula"',
+          '"E-mail"',
+          '"Turno"',
+          '"Horário de Entrada"',
+          '"Horário de Saída"',
+          '"Dias por Semana"',
+          '"Carga Horária Semanal (h)"',
+          '"Status"',
+        ].join(',')
+      )
       expect(dataLines[0]).toBe(
-        '"Maria da Conceição","20231234567","maria@aluno.ifce.edu.br","Período da Manhã","Ativo"'
+        [
+          '"Maria da Conceição"',
+          '"20231234567"',
+          '"maria@aluno.ifce.edu.br"',
+          '"Período da Manhã"',
+          '"08:15"',
+          '"12:15"',
+          '"5"',
+          '"20"',
+          '"Ativo"',
+        ].join(',')
       )
       expect(dataLines[1]).toBe(
-        '"João Sousa","N/A","joao@aluno.ce.gov.br","Período da Tarde","Inativo"'
+        [
+          '"João Sousa"',
+          '"N/A"',
+          '"joao@aluno.ce.gov.br"',
+          '"Período da Tarde"',
+          '"13:30"',
+          '"17:30"',
+          '"4"',
+          '"16"',
+          '"Inativo"',
+        ].join(',')
       )
 
       expect(mockedFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { role: 'EMPLOYEE' } })
+        expect.objectContaining({
+          where: { role: 'EMPLOYEE' },
+          select: expect.objectContaining({
+            shiftStartTime: true,
+            shiftEndTime: true,
+            workingDaysPerWeek: true,
+            weeklyHours: true,
+          }),
+        })
       )
       expect(mockedAuditCreate).toHaveBeenCalledTimes(1)
       expect(mockedAuditCreate).toHaveBeenCalledWith(
