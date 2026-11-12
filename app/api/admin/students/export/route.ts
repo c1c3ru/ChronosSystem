@@ -7,13 +7,27 @@ import { getShiftDescription } from '@/lib/shift-validation'
 // Force dynamic rendering - depende da sessão do usuário, nunca deve ser cacheado/estático
 export const dynamic = 'force-dynamic'
 
-const CSV_HEADERS = ['Nome Completo', 'Matrícula', 'E-mail', 'Turno', 'Status']
+const CSV_HEADERS = [
+  'Nome Completo',
+  'Matrícula',
+  'E-mail',
+  'Turno',
+  'Horário de Entrada',
+  'Horário de Saída',
+  'Dias por Semana',
+  'Carga Horária Semanal (h)',
+  'Status',
+]
 
 type StudentRow = {
   name: string | null
   email: string
   registrationNumber: string | null
   shift: string
+  shiftStartTime: string
+  shiftEndTime: string
+  workingDaysPerWeek: number
+  weeklyHours: number
   isActive: boolean
 }
 
@@ -33,6 +47,10 @@ function buildStudentsCsv(students: StudentRow[]): string {
       sanitizeCsvField(
         getShiftDescription(student.shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
       ),
+      sanitizeCsvField(student.shiftStartTime || 'N/A'),
+      sanitizeCsvField(student.shiftEndTime || 'N/A'),
+      sanitizeCsvField(String(student.workingDaysPerWeek ?? 'N/A')),
+      sanitizeCsvField(String(student.weeklyHours ?? 'N/A')),
       sanitizeCsvField(student.isActive ? 'Ativo' : 'Inativo'),
     ].join(',')
   )
@@ -69,6 +87,10 @@ export async function GET() {
         email: true,
         registrationNumber: true,
         shift: true,
+        shiftStartTime: true,
+        shiftEndTime: true,
+        workingDaysPerWeek: true,
+        weeklyHours: true,
         isActive: true,
       },
       orderBy: { name: 'asc' },
