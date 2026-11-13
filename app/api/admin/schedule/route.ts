@@ -24,6 +24,8 @@ export async function GET() {
         shiftStartTime: true,
         shiftEndTime: true,
         workingDaysPerWeek: true,
+        weeklyHours: true,
+        allowFlexibleHours: true,
         shift: true,
         contractType: true,
         attendanceRecords: {
@@ -33,15 +35,19 @@ export async function GET() {
             },
           },
           select: { type: true, timestamp: true },
-          orderBy: { timestamp: 'desc' },
-          take: 1,
+          orderBy: { timestamp: 'asc' },
         },
       },
       orderBy: [{ department: 'asc' }, { name: 'asc' }],
     })
 
     const result = employees.map((emp) => {
-      const lastRecord = emp.attendanceRecords[0] ?? null
+      // Registros de hoje em ordem cronológica (fake-UTC, ver lib/timezone.ts).
+      const todayRecords = emp.attendanceRecords.map((r) => ({
+        type: r.type,
+        timestamp: r.timestamp.toISOString(),
+      }))
+      const lastRecord = todayRecords[todayRecords.length - 1] ?? null
       const isPresent = lastRecord?.type === 'ENTRY'
 
       return {
@@ -52,12 +58,13 @@ export async function GET() {
         shiftStartTime: emp.shiftStartTime,
         shiftEndTime: emp.shiftEndTime,
         workingDaysPerWeek: emp.workingDaysPerWeek,
+        weeklyHours: emp.weeklyHours,
+        allowFlexibleHours: emp.allowFlexibleHours,
         shift: emp.shift,
         contractType: emp.contractType,
         isPresent,
-        lastRecord: lastRecord
-          ? { type: lastRecord.type, timestamp: lastRecord.timestamp.toISOString() }
-          : null,
+        lastRecord,
+        todayRecords,
       }
     })
 
