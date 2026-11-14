@@ -1155,15 +1155,6 @@ export default function EmployeePage() {
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a
-                    href="/documents/internship-registration"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-success-500/10 transition-colors text-sm text-neutral-300 hover:text-success-400"
-                  >
-                    <span>Ficha de Cadastro</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </a>
-                  <a
                     href="/documents/commitment-term"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1338,7 +1329,7 @@ export default function EmployeePage() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
                   >
-                    <span>Declaração Profissional</span>
+                    <span>Declaração de Atividades Profissionais</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a

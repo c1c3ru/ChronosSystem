@@ -5,14 +5,14 @@
 export const FORM_TYPES = [
   'final-report',
   'monthly-report',
-  'internship-registration',
+  'internship-registration', // legado: tela unificada em internship-registration-request
   'internship-registration-request',
   'commitment-term',
   'additive-term',
   'equivalence-request',
   'extension-declaration',
   'professional-activities',
-  'professional-declaration',
+  'professional-declaration', // legado: tela unificada em professional-activities
   'semester-report',
   'rescission-term',
   'realization-term',
