@@ -45,6 +45,8 @@ interface ScheduleEmployee {
   workingDaysPerWeek: number
   weeklyHours?: number | null
   allowFlexibleHours?: boolean
+  /** Ausente em respostas antigas da API: tratado como ativo. */
+  isActive?: boolean
   shift: string | null
   contractType: string | null
   isPresent: boolean
@@ -157,6 +159,7 @@ export default function SchedulePage() {
 
   const [departmentFilter, setDepartmentFilter] = useState('ALL')
   const [shiftFilter, setShiftFilter] = useState('ALL')
+  const [activeFilter, setActiveFilter] = useState<'ACTIVE' | 'INACTIVE' | 'ALL'>('ACTIVE')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
 
   // Relógio de Fortaleza (convenção fake-UTC, ver lib/timezone.ts), atualizado a cada minuto.
@@ -236,11 +239,13 @@ export default function SchedulePage() {
     const empDept = emp.department || 'Sem Departamento'
     const matchDept = departmentFilter === 'ALL' || empDept === departmentFilter
     const matchShift = shiftFilter === 'ALL' || emp.shift === shiftFilter
+    const isActive = emp.isActive !== false
+    const matchActive = activeFilter === 'ALL' || (activeFilter === 'ACTIVE' ? isActive : !isActive)
     const s = summaries[emp.id]
     const matchStatus =
       statusFilter === 'ALL' || (statusFilter === 'LATE' ? s?.isLate : s?.status === statusFilter)
 
-    return matchSearch && matchDept && matchShift && matchStatus
+    return matchSearch && matchDept && matchShift && matchActive && matchStatus
   })
 
   const groupedEmployees = filtered.reduce(
@@ -411,6 +416,17 @@ export default function SchedulePage() {
                   {d}
                 </option>
               ))}
+            </select>
+
+            <select
+              value={activeFilter}
+              onChange={(e) => setActiveFilter(e.target.value as typeof activeFilter)}
+              aria-label="Filtrar por cadastro ativo ou inativo"
+              className={selectClass}
+            >
+              <option value="ACTIVE">Ativos</option>
+              <option value="INACTIVE">Inativos</option>
+              <option value="ALL">Ativos e inativos</option>
             </select>
 
             <select
@@ -669,6 +685,11 @@ function EmployeeCell({
       <div className="min-w-0">
         <p className="text-sm font-medium text-white truncate" title={emp.name ?? emp.email}>
           {emp.name ?? 'Sem nome'}
+          {emp.isActive === false && (
+            <span className="ml-2 align-middle px-[0.375rem] py-[0.125rem] rounded border border-neutral-600 text-[10px] font-semibold uppercase tracking-wide text-neutral-300">
+              Inativo
+            </span>
+          )}
         </p>
         {/* Horário cadastrado pelo aluno, sempre visível */}
         <p className="flex items-center gap-1 text-xs text-neutral-300 font-mono truncate">
