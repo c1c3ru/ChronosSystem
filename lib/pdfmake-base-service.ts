@@ -477,7 +477,8 @@ export function sigBlock(
             type: 'line' as const,
             x1: 2,
             y1: 0,
-            x2: 515 / labels.length - 6,
+            // 515 = largura útil A4; desconta margem e padding de cada célula
+            x2: 515 / labels.length - 18,
             y2: 0,
             lineWidth: 0.5,
           },

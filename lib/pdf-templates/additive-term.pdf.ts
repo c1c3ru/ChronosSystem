@@ -1,14 +1,14 @@
 /**
  * additive-term.pdf.ts
  *
- * Template pdfmake do "Termo Aditivo ao Contrato de Estágio" (IFCE).
- * Retorna um TDocumentDefinitions pronto para ser passado ao BasePDFService.
+ * Template pdfmake do "Termo Aditivo ao Termo de Compromisso de Estágio" (IFCE).
+ * Res. CONSUP/IFCE nº 108/2023, art. 20, X e art. 37.
+ *
+ * Os campos têm os mesmos nomes da tela (`app/documents/additive-term/page.tsx`),
+ * para que a página repasse o formulário inteiro sem renomear nada.
  *
  * USO:
- *   import { buildAdditiveTermDoc } from '@/lib/pdf-templates/additive-term.pdf'
- *   import { generatePDF } from '@/lib/pdfmake-base-service'
- *
- *   const doc = await buildAdditiveTermDoc(formData)
+ *   const doc = await buildAdditiveTermDoc({ ...formData })
  *   await generatePDF(doc, { filename: 'termo-aditivo.pdf' })
  */
 
@@ -17,8 +17,8 @@ import {
   ifceHeader,
   docTitle,
   cell,
-  emptyCell,
   dataTable,
+  sectionTitle,
   sectionBlock,
   sigBlock,
   fmtDate,
@@ -27,157 +27,210 @@ import {
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
-export interface AdditiveTermData {
-  // Estagiário
-  nome_estudante?: string
-  matricula_estudante?: string
-  curso_estudante?: string
+export const ADDITIVE_TYPES = [
+  { key: 'additive_type_prorogation', label: 'Prorrogação de Vigência' },
+  { key: 'additive_type_allowance', label: 'Alteração do Valor da Bolsa' },
+  { key: 'additive_type_supervisor', label: 'Alteração de Supervisor' },
+  { key: 'additive_type_schedule', label: 'Alteração de Horário' },
+  { key: 'additive_type_other', label: 'Outras Alterações' },
+] as const
 
-  // Empresa
-  empresa_nome?: string
-  empresa_cnpj?: string
-  empresa_telefone?: string
+export type AdditiveTypeKey = (typeof ADDITIVE_TYPES)[number]['key']
 
-  // Alterações contratuais
-  motivo_aditivo?: string
-  justificativa?: string
-  nova_data_fim?: string
-  novo_fim?: string
-  nova_carga_horaria?: string
-  prazo_prorrogacao?: string
-  novo_valor_bolsa?: string
-  novo_valor_transporte?: string
+export interface AdditiveTermData extends Partial<Record<AdditiveTypeKey, string>> {
+  // Concedente
+  company_name?: string
+  company_cnpj?: string
+  company_address?: string
+  company_representative?: string
+  company_representative_role?: string
+
+  // Discente
+  student_name?: string
+  student_cpf?: string
+  student_enrollment?: string
+  student_course?: string
+  student_address?: string
+  student_phone?: string
+
+  // Dados gerais
+  additive_reason?: string
+  justification?: string
+
+  // Prorrogação
+  new_end_date?: string
+  extension_period?: string
+
+  // Bolsa
+  new_allowance_value?: string
+  new_transport_aid?: string
+
+  // Supervisor
+  new_supervisor_name?: string
+  new_supervisor_role?: string
+  new_supervisor_council?: string
+
+  // Horário
+  new_weekly_hours?: string
+  new_schedule?: string
+
+  // Outras
+  other_changes?: string
+
+  // Local e assinatura
+  campus_city?: string
+  campus_director?: string
 }
+
+const isChecked = (value?: string): boolean => value === 'true'
+
+const withName = (name: string | undefined, role: string): string =>
+  name?.trim() ? `${name.trim()}\n${role}` : role
 
 // ─── BUILDER ─────────────────────────────────────────────────────────────────
 
-/**
- * Constrói o TDocumentDefinitions completo para o Termo Aditivo.
- * É assíncrono por causa do carregamento das imagens do cabeçalho.
- */
 export async function buildAdditiveTermDoc(d: AdditiveTermData): Promise<TDocumentDefinitions> {
   const header = await ifceHeader()
 
-  // ── Tabela 1: Identificação ──────────────────────────────────────────────
-  const identificationTable = dataTable(
+  const concedente = dataTable(
+    ['60%', '40%'],
+    [
+      [cell('Concedente (Razão Social)', v(d.company_name)), cell('CNPJ', v(d.company_cnpj))],
+      [cell('Endereço', v(d.company_address), { colSpan: 2 }), {}],
+      [
+        cell('Representante Legal', v(d.company_representative)),
+        cell('Cargo', v(d.company_representative_role)),
+      ],
+    ]
+  )
+
+  const discente = dataTable(
     ['40%', '20%', '40%'],
     [
       [
-        cell('Discente', v(d.nome_estudante)),
-        cell('Matrícula', v(d.matricula_estudante)),
-        cell('Curso', v(d.curso_estudante)),
+        cell('Discente', v(d.student_name)),
+        cell('CPF', v(d.student_cpf)),
+        cell('Matrícula', v(d.student_enrollment)),
       ],
       [
-        cell('Empresa', v(d.empresa_nome)),
-        cell('CNPJ', v(d.empresa_cnpj)),
-        cell('Telefone', v(d.empresa_telefone)),
+        cell('Curso', v(d.student_course)),
+        cell('Telefone', v(d.student_phone)),
+        cell('Endereço', v(d.student_address)),
       ],
     ]
   )
 
-  // ── Faixa "Alterações Contratuais" ───────────────────────────────────────
-  const sectionBarAlt: Content = {
-    table: {
-      widths: ['*'],
-      body: [
-        [
-          {
-            text: 'ALTERAÇÕES CONTRATUAIS',
-            style: 'sectionBar',
-            margin: [4, 2, 4, 2],
-            border: [true, true, true, true],
-          },
-        ],
-      ],
-    },
-    layout: {
-      hLineWidth: () => 0.5,
-      vLineWidth: () => 0.5,
-      hLineColor: () => '#000000',
-      vLineColor: () => '#000000',
-    },
-    margin: [0, 4, 0, 0],
-  }
-
-  // ── Tabela 2: Alterações ─────────────────────────────────────────────────
-  const novaDataFim = fmtDate(d.nova_data_fim ?? d.novo_fim)
-  const novaCH = d.nova_carga_horaria ? `${d.nova_carga_horaria} h` : ''
-
-  const alteracoesTable = dataTable(
+  const objeto: Content = dataTable(
     ['*'],
     [
-      // Linha 1: Motivo (largura total)
-      [cell('Motivo do Aditivo', v(d.motivo_aditivo ?? d.justificativa))],
-      // Linha 2: três colunas
-      ...[
-        // Usamos uma sub-tabela para ter 3 colunas dentro da célula única
-        [
-          {
-            table: {
-              widths: ['34%', '33%', '33%'],
-              body: [
-                [
-                  cell('Nova Data de Término', novaDataFim),
-                  cell('Nova C.H. Semanal', novaCH),
-                  cell('Período Prorrogação', v(d.prazo_prorrogacao)),
-                ],
-              ],
-            },
-            layout: {
-              hLineWidth: () => 0,
-              vLineWidth: (i: number) => (i === 0 || i === 3 ? 0 : 0.5),
-              hLineColor: () => '#000000',
-              vLineColor: () => '#000000',
-            },
-            margin: [0, 0, 0, 0],
-            border: [true, false, true, true],
-          } as TableCell,
-        ],
-      ],
-      // Linha 3: Bolsa + Transporte
-      ...[
-        [
-          {
-            table: {
-              widths: ['50%', '50%'],
-              body: [
-                [
-                  cell('Novo Valor Bolsa (R$)', v(d.novo_valor_bolsa)),
-                  cell('Novo Aux. Transporte (R$)', v(d.novo_valor_transporte)),
-                ],
-              ],
-            },
-            layout: {
-              hLineWidth: () => 0,
-              vLineWidth: (i: number) => (i === 0 || i === 2 ? 0 : 0.5),
-              hLineColor: () => '#000000',
-              vLineColor: () => '#000000',
-            },
-            margin: [0, 0, 0, 0],
-            border: [true, false, true, true],
-          } as TableCell,
-        ],
+      [
+        {
+          text: ADDITIVE_TYPES.map((t) => `(${isChecked(d[t.key]) ? 'X' : ' '}) ${t.label}`).join(
+            '     '
+          ),
+          fontSize: 8,
+          margin: [4, 4, 4, 4],
+        } as TableCell,
       ],
     ]
   )
 
-  // ── Seção Justificativa ──────────────────────────────────────────────────
-  const justSection = sectionBlock('JUSTIFICATIVA', v(d.justificativa))
+  const alteracoes: Content[] = []
 
-  // ── Assinaturas ──────────────────────────────────────────────────────────
+  if (isChecked(d.additive_type_prorogation)) {
+    alteracoes.push(sectionTitle('Prorrogação de Vigência'))
+    alteracoes.push(
+      dataTable(
+        ['50%', '50%'],
+        [
+          [
+            cell('Nova Data de Término', fmtDate(d.new_end_date)),
+            cell('Período de Prorrogação', v(d.extension_period)),
+          ],
+        ]
+      )
+    )
+  }
+
+  if (isChecked(d.additive_type_allowance)) {
+    alteracoes.push(sectionTitle('Alteração do Valor da Bolsa'))
+    alteracoes.push(
+      dataTable(
+        ['50%', '50%'],
+        [
+          [
+            cell('Novo Valor da Bolsa (R$)', v(d.new_allowance_value)),
+            cell('Novo Auxílio-Transporte (R$)', v(d.new_transport_aid)),
+          ],
+        ]
+      )
+    )
+  }
+
+  if (isChecked(d.additive_type_supervisor)) {
+    alteracoes.push(sectionTitle('Alteração de Supervisor'))
+    alteracoes.push(
+      dataTable(
+        ['40%', '30%', '30%'],
+        [
+          [
+            cell('Novo Supervisor', v(d.new_supervisor_name)),
+            cell('Cargo', v(d.new_supervisor_role)),
+            cell('Registro no Conselho', v(d.new_supervisor_council)),
+          ],
+        ]
+      )
+    )
+  }
+
+  if (isChecked(d.additive_type_schedule)) {
+    alteracoes.push(sectionTitle('Alteração de Horário'))
+    alteracoes.push(
+      dataTable(
+        ['30%', '70%'],
+        [
+          [
+            cell('Nova C.H. Semanal', d.new_weekly_hours ? `${d.new_weekly_hours} h` : ''),
+            cell('Novo Horário', v(d.new_schedule)),
+          ],
+        ]
+      )
+    )
+  }
+
+  if (isChecked(d.additive_type_other)) {
+    alteracoes.push(...sectionBlock('Outras Alterações', v(d.other_changes) || ' '))
+  }
+
+  const localData: Content = {
+    text: `${d.campus_city?.trim() || '____________________'}, ____ de ____________________ de ________.`,
+    alignment: 'right',
+    fontSize: 8,
+    margin: [0, 8, 0, 0],
+  }
+
   const signatures = sigBlock(
-    ['Supervisor do Estágio', 'Discente Estagiário', 'Coordenador de Estágios'],
+    [
+      withName(d.company_representative, 'Representante da Concedente'),
+      'Supervisor do Estágio',
+      withName(d.student_name, 'Discente Estagiário'),
+      withName(d.campus_director, 'Diretor(a) do Campus – IFCE'),
+    ],
     'As demais cláusulas do Termo de Compromisso permanecem inalteradas.'
   )
 
-  // ── Montagem final ───────────────────────────────────────────────────────
   const content: Content[] = [
     ...header,
-    docTitle('Termo Aditivo ao Contrato de Estágio'),
-    identificationTable,
-    sectionBarAlt,
-    alteracoesTable,
-    ...justSection,
+    docTitle('Termo Aditivo ao Termo de Compromisso de Estágio'),
+    sectionTitle('Identificação das Partes'),
+    concedente,
+    discente,
+    sectionTitle('Objeto do Aditivo'),
+    objeto,
+    ...alteracoes,
+    ...sectionBlock('Motivo do Aditivo', v(d.additive_reason) || ' '),
+    ...sectionBlock('Justificativa', v(d.justification) || ' '),
+    localData,
     ...signatures,
   ]
 
