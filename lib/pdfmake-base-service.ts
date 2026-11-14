@@ -427,6 +427,56 @@ export function dataTable(widths: (string | number)[], rows: TableCell[][]): Con
 }
 
 /**
+ * Linha de assinaturas (uma coluna por rótulo), sem a faixa de solicitação/autorização.
+ */
+export function signatureRow(labels: string[]): ContentTable {
+  const sigCells: TableCell[] = labels.map((label, i) => ({
+    stack: [
+      { text: '', margin: [0, 22, 0, 0] as [number, number, number, number] },
+      {
+        canvas: [
+          {
+            type: 'line' as const,
+            x1: 2,
+            y1: 0,
+            // 515 = largura útil A4; desconta margem e padding de cada célula
+            x2: 515 / labels.length - 18,
+            y2: 0,
+            lineWidth: 0.5,
+          },
+        ],
+      },
+      {
+        text: label.toUpperCase(),
+        style: 'signatureLine',
+        margin: [0, 3, 0, 0] as [number, number, number, number],
+      },
+    ],
+    border: [
+      i === 0, // left
+      true, // top
+      i === labels.length - 1, // right
+      true, // bottom
+    ] as [boolean, boolean, boolean, boolean],
+    margin: [4, 4, 4, 6] as [number, number, number, number],
+  }))
+
+  return {
+    table: {
+      widths: labels.map(() => '*'),
+      body: [sigCells],
+    },
+    layout: {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0.5,
+      hLineColor: () => '#000000',
+      vLineColor: () => '#000000',
+    },
+    margin: [0, 0, 0, 0],
+  }
+}
+
+/**
  * Bloco de datas (SOLICITAÇÃO / AUTORIZAÇÃO) + linhas de assinatura.
  */
 export function sigBlock(
@@ -468,50 +518,7 @@ export function sigBlock(
     margin: [0, 6, 0, 0],
   }
 
-  const sigCells: TableCell[] = labels.map((label, i) => ({
-    stack: [
-      { text: '', margin: [0, 22, 0, 0] as [number, number, number, number] },
-      {
-        canvas: [
-          {
-            type: 'line' as const,
-            x1: 2,
-            y1: 0,
-            // 515 = largura útil A4; desconta margem e padding de cada célula
-            x2: 515 / labels.length - 18,
-            y2: 0,
-            lineWidth: 0.5,
-          },
-        ],
-      },
-      {
-        text: label.toUpperCase(),
-        style: 'signatureLine',
-        margin: [0, 3, 0, 0] as [number, number, number, number],
-      },
-    ],
-    border: [
-      i === 0, // left
-      true, // top
-      i === labels.length - 1, // right
-      true, // bottom
-    ] as [boolean, boolean, boolean, boolean],
-    margin: [4, 4, 4, 6] as [number, number, number, number],
-  }))
-
-  const sigsTable: ContentTable = {
-    table: {
-      widths: labels.map(() => '*'),
-      body: [sigCells],
-    },
-    layout: {
-      hLineWidth: () => 0.5,
-      vLineWidth: () => 0.5,
-      hLineColor: () => '#000000',
-      vLineColor: () => '#000000',
-    },
-    margin: [0, 0, 0, 0],
-  }
+  const sigsTable = signatureRow(labels)
 
   const result: Content[] = [dateRow, sigsTable]
 
