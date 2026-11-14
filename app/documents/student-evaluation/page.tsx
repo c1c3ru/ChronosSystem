@@ -10,6 +10,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, notifyDraftSaved, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import {
+  EVALUATION_CRITERIA,
+  FINAL_CONCEPTS,
+  GRADE_SCALE,
+  MIN_ATTENDANCE_PERCENT,
+  averageGrade,
+  parseAttendance,
+} from '@/lib/student-evaluation'
+import { validateStudentEvaluation, type ValidationResult } from '@/lib/internship-validation'
+import { FormErrorSummary, focusFirstError } from '@/components/forms/FormErrorSummary'
+import {
   maskCPF,
   maskRG,
   maskCTPS,
@@ -22,6 +32,7 @@ import {
 export default function StudentEvaluationPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [validation, setValidation] = useState<ValidationResult>({ errors: {}, warnings: [] })
   const [formData, setFormData] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -90,40 +101,35 @@ export default function StudentEvaluationPage() {
     setIsSaving(false)
   }
 
+  // Depois da primeira tentativa de gerar o PDF, a lista se atualiza enquanto o avaliador corrige
+  useEffect(() => {
+    setValidation((prev) =>
+      Object.keys(prev.errors).length || prev.warnings.length
+        ? validateStudentEvaluation(formData)
+        : prev
+    )
+  }, [formData])
+
   const handleGeneratePDF = async () => {
+    const result = validateStudentEvaluation(formData)
+    setValidation(result)
+    const errorCount = Object.keys(result.errors).length
+    if (errorCount > 0) {
+      toast.error(
+        errorCount === 1
+          ? 'Falta corrigir 1 item antes de gerar o PDF.'
+          : `Faltam corrigir ${errorCount} itens antes de gerar o PDF.`
+      )
+      focusFirstError(result.errors)
+      return
+    }
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
       const { buildStudentEvaluationDoc } =
         await import('@/lib/pdf-templates/student-evaluation.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
-      const doc = await buildStudentEvaluationDoc({
-        student_name: formData.student_name,
-        student_course: formData.student_course,
-        student_enrollment: formData.student_enrollment,
-        company_name: formData.company_name,
-        company_supervisor: formData.company_supervisor,
-        period_start: formData.period_start,
-        period_end: formData.period_end,
-        evaluation_date: formData.evaluation_date,
-        observations: formData.observations,
-        recommendation: formData.recommendation,
-        eval_assiduity: formData.eval_assiduity,
-        eval_punctuality: formData.eval_punctuality,
-        eval_responsibility: formData.eval_responsibility,
-        eval_discipline: formData.eval_discipline,
-        eval_cooperation: formData.eval_cooperation,
-        eval_initiative: formData.eval_initiative,
-        eval_proactivity: formData.eval_proactivity,
-        eval_communication: formData.eval_communication,
-        eval_relationship: formData.eval_relationship,
-        eval_technical_knowledge: formData.eval_technical_knowledge,
-        eval_learning_capacity: formData.eval_learning_capacity,
-        eval_productivity: formData.eval_productivity,
-        eval_quality: formData.eval_quality,
-        eval_organization: formData.eval_organization,
-        eval_creativity: formData.eval_creativity,
-      })
-      await generatePDF(doc, { filename: 'avaliacao-estudante.pdf' })
+      const doc = await buildStudentEvaluationDoc({ ...formData })
+      await generatePDF(doc, { filename: 'termo-avaliacao-estagiario.pdf' })
       toast.success('PDF gerado com sucesso!', { id: 'pdf-generation' })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
@@ -131,23 +137,8 @@ export default function StudentEvaluationPage() {
     }
   }
 
-  const evaluationCriteria = [
-    { key: 'eval_assiduity', label: 'Assiduidade' },
-    { key: 'eval_punctuality', label: 'Pontualidade' },
-    { key: 'eval_responsibility', label: 'Responsabilidade' },
-    { key: 'eval_discipline', label: 'Disciplina' },
-    { key: 'eval_cooperation', label: 'Cooperação' },
-    { key: 'eval_initiative', label: 'Iniciativa' },
-    { key: 'eval_proactivity', label: 'Proatividade' },
-    { key: 'eval_communication', label: 'Comunicação' },
-    { key: 'eval_relationship', label: 'Relacionamento Interpessoal' },
-    { key: 'eval_technical_knowledge', label: 'Conhecimento Técnico' },
-    { key: 'eval_learning_capacity', label: 'Capacidade de Aprendizagem' },
-    { key: 'eval_productivity', label: 'Produtividade' },
-    { key: 'eval_quality', label: 'Qualidade do Trabalho' },
-    { key: 'eval_organization', label: 'Organização' },
-    { key: 'eval_creativity', label: 'Criatividade' },
-  ]
+  const attendance = parseAttendance(formData.attendance_percent)
+  const average = averageGrade(formData)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-8">
@@ -182,15 +173,18 @@ export default function StudentEvaluationPage() {
               </div>
               <div>
                 <CardTitle className="text-2xl">
-                  Ficha de Avaliação do Discente Estagiário
+                  Termo de Avaliação ao Discente Estagiário
                 </CardTitle>
                 <p className="text-neutral-400 text-sm mt-1">
-                  Avaliação de desempenho do estagiário pela empresa concedente
+                  Notas preenchidas pelo supervisor; o conceito final é do docente orientador (Res.
+                  IFCE 108/2023, arts. 40 e 41)
                 </p>
               </div>
             </div>
           </CardHeader>
         </Card>
+
+        <FormErrorSummary errors={validation.errors} warnings={validation.warnings} />
 
         <form ref={formRef} className="space-y-6">
           {/* Dados do Estagiário */}
@@ -332,11 +326,7 @@ export default function StudentEvaluationPage() {
               <p className="text-sm text-neutral-400">
                 Atribua uma nota de 1 a 5 para cada critério
               </p>
-              <div className="text-xs text-neutral-500 mt-2">
-                <strong>1</strong> - Insuficiente | <strong>2</strong> - Regular |{' '}
-                <strong>3</strong> - Bom | <strong>4</strong> - Muito Bom | <strong>5</strong> -
-                Excelente
-              </div>
+              <div className="text-xs text-neutral-500 mt-2">{GRADE_SCALE}</div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="overflow-x-auto">
@@ -348,7 +338,7 @@ export default function StudentEvaluationPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {evaluationCriteria.map((criteria) => (
+                    {EVALUATION_CRITERIA.map((criteria) => (
                       <tr key={criteria.key} className="border-b border-neutral-700">
                         <td className="px-4 py-3 font-medium">{criteria.label}</td>
                         <td className="px-4 py-3 text-center">
@@ -370,6 +360,81 @@ export default function StudentEvaluationPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Frequência e Conceito Final */}
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="text-lg">Frequência e Conceito Final</CardTitle>
+              <p className="text-sm text-neutral-400">
+                Média das notas: {average === null ? '—' : average.toLocaleString('pt-BR')}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="attendance_percent"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Frequência no período (%)
+                  </label>
+                  <input
+                    id="attendance_percent"
+                    type="text"
+                    inputMode="decimal"
+                    name="attendance_percent"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    placeholder="Ex.: 95"
+                  />
+                  <p
+                    className={`text-xs mt-1 ${attendance !== null && attendance < MIN_ATTENDANCE_PERCENT ? 'text-warning' : 'text-neutral-500'}`}
+                  >
+                    Mínimo de {MIN_ATTENDANCE_PERCENT}% (Res. IFCE 108/2023, art. 40, VIII).
+                  </p>
+                </div>
+                <div>
+                  <label
+                    htmlFor="advisor_name"
+                    className="block text-sm font-medium text-neutral-300 mb-1"
+                  >
+                    Docente Orientador
+                  </label>
+                  <input
+                    id="advisor_name"
+                    type="text"
+                    name="advisor_name"
+                    className="input w-full"
+                    onChange={handleInputChange}
+                    placeholder="Nome do docente orientador"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="block text-sm font-medium text-neutral-300 mb-2">
+                  Conceito final do docente orientador (art. 41)
+                </p>
+                <div className="flex gap-4">
+                  {FINAL_CONCEPTS.map((concept) => (
+                    <label key={concept.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="final_concept"
+                        value={concept.value}
+                        className="radio"
+                        onChange={handleInputChange}
+                        checked={formData.final_concept === concept.value}
+                      />
+                      <span className="text-neutral-300">{concept.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Pode ficar em branco se o orientador for preencher à mão.
+                </p>
               </div>
             </CardContent>
           </Card>
