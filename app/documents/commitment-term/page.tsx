@@ -8,7 +8,7 @@ import { ArrowLeft, Save, FileSignature, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { validateCommitmentTerm, type ValidationResult } from '@/lib/internship-validation'
 import { FormErrorSummary, focusFirstError } from '@/components/forms/FormErrorSummary'
@@ -166,8 +166,7 @@ export default function CommitmentTermPage() {
 
   const handleSaveDraft = async () => {
     setIsSaving(true)
-    await saveDraft('commitment-term', formData)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('commitment-term', formData))
     setIsSaving(false)
   }
 

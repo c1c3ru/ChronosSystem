@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { PDFMakeExport } from '@/components/PDFMakeExport'
 import { buildMonthlyReportDoc } from '@/lib/pdf-templates/monthly-report.pdf'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import {
   maskCPF,
@@ -86,8 +86,7 @@ export default function MonthlyReportPage() {
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
     const data: Record<string, string> = { ...formData }
 
-    await saveDraft('monthly-report', data)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('monthly-report', data))
     setIsSaving(false)
   }
 

@@ -7,7 +7,7 @@ import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import {
   maskCPF,
@@ -109,8 +109,7 @@ export default function InternshipRegistrationPage() {
     // Adicionar schedule
     data.schedule = JSON.stringify(schedule)
 
-    await saveDraft('internship-registration', data)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('internship-registration', data))
     setIsSaving(false)
   }
 

@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
+import { FORM_TYPES, isFormType } from '@/lib/form-types'
 
 const saveDraftSchema = z.object({
-  formType: z.string(),
+  formType: z.enum(FORM_TYPES),
   formData: z.record(z.unknown()),
 })
 
@@ -74,8 +75,8 @@ export async function GET(request: NextRequest) {
     }
 
     const formType = request.nextUrl.searchParams.get('formType')
-    if (!formType) {
-      return NextResponse.json({ error: 'formType é obrigatório' }, { status: 400 })
+    if (!isFormType(formType)) {
+      return NextResponse.json({ error: 'formType inválido' }, { status: 400 })
     }
 
     const user = await prisma.user.findUnique({
@@ -124,8 +125,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     const formType = request.nextUrl.searchParams.get('formType')
-    if (!formType) {
-      return NextResponse.json({ error: 'formType é obrigatório' }, { status: 400 })
+    if (!isFormType(formType)) {
+      return NextResponse.json({ error: 'formType inválido' }, { status: 400 })
     }
 
     const user = await prisma.user.findUnique({

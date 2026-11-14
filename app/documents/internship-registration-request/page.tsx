@@ -7,7 +7,7 @@ import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { validateRegistrationRequest, type ValidationResult } from '@/lib/internship-validation'
 import { FormErrorSummary, focusFirstError } from '@/components/forms/FormErrorSummary'
@@ -237,8 +237,7 @@ export default function InternshipRegistrationRequestPage() {
 
   const handleSaveDraft = async () => {
     setIsSaving(true)
-    await saveDraft('internship-registration-request', formData)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('internship-registration-request', formData))
     setIsSaving(false)
   }
 

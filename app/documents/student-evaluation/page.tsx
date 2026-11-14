@@ -7,7 +7,7 @@ import { ArrowLeft, Save, FileText, Download, Star } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import {
   maskCPF,
@@ -86,8 +86,7 @@ export default function StudentEvaluationPage() {
     // Usar o estado formData em vez de FormData para capturar radio buttons e checkboxes
     const data: Record<string, string> = { ...formData }
 
-    await saveDraft('student-evaluation', data)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('student-evaluation', data))
     setIsSaving(false)
   }
 
