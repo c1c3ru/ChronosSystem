@@ -17,6 +17,9 @@ export const FORM_TYPES = [
   'rescission-term',
   'realization-term',
   'student-evaluation',
+  'concedente-evaluation',
+  'owner-declaration',
+  'self-employed-declaration',
 ] as const
 
 export type FormType = (typeof FORM_TYPES)[number]

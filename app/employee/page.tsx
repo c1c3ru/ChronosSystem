@@ -1212,6 +1212,15 @@ export default function EmployeePage() {
                     <span>Termo de Avaliação</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
+                  <a
+                    href="/documents/concedente-evaluation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400"
+                  >
+                    <span>Avaliação da Concedente (orientador)</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
                 </div>
               </CardContent>
             </Card>
@@ -1330,6 +1339,24 @@ export default function EmployeePage() {
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
                   >
                     <span>Declaração de Atividades Profissionais</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="/documents/owner-declaration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
+                  >
+                    <span>Declaração de Proprietário</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="/documents/self-employed-declaration"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary-500/10 transition-colors text-sm text-neutral-300 hover:text-secondary-500"
+                  >
+                    <span>Declaração de Autônomo ou Profissional Liberal</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                   <a

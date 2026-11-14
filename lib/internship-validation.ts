@@ -11,6 +11,7 @@ import {
   MIN_ATTENDANCE_PERCENT,
   parseAttendance,
 } from '@/lib/student-evaluation'
+import { MAX_ACTIVITIES, parseActivities, type WorkDeclarationKind } from '@/lib/work-declaration'
 
 /** Limites da Res. 108/2023, art. 35 (superior e técnico) e art. 34 (duração). */
 export const INTERNSHIP_LIMITS = {
@@ -489,5 +490,90 @@ export function validateStudentEvaluation(data: Record<string, unknown>): Valida
     }
   }
 
+  return { errors, warnings }
+}
+
+/** Avaliação do docente orientador à concedente (modelo oficial da PROEXT). */
+export function validateConcedenteEvaluation(data: Record<string, unknown>): ValidationResult {
+  const str = (f: string) => (typeof data[f] === 'string' ? (data[f] as string) : '')
+  const errors: Record<string, string> = required(data, {
+    company_name: 'nome da concedente',
+    visit_purpose: 'finalidade da visita (pergunta 01)',
+    area_compatible: 'compatibilidade da área com o curso (pergunta 02)',
+    company_visited_institution: 'se a concedente já visitou a instituição (pergunta 03)',
+    facilities_evaluation: 'avaliação das instalações (pergunta 04)',
+  })
+  const warnings: string[] = []
+
+  if (!isBlank(str('company_cnpj')) && !isValidCNPJ(str('company_cnpj'))) {
+    errors.company_cnpj = 'CNPJ inválido. Confira os 14 dígitos.'
+  }
+  if (!isBlank(str('company_email')) && !isValidEmail(str('company_email'))) {
+    errors.company_email = 'E-mail inválido. Use o formato nome@dominio.com.br.'
+  }
+  if (str('area_compatible') === 'nao' && isBlank(str('area_compatible_reason'))) {
+    errors.area_compatible_reason =
+      'Explique por que a área da concedente não é compatível com o curso (pergunta 02).'
+  }
+  if (str('facilities_evaluation') === 'insatisfatorias' && isBlank(str('facilities_reason'))) {
+    errors.facilities_reason = 'Explique por que as instalações são insatisfatórias (pergunta 04).'
+  }
+  if (str('area_compatible') === 'nao' || str('facilities_evaluation') === 'insatisfatorias') {
+    warnings.push(
+      'Com área incompatível ou instalações insatisfatórias, a concedente não atende ao art. 9º, II da Lei 11.788/2008 (instalações que proporcionem aprendizagem social, profissional e cultural).'
+    )
+  }
+  return { errors, warnings }
+}
+
+/** Declaração de proprietário ou de profissional liberal/autônomo (modelos oficiais da PROEXT). */
+export function validateWorkDeclaration(
+  kind: WorkDeclarationKind,
+  data: Record<string, unknown>,
+  today: string = new Date().toISOString().slice(0, 10)
+): ValidationResult {
+  const str = (f: string) => (typeof data[f] === 'string' ? (data[f] as string) : '')
+  const errors: Record<string, string> = required(data, {
+    declarant_name: 'nome completo do declarante',
+    declarant_rg: 'RG',
+    declarant_cpf: 'CPF',
+    since_date:
+      kind === 'owner' ? 'desde quando é proprietário' : 'desde quando exerce a atividade',
+    ...(kind === 'owner'
+      ? {
+          company_name: 'nome da empresa',
+          company_cnpj: 'CNPJ da empresa',
+          company_industry: 'ramo de atividade da empresa',
+        }
+      : { professional_type: 'se é profissional liberal ou autônomo', profession: 'profissão' }),
+  })
+  const warnings: string[] = []
+
+  if (!isBlank(str('declarant_cpf')) && !isValidCPF(str('declarant_cpf'))) {
+    errors.declarant_cpf = 'CPF inválido. Confira os 11 dígitos.'
+  }
+  if (kind === 'owner' && !isBlank(str('company_cnpj')) && !isValidCNPJ(str('company_cnpj'))) {
+    errors.company_cnpj = 'CNPJ inválido. Confira os 14 dígitos.'
+  }
+  if (kind === 'self-employed' && str('professional_type') === 'liberal') {
+    Object.assign(
+      errors,
+      required(data, {
+        council_name: 'conselho profissional (obrigatório para profissional liberal)',
+        council_number: 'número de registro no conselho',
+      })
+    )
+  }
+  const since = str('since_date')
+  if (!isBlank(since) && isValidIsoDate(since) && since > today) {
+    errors.since_date = 'A data de início não pode ser no futuro.'
+  }
+
+  const activities = parseActivities(str('activities'))
+  if (activities.length === 0) {
+    errors.activities = 'Liste pelo menos uma atividade, uma por linha.'
+  } else if (activities.length > MAX_ACTIVITIES) {
+    errors.activities = `O modelo oficial tem espaço para até ${MAX_ACTIVITIES} atividades. Você listou ${activities.length}; junte as parecidas.`
+  }
   return { errors, warnings }
 }
