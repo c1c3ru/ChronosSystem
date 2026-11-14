@@ -6,6 +6,12 @@
  * Cada mensagem diz o que está errado e como corrigir.
  */
 
+import {
+  EVALUATION_CRITERIA,
+  MIN_ATTENDANCE_PERCENT,
+  parseAttendance,
+} from '@/lib/student-evaluation'
+
 /** Limites da Res. 108/2023, art. 35 (superior e técnico) e art. 34 (duração). */
 export const INTERNSHIP_LIMITS = {
   maxDailyHours: 6,
@@ -449,4 +455,39 @@ export function validateAdditiveTerm(data: Record<string, unknown>): ValidationR
   }
 
   return { errors, warnings: [] }
+}
+
+/** Termo de Avaliação ao Discente Estagiário (`app/documents/student-evaluation`). */
+export function validateStudentEvaluation(data: Record<string, unknown>): ValidationResult {
+  const str = (f: string) => (typeof data[f] === 'string' ? (data[f] as string) : '')
+  const errors: Record<string, string> = required(data, {
+    student_name: 'nome do estagiário',
+    company_supervisor: 'supervisor do estágio',
+  })
+  const warnings: string[] = []
+
+  const missing = EVALUATION_CRITERIA.filter((c) => !/^[1-5]$/.test(str(c.key)))
+  if (missing.length > 0) {
+    errors[missing[0].key] =
+      missing.length === 1
+        ? `Dê uma nota de 1 a 5 para "${missing[0].label}".`
+        : `Faltam notas em ${missing.length} critérios, começando por "${missing[0].label}".`
+  }
+
+  const attendance = parseAttendance(str('attendance_percent'))
+  if (isBlank(str('attendance_percent'))) {
+    errors.attendance_percent = 'Informe a frequência do estagiário no período, em %.'
+  } else if (attendance === null || attendance > 100) {
+    errors.attendance_percent = 'Frequência inválida. Digite um número de 0 a 100, por exemplo 92.'
+  } else if (attendance < MIN_ATTENDANCE_PERCENT) {
+    if (str('final_concept') === 'satisfatorio') {
+      errors.final_concept = `Com frequência de ${attendance}%, abaixo do mínimo de ${MIN_ATTENDANCE_PERCENT}% (Res. IFCE 108/2023, art. 40, VIII), o conceito não pode ser satisfatório.`
+    } else {
+      warnings.push(
+        `A frequência de ${attendance}% está abaixo do mínimo de ${MIN_ATTENDANCE_PERCENT}% exigido (Res. IFCE 108/2023, art. 40, VIII).`
+      )
+    }
+  }
+
+  return { errors, warnings }
 }

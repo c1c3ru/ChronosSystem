@@ -1,3 +1,8 @@
+/**
+ * Template pdfmake do "Termo de Avaliação ao Discente Estagiário" (IFCE).
+ * Res. CONSUP/IFCE nº 108/2023: art. 20, XV (termo de avaliação), art. 40 (critérios e
+ * frequência mínima de 70%) e art. 41 (conceito satisfatório ou insatisfatório do orientador).
+ */
 import type { TDocumentDefinitions, Content, TableCell } from 'pdfmake/interfaces'
 import {
   ifceHeader,
@@ -11,54 +16,37 @@ import {
   fmtDate,
   v,
 } from '@/lib/pdfmake-base-service'
+import {
+  EVALUATION_CRITERIA,
+  FINAL_CONCEPTS,
+  GRADE_SCALE,
+  MIN_ATTENDANCE_PERCENT,
+  averageGrade,
+  parseAttendance,
+  type EvaluationCriterionKey,
+} from '@/lib/student-evaluation'
 
-export interface StudentEvaluationData {
+export interface StudentEvaluationData extends Partial<Record<EvaluationCriterionKey, string>> {
   student_name?: string
   student_course?: string
   student_enrollment?: string
   company_name?: string
   company_supervisor?: string
+  advisor_name?: string
   period_start?: string
   period_end?: string
   evaluation_date?: string
+  attendance_percent?: string
+  final_concept?: string
   observations?: string
   recommendation?: string
-  eval_assiduity?: string
-  eval_punctuality?: string
-  eval_responsibility?: string
-  eval_discipline?: string
-  eval_cooperation?: string
-  eval_initiative?: string
-  eval_proactivity?: string
-  eval_communication?: string
-  eval_relationship?: string
-  eval_technical_knowledge?: string
-  eval_learning_capacity?: string
-  eval_productivity?: string
-  eval_quality?: string
-  eval_organization?: string
-  eval_creativity?: string
   solicitation_date?: string
   authorization_date?: string
 }
 
-const EVAL_LABELS: [string, string][] = [
-  ['eval_assiduity', 'Assiduidade'],
-  ['eval_punctuality', 'Pontualidade'],
-  ['eval_responsibility', 'Responsabilidade'],
-  ['eval_discipline', 'Disciplina'],
-  ['eval_cooperation', 'Cooperação'],
-  ['eval_initiative', 'Iniciativa'],
-  ['eval_proactivity', 'Proatividade'],
-  ['eval_communication', 'Comunicação'],
-  ['eval_relationship', 'Relacionamento Interpessoal'],
-  ['eval_technical_knowledge', 'Conhecimento Técnico'],
-  ['eval_learning_capacity', 'Capacidade de Aprendizagem'],
-  ['eval_productivity', 'Produtividade'],
-  ['eval_quality', 'Qualidade do Trabalho'],
-  ['eval_organization', 'Organização'],
-  ['eval_creativity', 'Criatividade'],
-]
+const fmtNumber = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+
+const mark = (checked: boolean, label: string) => `(${checked ? 'X' : ' '}) ${label}`
 
 export async function buildStudentEvaluationDoc(
   d: StudentEvaluationData
@@ -75,46 +63,69 @@ export async function buildStudentEvaluationDoc(
         cell('Matrícula', v(d.student_enrollment)),
       ],
       [
-        cell('Empresa', v(d.company_name)),
+        cell('Concedente', v(d.company_name)),
         cell('Supervisor', v(d.company_supervisor)),
         cell('Período Início', fmtDate(d.period_start)),
         cell('Período Fim', fmtDate(d.period_end)),
       ],
       [
-        cell('Data da Avaliação', fmtDate(d.evaluation_date), { colSpan: 4 }),
+        cell('Docente Orientador', v(d.advisor_name), { colSpan: 2 }),
         emptyCell(),
-        emptyCell(),
+        cell('Data da Avaliação', fmtDate(d.evaluation_date), { colSpan: 2 }),
         emptyCell(),
       ],
     ]
   )
 
-  const evalRows: TableCell[][] = EVAL_LABELS.map(([key, label]) => [
-    cell(label, ''),
-    cell('Nota (1-5)', (d as Record<string, string>)[key] || '-'),
-  ])
-  const evalTable = dataTable(['75%', '25%'], evalRows)
+  // Uma linha por critério (rótulo e nota lado a lado) para o termo caber numa página
+  const row = (label: string, grade: string, bold = false): TableCell[] => [
+    { text: label, bold, fontSize: 8, margin: [3, 2, 3, 2] },
+    { text: grade, bold, fontSize: 8, alignment: 'center', margin: [3, 2, 3, 2] },
+  ]
+  const average = averageGrade(d as Record<string, string>)
+  const evalTable = dataTable(
+    ['80%', '20%'],
+    [
+      row('Critério', 'Nota (1-5)', true),
+      ...EVALUATION_CRITERIA.map(({ key, label }) => row(label, d[key] || '-')),
+      row('Média das notas', average === null ? '-' : fmtNumber(average), true),
+    ]
+  )
 
-  const recText =
-    d.recommendation === 'sim'
-      ? '(X) Sim   ( ) Não'
-      : d.recommendation === 'nao'
-        ? '( ) Sim   (X) Não'
-        : '( ) Sim   ( ) Não'
+  const attendance = parseAttendance(d.attendance_percent)
+  const attendanceText =
+    attendance === null
+      ? '______ %'
+      : `${fmtNumber(attendance)} %${attendance < MIN_ATTENDANCE_PERCENT ? ` (abaixo do mínimo de ${MIN_ATTENDANCE_PERCENT}%)` : ''}`
+  const conceptText = FINAL_CONCEPTS.map((c) => mark(d.final_concept === c.value, c.label)).join(
+    '     '
+  )
+
+  const resultTable = dataTable(
+    ['40%', '60%'],
+    [
+      [
+        cell(`Frequência (mínimo ${MIN_ATTENDANCE_PERCENT}%)`, attendanceText),
+        cell('Conceito final do docente orientador (art. 41)', conceptText),
+      ],
+    ]
+  )
+
+  const recText = `${mark(d.recommendation === 'sim', 'Sim')}   ${mark(d.recommendation === 'nao', 'Não')}`
 
   const content: Content[] = [
     ...header,
-    docTitle('Ficha de Avaliação do Discente Estagiário'),
+    docTitle('Termo de Avaliação ao Discente Estagiário'),
     sectionTitle('IDENTIFICAÇÃO'),
     identTable,
-    sectionTitle(
-      'CRITÉRIOS DE AVALIAÇÃO (1=Insuf. / 2=Regular / 3=Bom / 4=Muito Bom / 5=Excelente)'
-    ),
+    sectionTitle(`CRITÉRIOS DE AVALIAÇÃO (${GRADE_SCALE})`),
     evalTable,
+    sectionTitle('FREQUÊNCIA E CONCEITO FINAL'),
+    resultTable,
     ...sectionBlock('OBSERVAÇÕES E COMENTÁRIOS', v(d.observations)),
     dataTable(['*'], [[cell('Recomendaria este estagiário?', recText)]]),
     ...sigBlock(
-      ['Supervisor do Estágio', 'Coordenador de Estágios'],
+      ['Supervisor do Estágio', 'Docente Orientador'],
       undefined,
       fmtDate(d.solicitation_date),
       fmtDate(d.authorization_date)

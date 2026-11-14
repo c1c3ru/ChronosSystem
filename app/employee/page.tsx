@@ -1218,7 +1218,7 @@ export default function EmployeePage() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-info-500/10 transition-colors text-sm text-neutral-300 hover:text-info-400"
                   >
-                    <span>Ficha de Avaliação</span>
+                    <span>Termo de Avaliação</span>
                     <ChevronRight className="h-4 w-4" />
                   </a>
                 </div>
