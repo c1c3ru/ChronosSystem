@@ -103,8 +103,7 @@ export default function AdditiveTermPage() {
       'additive_type_other',
     ]
     checkboxes.forEach((cb) => {
-      if (!data[cb]) data[cb] = 'false'
-      else data[cb] = 'true'
+      data[cb] = data[cb] === 'true' ? 'true' : 'false'
     })
 
     await saveDraft('additive-term', data)
@@ -116,26 +115,10 @@ export default function AdditiveTermPage() {
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
-      const raw = { ...formData }
-
       const { buildAdditiveTermDoc } = await import('@/lib/pdf-templates/additive-term.pdf')
       const { generatePDF } = await import('@/lib/pdfmake-base-service')
 
-      const doc = await buildAdditiveTermDoc({
-        nome_estudante: raw.student_name || '',
-        matricula_estudante: raw.student_enrollment || '',
-        curso_estudante: raw.student_course || '',
-        empresa_nome: raw.company_name || '',
-        empresa_cnpj: raw.company_cnpj || '',
-        empresa_telefone: raw.company_phone || '',
-        motivo_aditivo: raw.additive_reason || '',
-        justificativa: raw.justification || '',
-        nova_data_fim: raw.new_end_date || '',
-        nova_carga_horaria: raw.new_weekly_hours || '',
-        prazo_prorrogacao: raw.extension_period || '',
-        novo_valor_bolsa: raw.new_allowance_value || '',
-        novo_valor_transporte: raw.new_transport_aid || '',
-      })
+      const doc = await buildAdditiveTermDoc({ ...formData })
 
       await generatePDF(doc, { filename: 'termo-aditivo.pdf' })
 
