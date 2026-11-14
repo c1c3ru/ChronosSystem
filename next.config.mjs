@@ -67,6 +67,31 @@ const nextConfig = {
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   },
+  // Telas de estágio duplicadas, unificadas no PR 6b (links antigos continuam funcionando).
+  async redirects() {
+    return [
+      {
+        source: '/documents/internship-registration',
+        destination: '/documents/internship-registration-request',
+        permanent: false,
+      },
+      {
+        source: '/employee/internship-registration',
+        destination: '/documents/internship-registration-request',
+        permanent: false,
+      },
+      {
+        source: '/demo-form',
+        destination: '/documents/internship-registration-request',
+        permanent: false,
+      },
+      {
+        source: '/documents/professional-declaration',
+        destination: '/documents/professional-activities',
+        permanent: false,
+      },
+    ]
+  },
   // Headers de segurança
   async headers() {
     return [
