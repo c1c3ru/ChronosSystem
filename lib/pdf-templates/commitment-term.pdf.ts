@@ -15,6 +15,39 @@ import {
   fmtDate,
   v,
 } from '@/lib/pdfmake-base-service'
+import { valorComExtenso } from '@/lib/valor-por-extenso'
+
+// ─── CLÁUSULAS VARIÁVEIS ──────────────────────────────────────────────────────
+
+function apoliceText(d: { insurance_policy?: string; insurance_company?: string }): string {
+  return d.insurance_policy?.trim() || d.insurance_company?.trim()
+    ? `, mediante apólice ${v(d.insurance_policy)} da seguradora ${v(d.insurance_company)}`
+    : ''
+}
+
+/** Texto do tipo de estágio; vazio vira lacuna para não afirmar um tipo que não foi escolhido. */
+export function internshipTypeLabel(type?: string): string {
+  if (type === 'obrigatorio') return 'OBRIGATÓRIO'
+  if (type === 'nao_obrigatorio') return 'NÃO OBRIGATÓRIO'
+  return '____________________'
+}
+
+/**
+ * Cláusula do seguro conforme o tipo de estágio (Lei 11.788/2008, art. 9º, parágrafo único;
+ * Res. CONSUP/IFCE 108/2023, art. 27): no obrigatório o seguro fica a cargo do IFCE,
+ * no não obrigatório, da concedente.
+ */
+export function insuranceClause(d: {
+  internship_type?: string
+  insurance_policy?: string
+  insurance_company?: string
+}): string {
+  const apolice = apoliceText(d)
+  if (d.internship_type === 'obrigatorio') {
+    return `Por se tratar de estágio obrigatório, o INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA DO CEARÁ – IFCE contrata em favor do DISCENTE ESTAGIÁRIO seguro contra acidentes pessoais, com cobertura limitada ao período de estágio${apolice}.`
+  }
+  return `A concedente neste ato contrata em favor do DISCENTE ESTAGIÁRIO seguro contra acidentes pessoais, com cobertura limitada ao local e período de estágio${apolice || ', mediante apólice ____________ da seguradora ____________'}.`
+}
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -59,7 +92,7 @@ export interface CommitmentTermData {
   transport_value?: string
   has_grant?: string
   has_transport?: string
-  internship_type?: 'obrigatorio' | 'nao_obrigatorio'
+  internship_type?: string
 
   // Orientador
   advisor_name?: string
@@ -260,7 +293,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
     clauseBody([
       subItem(
         'I -',
-        `O estágio supervisionado regrado por este termo será ${v(d.internship_type === 'obrigatorio' ? 'OBRIGATÓRIO' : 'NÃO OBRIGATÓRIO')}, com atividades compatíveis com a formação recebida no curso do DISCENTE ESTAGIÁRIO, e realizadas de forma ${v(d.modality?.toUpperCase())} (presencial, remota ou híbrida), tudo conforme plano de atividades constante da CLÁUSULA SÉTIMA.`
+        `O estágio supervisionado regrado por este termo será ${internshipTypeLabel(d.internship_type)}, com atividades compatíveis com a formação recebida no curso do DISCENTE ESTAGIÁRIO, e realizadas de forma ${v(d.modality?.toUpperCase())} (presencial, remota ou híbrida), tudo conforme plano de atividades constante da CLÁUSULA SÉTIMA.`
       ),
       subItem(
         'II -',
@@ -342,14 +375,11 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
 
     clauseTitle('CLÁUSULA QUINTA – DO SEGURO OBRIGATÓRIO E DA REMUNERAÇÃO'),
     clauseBody([
-      subItem(
-        'I -',
-        `A concedente neste ato contrata em favor do DISCENTE ESTAGIÁRIO seguro contra acidentes pessoais, com cobertura limitada ao local e período de estágio, mediante apólice ${v(d.insurance_policy)} da empresa ${v(d.insurance_company)}.`
-      ),
+      subItem('I -', insuranceClause(d)),
       d.has_grant === 'true'
         ? subItem(
             'II -',
-            `A CONCEDENTE DO ESTÁGIO remunerará mensalmente o DISCENTE ESTAGIÁRIO através de bolsa-auxílio no valor de R$ ${v(d.grant_value)} (${v(d.grant_value)}).`
+            `A CONCEDENTE DO ESTÁGIO remunerará mensalmente o DISCENTE ESTAGIÁRIO através de bolsa-auxílio no valor de ${valorComExtenso(d.grant_value) || 'R$ ____________'}.`
           )
         : subItem(
             'II -',
@@ -358,7 +388,7 @@ export async function buildCommitmentTermDoc(d: CommitmentTermData): Promise<TDo
       d.has_transport === 'true'
         ? subItem(
             'III -',
-            `A CONCEDENTE DO ESTÁGIO fornecerá ao DISCENTE ESTAGIÁRIO auxílio-transporte no valor de R$ ${v(d.transport_value)}.`
+            `A CONCEDENTE DO ESTÁGIO fornecerá ao DISCENTE ESTAGIÁRIO auxílio-transporte no valor de ${valorComExtenso(d.transport_value) || 'R$ ____________'}.`
           )
         : subItem(
             'III -',

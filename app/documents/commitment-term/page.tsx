@@ -55,6 +55,7 @@ export default function CommitmentTermPage() {
     student_email_personal: '',
 
     // Estágio
+    internship_type: '', // obrigatorio | nao_obrigatorio (Res. IFCE 108/2023)
     modality: 'presencial', // presencial, remota, hibrida
     start_date: '',
     end_date: '',
@@ -97,6 +98,9 @@ export default function CommitmentTermPage() {
       domingo: { inicio: '', final: '' },
     }),
   })
+
+  const isMandatory = formData.internship_type === 'obrigatorio'
+  const isNonMandatory = formData.internship_type === 'nao_obrigatorio'
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -165,6 +169,11 @@ export default function CommitmentTermPage() {
   }
 
   const handleGeneratePDF = async () => {
+    if (!formData.internship_type) {
+      toast.error('Informe se o estágio é obrigatório ou não obrigatório.')
+      document.getElementById('internship_type')?.focus()
+      return
+    }
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
 
@@ -200,6 +209,7 @@ export default function CommitmentTermPage() {
         student_email_institutional: formData.student_email_institutional,
         student_email_personal: formData.student_email_personal,
         // Estágio
+        internship_type: formData.internship_type,
         modality: formData.modality,
         start_date: formData.start_date,
         end_date: formData.end_date,
@@ -208,8 +218,9 @@ export default function CommitmentTermPage() {
         insurance_company: formData.insurance_company,
         grant_value: formData.grant_value,
         transport_value: formData.transport_value,
-        has_grant: formData.has_grant,
-        has_transport: formData.has_transport,
+        // Bolsa e auxílio-transporte são compulsórios no não obrigatório (Lei 11.788/2008, art. 12)
+        has_grant: isNonMandatory ? 'true' : formData.has_grant,
+        has_transport: isNonMandatory ? 'true' : formData.has_transport,
         // Orientador
         advisor_name: formData.advisor_name,
         advisor_siape: formData.advisor_siape,
@@ -522,7 +533,24 @@ export default function CommitmentTermPage() {
               <CardTitle className="text-lg">3. Detalhes do Estágio</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="internship_type" className="block text-sm text-neutral-400 mb-1">
+                    Tipo de estágio *
+                  </label>
+                  <select
+                    id="internship_type"
+                    name="internship_type"
+                    value={formData.internship_type}
+                    onChange={handleInputChange}
+                    className="input w-full"
+                    required
+                  >
+                    <option value="">Selecione</option>
+                    <option value="obrigatorio">Obrigatório (previsto no curso)</option>
+                    <option value="nao_obrigatorio">Não obrigatório</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm text-neutral-400 mb-1">Modalidade</label>
                   <select
@@ -561,6 +589,18 @@ export default function CommitmentTermPage() {
                 </div>
               </div>
 
+              {isMandatory && (
+                <p className="text-sm text-neutral-400">
+                  No estágio obrigatório o seguro contra acidentes pessoais é contratado pelo IFCE.
+                  Preencha a apólice só se o setor de estágios informar.
+                </p>
+              )}
+              {isNonMandatory && (
+                <p className="text-sm text-neutral-400">
+                  No estágio não obrigatório a concedente contrata o seguro e paga bolsa e
+                  auxílio-transporte (Lei 11.788/2008, arts. 9º e 12).
+                </p>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   name="insurance_policy"
@@ -586,13 +626,14 @@ export default function CommitmentTermPage() {
                     <input
                       type="checkbox"
                       name="has_grant"
-                      checked={formData.has_grant === 'true'}
+                      checked={isNonMandatory || formData.has_grant === 'true'}
+                      disabled={isNonMandatory}
                       onChange={handleInputChange}
                       title="Possui Bolsa Auxílio?"
                     />
                     Possui Bolsa Auxílio?
                   </label>
-                  {formData.has_grant === 'true' && (
+                  {(isNonMandatory || formData.has_grant === 'true') && (
                     <input
                       name="grant_value"
                       value={formData.grant_value}
@@ -608,13 +649,14 @@ export default function CommitmentTermPage() {
                     <input
                       type="checkbox"
                       name="has_transport"
-                      checked={formData.has_transport === 'true'}
+                      checked={isNonMandatory || formData.has_transport === 'true'}
+                      disabled={isNonMandatory}
                       onChange={handleInputChange}
                       title="Possui Auxílio Transporte?"
                     />
                     Possui Auxílio Transporte?
                   </label>
-                  {formData.has_transport === 'true' && (
+                  {(isNonMandatory || formData.has_transport === 'true') && (
                     <input
                       name="transport_value"
                       value={formData.transport_value}
