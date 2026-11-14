@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, notifyDraftSaved } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { prefillDraft } from '@/lib/internship-prefill-client'
 import { maskCNPJ, maskPhone } from '@/lib/input-masks'
 
 import type { FinalReportData } from '@/lib/pdf-templates/final-report.pdf'
@@ -32,11 +33,10 @@ export default function FinalReportPage() {
 
   useEffect(() => {
     const loadDraft = async () => {
-      const draft = await getDraft('final-report')
-      if (draft) {
-        setFormData(draft as Partial<FinalReportData>)
-        toast.success('Rascunho carregado!')
-      }
+      const draft = (await getDraft('final-report')) as Partial<FinalReportData> | null
+      const data = await prefillDraft('final-report', (draft ?? {}) as Record<string, unknown>)
+      setFormData((prev) => ({ ...prev, ...(data as Partial<FinalReportData>) }))
+      if (draft) toast.success('Rascunho carregado!')
     }
     loadDraft()
   }, [])
@@ -405,6 +405,7 @@ export default function FinalReportPage() {
                 <input
                   type="number"
                   name="total_hours"
+                  step="0.1"
                   className="input w-full"
                   value={formData.total_hours || ''}
                   onChange={handleInputChange}
