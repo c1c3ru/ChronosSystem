@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { validateRegistrationRequest, type ValidationResult } from '@/lib/internship-validation'
+import { FormErrorSummary, focusFirstError } from '@/components/forms/FormErrorSummary'
 import {
   maskCPF,
   maskRG,
@@ -28,6 +30,7 @@ export default function InternshipRegistrationRequestPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const documentRef = useRef<HTMLDivElement>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [validation, setValidation] = useState<ValidationResult>({ errors: {}, warnings: [] })
 
   const [formData, setFormData] = useState({
     // Dados Pessoais
@@ -239,7 +242,28 @@ export default function InternshipRegistrationRequestPage() {
     setIsSaving(false)
   }
 
+  // Depois da primeira tentativa de gerar o PDF, a lista se atualiza enquanto o aluno corrige
+  useEffect(() => {
+    setValidation((prev) =>
+      Object.keys(prev.errors).length || prev.warnings.length
+        ? validateRegistrationRequest(formData)
+        : prev
+    )
+  }, [formData])
+
   const handleGeneratePDF = async () => {
+    const result = validateRegistrationRequest(formData)
+    setValidation(result)
+    const errorCount = Object.keys(result.errors).length
+    if (errorCount > 0) {
+      toast.error(
+        errorCount === 1
+          ? 'Falta corrigir 1 item antes de gerar o PDF.'
+          : `Faltam corrigir ${errorCount} itens antes de gerar o PDF.`
+      )
+      focusFirstError(result.errors)
+      return
+    }
     try {
       toast.loading('Gerando PDF...', { id: 'pdf-generation' })
       const { buildInternshipRegistrationRequestDoc } =
@@ -342,6 +366,8 @@ export default function InternshipRegistrationRequestPage() {
             </div>
           </CardHeader>
         </Card>
+
+        <FormErrorSummary errors={validation.errors} warnings={validation.warnings} />
 
         <form ref={formRef} className="space-y-6">
           {/* Dados Pessoais */}
