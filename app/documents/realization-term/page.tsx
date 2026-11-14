@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, notifyDraftSaved } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { prefillDraft } from '@/lib/internship-prefill-client'
 import { maskCNPJ, maskPhone } from '@/lib/input-masks'
 
 import type { RealizationTermData } from '@/lib/pdf-templates/realization-term.pdf'
@@ -35,11 +36,10 @@ export default function RealizationTermPage() {
 
   useEffect(() => {
     const loadDraft = async () => {
-      const draft = await getDraft('realization-term')
-      if (draft) {
-        setFormData(draft as Partial<RealizationTermData>)
-        toast.success('Rascunho carregado!')
-      }
+      const draft = (await getDraft('realization-term')) as Partial<RealizationTermData> | null
+      const data = await prefillDraft('realization-term', (draft ?? {}) as Record<string, unknown>)
+      setFormData((prev) => ({ ...prev, ...(data as Partial<RealizationTermData>) }))
+      if (draft) toast.success('Rascunho carregado!')
     }
     loadDraft()
   }, [])
@@ -309,6 +309,7 @@ export default function RealizationTermPage() {
                 <input
                   type="number"
                   name="realized_hours"
+                  step="0.1"
                   className="input w-full"
                   value={formData.realized_hours || ''}
                   onChange={handleInputChange}

@@ -3,12 +3,13 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
 import { useRef, useEffect, useState } from 'react'
-import { ArrowLeft, Save, FileText, Download } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Download, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { getDraft, saveDraft, notifyDraftSaved, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
+import { prefillDraft, recalculateHours } from '@/lib/internship-prefill-client'
 import {
   maskCPF,
   maskRG,
@@ -26,14 +27,13 @@ export default function SemesterReportPage() {
 
   useEffect(() => {
     const loadDraft = async () => {
-      const draft = await getDraft('semester-report')
-      if (draft) {
-        if (formRef.current) {
-          populateFormWithData(formRef.current, draft)
-        }
-        setFormData(draft as Record<string, string>)
-        toast.success('Rascunho carregado!')
+      const draft = (await getDraft('semester-report')) as Record<string, string> | null
+      const data = await prefillDraft('semester-report', draft ?? {})
+      if (formRef.current) {
+        populateFormWithData(formRef.current, data)
       }
+      setFormData(data)
+      if (draft) toast.success('Rascunho carregado!')
     }
     loadDraft()
   }, [])
@@ -77,6 +77,21 @@ export default function SemesterReportPage() {
     } else {
       setFormData((prev) => ({ ...prev, [name]: maskedValue }))
     }
+  }
+
+  const [isRecalculating, setIsRecalculating] = useState(false)
+
+  const handleRecalculateHours = async () => {
+    setIsRecalculating(true)
+    const next = await recalculateHours('semester-report', formData)
+    setIsRecalculating(false)
+    if (!next) {
+      toast.error('Não foi possível calcular as horas pelo ponto.')
+      return
+    }
+    if (formRef.current) populateFormWithData(formRef.current, next)
+    setFormData(next)
+    toast.success('Carga horária calculada pelos registros de ponto.')
   }
 
   const handleSaveDraft = async () => {
@@ -277,6 +292,7 @@ export default function SemesterReportPage() {
                   <input
                     type="number"
                     name="hours_semester"
+                    step="0.1"
                     className="input w-full"
                     onChange={handleInputChange}
                     title="Estagiada no Período (Horas)"
@@ -290,11 +306,28 @@ export default function SemesterReportPage() {
                   <input
                     type="number"
                     name="hours_total"
+                    step="0.1"
                     className="input w-full"
                     onChange={handleInputChange}
                     title="Acumulada no Período (Horas)"
                     placeholder="000"
                   />
+                </div>
+                <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleRecalculateHours}
+                    disabled={isRecalculating}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    {isRecalculating ? 'Calculando...' : 'Recalcular pelo ponto'}
+                  </Button>
+                  <p className="text-xs text-neutral-400">
+                    Soma as horas registradas no ponto entre as datas acima. A acumulada conta desde
+                    o início do contrato.
+                  </p>
                 </div>
               </div>
             </CardContent>
