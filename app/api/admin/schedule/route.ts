@@ -26,6 +26,7 @@ export async function GET() {
         workingDaysPerWeek: true,
         weeklyHours: true,
         allowFlexibleHours: true,
+        isActive: true,
         shift: true,
         contractType: true,
         attendanceRecords: {
@@ -60,6 +61,7 @@ export async function GET() {
         workingDaysPerWeek: emp.workingDaysPerWeek,
         weeklyHours: emp.weeklyHours,
         allowFlexibleHours: emp.allowFlexibleHours,
+        isActive: emp.isActive,
         shift: emp.shift,
         contractType: emp.contractType,
         isPresent,
