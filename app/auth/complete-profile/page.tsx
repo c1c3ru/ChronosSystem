@@ -50,7 +50,11 @@ const FIELD_LABELS = PROFILE_FIELD_LABELS
 // Os campos de turno já aparecem preenchidos com o padrão da manhã no
 // ShiftConfigForm; o estado precisa refletir isso, senão a validação acusava
 // "horário obrigatório" num campo que o aluno via preenchido.
+//
+// Setor já vem como CTI-MAR, onde estão todos os estagiários; o aluno ainda
+// pode trocar na lista (muitos escolhiam TI/Alunos por engano).
 const INITIAL_PROFILE: ProfileData = {
+  department: 'CTI-MAR',
   shift: 'MORNING',
   shiftStartTime: '08:00',
   shiftEndTime: '12:00',
