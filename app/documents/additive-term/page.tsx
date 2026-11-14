@@ -7,7 +7,7 @@ import { ArrowLeft, Save, FileText, Download, FileEdit } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft, populateFormWithData } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved, populateFormWithData } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { validateAdditiveTerm, type ValidationResult } from '@/lib/internship-validation'
 import { FormErrorSummary, focusFirstError } from '@/components/forms/FormErrorSummary'
@@ -109,8 +109,7 @@ export default function AdditiveTermPage() {
       data[cb] = data[cb] === 'true' ? 'true' : 'false'
     })
 
-    await saveDraft('additive-term', data)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('additive-term', data))
     setIsSaving(false)
   }
 

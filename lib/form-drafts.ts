@@ -1,156 +1,158 @@
 /**
- * Biblioteca para gerenciar rascunhos de formulários
+ * Rascunhos dos formulários de estágio.
+ *
+ * O rascunho vai para o servidor (tabela FormDraft, por usuário) e, como cópia de segurança,
+ * para o localStorage. A cópia local leva o id do usuário na chave: em computador
+ * compartilhado, um aluno não abre o rascunho (com CPF e endereço) de outro.
  */
 
-export type FormType =
-  | 'final-report'
-  | 'monthly-report'
-  | 'internship-registration'
-  | 'internship-registration-request'
-  | 'commitment-term'
-  | 'additive-term'
-  | 'equivalence-request'
-  | 'extension-declaration'
-  | 'professional-activities'
-  | 'professional-declaration'
-  | 'semester-report'
-  | 'rescission-term'
-  | 'realization-term'
-  | 'student-evaluation'
+import { toast } from 'sonner'
+import type { FormType } from '@/lib/form-types'
 
-interface FormDraftData {
-  formType: FormType
+export type { FormType } from '@/lib/form-types'
+
+export interface DraftSaveResult {
+  savedOnServer: boolean
+  savedLocally: boolean
+}
+
+const LOCAL_PREFIX = 'form_draft:'
+/** Formato antigo, sem usuário na chave. Apagado ao carregar qualquer rascunho. */
+const LEGACY_PREFIX = 'form_draft_'
+
+async function currentUserKey(): Promise<string | null> {
+  try {
+    const { getSession } = await import('next-auth/react')
+    const session = await getSession()
+    return session?.user?.id || session?.user?.email || null
+  } catch {
+    return null
+  }
+}
+
+const localKey = (userKey: string, formType: FormType) => `${LOCAL_PREFIX}${userKey}:${formType}`
+
+function storage(): Storage | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+
+function removeKeys(predicate: (key: string) => boolean): void {
+  const ls = storage()
+  if (!ls) return
+  const keys: string[] = []
+  for (let i = 0; i < ls.length; i++) {
+    const key = ls.key(i)
+    if (key && predicate(key)) keys.push(key)
+  }
+  keys.forEach((key) => ls.removeItem(key))
+}
+
+/** Apaga rascunhos gravados no formato antigo (sem usuário na chave). */
+export function purgeLegacyDrafts(): void {
+  removeKeys((key) => key.startsWith(LEGACY_PREFIX))
+}
+
+/** Apaga todos os rascunhos locais deste navegador. Chamado no logout. */
+export function clearLocalDrafts(): void {
+  removeKeys((key) => key.startsWith(LOCAL_PREFIX) || key.startsWith(LEGACY_PREFIX))
+}
+
+function saveDraftLocally(
+  userKey: string | null,
+  formType: FormType,
   formData: Record<string, unknown>
-}
-
-/**
- * Salva um rascunho de formulário localmente (localStorage)
- */
-function saveDraftLocally(formType: FormType, formData: Record<string, unknown>): void {
-  if (typeof window === 'undefined') return // Skip on server
-
+): boolean {
+  const ls = storage()
+  if (!ls || !userKey) return false
   try {
-    const key = `form_draft_${formType}`
-    const draft = {
-      formType,
-      formData,
-      savedAt: new Date().toISOString(),
-    }
-    localStorage.setItem(key, JSON.stringify(draft))
-    console.log(`Rascunho salvo localmente: ${formType}`)
-  } catch (error) {
-    console.error('Erro ao salvar rascunho localmente:', error)
+    ls.setItem(
+      localKey(userKey, formType),
+      JSON.stringify({ formType, formData, savedAt: new Date().toISOString() })
+    )
+    return true
+  } catch {
+    return false
   }
 }
 
-/**
- * Recupera um rascunho salvo localmente
- */
-function getDraftLocally(formType: FormType): Record<string, unknown> | null {
-  if (typeof window === 'undefined') return null // Skip on server
-
+function getDraftLocally(
+  userKey: string | null,
+  formType: FormType
+): Record<string, unknown> | null {
+  const ls = storage()
+  if (!ls || !userKey) return null
   try {
-    const key = `form_draft_${formType}`
-    const draft = localStorage.getItem(key)
-    if (draft) {
-      const parsed = JSON.parse(draft)
-      return parsed.formData
-    }
-    return null
-  } catch (error) {
-    console.error('Erro ao recuperar rascunho localmente:', error)
+    const raw = ls.getItem(localKey(userKey, formType))
+    return raw ? (JSON.parse(raw).formData ?? null) : null
+  } catch {
     return null
   }
 }
 
-/**
- * Salva um rascunho no servidor
- */
 async function saveDraftToServer(
   formType: FormType,
   formData: Record<string, unknown>
-): Promise<{ success: boolean; message: string }> {
+): Promise<boolean> {
   try {
     const response = await fetch('/api/forms/drafts', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        formType,
-        formData,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ formType, formData }),
     })
-
-    if (!response.ok) {
-      throw new Error(`Erro ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    console.log(`Rascunho salvo no servidor: ${formType}`)
-    return { success: true, message: 'Rascunho salvo com sucesso!' }
-  } catch (error) {
-    console.error('Erro ao salvar rascunho no servidor:', error)
-    return { success: false, message: 'Erro ao salvar rascunho' }
+    return response.ok
+  } catch {
+    return false
   }
 }
 
-/**
- * Recupera um rascunho do servidor
- */
 async function getDraftFromServer(formType: FormType): Promise<Record<string, unknown> | null> {
   try {
     const response = await fetch(`/api/forms/drafts?formType=${formType}`)
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
-      throw new Error(`Erro ${response.status}: ${response.statusText}`)
-    }
-
+    if (!response.ok) return null
     const data = await response.json()
-    return data.formData
-  } catch (error) {
-    console.error('Erro ao recuperar rascunho do servidor:', error)
+    return data.formData ?? null
+  } catch {
     return null
   }
 }
 
-/**
- * Salva rascunho localmente e no servidor
- */
+/** Salva no servidor e numa cópia local do usuário logado. */
 export async function saveDraft(
   formType: FormType,
   formData: Record<string, unknown>
-): Promise<void> {
-  // Salva localmente primeiro (mais rápido)
-  saveDraftLocally(formType, formData)
-
-  // Tenta salvar no servidor
-  try {
-    await saveDraftToServer(formType, formData)
-  } catch (error) {
-    console.warn('Falha ao salvar no servidor, usando apenas localStorage:', error)
-  }
+): Promise<DraftSaveResult> {
+  const userKey = await currentUserKey()
+  const savedLocally = saveDraftLocally(userKey, formType, formData)
+  const savedOnServer = await saveDraftToServer(formType, formData)
+  return { savedOnServer, savedLocally }
 }
 
-/**
- * Recupera rascunho do servidor ou localStorage
- */
+/** Busca o rascunho no servidor; sem ele, usa a cópia local do mesmo usuário. */
 export async function getDraft(formType: FormType): Promise<Record<string, unknown> | null> {
-  // Tenta recuperar do servidor primeiro
-  try {
-    const serverDraft = await getDraftFromServer(formType)
-    if (serverDraft) {
-      return serverDraft
-    }
-  } catch (error) {
-    console.warn('Falha ao recuperar do servidor, tentando localStorage:', error)
-  }
+  purgeLegacyDrafts()
+  const serverDraft = await getDraftFromServer(formType)
+  if (serverDraft) return serverDraft
+  // Sem rascunho no servidor (ou servidor fora): vale a cópia local do mesmo usuário,
+  // que existe quando o último salvamento não chegou ao servidor.
+  return getDraftLocally(await currentUserKey(), formType)
+}
 
-  // Fallback para localStorage
-  return getDraftLocally(formType)
+/** Mensagem para o aluno conforme onde o rascunho ficou salvo. */
+export function notifyDraftSaved({ savedOnServer, savedLocally }: DraftSaveResult): void {
+  if (savedOnServer) {
+    toast.success('Rascunho salvo com sucesso!')
+  } else if (savedLocally) {
+    toast.warning(
+      'Não foi possível salvar no servidor. O rascunho ficou só neste navegador; tente salvar de novo antes de trocar de computador.'
+    )
+  } else {
+    toast.error('Não foi possível salvar o rascunho. Verifique a conexão e tente de novo.')
+  }
 }
 
 /**
@@ -169,10 +171,6 @@ export function populateFormWithData(
       if (input.type === 'checkbox' || input.type === 'radio') {
         const checkbox = input as HTMLInputElement
         checkbox.checked = value === 'on' || value === true || value === checkbox.value
-      } else if (input.tagName === 'TEXTAREA') {
-        input.value = String(value)
-      } else if (input.tagName === 'SELECT') {
-        input.value = String(value)
       } else {
         input.value = String(value)
       }

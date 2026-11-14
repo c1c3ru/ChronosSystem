@@ -17,7 +17,7 @@ import {
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { getDraft, saveDraft } from '@/lib/form-drafts'
+import { getDraft, saveDraft, notifyDraftSaved } from '@/lib/form-drafts'
 import { toast } from 'sonner'
 import { maskPhone } from '@/lib/input-masks'
 
@@ -61,8 +61,7 @@ export default function ExperienceDeclarationPage() {
 
   const handleSaveDraft = async () => {
     setIsSaving(true)
-    await saveDraft('extension-declaration', formData)
-    toast.success('Rascunho salvo com sucesso!')
+    notifyDraftSaved(await saveDraft('extension-declaration', formData))
     setIsSaving(false)
   }
 
