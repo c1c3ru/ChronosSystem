@@ -8,12 +8,16 @@ import { getShiftStartTime } from '@/lib/shift-validation'
 import { authLogger } from '@/lib/logger'
 import { z } from 'zod'
 import { PROFILE_FIELD_LABELS, PROFILE_MESSAGES } from '@/lib/profile-validation'
+import { isValidContractDate } from '@/lib/contract-date'
 
 const isoDateString = (requiredMessage: string = PROFILE_MESSAGES.dateInvalid) =>
   z
     .string({ required_error: requiredMessage, invalid_type_error: PROFILE_MESSAGES.dateInvalid })
     .min(1, requiredMessage)
     .refine((value) => !Number.isNaN(new Date(value).getTime()), PROFILE_MESSAGES.dateInvalid)
+
+const contractDateString = () =>
+  z.string().refine(isValidContractDate, PROFILE_MESSAGES.contractYearInvalid)
 
 const requiredString = (message: string) =>
   z.string({ required_error: message, invalid_type_error: message }).trim().min(1, message)
@@ -27,15 +31,15 @@ const completeProfileSchema = z.object({
   department: z.string().optional().nullable(),
   registrationNumber: z.string().optional().nullable(),
   startDate: z
-    .union([z.literal(''), isoDateString()])
+    .union([z.literal(''), contractDateString()])
     .optional()
     .nullable(),
   contractStartDate: z
-    .union([z.literal(''), isoDateString()])
+    .union([z.literal(''), contractDateString()])
     .optional()
     .nullable(),
   contractEndDate: z
-    .union([z.literal(''), isoDateString()])
+    .union([z.literal(''), contractDateString()])
     .optional()
     .nullable(),
   siapeNumber: z.string().optional().nullable(),
@@ -138,6 +142,14 @@ export async function POST(request: NextRequest) {
       if (!registrationNumber?.trim()) {
         fieldErrors.registrationNumber = PROFILE_MESSAGES.registrationNumberRequired
       }
+    }
+
+    if (
+      contractStartDate &&
+      contractEndDate &&
+      contractEndDate <= contractStartDate
+    ) {
+      fieldErrors.contractEndDate = PROFILE_MESSAGES.contractEndBeforeStart
     }
 
     // Validar formato da matrícula SIAPE (apenas se fornecida)
