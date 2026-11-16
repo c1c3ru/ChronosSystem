@@ -63,6 +63,21 @@ describe('validateProfileForm', () => {
     expect(errors.birthDate).toBe(PROFILE_MESSAGES.birthDateTooOld)
   })
 
+  it('rejeita ano 0026 e 0027 no início e término de contrato', () => {
+    const errors = validateProfileForm(
+      {
+        ...VALID_STUDENT,
+        startDate: '0026-11-09',
+        contractStartDate: '0026-11-09',
+        contractEndDate: '0027-04-09',
+      },
+      opts
+    )
+    expect(errors.startDate).toBe(PROFILE_MESSAGES.contractYearInvalid)
+    expect(errors.contractStartDate).toBe(PROFILE_MESSAGES.contractYearInvalid)
+    expect(errors.contractEndDate).toBe(PROFILE_MESSAGES.contractYearInvalid)
+  })
+
   it('rejeita fim do contrato antes do início', () => {
     const errors = validateProfileForm(
       { ...VALID_STUDENT, contractStartDate: '2026-06-01', contractEndDate: '2026-05-01' },

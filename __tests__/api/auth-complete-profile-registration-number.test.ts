@@ -93,6 +93,21 @@ describe('POST /api/auth/complete-profile - matrícula obrigatória para alunos'
     expect(mockedUserUpdate).not.toHaveBeenCalled()
   })
 
+  it('bloqueia ano 0027 e retorna erro no campo de término', async () => {
+    const response = await POST(
+      makeRequest({
+        ...BASE_PAYLOAD,
+        registrationNumber: '20231234567',
+        contractStartDate: '2026-11-09',
+        contractEndDate: '0027-04-09',
+      })
+    )
+    const body = await response.json()
+    expect(response.status).toBe(400)
+    expect(body.fieldErrors.contractEndDate).toContain('ano completo')
+    expect(mockedUserUpdate).not.toHaveBeenCalled()
+  })
+
   it('completa o perfil com sucesso quando a matrícula é enviada', async () => {
     const response = await POST(makeRequest({ ...BASE_PAYLOAD, registrationNumber: '20231234567' }))
     const body = await response.json()
