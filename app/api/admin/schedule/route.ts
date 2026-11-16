@@ -15,7 +15,7 @@ export async function GET() {
     }
 
     const employees = await prisma.user.findMany({
-      where: { role: 'EMPLOYEE', profileComplete: true },
+      where: { role: 'EMPLOYEE', profileComplete: true, isActive: true },
       select: {
         id: true,
         name: true,
@@ -29,6 +29,8 @@ export async function GET() {
         isActive: true,
         shift: true,
         contractType: true,
+        contractStartDate: true,
+        contractEndDate: true,
         attendanceRecords: {
           where: {
             timestamp: {
@@ -64,6 +66,8 @@ export async function GET() {
         isActive: emp.isActive,
         shift: emp.shift,
         contractType: emp.contractType,
+        contractStartDate: emp.contractStartDate?.toISOString() ?? null,
+        contractEndDate: emp.contractEndDate?.toISOString() ?? null,
         isPresent,
         lastRecord,
         todayRecords,
