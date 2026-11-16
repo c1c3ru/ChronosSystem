@@ -538,8 +538,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                     <div className="space-y-3 rounded-xl border border-neutral-700 p-4">
                       <h4 className="font-semibold text-white">Vigência do contrato</h4>
                       <p className="text-xs text-neutral-400">
-                        Confira o ano com quatro dígitos. Datas antigas como 0027 precisam
-                        ser corrigidas para o ano real indicado no contrato.
+                        Confira o ano com quatro dígitos (ex.: 2027).
                       </p>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
