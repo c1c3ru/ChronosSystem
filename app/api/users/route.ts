@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
 import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
+import { isValidContractDate } from '@/lib/contract-date'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -134,6 +135,16 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
+
+    for (const field of ['startDate', 'contractStartDate', 'contractEndDate'] as const) {
+      const date = validatedData[field]
+      if (date && !isValidContractDate(date)) {
+        return NextResponse.json(
+          { error: 'Data inválida: informe ano completo entre 2000 e 2100 (ex.: 2027).' },
+          { status: 400 }
+        )
+      }
+    }
 
     // Apenas ADMIN pode criar usuários com role ADMIN — sem esta checagem, um
     // SUPERVISOR (também autorizado a chegar até aqui) poderia criar uma
