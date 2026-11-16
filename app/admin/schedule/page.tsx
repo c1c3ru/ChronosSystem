@@ -687,10 +687,16 @@ function ContractCell({
   return (
     <div className="w-[12rem] flex-shrink-0 border-l border-neutral-800/50 px-3 py-2 flex flex-col justify-center gap-1">
       <span className="text-xs text-neutral-300">
-        Início: <time dateTime={employee.contractStartDate?.slice(0, 10)}>{formatContractDate(employee.contractStartDate)}</time>
+        Início:{' '}
+        <time dateTime={employee.contractStartDate?.slice(0, 10)}>
+          {formatContractDate(employee.contractStartDate)}
+        </time>
       </span>
       <span className="text-xs text-neutral-300">
-        Fim: <time dateTime={employee.contractEndDate?.slice(0, 10)}>{formatContractDate(employee.contractEndDate)}</time>
+        Fim:{' '}
+        <time dateTime={employee.contractEndDate?.slice(0, 10)}>
+          {formatContractDate(employee.contractEndDate)}
+        </time>
       </span>
       <span
         className={[
