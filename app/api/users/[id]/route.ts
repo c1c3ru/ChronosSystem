@@ -10,6 +10,10 @@ import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
+const contractDateSchema = z
+  .string()
+  .refine(isValidContractDate, 'Data inválida: informe o ano completo.')
+
 const updateUserSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email().optional(),
@@ -20,14 +24,8 @@ const updateUserSchema = z.object({
   department: z.string().optional(),
   registrationNumber: z.string().optional(),
   isActive: z.boolean().optional(),
-  contractStartDate: z
-    .string()
-    .refine(isValidContractDate, 'Data de início inválida: informe o ano completo (ex.: 2026)')
-    .optional(),
-  contractEndDate: z
-    .string()
-    .refine(isValidContractDate, 'Data de término inválida: informe o ano completo (ex.: 2027)')
-    .optional(),
+  contractStartDate: contractDateSchema.optional(),
+  contractEndDate: contractDateSchema.optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
@@ -164,8 +162,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       if (!isValidContractDate(start) || !isValidContractDate(end) || end <= start) {
         return NextResponse.json(
           {
-            error:
-              'Informe início e fim válidos, com ano completo (AAAA), e término posterior ao início.',
+            error: 'Informe datas válidas, com ano completo e fim posterior ao início.',
           },
           { status: 400 }
         )
