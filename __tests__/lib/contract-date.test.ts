@@ -21,11 +21,9 @@ describe('datas de contrato com ano completo', () => {
 
   it('sinaliza anos inválidos sem calcular vencimentos absurdos', () => {
     const now = new Date('2026-11-16T09:00:00.000Z')
-    const expiry = getContractExpiration(
-      '0026-11-09T00:00:00.000Z',
-      '0027-04-09T00:00:00.000Z',
-      now
-    )
+    const start = '0026-11-09T00:00:00.000Z'
+    const end = '0027-04-09T00:00:00.000Z'
+    const expiry = getContractExpiration(start, end, now)
 
     expect(formatContractDate('0027-04-09T00:00:00.000Z')).toBe('09/04/0027')
     expect(expiry).toEqual({
