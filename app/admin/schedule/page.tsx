@@ -253,7 +253,7 @@ export default function SchedulePage() {
 
   const contractAlerts = filtered.filter((emp) => {
     const urgency = getContractExpiration(emp.contractStartDate, emp.contractEndDate, now).urgency
-    return ['WARNING', 'URGENT', 'CRITICAL', 'EXPIRED'].includes(urgency)
+    return ['INVALID', 'WARNING', 'URGENT', 'CRITICAL', 'EXPIRED'].includes(urgency)
   }).length
 
   const groupedEmployees = filtered.reduce(
@@ -591,7 +591,7 @@ export default function SchedulePage() {
                           <div
                             key={emp.id}
                             className={`flex items-stretch border-b border-neutral-800/50 hover:bg-white/[0.03] transition-colors ${
-                              expiration.urgency === 'EXPIRED' || expiration.urgency === 'CRITICAL'
+                              ['INVALID', 'EXPIRED', 'CRITICAL'].includes(expiration.urgency)
                                 ? 'bg-error-500/[0.07]'
                                 : idx % 2 === 0
                                   ? ''
@@ -676,6 +676,7 @@ function ContractCell({
 }) {
   const urgencyStyles: Record<ContractExpiration['urgency'], string> = {
     MISSING: 'border-neutral-700 text-neutral-400 bg-neutral-800/40',
+    INVALID: 'border-error-500/70 text-[#fca5a5] bg-error-500/20',
     FUTURE: 'border-secondary-500/40 text-secondary-200 bg-secondary-500/10',
     NORMAL: 'border-primary-500/30 text-primary-300 bg-primary-500/10',
     WARNING: 'border-warning-500/30 text-[#fcd34d] bg-warning-500/10',
