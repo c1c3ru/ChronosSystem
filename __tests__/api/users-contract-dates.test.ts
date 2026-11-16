@@ -45,7 +45,13 @@ describe('edição administrativa da vigência do contrato', () => {
     jest.clearAllMocks()
     mockedSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } })
     mockedFind.mockResolvedValue(existing)
-    mockedUpdate.mockResolvedValue({ id: 'aluno-1', email: existing.email, name: existing.name, role: existing.role, updatedAt: new Date() })
+    mockedUpdate.mockResolvedValue({
+      id: 'aluno-1',
+      email: existing.email,
+      name: existing.name,
+      role: existing.role,
+      updatedAt: new Date(),
+    })
     mockedAudit.mockResolvedValue({})
   })
 
