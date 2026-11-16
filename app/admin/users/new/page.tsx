@@ -195,7 +195,12 @@ export default function NewUserPage() {
       }
 
       // Validar se data de fim é posterior à data de início
-      if (!newErrors.contractStartDate && !newErrors.contractEndDate && userData.contractStartDate && userData.contractEndDate) {
+      if (
+        !newErrors.contractStartDate &&
+        !newErrors.contractEndDate &&
+        userData.contractStartDate &&
+        userData.contractEndDate
+      ) {
         if (userData.contractEndDate <= userData.contractStartDate) {
           newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
         }
