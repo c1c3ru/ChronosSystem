@@ -28,6 +28,7 @@ import {
   formatHours,
 } from '@/lib/contract-types'
 import { determineRoleFromSiape } from '@/lib/admin-siape'
+import { isValidContractDate } from '@/lib/contract-date'
 
 interface UserData {
   name: string
@@ -177,19 +178,25 @@ export default function NewUserPage() {
 
       if (!userData.startDate) {
         newErrors.startDate = 'Data de início é obrigatória para funcionários'
+      } else if (!isValidContractDate(userData.startDate)) {
+        newErrors.startDate = 'Digite o ano completo da data de início (ex.: 2026).'
       }
 
       if (!userData.contractStartDate) {
         newErrors.contractStartDate = 'Data de início do contrato é obrigatória'
+      } else if (!isValidContractDate(userData.contractStartDate)) {
+        newErrors.contractStartDate = 'Digite o ano completo do início do contrato (ex.: 2026).'
       }
 
       if (!userData.contractEndDate) {
         newErrors.contractEndDate = 'Data de fim do contrato é obrigatória'
+      } else if (!isValidContractDate(userData.contractEndDate)) {
+        newErrors.contractEndDate = 'Digite o ano completo do fim do contrato (ex.: 2027).'
       }
 
       // Validar se data de fim é posterior à data de início
-      if (userData.contractStartDate && userData.contractEndDate) {
-        if (new Date(userData.contractEndDate) <= new Date(userData.contractStartDate)) {
+      if (!newErrors.contractStartDate && !newErrors.contractEndDate && userData.contractStartDate && userData.contractEndDate) {
+        if (userData.contractEndDate <= userData.contractStartDate) {
           newErrors.contractEndDate = 'Data de fim deve ser posterior à data de início'
         }
       }
@@ -828,6 +835,8 @@ export default function NewUserPage() {
                           <input
                             id="new-user-start-date"
                             type="date"
+                            min="2000-01-01"
+                            max="2100-12-31"
                             className={`input pl-10 ${errors.startDate ? 'border-error' : ''}`}
                             value={userData.startDate || ''}
                             onChange={(e) =>
@@ -853,6 +862,8 @@ export default function NewUserPage() {
                           <input
                             id="new-user-contract-start"
                             type="date"
+                            min="2000-01-01"
+                            max="2100-12-31"
                             className={`input pl-10 ${errors.contractStartDate ? 'border-error' : ''}`}
                             value={userData.contractStartDate || ''}
                             onChange={(e) =>
@@ -881,6 +892,8 @@ export default function NewUserPage() {
                           <input
                             id="new-user-contract-end"
                             type="date"
+                            min="2000-01-01"
+                            max="2100-12-31"
                             className={`input pl-10 ${errors.contractEndDate ? 'border-error' : ''}`}
                             value={userData.contractEndDate || ''}
                             onChange={(e) =>
