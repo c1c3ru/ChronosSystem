@@ -12,9 +12,11 @@ jest.mock('@/lib/prisma', () => ({
   prisma: { user: { update: jest.fn() }, auditLog: { create: jest.fn() } },
 }))
 
+const mockedSession = getServerSession as jest.Mock
+
 describe('POST /api/contracts/expiring - renovação', () => {
   it('recusa anos incompletos antes de modificar o contrato', async () => {
-    ;(getServerSession as jest.Mock).mockResolvedValue({
+    mockedSession.mockResolvedValue({
       user: { id: 'admin', role: 'ADMIN' },
     })
     const response = await POST(
