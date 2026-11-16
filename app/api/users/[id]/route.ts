@@ -20,8 +20,14 @@ const updateUserSchema = z.object({
   department: z.string().optional(),
   registrationNumber: z.string().optional(),
   isActive: z.boolean().optional(),
-  contractStartDate: z.string().refine(isValidContractDate, 'Data de início inválida: informe o ano completo (ex.: 2026)').optional(),
-  contractEndDate: z.string().refine(isValidContractDate, 'Data de término inválida: informe o ano completo (ex.: 2027)').optional(),
+  contractStartDate: z
+    .string()
+    .refine(isValidContractDate, 'Data de início inválida: informe o ano completo (ex.: 2026)')
+    .optional(),
+  contractEndDate: z
+    .string()
+    .refine(isValidContractDate, 'Data de término inválida: informe o ano completo (ex.: 2027)')
+    .optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
