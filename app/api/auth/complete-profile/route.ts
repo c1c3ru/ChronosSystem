@@ -144,11 +144,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (
-      contractStartDate &&
-      contractEndDate &&
-      contractEndDate <= contractStartDate
-    ) {
+    if (contractStartDate && contractEndDate && contractEndDate <= contractStartDate) {
       fieldErrors.contractEndDate = PROFILE_MESSAGES.contractEndBeforeStart
     }
 
