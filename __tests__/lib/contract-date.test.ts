@@ -9,7 +9,15 @@ describe('datas de contrato com ano completo', () => {
     }
   )
 
-  it.each(['0027-04-09', '0026-11-09', '2026-02-30', '2027-13-01', '2027-4-9', '1900-01-01', '2101-01-01'])(
+  it.each([
+    '0027-04-09',
+    '0026-11-09',
+    '2026-02-30',
+    '2027-13-01',
+    '2027-4-9',
+    '1900-01-01',
+    '2101-01-01',
+  ])(
     'rejeita a data incorreta %s',
     (value) => {
       expect(isValidContractDate(value)).toBe(false)
@@ -19,7 +27,9 @@ describe('datas de contrato com ano completo', () => {
   it('preenche anos antigos com quatro dígitos e sinaliza inconsistência sem calcular dias absurdos', () => {
     const now = new Date('2026-11-16T09:00:00.000Z')
     expect(formatContractDate('0027-04-09T00:00:00.000Z')).toBe('09/04/0027')
-    expect(getContractExpiration('0026-11-09T00:00:00.000Z', '0027-04-09T00:00:00.000Z', now)).toEqual({
+    expect(
+      getContractExpiration('0026-11-09T00:00:00.000Z', '0027-04-09T00:00:00.000Z', now)
+    ).toEqual({
       urgency: 'INVALID',
       daysRemaining: null,
       message: 'Corrigir data do contrato',
