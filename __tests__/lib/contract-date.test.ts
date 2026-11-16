@@ -2,34 +2,33 @@ import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
 import { formatContractDate, getContractExpiration } from '@/lib/contract-expiration'
 
 describe('datas de contrato com ano completo', () => {
-  it.each(['2026-11-09', '2027-04-09', '2100-12-31', '2000-02-29'])(
-    'aceita a data válida %s',
-    (value) => {
-      expect(isValidContractDate(value)).toBe(true)
-    }
-  )
+  it('aceita datas com anos reais e calendário válido', () => {
+    expect(isValidContractDate('2026-11-09')).toBe(true)
+    expect(isValidContractDate('2027-04-09')).toBe(true)
+    expect(isValidContractDate('2100-12-31')).toBe(true)
+    expect(isValidContractDate('2000-02-29')).toBe(true)
+  })
 
-  it.each([
-    '0027-04-09',
-    '0026-11-09',
-    '2026-02-30',
-    '2027-13-01',
-    '2027-4-9',
-    '1900-01-01',
-    '2101-01-01',
-  ])(
-    'rejeita a data incorreta %s',
-    (value) => {
-      expect(isValidContractDate(value)).toBe(false)
-    }
-  )
+  it('rejeita anos abreviados e datas inexistentes', () => {
+    expect(isValidContractDate('0027-04-09')).toBe(false)
+    expect(isValidContractDate('0026-11-09')).toBe(false)
+    expect(isValidContractDate('2026-02-30')).toBe(false)
+    expect(isValidContractDate('2027-13-01')).toBe(false)
+    expect(isValidContractDate('2027-4-9')).toBe(false)
+    expect(isValidContractDate('1900-01-01')).toBe(false)
+    expect(isValidContractDate('2101-01-01')).toBe(false)
+  })
 
-  it('preenche anos antigos com quatro dígitos e sinaliza inconsistência sem calcular dias absurdos', () => {
+  it('sinaliza anos inválidos sem calcular vencimentos absurdos', () => {
     const now = new Date('2026-11-16T09:00:00.000Z')
+    const expiry = getContractExpiration(
+      '0026-11-09T00:00:00.000Z',
+      '0027-04-09T00:00:00.000Z',
+      now
+    )
+
     expect(formatContractDate('0027-04-09T00:00:00.000Z')).toBe('09/04/0027')
-    expect(
-      getContractExpiration('0026-11-09T00:00:00.000Z', '0027-04-09T00:00:00.000Z', now)
-    ).toEqual({
+    expect(expiry).toEqual({
       urgency: 'INVALID',
       daysRemaining: null,
       message: 'Corrigir data do contrato',
