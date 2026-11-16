@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
 import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
+import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -19,6 +20,8 @@ const updateUserSchema = z.object({
   department: z.string().optional(),
   registrationNumber: z.string().optional(),
   isActive: z.boolean().optional(),
+  contractStartDate: z.string().refine(isValidContractDate, 'Data de início inválida: informe o ano completo (ex.: 2026)').optional(),
+  contractEndDate: z.string().refine(isValidContractDate, 'Data de término inválida: informe o ano completo (ex.: 2027)').optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
@@ -53,6 +56,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         siapeNumber: true,
         registrationNumber: true,
         contractType: true,
+        contractStartDate: true,
+        contractEndDate: true,
         weeklyHours: true,
         dailyHours: true,
         profileComplete: true,
@@ -135,8 +140,41 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
+    // Datas contratuais exigem autoridade administrativa: o aluno não pode
+    // alterar a própria vigência por chamada direta à API.
+    const changingContract =
+      validatedData.contractStartDate !== undefined ||
+      validatedData.contractEndDate !== undefined
+    if (changingContract && !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Apenas administradores e supervisores podem alterar o contrato' },
+        { status: 403 }
+      )
+    }
+
+    if (changingContract) {
+      const start = validatedData.contractStartDate ?? toDateOnly(existingUser.contractStartDate)
+      const end = validatedData.contractEndDate ?? toDateOnly(existingUser.contractEndDate)
+      if (!isValidContractDate(start) || !isValidContractDate(end) || end <= start) {
+        return NextResponse.json(
+          {
+            error:
+              'Informe início e fim válidos, com ano completo (AAAA), e término posterior ao início.',
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // Preparar dados para atualização
     const updateData: Record<string, unknown> = { ...validatedData } as Record<string, unknown>
+
+    if (validatedData.contractStartDate) {
+      updateData.contractStartDate = new Date(validatedData.contractStartDate + 'T00:00:00.000Z')
+    }
+    if (validatedData.contractEndDate) {
+      updateData.contractEndDate = new Date(validatedData.contractEndDate + 'T00:00:00.000Z')
+    }
 
     // Hash da senha se fornecida
     if (validatedData.password) {
