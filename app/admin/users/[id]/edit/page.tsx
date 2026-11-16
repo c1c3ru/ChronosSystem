@@ -19,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
+import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
 
 interface UserData {
   id: string
@@ -29,6 +30,8 @@ interface UserData {
   address?: string
   department?: string
   registrationNumber?: string
+  contractStartDate?: string | null
+  contractEndDate?: string | null
   isActive: boolean
 }
 
@@ -41,6 +44,8 @@ interface UpdateData {
   address?: string
   department?: string
   registrationNumber?: string
+  contractStartDate?: string
+  contractEndDate?: string
   isActive?: boolean
 }
 
@@ -89,6 +94,8 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             address: data.address || '',
             department: data.department || '',
             registrationNumber: data.registrationNumber || '',
+            contractStartDate: toDateOnly(data.contractStartDate),
+            contractEndDate: toDateOnly(data.contractEndDate),
             isActive: data.isActive ?? true,
           })
         } else {
@@ -122,6 +129,24 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
       newErrors.password = 'Senha deve ter pelo menos 6 caracteres'
     }
 
+    const datesChanged =
+      updateData.contractStartDate !== toDateOnly(userData?.contractStartDate) ||
+      updateData.contractEndDate !== toDateOnly(userData?.contractEndDate)
+
+    if (datesChanged) {
+      if (!isValidContractDate(updateData.contractStartDate || '')) {
+        newErrors.contractStartDate = 'Informe uma data com ano completo, entre 2000 e 2100.'
+      }
+      if (!isValidContractDate(updateData.contractEndDate || '')) {
+        newErrors.contractEndDate = 'Informe uma data com ano completo, entre 2000 e 2100.'
+      } else if (
+        !newErrors.contractStartDate &&
+        updateData.contractEndDate! <= updateData.contractStartDate!
+      ) {
+        newErrors.contractEndDate = 'O término deve ocorrer depois do início.'
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -147,6 +172,10 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
         changedData.registrationNumber = updateData.registrationNumber
       if (updateData.password) changedData.password = updateData.password
       if (updateData.isActive !== userData?.isActive) changedData.isActive = updateData.isActive
+      if (updateData.contractStartDate !== toDateOnly(userData?.contractStartDate))
+        changedData.contractStartDate = updateData.contractStartDate
+      if (updateData.contractEndDate !== toDateOnly(userData?.contractEndDate))
+        changedData.contractEndDate = updateData.contractEndDate
 
       const response = await fetch(`/api/users/${id}`, {
         method: 'PUT',
@@ -502,6 +531,72 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                           }))
                         }
                       />
+                    </div>
+                  )}
+
+                  {updateData.role === 'EMPLOYEE' && (
+                    <div className="space-y-3 rounded-xl border border-neutral-700 p-4">
+                      <h4 className="font-semibold text-white">Vigência do contrato</h4>
+                      <p className="text-xs text-neutral-400">
+                        Confira o ano com quatro dígitos. Datas antigas como 0027 precisam
+                        ser corrigidas para o ano real indicado no contrato.
+                      </p>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="edit-contract-start-date"
+                            className="block text-sm text-neutral-300 mb-2"
+                          >
+                            Início do contrato
+                          </label>
+                          <input
+                            id="edit-contract-start-date"
+                            type="date"
+                            min="2000-01-01"
+                            max="2100-12-31"
+                            className="input"
+                            value={updateData.contractStartDate || ''}
+                            onChange={(e) =>
+                              setUpdateData((prev) => ({
+                                ...prev,
+                                contractStartDate: e.target.value,
+                              }))
+                            }
+                          />
+                          {errors.contractStartDate && (
+                            <p role="alert" className="mt-1 text-xs text-error">
+                              {errors.contractStartDate}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="edit-contract-end-date"
+                            className="block text-sm text-neutral-300 mb-2"
+                          >
+                            Fim do contrato
+                          </label>
+                          <input
+                            id="edit-contract-end-date"
+                            type="date"
+                            min="2000-01-01"
+                            max="2100-12-31"
+                            className="input"
+                            value={updateData.contractEndDate || ''}
+                            onChange={(e) =>
+                              setUpdateData((prev) => ({
+                                ...prev,
+                                contractEndDate: e.target.value,
+                              }))
+                            }
+                          />
+                          {errors.contractEndDate && (
+                            <p role="alert" className="mt-1 text-xs text-error">
+                              {errors.contractEndDate}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
 
