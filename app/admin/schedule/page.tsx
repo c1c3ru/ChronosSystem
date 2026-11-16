@@ -15,6 +15,7 @@ import {
   Timer,
   ChevronsDownUp,
   ChevronsUpDown,
+  AlertTriangle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
@@ -34,6 +35,11 @@ import {
   type TodayStatus,
   type TodaySummary,
 } from '@/lib/schedule-status'
+import {
+  formatContractDate,
+  getContractExpiration,
+  type ContractExpiration,
+} from '@/lib/contract-expiration'
 
 interface ScheduleEmployee {
   id: string
@@ -45,8 +51,8 @@ interface ScheduleEmployee {
   workingDaysPerWeek: number
   weeklyHours?: number | null
   allowFlexibleHours?: boolean
-  /** Ausente em respostas antigas da API: tratado como ativo. */
-  isActive?: boolean
+  contractStartDate: string | null
+  contractEndDate: string | null
   shift: string | null
   contractType: string | null
   isPresent: boolean
@@ -159,7 +165,6 @@ export default function SchedulePage() {
 
   const [departmentFilter, setDepartmentFilter] = useState('ALL')
   const [shiftFilter, setShiftFilter] = useState('ALL')
-  const [activeFilter, setActiveFilter] = useState<'ACTIVE' | 'INACTIVE' | 'ALL'>('ACTIVE')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
 
   // Relógio de Fortaleza (convenção fake-UTC, ver lib/timezone.ts), atualizado a cada minuto.
@@ -239,14 +244,17 @@ export default function SchedulePage() {
     const empDept = emp.department || 'Sem Departamento'
     const matchDept = departmentFilter === 'ALL' || empDept === departmentFilter
     const matchShift = shiftFilter === 'ALL' || emp.shift === shiftFilter
-    const isActive = emp.isActive !== false
-    const matchActive = activeFilter === 'ALL' || (activeFilter === 'ACTIVE' ? isActive : !isActive)
     const s = summaries[emp.id]
     const matchStatus =
       statusFilter === 'ALL' || (statusFilter === 'LATE' ? s?.isLate : s?.status === statusFilter)
 
-    return matchSearch && matchDept && matchShift && matchActive && matchStatus
+    return matchSearch && matchDept && matchShift && matchStatus
   })
+
+  const contractAlerts = filtered.filter((emp) => {
+    const urgency = getContractExpiration(emp.contractStartDate, emp.contractEndDate, now).urgency
+    return ['WARNING', 'URGENT', 'CRITICAL', 'EXPIRED'].includes(urgency)
+  }).length
 
   const groupedEmployees = filtered.reduce(
     (acc, emp) => {
@@ -396,6 +404,12 @@ export default function SchedulePage() {
                 {counts.missing} não chegou/chegaram
               </span>
             )}
+            {contractAlerts > 0 && (
+              <span className="inline-flex items-center gap-1 px-[0.625rem] py-1 rounded-full bg-warning-500/10 border border-warning-500/40 text-[#fcd34d] font-semibold">
+                <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                {contractAlerts} contrato(s) exigem atenção
+              </span>
+            )}
             {counts.off > 0 && (
               <span className="px-[0.625rem] py-1 rounded-full bg-neutral-800/60 border border-neutral-700 text-neutral-400">
                 {counts.off} de folga hoje
@@ -416,17 +430,6 @@ export default function SchedulePage() {
                   {d}
                 </option>
               ))}
-            </select>
-
-            <select
-              value={activeFilter}
-              onChange={(e) => setActiveFilter(e.target.value as typeof activeFilter)}
-              aria-label="Filtrar por cadastro ativo ou inativo"
-              className={selectClass}
-            >
-              <option value="ACTIVE">Ativos</option>
-              <option value="INACTIVE">Inativos</option>
-              <option value="ALL">Ativos e inativos</option>
             </select>
 
             <select
@@ -498,7 +501,7 @@ export default function SchedulePage() {
 
         {/* Quadro */}
         <div className="bg-neutral-900/60 border border-neutral-700/40 rounded-2xl overflow-x-auto shadow-xl">
-          <div className={view === 'WEEK' ? 'min-w-[560px]' : ''}>
+          <div className="min-w-[900px]">
             {/* Cabeçalho */}
             <div className="flex border-b border-neutral-700/60 sticky top-0 z-20 bg-neutral-900/95 backdrop-blur">
               <div className="w-40 sm:w-64 flex-shrink-0 px-3 sm:px-4 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
@@ -540,6 +543,9 @@ export default function SchedulePage() {
                   </div>
                 </>
               )}
+              <div className="w-[12rem] flex-shrink-0 border-l border-neutral-800/60 px-3 py-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                Vigência do contrato
+              </div>
             </div>
 
             {filtered.length === 0 ? (
@@ -576,11 +582,20 @@ export default function SchedulePage() {
                         const summary = summaries[emp.id]
                         const style = shiftStyle(emp.shift)
                         const range = formatShiftRange(emp.shiftStartTime, emp.shiftEndTime)
+                        const expiration = getContractExpiration(
+                          emp.contractStartDate,
+                          emp.contractEndDate,
+                          now
+                        )
                         return (
                           <div
                             key={emp.id}
                             className={`flex items-stretch border-b border-neutral-800/50 hover:bg-white/[0.03] transition-colors ${
-                              idx % 2 === 0 ? '' : 'bg-neutral-800/15'
+                              expiration.urgency === 'EXPIRED' || expiration.urgency === 'CRITICAL'
+                                ? 'bg-error-500/[0.07]'
+                                : idx % 2 === 0
+                                  ? ''
+                                  : 'bg-neutral-800/15'
                             }`}
                           >
                             <EmployeeCell emp={emp} summary={summary} style={style} />
@@ -629,6 +644,7 @@ export default function SchedulePage() {
                                 </div>
                               </>
                             )}
+                            <ContractCell employee={emp} expiration={expiration} />
                           </div>
                         )
                       })}
@@ -647,6 +663,43 @@ export default function SchedulePage() {
           </p>
         )}
       </div>
+    </div>
+  )
+}
+
+function ContractCell({
+  employee,
+  expiration,
+}: {
+  employee: ScheduleEmployee
+  expiration: ContractExpiration
+}) {
+  const urgencyStyles: Record<ContractExpiration['urgency'], string> = {
+    MISSING: 'border-neutral-700 text-neutral-400 bg-neutral-800/40',
+    FUTURE: 'border-secondary-500/40 text-secondary-200 bg-secondary-500/10',
+    NORMAL: 'border-primary-500/30 text-primary-300 bg-primary-500/10',
+    WARNING: 'border-warning-500/30 text-[#fcd34d] bg-warning-500/10',
+    URGENT: 'border-warning-500/60 text-[#fcd34d] bg-warning-500/15',
+    CRITICAL: 'border-error-500/70 text-[#fca5a5] bg-error-500/20',
+    EXPIRED: 'border-error-500/70 text-[#fca5a5] bg-error-500/20',
+  }
+
+  return (
+    <div className="w-[12rem] flex-shrink-0 border-l border-neutral-800/50 px-3 py-2 flex flex-col justify-center gap-1">
+      <span className="text-xs text-neutral-300">
+        Início: <time dateTime={employee.contractStartDate?.slice(0, 10)}>{formatContractDate(employee.contractStartDate)}</time>
+      </span>
+      <span className="text-xs text-neutral-300">
+        Fim: <time dateTime={employee.contractEndDate?.slice(0, 10)}>{formatContractDate(employee.contractEndDate)}</time>
+      </span>
+      <span
+        className={[
+          'inline-flex w-fit max-w-full px-2 py-[0.125rem] rounded-full border text-[11px] font-medium',
+          urgencyStyles[expiration.urgency],
+        ].join(' ')}
+      >
+        {expiration.message}
+      </span>
     </div>
   )
 }
@@ -685,11 +738,6 @@ function EmployeeCell({
       <div className="min-w-0">
         <p className="text-sm font-medium text-white truncate" title={emp.name ?? emp.email}>
           {emp.name ?? 'Sem nome'}
-          {emp.isActive === false && (
-            <span className="ml-2 align-middle px-[0.375rem] py-[0.125rem] rounded border border-neutral-600 text-[10px] font-semibold uppercase tracking-wide text-neutral-300">
-              Inativo
-            </span>
-          )}
         </p>
         {/* Horário cadastrado pelo aluno, sempre visível */}
         <p className="flex items-center gap-1 text-xs text-neutral-300 font-mono truncate">
