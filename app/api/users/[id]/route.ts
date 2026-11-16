@@ -10,9 +10,7 @@ import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
-const contractDateSchema = z
-  .string()
-  .refine(isValidContractDate, 'Data inválida: informe o ano completo.')
+const contractDateSchema = z.string().refine(isValidContractDate, 'Ano inválido no contrato.')
 
 const updateUserSchema = z.object({
   name: z.string().min(2).optional(),
@@ -147,8 +145,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Datas contratuais exigem autoridade administrativa: o aluno não pode
     // alterar a própria vigência por chamada direta à API.
     const changingContract =
-      validatedData.contractStartDate !== undefined ||
-      validatedData.contractEndDate !== undefined
+      validatedData.contractStartDate !== undefined || validatedData.contractEndDate !== undefined
     if (changingContract && !['ADMIN', 'SUPERVISOR'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'Apenas administradores e supervisores podem alterar o contrato' },
