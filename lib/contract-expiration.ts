@@ -5,8 +5,11 @@
  * para o fuso do navegador: isso faria datas aparecerem no dia anterior.
  * O relógio da página usa getNowInFortaleza (dia local expresso em UTC).
  */
+import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
+
 export type ContractUrgency =
   | 'MISSING'
+  | 'INVALID'
   | 'FUTURE'
   | 'NORMAL'
   | 'WARNING'
@@ -40,7 +43,7 @@ export function formatContractDate(value: string | null | undefined): string {
   const date = new Date(dateMs)
   const day = String(date.getUTCDate()).padStart(2, '0')
   const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-  return day + '/' + month + '/' + date.getUTCFullYear()
+  return day + '/' + month + '/' + String(date.getUTCFullYear()).padStart(4, '0')
 }
 
 export function getContractExpiration(
@@ -48,6 +51,17 @@ export function getContractExpiration(
   endDate: string | null | undefined,
   fortalezaNow: Date
 ): ContractExpiration {
+  if (
+    (startDate && !isValidContractDate(toDateOnly(startDate))) ||
+    (endDate && !isValidContractDate(toDateOnly(endDate)))
+  ) {
+    return {
+      urgency: 'INVALID',
+      daysRemaining: null,
+      message: 'Corrigir data do contrato',
+    }
+  }
+
   const endMs = calendarDay(endDate)
   if (endMs === null) {
     return { urgency: 'MISSING', daysRemaining: null, message: 'Fim não informado' }
