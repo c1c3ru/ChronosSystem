@@ -23,6 +23,7 @@ import {
   LogIn,
   CalendarDays,
   Mail,
+  ClipboardList,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -389,7 +390,7 @@ export default function AdminPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
               <Link href="/admin/users/new" className="h-full flex">
                 <Card
                   variant="glass"
@@ -466,8 +467,7 @@ export default function AdminPage() {
                 </Card>
               </Link>
 
-              {/* Quadro de Horários — span 2 colunas no mobile para não ficar sozinho */}
-              <Link href="/admin/schedule" className="col-span-2 lg:col-span-1 h-full flex">
+              <Link href="/admin/schedule" className="h-full flex">
                 <Card
                   variant="glass"
                   className="group h-full w-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
@@ -481,6 +481,25 @@ export default function AdminPage() {
                     </h3>
                     <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
                       Visualizar turnos dos estagiários
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/admin/records" className="h-full flex">
+                <Card
+                  variant="glass"
+                  className="group h-full w-full min-h-[168px] sm:min-h-[192px] hover:scale-105 transition-all duration-200 cursor-pointer border border-transparent hover:border-success/50"
+                >
+                  <CardContent className="p-4 sm:p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div className="bg-[#14b8a6]/20 rounded-2xl w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-[#14b8a6]/30 transition-colors">
+                      <ClipboardList className="h-6 w-6 sm:h-8 sm:w-8 text-[#2dd4bf] group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">
+                      Registros de Ponto
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm hidden sm:block">
+                      Buscar entradas e saídas dos alunos
                     </p>
                   </CardContent>
                 </Card>
