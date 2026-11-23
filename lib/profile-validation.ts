@@ -7,6 +7,8 @@
  * saber o que fazer.
  */
 
+import { isValidContractDate } from '@/lib/contract-date'
+
 export const PROFILE_FIELD_LABELS: Record<string, string> = {
   phone: 'Telefone',
   address: 'Endereço',
@@ -65,6 +67,7 @@ export const PROFILE_MESSAGES = {
   dateInvalid: 'Data inválida. Use o formato dia/mês/ano, por exemplo 01/02/2026.',
   contractStartDateRequired: 'Informe a data de início do contrato (está no Termo de Compromisso).',
   contractEndDateRequired: 'Informe a data de término do contrato (está no Termo de Compromisso).',
+  contractYearInvalid: 'Data inválida. Digite o ano completo com quatro dígitos (ex.: 2027).',
   contractEndBeforeStart:
     'A data de fim do contrato precisa ser depois da data de início. Confira as duas datas.',
   shiftRequired: 'Selecione o turno em que você faz o estágio.',
@@ -187,20 +190,20 @@ export function validateProfileForm(
 
     if (isBlank(values.startDate)) {
       errors.startDate = PROFILE_MESSAGES.startDateRequired
-    } else if (!isValidIsoDate(values.startDate!)) {
-      errors.startDate = PROFILE_MESSAGES.dateInvalid
+    } else if (!isValidContractDate(values.startDate!)) {
+      errors.startDate = PROFILE_MESSAGES.contractYearInvalid
     }
 
     if (isBlank(values.contractStartDate)) {
       errors.contractStartDate = PROFILE_MESSAGES.contractStartDateRequired
-    } else if (!isValidIsoDate(values.contractStartDate!)) {
-      errors.contractStartDate = PROFILE_MESSAGES.dateInvalid
+    } else if (!isValidContractDate(values.contractStartDate!)) {
+      errors.contractStartDate = PROFILE_MESSAGES.contractYearInvalid
     }
 
     if (isBlank(values.contractEndDate)) {
       errors.contractEndDate = PROFILE_MESSAGES.contractEndDateRequired
-    } else if (!isValidIsoDate(values.contractEndDate!)) {
-      errors.contractEndDate = PROFILE_MESSAGES.dateInvalid
+    } else if (!isValidContractDate(values.contractEndDate!)) {
+      errors.contractEndDate = PROFILE_MESSAGES.contractYearInvalid
     } else if (
       !errors.contractStartDate &&
       values.contractStartDate &&

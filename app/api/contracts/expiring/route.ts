@@ -3,12 +3,13 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { isValidContractDate } from '@/lib/contract-date'
 
 const renewContractSchema = z.object({
   userId: z.string().min(1, 'userId e newEndDate são obrigatórios'),
   newEndDate: z
     .string()
-    .refine((value) => !Number.isNaN(new Date(value).getTime()), 'Data inválida'),
+    .refine(isValidContractDate, 'Data inválida: use o ano completo (ex.: 2027-04-09).'),
   notes: z.string().optional(),
 })
 
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        contractEndDate: new Date(newEndDate),
+        contractEndDate: new Date(newEndDate + 'T00:00:00.000Z'),
         updatedAt: new Date(),
       },
       select: {
