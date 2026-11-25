@@ -18,6 +18,8 @@ interface ShiftConfigFormProps {
   contractType?: string
   onChange: (field: string, value: string | number | boolean) => void
   errors?: Record<string, string>
+  /** Esconde a opção de horas flexíveis (o aluno não pode alterá-la em "Meu perfil"). */
+  showFlexibleHours?: boolean
 }
 
 export function ShiftConfigForm({
@@ -29,6 +31,7 @@ export function ShiftConfigForm({
   contractType,
   onChange,
   errors = {},
+  showFlexibleHours = true,
 }: ShiftConfigFormProps) {
   // Obter carga horária do tipo de contrato
   const contractConfig = contractType ? getContractTypeConfig(contractType) : null
@@ -153,21 +156,25 @@ export function ShiftConfigForm({
       </div>
 
       {/* Permitir Horas Flexíveis */}
-      <div className="flex items-center space-x-3">
-        <input
-          type="checkbox"
-          id="allowFlexibleHours"
-          checked={allowFlexibleHours}
-          onChange={(e) => onChange('allowFlexibleHours', e.target.checked)}
-          className="w-4 h-4 rounded border-neutral-600 bg-neutral-700 text-primary focus:ring-2 focus:ring-primary"
-        />
-        <label htmlFor="allowFlexibleHours" className="text-sm text-white">
-          Permitir horas flexíveis?
-        </label>
-      </div>
-      <p className="text-xs text-neutral-400">
-        Se ativado, o sistema será mais flexível com validações de horário de entrada/saída.
-      </p>
+      {showFlexibleHours && (
+        <>
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="allowFlexibleHours"
+              checked={allowFlexibleHours}
+              onChange={(e) => onChange('allowFlexibleHours', e.target.checked)}
+              className="w-4 h-4 rounded border-neutral-600 bg-neutral-700 text-primary focus:ring-2 focus:ring-primary"
+            />
+            <label htmlFor="allowFlexibleHours" className="text-sm text-white">
+              Permitir horas flexíveis?
+            </label>
+          </div>
+          <p className="text-xs text-neutral-400">
+            Se ativado, o sistema será mais flexível com validações de horário de entrada/saída.
+          </p>
+        </>
+      )}
 
       {/* Informações de Validação */}
       <div className="p-4 bg-info-500/10 border border-info-500/30 rounded-lg">

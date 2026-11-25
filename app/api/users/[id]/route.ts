@@ -7,6 +7,12 @@ import { z } from 'zod'
 import { UserCache } from '@/lib/cache'
 import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
 import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
+import {
+  PROFILE_MESSAGES,
+  SELF_EDITABLE_PROFILE_FIELDS,
+  TIME_PATTERN,
+  validateShiftTimes,
+} from '@/lib/profile-validation'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -24,6 +30,22 @@ const updateUserSchema = z.object({
   isActive: z.boolean().optional(),
   contractStartDate: contractDateSchema.optional(),
   contractEndDate: contractDateSchema.optional(),
+  emergencyContact: z.string().trim().min(1, PROFILE_MESSAGES.emergencyContactRequired).optional(),
+  emergencyPhone: z.string().trim().min(1, PROFILE_MESSAGES.emergencyPhoneRequired).optional(),
+  shift: z
+    .enum(['MORNING', 'AFTERNOON', 'NIGHT', 'HYBRID'], {
+      errorMap: () => ({ message: PROFILE_MESSAGES.shiftRequired }),
+    })
+    .optional(),
+  shiftStartTime: z.string().regex(TIME_PATTERN, PROFILE_MESSAGES.shiftStartRequired).optional(),
+  shiftEndTime: z.string().regex(TIME_PATTERN, PROFILE_MESSAGES.shiftEndRequired).optional(),
+  workingDaysPerWeek: z
+    .number()
+    .int()
+    .min(1, PROFILE_MESSAGES.workingDaysRange)
+    .max(7, PROFILE_MESSAGES.workingDaysRange)
+    .optional(),
+  allowFlexibleHours: z.boolean().optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
@@ -62,6 +84,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         contractEndDate: true,
         weeklyHours: true,
         dailyHours: true,
+        shift: true,
+        shiftStartTime: true,
+        shiftEndTime: true,
+        workingDaysPerWeek: true,
+        allowFlexibleHours: true,
         profileComplete: true,
         isActive: true,
         createdAt: true,
@@ -85,6 +112,46 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
+/**
+ * Texto do log de auditoria. Mudança de horário registra o antes e o depois,
+ * para a coordenação saber quando e por quem o turno foi alterado.
+ */
+function describeUpdate(
+  email: string,
+  before: {
+    shift: string
+    shiftStartTime: string
+    shiftEndTime: string
+    workingDaysPerWeek: number
+  },
+  changes: z.infer<typeof updateUserSchema>,
+  selfEdit: boolean
+): string {
+  const parts = [
+    selfEdit ? `Perfil atualizado pelo próprio usuário: ${email}` : `Usuário atualizado: ${email}`,
+  ]
+  const fields = Object.keys(changes).filter((key) => key !== 'password')
+  if (fields.length > 0) parts.push(`campos: ${fields.join(', ')}`)
+  if (
+    changes.shift !== undefined ||
+    changes.shiftStartTime !== undefined ||
+    changes.shiftEndTime !== undefined ||
+    changes.workingDaysPerWeek !== undefined
+  ) {
+    const fmt = (shift: string, start: string, end: string, days: number) =>
+      `${shift} ${start}–${end}, ${days} dia(s)/semana`
+    parts.push(
+      `horário: ${fmt(before.shift, before.shiftStartTime, before.shiftEndTime, before.workingDaysPerWeek)} → ${fmt(
+        changes.shift ?? before.shift,
+        changes.shiftStartTime ?? before.shiftStartTime,
+        changes.shiftEndTime ?? before.shiftEndTime,
+        changes.workingDaysPerWeek ?? before.workingDaysPerWeek
+      )}`
+    )
+  }
+  return parts.join(' | ')
+}
+
 // PUT /api/users/[id] - Atualizar usuário
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -103,6 +170,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const body = await request.json()
     const validatedData = updateUserSchema.parse(body)
+
+    // O aluno editando o próprio perfil ("Meu perfil") só altera contato e
+    // horário. Nome, e-mail, senha, setor, matrícula, contrato, nível de
+    // acesso e status continuam com a administração.
+    const isSelfEmployeeEdit = session.user.id === id && session.user.role === 'EMPLOYEE'
+    if (isSelfEmployeeEdit) {
+      const allowed: readonly string[] = SELF_EDITABLE_PROFILE_FIELDS
+      const blocked = Object.keys(validatedData).filter((key) => !allowed.includes(key))
+      if (blocked.length > 0) {
+        return NextResponse.json(
+          {
+            error:
+              'Você pode alterar apenas telefone, endereço, contato de emergência e horário. Para os demais dados, procure a coordenação.',
+            blockedFields: blocked,
+          },
+          { status: 403 }
+        )
+      }
+    }
 
     // Verificar se usuário existe
     const existingUser = await prisma.user.findUnique({
@@ -166,6 +252,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    // Horário do turno: valida o par resultante (o que veio + o que já existe)
+    const changingShiftTimes =
+      validatedData.shiftStartTime !== undefined || validatedData.shiftEndTime !== undefined
+    if (changingShiftTimes) {
+      const start = validatedData.shiftStartTime ?? existingUser.shiftStartTime
+      const end = validatedData.shiftEndTime ?? existingUser.shiftEndTime
+      const fieldErrors = validateShiftTimes(start, end)
+      if (Object.keys(fieldErrors).length > 0) {
+        const message = Object.values(fieldErrors)[0]
+        return NextResponse.json({ error: message, message, fieldErrors }, { status: 400 })
+      }
+    }
+
     // Preparar dados para atualização
     const updateData: Record<string, unknown> = { ...validatedData } as Record<string, unknown>
 
@@ -199,7 +298,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         userId: session.user.id,
         action: 'UPDATE_USER',
         resource: 'USER',
-        details: `Usuário atualizado: ${user.email}`,
+        details: describeUpdate(user.email, existingUser, validatedData, isSelfEmployeeEdit),
       },
     })
 
@@ -210,10 +309,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json(user)
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
+      const fieldErrors: Record<string, string> = {}
+      for (const issue of error.errors) {
+        const field = String(issue.path[0] ?? 'general')
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message
+      }
       return NextResponse.json(
         {
           error: 'Dados inválidos',
           details: error.errors,
+          fieldErrors,
         },
         { status: 400 }
       )
