@@ -78,4 +78,28 @@ describe('POST /api/auth/complete-profile - horário do turno', () => {
     expect(body.fieldErrors.shiftEndTime).toBeDefined()
     expect(mockedUpdate).not.toHaveBeenCalled()
   })
+
+  it('grava o horário por dia quando enviado', async () => {
+    const response = await post({
+      ...PAYLOAD,
+      weeklySchedule: [
+        { day: 1, start: '08:00', end: '12:00' },
+        { day: 3, start: '13:00', end: '17:00' },
+      ],
+    })
+    expect(response.status).toBe(200)
+    expect(mockedUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          shiftStartTime: '08:00',
+          shiftEndTime: '12:00',
+          workingDaysPerWeek: 2,
+          weeklySchedule: [
+            { day: 1, start: '08:00', end: '12:00' },
+            { day: 3, start: '13:00', end: '17:00' },
+          ],
+        }),
+      })
+    )
+  })
 })

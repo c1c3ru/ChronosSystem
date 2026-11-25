@@ -124,21 +124,14 @@ describe('validateSelfProfileForm ("Meu perfil")', () => {
     address: 'Rua Nova, 45, Centro, Maracanaú',
     emergencyContact: 'Mãe',
     emergencyPhone: '(85) 97777-6666',
-    shiftStartTime: '14:00',
-    shiftEndTime: '18:00',
-    workingDaysPerWeek: 3,
   }
 
-  it('aceita um perfil válido', () => {
+  it('aceita contatos válidos', () => {
     expect(validateSelfProfileForm(valid)).toEqual({})
   })
 
-  it('aponta fim antes do início e dias fora de 1 a 7', () => {
-    const errors = validateSelfProfileForm({
-      ...valid,
-      shiftEndTime: '13:00',
-      workingDaysPerWeek: 8,
-    })
-    expect(Object.keys(errors).sort()).toEqual(['shiftEndTime', 'workingDaysPerWeek'])
+  it('aponta telefone incompleto e contato de emergência vazio', () => {
+    const errors = validateSelfProfileForm({ ...valid, phone: '(85) 9888', emergencyContact: ' ' })
+    expect(Object.keys(errors).sort()).toEqual(['emergencyContact', 'phone'])
   })
 })

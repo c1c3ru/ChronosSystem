@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import * as bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { UserCache } from '@/lib/cache'
 import { BCRYPT_SALT_ROUNDS, MIN_PASSWORD_LENGTH } from '@/lib/password-policy'
 import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
@@ -13,6 +14,14 @@ import {
   TIME_PATTERN,
   validateShiftTimes,
 } from '@/lib/profile-validation'
+import {
+  describeSchedule,
+  resolveWeeklySchedule,
+  sortSchedule,
+  summarizeSchedule,
+  validateWeeklySchedule,
+  type ScheduleSource,
+} from '@/lib/weekly-schedule'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -46,6 +55,13 @@ const updateUserSchema = z.object({
     .max(7, PROFILE_MESSAGES.workingDaysRange)
     .optional(),
   allowFlexibleHours: z.boolean().optional(),
+  // Dias trabalhados e horário de cada dia (lib/weekly-schedule.ts); null
+  // volta ao horário único antigo.
+  weeklySchedule: z
+    .array(z.object({ day: z.number().int().min(0).max(6), start: z.string(), end: z.string() }))
+    .max(7)
+    .nullable()
+    .optional(),
 })
 
 // GET /api/users/[id] - Buscar usuário por ID
@@ -88,6 +104,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         shiftStartTime: true,
         shiftEndTime: true,
         workingDaysPerWeek: true,
+        weeklySchedule: true,
         allowFlexibleHours: true,
         profileComplete: true,
         isActive: true,
@@ -118,12 +135,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  */
 function describeUpdate(
   email: string,
-  before: {
-    shift: string
-    shiftStartTime: string
-    shiftEndTime: string
-    workingDaysPerWeek: number
-  },
+  before: ScheduleSource & { shift: string },
+  after: ScheduleSource & { shift: string },
   changes: z.infer<typeof updateUserSchema>,
   selfEdit: boolean
 ): string {
@@ -132,22 +145,17 @@ function describeUpdate(
   ]
   const fields = Object.keys(changes).filter((key) => key !== 'password')
   if (fields.length > 0) parts.push(`campos: ${fields.join(', ')}`)
-  if (
-    changes.shift !== undefined ||
-    changes.shiftStartTime !== undefined ||
-    changes.shiftEndTime !== undefined ||
-    changes.workingDaysPerWeek !== undefined
-  ) {
-    const fmt = (shift: string, start: string, end: string, days: number) =>
-      `${shift} ${start}–${end}, ${days} dia(s)/semana`
-    parts.push(
-      `horário: ${fmt(before.shift, before.shiftStartTime, before.shiftEndTime, before.workingDaysPerWeek)} → ${fmt(
-        changes.shift ?? before.shift,
-        changes.shiftStartTime ?? before.shiftStartTime,
-        changes.shiftEndTime ?? before.shiftEndTime,
-        changes.workingDaysPerWeek ?? before.workingDaysPerWeek
-      )}`
-    )
+  const scheduleFields = [
+    'shift',
+    'shiftStartTime',
+    'shiftEndTime',
+    'workingDaysPerWeek',
+    'weeklySchedule',
+  ]
+  if (fields.some((f) => scheduleFields.includes(f))) {
+    const fmt = (src: ScheduleSource & { shift: string }) =>
+      `${src.shift} ${describeSchedule(resolveWeeklySchedule(src))}`
+    parts.push(`horário: ${fmt(before)} → ${fmt(after)}`)
   }
   return parts.join(' | ')
 }
@@ -265,8 +273,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    // Horário semanal: valida e grava junto os campos legados derivados
+    // (início/fim do primeiro dia e quantidade de dias).
+    let scheduleUpdate: Record<string, unknown> = {}
+    if (validatedData.weeklySchedule) {
+      const fieldErrors = validateWeeklySchedule(validatedData.weeklySchedule)
+      if (Object.keys(fieldErrors).length > 0) {
+        const message = Object.values(fieldErrors)[0]
+        return NextResponse.json({ error: message, message, fieldErrors }, { status: 400 })
+      }
+      const schedule = sortSchedule(validatedData.weeklySchedule)
+      scheduleUpdate = {
+        weeklySchedule: schedule as unknown as Prisma.InputJsonValue,
+        ...summarizeSchedule(schedule),
+      }
+    } else if (
+      validatedData.weeklySchedule === null ||
+      changingShiftTimes ||
+      validatedData.workingDaysPerWeek !== undefined
+    ) {
+      // Horário único (modo antigo): descarta a lista por dia para não ficar
+      // desatualizada em relação aos campos legados.
+      scheduleUpdate = { weeklySchedule: Prisma.DbNull }
+    }
+
     // Preparar dados para atualização
-    const updateData: Record<string, unknown> = { ...validatedData } as Record<string, unknown>
+    const updateData: Record<string, unknown> = {
+      ...validatedData,
+      ...scheduleUpdate,
+    } as Record<string, unknown>
 
     if (validatedData.contractStartDate) {
       updateData.contractStartDate = new Date(validatedData.contractStartDate + 'T00:00:00.000Z')
@@ -298,7 +333,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         userId: session.user.id,
         action: 'UPDATE_USER',
         resource: 'USER',
-        details: describeUpdate(user.email, existingUser, validatedData, isSelfEmployeeEdit),
+        details: describeUpdate(
+          user.email,
+          existingUser,
+          { ...existingUser, ...(updateData as Partial<typeof existingUser>) },
+          validatedData,
+          isSelfEmployeeEdit
+        ),
       },
     })
 

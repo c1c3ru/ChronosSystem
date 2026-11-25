@@ -66,6 +66,8 @@ model User {
   shiftStartTime          String                   @default("08:00")
   shiftEndTime            String                   @default("12:00")
   workingDaysPerWeek      Int                      @default(5)
+  /// Dias e horários por dia (lib/weekly-schedule.ts). Null = cadastro antigo.
+  weeklySchedule          Json?
   allowFlexibleHours      Boolean                  @default(false)
   isActive                Boolean                  @default(true)
   createdAt               DateTime                 @default(now())

@@ -2,6 +2,8 @@ import { prisma } from './prisma'
 import { emailService } from './email'
 import { getNowInFortaleza, startOfDayInFortaleza } from './timezone'
 import { sendPushToUser } from './push'
+import { weekdayIndex } from './schedule-status'
+import { scheduleForDay } from './weekly-schedule'
 import {
   runBatchSequentially,
   type BatchTimeOptions,
@@ -17,6 +19,8 @@ interface UserWithAttendance {
   email: string
   shiftStartTime: string
   shiftEndTime: string
+  workingDaysPerWeek?: number
+  weeklySchedule?: unknown
   attendanceRecords: Array<{ type: string; timestamp: Date }>
   attendanceNotifications: Array<{ type: string }>
 }
@@ -69,6 +73,8 @@ export async function checkAndNotifyAttendance(
       email: true,
       shiftStartTime: true,
       shiftEndTime: true,
+      workingDaysPerWeek: true,
+      weeklySchedule: true,
       attendanceRecords: {
         where: { timestamp: { gte: todayStart } },
         orderBy: { timestamp: 'desc' },
@@ -83,7 +89,25 @@ export async function checkAndNotifyAttendance(
 
   const tasks: NotificationTask[] = []
 
-  for (const intern of interns as UserWithAttendance[]) {
+  const todayIdx = weekdayIndex(now)
+
+  for (const row of interns as UserWithAttendance[]) {
+    // Horário de hoje (pode variar por dia da semana); sem estágio hoje, sem aviso.
+    const today = scheduleForDay(
+      {
+        shiftStartTime: row.shiftStartTime,
+        shiftEndTime: row.shiftEndTime,
+        workingDaysPerWeek: row.workingDaysPerWeek ?? 5,
+        weeklySchedule: row.weeklySchedule,
+      },
+      todayIdx
+    )
+    if (!today) continue
+    const intern: UserWithAttendance = {
+      ...row,
+      shiftStartTime: today.start,
+      shiftEndTime: today.end,
+    }
     const { shiftStartTime, shiftEndTime, attendanceRecords, attendanceNotifications } = intern
 
     if (!shiftStartTime || !shiftEndTime) continue

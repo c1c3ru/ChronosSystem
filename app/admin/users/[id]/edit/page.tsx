@@ -21,16 +21,15 @@ import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
 import { ShiftConfigForm } from '@/components/ShiftConfigForm'
-import { validateShiftTimes } from '@/lib/profile-validation'
+import {
+  resolveWeeklySchedule,
+  validateWeeklySchedule,
+  type WeeklySchedule,
+} from '@/lib/weekly-schedule'
 
 type Shift = 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'
-const SHIFT_FIELDS = [
-  'shift',
-  'shiftStartTime',
-  'shiftEndTime',
-  'workingDaysPerWeek',
-  'allowFlexibleHours',
-] as const
+const SHIFT_FIELDS = ['shift', 'weeklySchedule', 'allowFlexibleHours'] as const
+const sameValue = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
 interface UserData {
   id: string
@@ -48,6 +47,7 @@ interface UserData {
   shiftStartTime?: string
   shiftEndTime?: string
   workingDaysPerWeek?: number
+  weeklySchedule?: WeeklySchedule
   allowFlexibleHours?: boolean
   isActive: boolean
 }
@@ -64,9 +64,7 @@ interface UpdateData {
   contractStartDate?: string
   contractEndDate?: string
   shift?: Shift
-  shiftStartTime?: string
-  shiftEndTime?: string
-  workingDaysPerWeek?: number
+  weeklySchedule?: WeeklySchedule
   allowFlexibleHours?: boolean
   isActive?: boolean
 }
@@ -107,7 +105,14 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
 
         if (response.ok) {
           const data = await response.json()
-          setUserData(data)
+          // Cadastros antigos não têm horário por dia: monta a partir do horário único.
+          const schedule = resolveWeeklySchedule({
+            shiftStartTime: data.shiftStartTime || '08:00',
+            shiftEndTime: data.shiftEndTime || '12:00',
+            workingDaysPerWeek: data.workingDaysPerWeek || 5,
+            weeklySchedule: data.weeklySchedule,
+          })
+          setUserData({ ...data, weeklySchedule: schedule })
           setUpdateData({
             name: data.name,
             email: data.email,
@@ -119,9 +124,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             contractStartDate: toDateOnly(data.contractStartDate),
             contractEndDate: toDateOnly(data.contractEndDate),
             shift: data.shift,
-            shiftStartTime: data.shiftStartTime,
-            shiftEndTime: data.shiftEndTime,
-            workingDaysPerWeek: data.workingDaysPerWeek,
+            weeklySchedule: schedule,
             allowFlexibleHours: data.allowFlexibleHours,
             isActive: data.isActive ?? true,
           })
@@ -175,13 +178,10 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     }
 
     if (
-      updateData.shiftStartTime !== userData?.shiftStartTime ||
-      updateData.shiftEndTime !== userData?.shiftEndTime
+      updateData.weeklySchedule &&
+      !sameValue(updateData.weeklySchedule, userData?.weeklySchedule)
     ) {
-      Object.assign(
-        newErrors,
-        validateShiftTimes(updateData.shiftStartTime, updateData.shiftEndTime)
-      )
+      Object.assign(newErrors, validateWeeklySchedule(updateData.weeklySchedule))
     }
 
     setErrors(newErrors)
@@ -214,7 +214,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
       if (updateData.contractEndDate !== toDateOnly(userData?.contractEndDate))
         changedData.contractEndDate = updateData.contractEndDate
       for (const field of SHIFT_FIELDS) {
-        if (updateData[field] !== userData?.[field]) {
+        if (!sameValue(updateData[field], userData?.[field])) {
           ;(changedData as Record<string, unknown>)[field] = updateData[field]
         }
       }
@@ -644,9 +644,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                   {updateData.role === 'EMPLOYEE' && updateData.shift && (
                     <ShiftConfigForm
                       shift={updateData.shift}
-                      shiftStartTime={updateData.shiftStartTime || ''}
-                      shiftEndTime={updateData.shiftEndTime || ''}
-                      workingDaysPerWeek={updateData.workingDaysPerWeek || 5}
+                      weeklySchedule={updateData.weeklySchedule || []}
                       allowFlexibleHours={!!updateData.allowFlexibleHours}
                       contractType={userData.contractType}
                       errors={errors}
