@@ -5,6 +5,7 @@ import {
   isAdminApiPath,
   isAdminOnlyPath,
   isEmployeeOnlyPath,
+  isOwnUserApiPath,
   isPublicPath,
   isValidRole,
 } from '@/lib/auth-policy'
@@ -124,7 +125,8 @@ export default withAuth(
     }
 
     // APIs ADMINISTRATIVAS
-    if (isAdminApiPath(pathname)) {
+    // Exceção: o próprio usuário em /api/users/<seu id> ("Meu perfil").
+    if (isAdminApiPath(pathname) && !isOwnUserApiPath(pathname, token.sub)) {
       if (!['ADMIN', 'SUPERVISOR'].includes(role)) {
         return NextResponse.json(
           { error: 'Não autorizado', reason: 'insufficient_permissions' },

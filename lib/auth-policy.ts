@@ -54,3 +54,12 @@ export function isEmployeeOnlyPath(pathname: string) {
 export function isAdminApiPath(pathname: string) {
   return (ADMIN_API_PREFIXES as readonly string[]).some((prefix) => pathname.startsWith(prefix))
 }
+
+/**
+ * `/api/users/<id do próprio usuário>`: a tela "Meu perfil" do aluno lê e
+ * salva os próprios dados por aqui. O restante de `/api/users` continua
+ * restrito à administração; a rota ainda confere dono e campos permitidos.
+ */
+export function isOwnUserApiPath(pathname: string, userId: unknown) {
+  return typeof userId === 'string' && userId.length > 0 && pathname === `/api/users/${userId}`
+}
