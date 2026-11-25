@@ -87,7 +87,7 @@ export function ShiftConfigForm({
           value={shiftStartTime}
           onChange={(e) => onChange('shiftStartTime', e.target.value)}
           aria-invalid={!!errors.shiftStartTime}
-          className={`w-full px-4 py-2 bg-neutral-700 border ${errors.shiftStartTime ? 'border-error' : 'border-neutral-600'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary`}
+          className={`w-full px-4 py-2 bg-neutral-700 border ${errors.shiftStartTime ? 'border-error focus:ring-error' : 'border-neutral-600 focus:ring-primary'} rounded-lg text-white focus:outline-none focus:ring-2`}
         />
         {errors.shiftStartTime && (
           <p className="mt-1 text-xs text-error flex items-center space-x-1">
@@ -108,7 +108,7 @@ export function ShiftConfigForm({
           value={shiftEndTime}
           onChange={(e) => onChange('shiftEndTime', e.target.value)}
           aria-invalid={!!errors.shiftEndTime}
-          className={`w-full px-4 py-2 bg-neutral-700 border ${errors.shiftEndTime ? 'border-error' : 'border-neutral-600'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary`}
+          className={`w-full px-4 py-2 bg-neutral-700 border ${errors.shiftEndTime ? 'border-error focus:ring-error' : 'border-neutral-600 focus:ring-primary'} rounded-lg text-white focus:outline-none focus:ring-2`}
         />
         {errors.shiftEndTime && (
           <p className="mt-1 text-xs text-error flex items-center space-x-1">

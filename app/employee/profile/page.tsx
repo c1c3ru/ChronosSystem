@@ -1,9 +1,20 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSession, signIn } from 'next-auth/react'
-import { ArrowLeft, Save, User, Phone, MapPin, HeartPulse, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
+import {
+  ArrowLeft,
+  Save,
+  User,
+  Phone,
+  MapPin,
+  HeartPulse,
+  CheckCircle2,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { ShiftConfigForm } from '@/components/ShiftConfigForm'
@@ -30,6 +41,34 @@ interface ProfileInfo {
   contractType?: string
 }
 
+/** Id do campo na tela, para rolar e focar no primeiro erro (útil no celular). */
+const FIELD_DOM_IDS: Record<string, string> = {
+  phone: 'profile-phone',
+  address: 'profile-address',
+  emergencyContact: 'profile-emergency-contact',
+  emergencyPhone: 'profile-emergency-phone',
+  shift: 'shift-type',
+  shiftStartTime: 'shift-start-time',
+  shiftEndTime: 'shift-end-time',
+  workingDaysPerWeek: 'working-days',
+}
+
+function focusFirstError(errors: Record<string, string>) {
+  const first = Object.keys(FIELD_DOM_IDS).find((field) => errors[field])
+  const el = first ? document.getElementById(FIELD_DOM_IDS[first]) : null
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.focus({ preventScroll: true })
+}
+
+function vibrate(pattern: number | number[]) {
+  try {
+    navigator.vibrate?.(pattern)
+  } catch {
+    // sem suporte a vibração: ignora
+  }
+}
+
 const formatPhone = (value: string) => {
   const numbers = value.replace(/\D/g, '').slice(0, 11)
   if (numbers.length <= 10) {
@@ -47,6 +86,31 @@ export default function EmployeeProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (savedTimer.current) clearTimeout(savedTimer.current)
+    },
+    []
+  )
+
+  const isDirty =
+    !!form && !!initial && SELF_EDITABLE_PROFILE_FIELDS.some((key) => form[key] !== initial[key])
+
+  const markSaved = () => {
+    setSaved(true)
+    if (savedTimer.current) clearTimeout(savedTimer.current)
+    savedTimer.current = setTimeout(() => setSaved(false), 4000)
+  }
+
+  const showErrors = (next: Record<string, string>, summary: string) => {
+    setErrors(next)
+    vibrate([40, 60, 40])
+    toast.error('Não foi possível salvar', { description: summary })
+    // Espera o React pintar as mensagens antes de rolar até o campo.
+    requestAnimationFrame(() => focusFirstError(next))
+  }
 
   useEffect(() => {
     if (!session?.user?.id) return
@@ -107,9 +171,19 @@ export default function EmployeeProfilePage() {
     e.preventDefault()
     if (!form || !initial || !session?.user?.id) return
 
+    toast.dismiss() // não empilhar avisos de tentativas anteriores
     const validation = validateSelfProfileForm(form)
-    setErrors(validation)
-    if (Object.keys(validation).length > 0) return
+    const errorCount = Object.keys(validation).length
+    if (errorCount > 0) {
+      showErrors(
+        validation,
+        errorCount === 1
+          ? Object.values(validation)[0]
+          : `Corrija os ${errorCount} campos marcados em vermelho.`
+      )
+      return
+    }
+    setErrors({})
 
     const changed: Partial<ProfileForm> = {}
     for (const key of SELF_EDITABLE_PROFILE_FIELDS) {
@@ -119,10 +193,11 @@ export default function EmployeeProfilePage() {
       }
     }
     if (Object.keys(changed).length === 0) {
-      setSaved(true)
+      toast.info('Nada para salvar', { description: 'Você não alterou nenhum campo.' })
       return
     }
 
+    const toastId = toast.loading('Salvando seu perfil...')
     try {
       setSaving(true)
       const response = await fetch(`/api/users/${session.user.id}`, {
@@ -132,16 +207,27 @@ export default function EmployeeProfilePage() {
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        setErrors({
-          ...(data.fieldErrors || {}),
-          general: data.error || 'Não foi possível salvar. Tente novamente.',
-        })
+        toast.dismiss(toastId)
+        const message = data.error || 'Não foi possível salvar. Tente novamente.'
+        showErrors({ ...(data.fieldErrors || {}), general: message }, message)
         return
       }
       setInitial(form)
-      setSaved(true)
+      markSaved()
+      vibrate(30)
+      toast.success('Perfil salvo!', {
+        id: toastId,
+        description:
+          changed.shiftStartTime || changed.shiftEndTime || changed.shift
+            ? `Novo horário: ${form.shiftStartTime} às ${form.shiftEndTime}. Já vale para os próximos registros e avisos.`
+            : 'Suas informações foram atualizadas.',
+      })
     } catch {
-      setErrors({ general: 'Erro de conexão. Verifique a internet e tente novamente.' })
+      toast.dismiss(toastId)
+      showErrors(
+        { general: 'Erro de conexão. Verifique a internet e tente novamente.' },
+        'Sem conexão com o servidor. Verifique a internet e tente novamente.'
+      )
     } finally {
       setSaving(false)
     }
@@ -165,7 +251,7 @@ export default function EmployeeProfilePage() {
 
   const isEmployee = session.user.role === 'EMPLOYEE'
   const inputClass = (field: string) =>
-    `w-full px-4 py-2 bg-neutral-700 border ${errors[field] ? 'border-error' : 'border-neutral-600'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary`
+    `w-full px-4 py-2 bg-neutral-700 border ${errors[field] ? 'border-error focus:ring-error' : 'border-neutral-600 focus:ring-primary'} rounded-lg text-white focus:outline-none focus:ring-2`
   const fieldError = (field: string) =>
     errors[field] ? (
       <p role="alert" className="mt-1 text-xs text-error">
@@ -174,7 +260,7 @@ export default function EmployeeProfilePage() {
     ) : null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-4 pb-32 sm:p-6 sm:pb-32">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
@@ -232,15 +318,6 @@ export default function EmployeeProfilePage() {
                 className="p-4 bg-error/20 border border-error/50 rounded-lg text-error text-sm"
               >
                 {errors.general}
-              </div>
-            )}
-            {saved && (
-              <div
-                role="status"
-                className="p-4 bg-success/10 border border-success/40 rounded-lg text-success text-sm flex items-center gap-2"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Perfil salvo. O novo horário já vale para os próximos registros e avisos.
               </div>
             )}
 
@@ -337,11 +414,80 @@ export default function EmployeeProfilePage() {
             />
             {fieldError('workingDaysPerWeek')}
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={saving} className="min-w-[150px]">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Salvando...' : 'Salvar alterações'}
-              </Button>
+            {/* Barra de salvar fixa no rodapé: no celular o botão fica sempre ao
+                alcance do polegar e o status (não salvo / salvando / salvo)
+                aparece sem precisar rolar até o topo. */}
+            <div
+              className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-700 bg-neutral-900/95 backdrop-blur px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+              data-testid="profile-save-bar"
+            >
+              <div className="max-w-3xl mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className={`text-sm flex items-center gap-2 ${
+                    saving
+                      ? 'text-neutral-300'
+                      : saved
+                        ? 'text-success'
+                        : Object.keys(errors).length > 0
+                          ? 'text-error'
+                          : isDirty
+                            ? 'text-warning'
+                            : 'text-neutral-400'
+                  }`}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : saved ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Tudo salvo
+                    </>
+                  ) : Object.keys(errors).length > 0 ? (
+                    <>
+                      <AlertCircle className="h-4 w-4" />
+                      Corrija os campos em vermelho
+                    </>
+                  ) : isDirty ? (
+                    <>
+                      <span className="inline-block h-2 w-2 rounded-full bg-warning" />
+                      Alterações não salvas
+                    </>
+                  ) : (
+                    'Nenhuma alteração'
+                  )}
+                </p>
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={saving || (!isDirty && !saved)}
+                  aria-busy={saving}
+                  className={`w-full sm:w-auto sm:min-w-[180px] h-12 text-base transition-colors ${
+                    saved ? 'bg-success hover:bg-success text-white' : ''
+                  }`}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : saved ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 mr-2" />
+                      Salvo!
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-5 w-5 mr-2" />
+                      Salvar alterações
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         )}
