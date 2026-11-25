@@ -1,4 +1,8 @@
-import { PROFILE_MESSAGES, validateProfileForm } from '@/lib/profile-validation'
+import {
+  PROFILE_MESSAGES,
+  validateProfileForm,
+  validateSelfProfileForm,
+} from '@/lib/profile-validation'
 
 const VALID_STUDENT = {
   phone: '(85) 99999-9999',
@@ -111,5 +115,30 @@ describe('validateProfileForm', () => {
         { isEmployee: false, today: '2026-11-09' }
       )
     ).toEqual({})
+  })
+})
+
+describe('validateSelfProfileForm ("Meu perfil")', () => {
+  const valid = {
+    phone: '(85) 98888-7777',
+    address: 'Rua Nova, 45, Centro, Maracanaú',
+    emergencyContact: 'Mãe',
+    emergencyPhone: '(85) 97777-6666',
+    shiftStartTime: '14:00',
+    shiftEndTime: '18:00',
+    workingDaysPerWeek: 3,
+  }
+
+  it('aceita um perfil válido', () => {
+    expect(validateSelfProfileForm(valid)).toEqual({})
+  })
+
+  it('aponta fim antes do início e dias fora de 1 a 7', () => {
+    const errors = validateSelfProfileForm({
+      ...valid,
+      shiftEndTime: '13:00',
+      workingDaysPerWeek: 8,
+    })
+    expect(Object.keys(errors).sort()).toEqual(['shiftEndTime', 'workingDaysPerWeek'])
   })
 })

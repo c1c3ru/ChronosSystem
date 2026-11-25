@@ -20,6 +20,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { isValidContractDate, toDateOnly } from '@/lib/contract-date'
+import { ShiftConfigForm } from '@/components/ShiftConfigForm'
+import { validateShiftTimes } from '@/lib/profile-validation'
+
+type Shift = 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'
+const SHIFT_FIELDS = [
+  'shift',
+  'shiftStartTime',
+  'shiftEndTime',
+  'workingDaysPerWeek',
+  'allowFlexibleHours',
+] as const
 
 interface UserData {
   id: string
@@ -32,6 +43,12 @@ interface UserData {
   registrationNumber?: string
   contractStartDate?: string | null
   contractEndDate?: string | null
+  contractType?: string
+  shift?: Shift
+  shiftStartTime?: string
+  shiftEndTime?: string
+  workingDaysPerWeek?: number
+  allowFlexibleHours?: boolean
   isActive: boolean
 }
 
@@ -46,6 +63,11 @@ interface UpdateData {
   registrationNumber?: string
   contractStartDate?: string
   contractEndDate?: string
+  shift?: Shift
+  shiftStartTime?: string
+  shiftEndTime?: string
+  workingDaysPerWeek?: number
+  allowFlexibleHours?: boolean
   isActive?: boolean
 }
 
@@ -96,6 +118,11 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             registrationNumber: data.registrationNumber || '',
             contractStartDate: toDateOnly(data.contractStartDate),
             contractEndDate: toDateOnly(data.contractEndDate),
+            shift: data.shift,
+            shiftStartTime: data.shiftStartTime,
+            shiftEndTime: data.shiftEndTime,
+            workingDaysPerWeek: data.workingDaysPerWeek,
+            allowFlexibleHours: data.allowFlexibleHours,
             isActive: data.isActive ?? true,
           })
         } else {
@@ -147,6 +174,16 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
       }
     }
 
+    if (
+      updateData.shiftStartTime !== userData?.shiftStartTime ||
+      updateData.shiftEndTime !== userData?.shiftEndTime
+    ) {
+      Object.assign(
+        newErrors,
+        validateShiftTimes(updateData.shiftStartTime, updateData.shiftEndTime)
+      )
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -176,6 +213,11 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
         changedData.contractStartDate = updateData.contractStartDate
       if (updateData.contractEndDate !== toDateOnly(userData?.contractEndDate))
         changedData.contractEndDate = updateData.contractEndDate
+      for (const field of SHIFT_FIELDS) {
+        if (updateData[field] !== userData?.[field]) {
+          ;(changedData as Record<string, unknown>)[field] = updateData[field]
+        }
+      }
 
       const response = await fetch(`/api/users/${id}`, {
         method: 'PUT',
@@ -597,6 +639,21 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                         </div>
                       </div>
                     </div>
+                  )}
+
+                  {updateData.role === 'EMPLOYEE' && updateData.shift && (
+                    <ShiftConfigForm
+                      shift={updateData.shift}
+                      shiftStartTime={updateData.shiftStartTime || ''}
+                      shiftEndTime={updateData.shiftEndTime || ''}
+                      workingDaysPerWeek={updateData.workingDaysPerWeek || 5}
+                      allowFlexibleHours={!!updateData.allowFlexibleHours}
+                      contractType={userData.contractType}
+                      errors={errors}
+                      onChange={(field, value) =>
+                        setUpdateData((prev) => ({ ...prev, [field]: value }))
+                      }
+                    />
                   )}
 
                   {/* Endereço */}

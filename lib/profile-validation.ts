@@ -73,6 +73,7 @@ export const PROFILE_MESSAGES = {
   shiftRequired: 'Selecione o turno em que você faz o estágio.',
   shiftStartRequired: 'Informe o horário de início do turno no formato HH:MM (ex.: 08:00).',
   shiftEndRequired: 'Informe o horário de fim do turno no formato HH:MM (ex.: 12:00).',
+  workingDaysRange: 'Informe de 1 a 7 dias de estágio por semana.',
   shiftEndBeforeStart:
     'O horário de fim precisa ser depois do horário de início. Exemplo: início 08:00, fim 12:00.',
 } as const
@@ -98,7 +99,7 @@ export interface ProfileFormValues {
 
 export const PHONE_PATTERN = /^\(\d{2}\)\s\d{4,5}-\d{4}$/
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
+export const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
 
 const isBlank = (value: string | null | undefined) => !value || !value.trim()
 
@@ -215,19 +216,76 @@ export function validateProfileForm(
     if (isBlank(values.shift)) {
       errors.shift = PROFILE_MESSAGES.shiftRequired
     }
-    if (isBlank(values.shiftStartTime) || !TIME_PATTERN.test(values.shiftStartTime!)) {
-      errors.shiftStartTime = PROFILE_MESSAGES.shiftStartRequired
-    }
-    if (isBlank(values.shiftEndTime) || !TIME_PATTERN.test(values.shiftEndTime!)) {
-      errors.shiftEndTime = PROFILE_MESSAGES.shiftEndRequired
-    } else if (
-      !errors.shiftStartTime &&
-      values.shiftStartTime &&
-      values.shiftEndTime! <= values.shiftStartTime
-    ) {
-      errors.shiftEndTime = PROFILE_MESSAGES.shiftEndBeforeStart
-    }
+    Object.assign(errors, validateShiftTimes(values.shiftStartTime, values.shiftEndTime))
   }
 
+  return errors
+}
+
+/**
+ * Valida o par início/fim do turno (HH:MM, fim depois do início). Usada no
+ * cadastro, na tela "Meu perfil" e na API, para as mensagens serem as mesmas.
+ */
+export function validateShiftTimes(
+  start: string | null | undefined,
+  end: string | null | undefined
+): Record<string, string> {
+  const errors: Record<string, string> = {}
+  if (isBlank(start) || !TIME_PATTERN.test(start!)) {
+    errors.shiftStartTime = PROFILE_MESSAGES.shiftStartRequired
+  }
+  if (isBlank(end) || !TIME_PATTERN.test(end!)) {
+    errors.shiftEndTime = PROFILE_MESSAGES.shiftEndRequired
+  } else if (!errors.shiftStartTime && end! <= start!) {
+    errors.shiftEndTime = PROFILE_MESSAGES.shiftEndBeforeStart
+  }
+  return errors
+}
+
+/**
+ * Campos que o próprio aluno (EMPLOYEE) pode alterar depois do cadastro, pela
+ * tela "Meu perfil". Contrato, setor, matrícula, nome, e-mail, nível de
+ * acesso e status continuam exclusivos da administração.
+ */
+export const SELF_EDITABLE_PROFILE_FIELDS = [
+  'phone',
+  'address',
+  'emergencyContact',
+  'emergencyPhone',
+  'shift',
+  'shiftStartTime',
+  'shiftEndTime',
+  'workingDaysPerWeek',
+] as const
+
+export interface SelfProfileValues {
+  phone: string
+  address: string
+  emergencyContact: string
+  emergencyPhone: string
+  shiftStartTime: string
+  shiftEndTime: string
+  workingDaysPerWeek: number
+}
+
+/** Validação da tela "Meu perfil" (aluno editando os próprios dados). */
+export function validateSelfProfileForm(values: SelfProfileValues): Record<string, string> {
+  const errors: Record<string, string> = {}
+  if (!PHONE_PATTERN.test(values.phone.trim())) errors.phone = PROFILE_MESSAGES.phoneFormat
+  if (values.address.trim().length < 10) errors.address = PROFILE_MESSAGES.addressTooShort
+  if (!values.emergencyContact.trim()) {
+    errors.emergencyContact = PROFILE_MESSAGES.emergencyContactRequired
+  }
+  if (!PHONE_PATTERN.test(values.emergencyPhone.trim())) {
+    errors.emergencyPhone = PROFILE_MESSAGES.phoneFormat
+  }
+  if (
+    !Number.isInteger(values.workingDaysPerWeek) ||
+    values.workingDaysPerWeek < 1 ||
+    values.workingDaysPerWeek > 7
+  ) {
+    errors.workingDaysPerWeek = PROFILE_MESSAGES.workingDaysRange
+  }
+  Object.assign(errors, validateShiftTimes(values.shiftStartTime, values.shiftEndTime))
   return errors
 }

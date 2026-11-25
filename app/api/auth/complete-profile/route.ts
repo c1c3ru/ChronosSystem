@@ -7,7 +7,11 @@ import { getContractTypeConfig } from '@/lib/contract-types'
 import { getShiftStartTime } from '@/lib/shift-validation'
 import { authLogger } from '@/lib/logger'
 import { z } from 'zod'
-import { PROFILE_FIELD_LABELS, PROFILE_MESSAGES } from '@/lib/profile-validation'
+import {
+  PROFILE_FIELD_LABELS,
+  PROFILE_MESSAGES,
+  validateShiftTimes,
+} from '@/lib/profile-validation'
 import { isValidContractDate } from '@/lib/contract-date'
 
 const isoDateString = (requiredMessage: string = PROFILE_MESSAGES.dateInvalid) =>
@@ -49,6 +53,8 @@ const completeProfileSchema = z.object({
       errorMap: () => ({ message: PROFILE_MESSAGES.shiftRequired }),
     })
     .optional(),
+  shiftStartTime: z.string().optional().nullable(),
+  shiftEndTime: z.string().optional().nullable(),
   workingDaysPerWeek: z.number().int().positive().optional(),
   allowFlexibleHours: z.boolean().optional(),
 })
@@ -108,6 +114,8 @@ export async function POST(request: NextRequest) {
       siapeNumber,
       contractType,
       shift,
+      shiftStartTime,
+      shiftEndTime,
       workingDaysPerWeek,
       allowFlexibleHours,
     } = parsedBody.data
@@ -153,6 +161,13 @@ export async function POST(request: NextRequest) {
       fieldErrors.siapeNumber = PROFILE_MESSAGES.siapeFormat
     }
 
+    // Horário digitado pelo aluno. Antes era descartado e o sistema gravava
+    // sempre o padrão do turno; agora vale o que ele informou (se informou).
+    const hasCustomShiftTimes = !!shiftStartTime || !!shiftEndTime
+    if (hasCustomShiftTimes) {
+      Object.assign(fieldErrors, validateShiftTimes(shiftStartTime, shiftEndTime))
+    }
+
     if (Object.keys(fieldErrors).length > 0) {
       return validationErrorResponse(fieldErrors)
     }
@@ -184,7 +199,9 @@ export async function POST(request: NextRequest) {
 
     // Obter horários padrão do turno
     const finalShift = shift || 'MORNING'
-    const shiftTimes = getShiftStartTime(finalShift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
+    const shiftTimes = hasCustomShiftTimes
+      ? { start: shiftStartTime!, end: shiftEndTime! }
+      : getShiftStartTime(finalShift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
 
     // Atualizar usuário
     const updatedUser = await prisma.user.update({
