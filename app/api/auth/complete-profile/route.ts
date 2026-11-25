@@ -7,6 +7,13 @@ import { getContractTypeConfig } from '@/lib/contract-types'
 import { getShiftStartTime } from '@/lib/shift-validation'
 import { authLogger } from '@/lib/logger'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
+import {
+  sortSchedule,
+  summarizeSchedule,
+  validateWeeklySchedule,
+  type WeeklySchedule,
+} from '@/lib/weekly-schedule'
 import {
   PROFILE_FIELD_LABELS,
   PROFILE_MESSAGES,
@@ -55,6 +62,11 @@ const completeProfileSchema = z.object({
     .optional(),
   shiftStartTime: z.string().optional().nullable(),
   shiftEndTime: z.string().optional().nullable(),
+  weeklySchedule: z
+    .array(z.object({ day: z.number().int().min(0).max(6), start: z.string(), end: z.string() }))
+    .max(7)
+    .optional()
+    .nullable(),
   workingDaysPerWeek: z.number().int().positive().optional(),
   allowFlexibleHours: z.boolean().optional(),
 })
@@ -116,6 +128,7 @@ export async function POST(request: NextRequest) {
       shift,
       shiftStartTime,
       shiftEndTime,
+      weeklySchedule,
       workingDaysPerWeek,
       allowFlexibleHours,
     } = parsedBody.data
@@ -163,7 +176,14 @@ export async function POST(request: NextRequest) {
 
     // Horário digitado pelo aluno. Antes era descartado e o sistema gravava
     // sempre o padrão do turno; agora vale o que ele informou (se informou).
-    const hasCustomShiftTimes = !!shiftStartTime || !!shiftEndTime
+    // Horário por dia da semana (quando enviado, prevalece sobre o horário único).
+    let schedule: WeeklySchedule | null = null
+    if (weeklySchedule) {
+      const scheduleErrors = validateWeeklySchedule(weeklySchedule)
+      Object.assign(fieldErrors, scheduleErrors)
+      if (Object.keys(scheduleErrors).length === 0) schedule = sortSchedule(weeklySchedule)
+    }
+    const hasCustomShiftTimes = !schedule && (!!shiftStartTime || !!shiftEndTime)
     if (hasCustomShiftTimes) {
       Object.assign(fieldErrors, validateShiftTimes(shiftStartTime, shiftEndTime))
     }
@@ -199,9 +219,12 @@ export async function POST(request: NextRequest) {
 
     // Obter horários padrão do turno
     const finalShift = shift || 'MORNING'
-    const shiftTimes = hasCustomShiftTimes
-      ? { start: shiftStartTime!, end: shiftEndTime! }
-      : getShiftStartTime(finalShift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
+    const summary = schedule ? summarizeSchedule(schedule) : null
+    const shiftTimes = summary
+      ? { start: summary.shiftStartTime, end: summary.shiftEndTime }
+      : hasCustomShiftTimes
+        ? { start: shiftStartTime!, end: shiftEndTime! }
+        : getShiftStartTime(finalShift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID')
 
     // Atualizar usuário
     const updatedUser = await prisma.user.update({
@@ -225,7 +248,8 @@ export async function POST(request: NextRequest) {
         shift: finalShift,
         shiftStartTime: shiftTimes.start,
         shiftEndTime: shiftTimes.end,
-        workingDaysPerWeek: workingDaysPerWeek || 5,
+        workingDaysPerWeek: summary?.workingDaysPerWeek ?? (workingDaysPerWeek || 5),
+        weeklySchedule: schedule ? (schedule as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
         allowFlexibleHours: allowFlexibleHours || false,
         role: newRole, // Atualizar role baseado no SIAPE
         profileComplete: true,

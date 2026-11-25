@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { scheduleForDay } from '@/lib/weekly-schedule'
 
 // GET /api/reports/frequency - Dados de frequência
 
@@ -48,6 +49,20 @@ function isLate(entryTime: Date, expectedStartTime: string): boolean {
   return entryTime.getTime() > expectedTime.getTime() + toleranceMs
 }
 
+/** Início do turno no dia da entrada (o horário pode variar por dia da semana). */
+function expectedStartFor(
+  user: {
+    shiftStartTime: string
+    shiftEndTime: string
+    workingDaysPerWeek: number
+    weeklySchedule: unknown
+  },
+  entry: Date
+): string {
+  const d = entry.getUTCDay() // timestamps em fake-UTC (ver lib/timezone.ts)
+  return scheduleForDay(user, d === 0 ? 6 : d - 1)?.start ?? user.shiftStartTime
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -72,6 +87,9 @@ export async function GET(request: NextRequest) {
         email: true,
         role: true,
         shiftStartTime: true,
+        shiftEndTime: true,
+        workingDaysPerWeek: true,
+        weeklySchedule: true,
         contractStartDate: true,
         attendanceRecords: {
           where: {
@@ -127,7 +145,7 @@ export async function GET(request: NextRequest) {
         // Verificar atraso
         if (dayRecords.entries.length > 0) {
           const firstEntry = dayRecords.entries[0]
-          if (isLate(firstEntry, user.shiftStartTime)) {
+          if (isLate(firstEntry, expectedStartFor(user, firstEntry))) {
             lateCount++
           }
         }
@@ -187,6 +205,9 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               shiftStartTime: true,
+              shiftEndTime: true,
+              workingDaysPerWeek: true,
+              weeklySchedule: true,
             },
           },
         },
@@ -232,8 +253,7 @@ export async function GET(request: NextRequest) {
         recordsByDay.forEach((dayRecords) => {
           if (dayRecords.entries.length > 0) {
             const firstEntry = dayRecords.entries[0]
-            const shiftStartTime = records[0].user.shiftStartTime
-            if (isLate(firstEntry, shiftStartTime)) {
+            if (isLate(firstEntry, expectedStartFor(records[0].user, firstEntry))) {
               lateRecords++
             }
           }

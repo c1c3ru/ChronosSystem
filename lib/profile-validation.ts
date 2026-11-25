@@ -26,6 +26,7 @@ export const PROFILE_FIELD_LABELS: Record<string, string> = {
   shiftStartTime: 'Horário de início do turno',
   shiftEndTime: 'Horário de fim do turno',
   workingDaysPerWeek: 'Dias de trabalho por semana',
+  weeklySchedule: 'Dias e horários de estágio',
 }
 
 /**
@@ -36,7 +37,8 @@ export const PROFILE_FIELD_DOM_IDS: Record<string, string> = {
   shift: 'shift-type',
   shiftStartTime: 'shift-start-time',
   shiftEndTime: 'shift-end-time',
-  workingDaysPerWeek: 'working-days',
+  workingDaysPerWeek: 'shift-days',
+  weeklySchedule: 'shift-days',
 }
 
 export const PROFILE_MESSAGES = {
@@ -256,6 +258,7 @@ export const SELF_EDITABLE_PROFILE_FIELDS = [
   'shiftStartTime',
   'shiftEndTime',
   'workingDaysPerWeek',
+  'weeklySchedule',
 ] as const
 
 export interface SelfProfileValues {
@@ -263,12 +266,12 @@ export interface SelfProfileValues {
   address: string
   emergencyContact: string
   emergencyPhone: string
-  shiftStartTime: string
-  shiftEndTime: string
-  workingDaysPerWeek: number
 }
 
-/** Validação da tela "Meu perfil" (aluno editando os próprios dados). */
+/**
+ * Validação dos contatos na tela "Meu perfil". O horário semanal é validado
+ * por `validateWeeklySchedule` (lib/weekly-schedule.ts).
+ */
 export function validateSelfProfileForm(values: SelfProfileValues): Record<string, string> {
   const errors: Record<string, string> = {}
   if (!PHONE_PATTERN.test(values.phone.trim())) errors.phone = PROFILE_MESSAGES.phoneFormat
@@ -279,13 +282,5 @@ export function validateSelfProfileForm(values: SelfProfileValues): Record<strin
   if (!PHONE_PATTERN.test(values.emergencyPhone.trim())) {
     errors.emergencyPhone = PROFILE_MESSAGES.phoneFormat
   }
-  if (
-    !Number.isInteger(values.workingDaysPerWeek) ||
-    values.workingDaysPerWeek < 1 ||
-    values.workingDaysPerWeek > 7
-  ) {
-    errors.workingDaysPerWeek = PROFILE_MESSAGES.workingDaysRange
-  }
-  Object.assign(errors, validateShiftTimes(values.shiftStartTime, values.shiftEndTime))
   return errors
 }

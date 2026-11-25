@@ -24,7 +24,6 @@ import { getNowInFortaleza } from '@/lib/timezone'
 import {
   computeTodaySummary,
   formatShiftRange,
-  isPresumedWorkday,
   minutesToPercent,
   minutesToTime,
   plannedShiftMinutes,
@@ -35,6 +34,12 @@ import {
   type TodayStatus,
   type TodaySummary,
 } from '@/lib/schedule-status'
+import {
+  describeDays,
+  isUniformSchedule,
+  resolveWeeklySchedule,
+  scheduleForDay,
+} from '@/lib/weekly-schedule'
 import {
   formatContractDate,
   getContractExpiration,
@@ -49,6 +54,7 @@ interface ScheduleEmployee {
   shiftStartTime: string
   shiftEndTime: string
   workingDaysPerWeek: number
+  weeklySchedule?: unknown
   weeklyHours?: number | null
   allowFlexibleHours?: boolean
   contractStartDate: string | null
@@ -146,12 +152,18 @@ function getInitials(name: string | null, email: string) {
   return email[0].toUpperCase()
 }
 
-function workingDaysLabel(n: number) {
-  const days = Math.min(Math.max(n, 0), 7)
-  if (days === 5) return 'Seg–Sex'
-  if (days === 0) return 'sem dias'
-  if (days === 1) return 'Seg'
-  return `Seg–${DAYS[days - 1]}`
+/** "Seg a Sex", "Seg, Qua e Sex" — a partir do horário por dia (ou do antigo). */
+function workingDaysLabel(emp: ScheduleEmployee) {
+  const days = resolveWeeklySchedule(emp).map((d) => d.day)
+  return days.length === 0 ? 'sem dias' : describeDays(days)
+}
+
+/** Faixa exibida na ficha: a única ou "varia por dia". */
+function scheduleRangeLabel(emp: ScheduleEmployee) {
+  const schedule = resolveWeeklySchedule(emp)
+  if (schedule.length > 0 && !isUniformSchedule(schedule)) return 'horário varia por dia'
+  const first = schedule[0]
+  return first ? `${first.start}–${first.end}` : `${emp.shiftStartTime}–${emp.shiftEndTime}`
 }
 
 export default function SchedulePage() {
@@ -269,7 +281,10 @@ export default function SchedulePage() {
   const allCollapsed = deptNames.length > 0 && deptNames.every((d) => collapsedDepts[d])
 
   // Sáb/Dom só aparecem quando alguém da lista trabalha nesses dias.
-  const maxDays = filtered.reduce((m, e) => Math.max(m, Math.min(e.workingDaysPerWeek, 7)), 5)
+  const maxDays = filtered.reduce(
+    (m, e) => Math.max(m, ...resolveWeeklySchedule(e).map((d) => d.day + 1)),
+    5
+  )
   const visibleDays = DAYS.slice(0, maxDays)
 
   const counts = filtered.reduce(
@@ -581,7 +596,6 @@ export default function SchedulePage() {
                       emps.map((emp, idx) => {
                         const summary = summaries[emp.id]
                         const style = shiftStyle(emp.shift)
-                        const range = formatShiftRange(emp.shiftStartTime, emp.shiftEndTime)
                         const expiration = getContractExpiration(
                           emp.contractStartDate,
                           emp.contractEndDate,
@@ -603,7 +617,7 @@ export default function SchedulePage() {
                             {view === 'WEEK' ? (
                               <div className="flex-1 flex">
                                 {visibleDays.map((day, dayIdx) => {
-                                  const works = isPresumedWorkday(dayIdx, emp.workingDaysPerWeek)
+                                  const works = scheduleForDay(emp, dayIdx)
                                   return (
                                     <div
                                       key={day}
@@ -614,9 +628,9 @@ export default function SchedulePage() {
                                       {works ? (
                                         <span
                                           className={`px-2 py-1 rounded-md border text-xs font-mono font-semibold whitespace-nowrap ${style.pill}`}
-                                          title={`${DAYS[dayIdx]}: ${emp.shiftStartTime}–${emp.shiftEndTime} (${style.label})`}
+                                          title={`${DAYS[dayIdx]}: ${works.start}–${works.end} (${style.label})`}
                                         >
-                                          {range}
+                                          {formatShiftRange(works.start, works.end)}
                                         </span>
                                       ) : (
                                         <span
@@ -634,6 +648,7 @@ export default function SchedulePage() {
                               <>
                                 <TodayTrack
                                   emp={emp}
+                                  todayIndex={todayIndex}
                                   summary={summary}
                                   style={style}
                                   nowPercent={nowPercent}
@@ -750,10 +765,10 @@ function EmployeeCell({
         <p className="flex items-center gap-1 text-xs text-neutral-300 font-mono truncate">
           <span className={`w-[0.375rem] h-[0.375rem] rounded-full flex-shrink-0 ${style.dot}`} />
           <Clock className="h-3 w-3 text-neutral-500 flex-shrink-0" />
-          {emp.shiftStartTime}–{emp.shiftEndTime}
+          {scheduleRangeLabel(emp)}
         </p>
         <p className="text-[11px] text-neutral-400 truncate">
-          {workingDaysLabel(emp.workingDaysPerWeek)}
+          {workingDaysLabel(emp)}
           {emp.weeklyHours ? ` · ${emp.weeklyHours}h/sem` : ''}
           {emp.allowFlexibleHours ? ' · flexível' : ''}
         </p>
@@ -769,22 +784,32 @@ function EmployeeCell({
 
 function TodayTrack({
   emp,
+  todayIndex,
   summary,
   style,
   nowPercent,
   nowInRange,
 }: {
   emp: ScheduleEmployee
+  todayIndex: number
   summary: TodaySummary | undefined
   style: (typeof SHIFT_STYLES)[string]
   nowPercent: number
   nowInRange: boolean
 }) {
-  const planned = plannedShiftMinutes(emp)
+  // Horário de hoje (pode variar por dia); em dia sem expediente, mostra o primeiro.
+  const today = scheduleForDay(emp, todayIndex)
+  const times = today ?? { start: emp.shiftStartTime, end: emp.shiftEndTime }
+  const planned = plannedShiftMinutes({
+    ...emp,
+    shiftStartTime: times.start,
+    shiftEndTime: times.end,
+    weeklySchedule: undefined,
+  })!
   const left = minutesToPercent(planned.startMin)
   const width = Math.max(0, minutesToPercent(planned.endMin) - left)
-  const range = formatShiftRange(emp.shiftStartTime, emp.shiftEndTime)
-  const showPlanned = summary?.isWorkday ?? true
+  const range = formatShiftRange(times.start, times.end)
+  const showPlanned = summary?.isWorkday ?? today !== null
 
   return (
     <div className="flex-1 relative mr-3 min-h-[3.5rem]">
@@ -802,7 +827,7 @@ function TodayTrack({
         <div
           className={`absolute top-2 h-6 rounded-md border border-dashed flex items-center justify-center overflow-hidden ${style.bar}`}
           style={{ left: `${left}%`, width: `${width}%` }}
-          title={`Horário cadastrado: ${emp.shiftStartTime}–${emp.shiftEndTime} (${style.label})`}
+          title={`Horário cadastrado hoje: ${times.start}–${times.end} (${style.label})`}
         >
           <span className="text-[11px] font-mono font-semibold text-neutral-100 px-1 truncate">
             {range}
@@ -811,7 +836,7 @@ function TodayTrack({
       )}
       {!showPlanned && (
         <span className="absolute top-3 left-1 text-[11px] text-neutral-500">
-          Sem expediente hoje ({range})
+          Sem expediente hoje
         </span>
       )}
 

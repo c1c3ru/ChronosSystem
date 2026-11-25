@@ -18,7 +18,13 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { ShiftConfigForm } from '@/components/ShiftConfigForm'
-import { SELF_EDITABLE_PROFILE_FIELDS, validateSelfProfileForm } from '@/lib/profile-validation'
+import { validateSelfProfileForm } from '@/lib/profile-validation'
+import {
+  describeSchedule,
+  resolveWeeklySchedule,
+  validateWeeklySchedule,
+  type WeeklySchedule,
+} from '@/lib/weekly-schedule'
 
 type Shift = 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID'
 
@@ -28,10 +34,19 @@ interface ProfileForm {
   emergencyContact: string
   emergencyPhone: string
   shift: Shift
-  shiftStartTime: string
-  shiftEndTime: string
-  workingDaysPerWeek: number
+  weeklySchedule: WeeklySchedule
 }
+
+const FORM_FIELDS = [
+  'phone',
+  'address',
+  'emergencyContact',
+  'emergencyPhone',
+  'shift',
+  'weeklySchedule',
+] as const
+
+const sameValue = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
 interface ProfileInfo {
   name: string
@@ -48,14 +63,24 @@ const FIELD_DOM_IDS: Record<string, string> = {
   emergencyContact: 'profile-emergency-contact',
   emergencyPhone: 'profile-emergency-phone',
   shift: 'shift-type',
-  shiftStartTime: 'shift-start-time',
-  shiftEndTime: 'shift-end-time',
-  workingDaysPerWeek: 'working-days',
+  weeklySchedule: 'shift-days',
+}
+
+/** Elemento do primeiro erro; erros por dia ("weeklySchedule.2") vão para o campo do dia. */
+function firstErrorElement(errors: Record<string, string>): HTMLElement | null {
+  for (const field of Object.keys(FIELD_DOM_IDS)) {
+    if (errors[field]) return document.getElementById(FIELD_DOM_IDS[field])
+  }
+  const dayKey = Object.keys(errors)
+    .filter((k) => k.startsWith('weeklySchedule.'))
+    .sort()[0]
+  if (!dayKey) return null
+  const day = dayKey.split('.')[1]
+  return document.getElementById(`shift-end-${day}`) || document.getElementById('shift-end-time')
 }
 
 function focusFirstError(errors: Record<string, string>) {
-  const first = Object.keys(FIELD_DOM_IDS).find((field) => errors[field])
-  const el = first ? document.getElementById(FIELD_DOM_IDS[first]) : null
+  const el = firstErrorElement(errors)
   if (!el) return
   el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el.focus({ preventScroll: true })
@@ -96,7 +121,7 @@ export default function EmployeeProfilePage() {
   )
 
   const isDirty =
-    !!form && !!initial && SELF_EDITABLE_PROFILE_FIELDS.some((key) => form[key] !== initial[key])
+    !!form && !!initial && FORM_FIELDS.some((key) => !sameValue(form[key], initial[key]))
 
   const markSaved = () => {
     setSaved(true)
@@ -128,9 +153,12 @@ export default function EmployeeProfilePage() {
           emergencyContact: data.emergencyContact || '',
           emergencyPhone: data.emergencyPhone || '',
           shift: (data.shift as Shift) || 'MORNING',
-          shiftStartTime: data.shiftStartTime || '08:00',
-          shiftEndTime: data.shiftEndTime || '12:00',
-          workingDaysPerWeek: data.workingDaysPerWeek || 5,
+          weeklySchedule: resolveWeeklySchedule({
+            shiftStartTime: data.shiftStartTime || '08:00',
+            shiftEndTime: data.shiftEndTime || '12:00',
+            workingDaysPerWeek: data.workingDaysPerWeek || 5,
+            weeklySchedule: data.weeklySchedule,
+          }),
         }
         setInfo({
           name: data.name,
@@ -155,14 +183,17 @@ export default function EmployeeProfilePage() {
     }
   }, [session?.user?.id])
 
-  const setField = (field: string, value: string | number | boolean) => {
+  const setField = (field: string, value: unknown) => {
     setSaved(false)
     setForm((prev) => (prev ? { ...prev, [field]: value } : prev))
     setErrors((prev) => {
-      if (!prev[field] && !prev.general) return prev
       const next = { ...prev }
       delete next[field]
       delete next.general
+      // Mexeu no horário: limpa os erros por dia também.
+      if (field === 'weeklySchedule' || field === 'shift') {
+        for (const key of Object.keys(next)) if (key.startsWith('weeklySchedule')) delete next[key]
+      }
       return next
     })
   }
@@ -172,7 +203,10 @@ export default function EmployeeProfilePage() {
     if (!form || !initial || !session?.user?.id) return
 
     toast.dismiss() // não empilhar avisos de tentativas anteriores
-    const validation = validateSelfProfileForm(form)
+    const validation = {
+      ...validateSelfProfileForm(form),
+      ...validateWeeklySchedule(form.weeklySchedule),
+    }
     const errorCount = Object.keys(validation).length
     if (errorCount > 0) {
       showErrors(
@@ -186,8 +220,8 @@ export default function EmployeeProfilePage() {
     setErrors({})
 
     const changed: Partial<ProfileForm> = {}
-    for (const key of SELF_EDITABLE_PROFILE_FIELDS) {
-      if (form[key] !== initial[key]) {
+    for (const key of FORM_FIELDS) {
+      if (!sameValue(form[key], initial[key])) {
         ;(changed as Record<string, unknown>)[key] =
           typeof form[key] === 'string' ? (form[key] as string).trim() : form[key]
       }
@@ -218,8 +252,8 @@ export default function EmployeeProfilePage() {
       toast.success('Perfil salvo!', {
         id: toastId,
         description:
-          changed.shiftStartTime || changed.shiftEndTime || changed.shift
-            ? `Novo horário: ${form.shiftStartTime} às ${form.shiftEndTime}. Já vale para os próximos registros e avisos.`
+          changed.weeklySchedule || changed.shift
+            ? `Novo horário: ${describeSchedule(form.weeklySchedule)}. Já vale para os próximos registros e avisos.`
             : 'Suas informações foram atualizadas.',
       })
     } catch {
@@ -403,16 +437,13 @@ export default function EmployeeProfilePage() {
 
             <ShiftConfigForm
               shift={form.shift}
-              shiftStartTime={form.shiftStartTime}
-              shiftEndTime={form.shiftEndTime}
-              workingDaysPerWeek={form.workingDaysPerWeek}
+              weeklySchedule={form.weeklySchedule}
               allowFlexibleHours={false}
               contractType={info?.contractType}
               onChange={setField}
               errors={errors}
               showFlexibleHours={false}
             />
-            {fieldError('workingDaysPerWeek')}
 
             {/* Barra de salvar fixa no rodapé: no celular o botão fica sempre ao
                 alcance do polegar e o status (não salvo / salvando / salvo)

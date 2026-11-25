@@ -12,6 +12,12 @@ import { toast } from 'sonner'
 import { UserExistsAlert } from '@/components/UserExistsAlert'
 import { ShiftConfigForm } from '@/components/ShiftConfigForm'
 import {
+  summarizeSchedule,
+  uniformSchedule,
+  validateWeeklySchedule,
+  type WeeklySchedule,
+} from '@/lib/weekly-schedule'
+import {
   CONTRACT_TYPES,
   getContractTypeConfig,
   validateWorkingHours,
@@ -42,6 +48,7 @@ interface ProfileData {
   shiftStartTime?: string
   shiftEndTime?: string
   workingDaysPerWeek?: number
+  weeklySchedule?: WeeklySchedule
   allowFlexibleHours?: boolean
 }
 
@@ -59,6 +66,7 @@ const INITIAL_PROFILE: ProfileData = {
   shiftStartTime: '08:00',
   shiftEndTime: '12:00',
   workingDaysPerWeek: 5,
+  weeklySchedule: uniformSchedule('08:00', '12:00', [0, 1, 2, 3, 4]),
   allowFlexibleHours: false,
 }
 
@@ -67,7 +75,11 @@ const fieldDomId = (field: string) => PROFILE_FIELD_DOM_IDS[field] || field
 /** Leva o aluno até o campo com erro (rola e foca). */
 function focusField(field: string): boolean {
   if (typeof document === 'undefined') return false
-  const el = document.getElementById(fieldDomId(field))
+  // Erro de um dia do horário semanal ("weeklySchedule.2"): campo do dia ou o campo único.
+  const day = field.startsWith('weeklySchedule.') ? field.split('.')[1] : null
+  const el = day
+    ? document.getElementById(`shift-end-${day}`) || document.getElementById('shift-end-time')
+    : document.getElementById(fieldDomId(field))
   if (!el) return false
   el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el.focus()
@@ -157,6 +169,9 @@ export default function CompleteProfilePage() {
     const newErrors = validateProfileForm(profileData, {
       isEmployee: effectiveRole === 'EMPLOYEE',
     })
+    if (effectiveRole === 'EMPLOYEE') {
+      Object.assign(newErrors, validateWeeklySchedule(profileData.weeklySchedule ?? []))
+    }
     setErrors(newErrors)
     return newErrors
   }, [profileData, effectiveRole])
@@ -979,12 +994,27 @@ export default function CompleteProfilePage() {
                   shift={
                     (profileData.shift as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'HYBRID') || 'MORNING'
                   }
-                  shiftStartTime={profileData.shiftStartTime || '08:00'}
-                  shiftEndTime={profileData.shiftEndTime || '12:00'}
-                  workingDaysPerWeek={profileData.workingDaysPerWeek || 5}
+                  weeklySchedule={profileData.weeklySchedule ?? []}
                   allowFlexibleHours={profileData.allowFlexibleHours || false}
                   contractType={profileData.contractType}
                   onChange={(field, value) => {
+                    if (field === 'weeklySchedule') {
+                      // Mantém os campos de horário único em sincronia (validação e API antigas).
+                      const schedule = value as WeeklySchedule
+                      const summary = summarizeSchedule(schedule)
+                      setField('weeklySchedule', schedule)
+                      setField('shiftStartTime', summary.shiftStartTime)
+                      setField('shiftEndTime', summary.shiftEndTime)
+                      setField('workingDaysPerWeek', summary.workingDaysPerWeek)
+                      setErrors((prev) => {
+                        const next = { ...prev }
+                        for (const key of Object.keys(next)) {
+                          if (key.startsWith('weeklySchedule')) delete next[key]
+                        }
+                        return next
+                      })
+                      return
+                    }
                     setField(field as keyof ProfileData, value as never)
                   }}
                   errors={errors}

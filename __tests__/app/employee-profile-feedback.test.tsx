@@ -70,7 +70,7 @@ describe('Meu perfil - feedback ao salvar', () => {
     expect(await screen.findByRole('button', { name: /Salvo!/ })).toBeInTheDocument()
     expect(toast.success).toHaveBeenCalledWith(
       'Perfil salvo!',
-      expect.objectContaining({ description: expect.stringContaining('14:00 às 18:00') })
+      expect.objectContaining({ description: expect.stringContaining('Seg a Sex, 14:00–18:00') })
     )
   })
 
@@ -99,5 +99,31 @@ describe('Meu perfil - feedback ao salvar', () => {
       'Não foi possível salvar',
       expect.objectContaining({ description: 'Falha no servidor' })
     )
+  })
+
+  it('escolhe os dias e um horário diferente em cada dia', async () => {
+    mockApi({ ok: true, body: {} })
+    render(<EmployeeProfilePage />)
+    // Desmarca terça e quinta
+    fireEvent.click(await screen.findByRole('button', { name: 'Terça' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Quinta' }))
+    expect(screen.getByRole('button', { name: 'Terça' })).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.click(screen.getByLabelText(/Horário diferente em cada dia/))
+    fireEvent.change(screen.getByLabelText('Início', { selector: '#shift-start-2' }), {
+      target: { value: '14:00' },
+    })
+    fireEvent.change(screen.getByLabelText('Fim', { selector: '#shift-end-2' }), {
+      target: { value: '18:00' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/ }))
+
+    await screen.findByRole('button', { name: /Salvo!/ })
+    const put = mockedFetch.mock.calls.find(([, init]) => init?.method === 'PUT')!
+    expect(JSON.parse(put[1].body).weeklySchedule).toEqual([
+      { day: 0, start: '13:00', end: '17:00' },
+      { day: 2, start: '14:00', end: '18:00' },
+      { day: 4, start: '13:00', end: '17:00' },
+    ])
   })
 })

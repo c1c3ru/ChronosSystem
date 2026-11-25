@@ -8,6 +8,8 @@
  * "agora" deve vir de `getNowInFortaleza()`.
  */
 
+import { scheduleForDay } from '@/lib/weekly-schedule'
+
 /** Tolerância de atraso, a mesma de `lib/admin-report-metrics.ts`. */
 export const LATE_GRACE_MIN = 15
 
@@ -26,6 +28,8 @@ export interface ShiftInfo {
   shiftStartTime: string
   shiftEndTime: string
   workingDaysPerWeek: number
+  /** Horário por dia (lib/weekly-schedule.ts); ausente = horário único antigo. */
+  weeklySchedule?: unknown
 }
 
 export interface DayRecord {
@@ -99,10 +103,16 @@ export function formatShiftRange(start: string, end: string): string {
   return `${short(start)}–${short(end)}`
 }
 
+/** Horário de um dia (0 = segunda); sem dia informado, o horário único. */
+function dayTimes(shift: ShiftInfo, dayIdx?: number): { start: string; end: string } | null {
+  if (dayIdx === undefined) return { start: shift.shiftStartTime, end: shift.shiftEndTime }
+  return scheduleForDay(shift, dayIdx)
+}
+
 /** Fim do turno em minutos; turno que vira a meia-noite é cortado em 24h. */
-function shiftEndMinutes(shift: ShiftInfo): number {
-  const start = timeToMinutes(shift.shiftStartTime)
-  const end = timeToMinutes(shift.shiftEndTime)
+function shiftEndMinutes(times: { start: string; end: string }): number {
+  const start = timeToMinutes(times.start)
+  const end = timeToMinutes(times.end)
   return end > start ? end : 24 * 60
 }
 
@@ -144,7 +154,8 @@ export function computeTodaySummary(
   nowFortaleza: Date
 ): TodaySummary {
   const nowMin = nowFortaleza.getUTCHours() * 60 + nowFortaleza.getUTCMinutes()
-  const isWorkday = isPresumedWorkday(weekdayIndex(nowFortaleza), shift.workingDaysPerWeek)
+  const today = dayTimes(shift, weekdayIndex(nowFortaleza))
+  const isWorkday = today !== null
   const sorted = [...records].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   )
@@ -155,7 +166,7 @@ export function computeTodaySummary(
   const firstEntryMin = firstEntry ? minutesOfDay(firstEntry.timestamp) : null
   const lastExitMin = lastExit ? minutesOfDay(lastExit.timestamp) : null
 
-  const startMin = timeToMinutes(shift.shiftStartTime)
+  const startMin = timeToMinutes(today?.start ?? shift.shiftStartTime)
   const isLate = isWorkday && firstEntryMin !== null && firstEntryMin > startMin + LATE_GRACE_MIN
 
   const last = sorted[sorted.length - 1]
@@ -169,7 +180,15 @@ export function computeTodaySummary(
   return { status, isWorkday, isLate, firstEntryMin, lastExitMin, segments }
 }
 
-/** Fim do turno planejado, exposto para a linha do tempo. */
-export function plannedShiftMinutes(shift: ShiftInfo): { startMin: number; endMin: number } {
-  return { startMin: timeToMinutes(shift.shiftStartTime), endMin: shiftEndMinutes(shift) }
+/**
+ * Turno planejado para a linha do tempo. Com `dayIdx`, usa o horário daquele
+ * dia (null se não trabalha); sem, o horário único.
+ */
+export function plannedShiftMinutes(
+  shift: ShiftInfo,
+  dayIdx?: number
+): { startMin: number; endMin: number } | null {
+  const times = dayTimes(shift, dayIdx)
+  if (!times) return null
+  return { startMin: timeToMinutes(times.start), endMin: shiftEndMinutes(times) }
 }

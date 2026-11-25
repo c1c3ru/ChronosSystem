@@ -148,4 +148,45 @@ describe('PUT /api/users/[id] - aluno editando o próprio perfil', () => {
       })
     )
   })
+
+  it('salva horário por dia e deriva os campos antigos', async () => {
+    const response = await PUT(
+      request({
+        weeklySchedule: [
+          { day: 2, start: '14:00', end: '18:00' },
+          { day: 0, start: '08:00', end: '12:00' },
+        ],
+      }),
+      params
+    )
+    expect(response.status).toBe(200)
+    const data = mockedUpdate.mock.calls[0][0].data
+    expect(data.weeklySchedule).toEqual([
+      { day: 0, start: '08:00', end: '12:00' },
+      { day: 2, start: '14:00', end: '18:00' },
+    ])
+    expect(data).toEqual(
+      expect.objectContaining({
+        shiftStartTime: '08:00',
+        shiftEndTime: '12:00',
+        workingDaysPerWeek: 2,
+      })
+    )
+    const details = mockedAudit.mock.calls[0][0].data.details as string
+    expect(details).toContain('Seg a Sex, 13:00–17:00')
+    expect(details).toContain('Seg 08:00–12:00 · Qua 14:00–18:00')
+  })
+
+  it('recusa horário por dia sem nenhum dia ou com fim antes do início', async () => {
+    let response = await PUT(request({ weeklySchedule: [] }), params)
+    expect(response.status).toBe(400)
+    response = await PUT(
+      request({ weeklySchedule: [{ day: 3, start: '14:00', end: '13:00' }] }),
+      params
+    )
+    expect(response.status).toBe(400)
+    const body = await response.json()
+    expect(body.fieldErrors['weeklySchedule.3']).toMatch(/^Quinta:/)
+    expect(mockedUpdate).not.toHaveBeenCalled()
+  })
 })
