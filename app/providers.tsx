@@ -11,16 +11,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <SessionProvider>
         <OfflineIndicator />
         {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: 'hsl(var(--card))',
-              color: 'hsl(var(--card-foreground))',
-              border: '1px solid hsl(var(--border))',
-            },
-          }}
-        />
+        {/* Cores por tipo (verde = sucesso, vermelho = erro). O estilo antigo usava
+            hsl() sobre variáveis RGB e deixava todo aviso bege com texto amarelo. */}
+        <Toaster position="top-right" theme="dark" richColors closeButton />
       </SessionProvider>
     </ErrorBoundary>
   )
